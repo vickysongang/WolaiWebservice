@@ -30,12 +30,14 @@ func NewRouter() *mux.Router {
 }
 
 var routes = Routes{
-	Route{
-		"V1LoginPOST",
-		"POST",
-		"/v1/login",
-		V1LoginPOST,
-	},
+	/*
+		Route{
+			"V1LoginPOST",
+			"POST",
+			"/v1/login",
+			V1LoginPOST,
+		},
+	*/
 	Route{
 		"V1LoginGET",
 		"GET",
@@ -48,12 +50,14 @@ var routes = Routes{
 		"/v1/login/{phone}",
 		V1LoginGETURL,
 	},
-	Route{
-		"V1UpdateProfilePOST",
-		"POST",
-		"/v1/update_profile",
-		V1UpdateProfilePOST,
-	},
+	/*
+		Route{
+			"V1UpdateProfilePOST",
+			"POST",
+			"/v1/update_profile",
+			V1UpdateProfilePOST,
+		},
+	*/
 	Route{
 		"V1UpdateProfileGET",
 		"GET",
