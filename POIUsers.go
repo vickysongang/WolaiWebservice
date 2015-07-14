@@ -1,9 +1,9 @@
 package main
 
 import (
-	"encoding/json"
-
 	"database/sql"
+	"encoding/json"
+	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -28,7 +28,8 @@ func POIUserLogin(phone string) (int, string) {
 	dbClient, err := sql.Open("mysql", DB_URL_DEV)
 	if err != nil {
 		//TODO: Replace by proper error handling
-		panic(err.Error())
+		//panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	defer dbClient.Close()
 
@@ -36,13 +37,15 @@ func POIUserLogin(phone string) (int, string) {
 		`SELECT id, nickname, avatar, gender FROM users WHERE phone = ?`)
 	if err != nil {
 		//TODO: Replace by proper error handling
-		panic(err.Error())
+		//panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	defer stmtQuery.Close()
 
 	rowsUser, err := stmtQuery.Query(phone)
 	if err != nil {
-		panic(err.Error())
+		//panic(err.Error())
+		fmt.Println(err.Error())
 	}
 
 	for rowsUser.Next() {
@@ -64,7 +67,8 @@ func POIUserLogin(phone string) (int, string) {
 		`INSERT INTO users(phone) VALUES(?)`)
 	if err != nil {
 		//TODO: Replace by proper error handling
-		panic(err.Error())
+		//panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	defer stmtInsert.Close()
 
@@ -78,7 +82,8 @@ func POIUserUpdateProfile(userId int, nickname string, avatar string, gender int
 	dbClient, err := sql.Open("mysql", DB_URL_DEV)
 	if err != nil {
 		//TODO: Replace by proper error handling
-		panic(err.Error())
+		//panic(err.Error())
+		fmt.Println(err.Error())
 	}
 	defer dbClient.Close()
 
@@ -86,7 +91,8 @@ func POIUserUpdateProfile(userId int, nickname string, avatar string, gender int
 		`UPDATE users SET nickname = ?, avatar = ?, gender = ? WHERE id = ?`)
 	if err != nil {
 		//TODO: Replace by proper error handling
-		panic(err.Error())
+		//panic(err.Error())
+		fmt.Println(err.Error())
 	}
 
 	_, err = stmtUpdate.Exec(nickname, avatar, gender, userId)
