@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func echoHandler(w http.ResponseWriter, r *http.Request) {
+func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		//log.Println(err)
