@@ -42,8 +42,8 @@ func PostPOIFeedComment(userId int, feedId string, timestamp float64, text strin
 	feedComment.CreateTimestamp = timestamp
 	feedComment.Text = text
 
-	tmpList := make([]string, 9)
-	json.Unmarshal([]byte(imageStr), tmpList)
+	tmpList := make([]string, 0)
+	json.Unmarshal([]byte(imageStr), &tmpList)
 	feedComment.ImageList = tmpList
 
 	if replyToId != 0 {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/satori/go.uuid"
 )
 
@@ -65,14 +66,20 @@ func PostPOIFeed(userId int, timestamp float64, feedType int, text string, image
 	feed.FeedType = feedType
 	feed.Text = text
 
-	tmpList := make([]string, 9)
-	json.Unmarshal([]byte(imageStr), tmpList)
+	tmpList := make([]string, 0)
+	err := json.Unmarshal([]byte(imageStr), &tmpList)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	feed.ImageList = tmpList
 
 	feed.OriginFeed = RedisManager.LoadFeed(originFeedId)
 
 	tmpMap := make(map[string]string)
-	json.Unmarshal([]byte(attributeStr), tmpMap)
+	err = json.Unmarshal([]byte(attributeStr), &tmpMap)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	feed.Attribute = tmpMap
 
 	RedisManager.SaveFeed(&feed)
