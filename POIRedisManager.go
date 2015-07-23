@@ -204,7 +204,7 @@ func (rm *POIRedisManager) LikeFeedComment(feedComment *POIFeedComment, user *PO
 		return
 	}
 
-	feedComentZ := redis.Z{Member: feedComment.Id, Score: timestamp}
+	feedCommentZ := redis.Z{Member: feedComment.Id, Score: timestamp}
 	userZ := redis.Z{Member: strconv.FormatInt(int64(user.UserId), 10), Score: timestamp}
 
 	_ = rm.redisClient.ZAdd(FEED_COMMENT_LIKE, userZ)
