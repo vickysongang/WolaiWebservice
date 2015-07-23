@@ -5,6 +5,16 @@ import (
 	"net/http"
 )
 
+var (
+	DbManager    POIDBManager
+	RedisManager POIRedisManager
+)
+
+func init() {
+	DbManager = NewPOIDBManager()
+	RedisManager = NewPOIRedisManager()
+}
+
 func main() {
 	router := NewRouter()
 

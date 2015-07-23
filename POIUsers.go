@@ -1,11 +1,7 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
-	"fmt"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 type POIUser struct {
@@ -22,81 +18,26 @@ func NewPOIUser(userId int, nickname string, avatar string, gender int) POIUser 
 	return user
 }
 
-const DB_URL_DEV = "poi:public11223@tcp(poianalytics.mysql.rds.aliyuncs.com:3306)/wolai"
+func LoadPOIUser(userId int) *POIUser {
+	return DbManager.GetUserById(userId)
+}
 
 func POIUserLogin(phone string) (int, string) {
-	dbClient, err := sql.Open("mysql", DB_URL_DEV)
-	if err != nil {
-		//TODO: Replace by proper error handling
-		//panic(err.Error())
-		fmt.Println(err.Error())
-	}
-	defer dbClient.Close()
+	user := DbManager.GetUserByPhone(phone)
 
-	stmtQuery, err := dbClient.Prepare(
-		`SELECT id, nickname, avatar, gender FROM users WHERE phone = ?`)
-	if err != nil {
-		//TODO: Replace by proper error handling
-		//panic(err.Error())
-		fmt.Println(err.Error())
-	}
-	defer stmtQuery.Close()
-
-	rowsUser, err := stmtQuery.Query(phone)
-	if err != nil {
-		//panic(err.Error())
-		fmt.Println(err.Error())
-	}
-
-	for rowsUser.Next() {
-		var id int
-		var nickname string
-		var avatar string
-		var gender int
-
-		err = rowsUser.Scan(&id, &nickname, &avatar, &gender)
-		if err == sql.ErrNoRows {
-			return 2, "no result"
-		}
-
-		content, _ := json.Marshal(NewPOIUser(id, nickname, avatar, gender))
+	if user != nil {
+		content, _ := json.Marshal(user)
 		return 0, string(content)
 	}
 
-	stmtInsert, err := dbClient.Prepare(
-		`INSERT INTO users(phone) VALUES(?)`)
-	if err != nil {
-		//TODO: Replace by proper error handling
-		//panic(err.Error())
-		fmt.Println(err.Error())
-	}
-	defer stmtInsert.Close()
-
-	result, _ := stmtInsert.Exec(phone)
-	id2, _ := result.LastInsertId()
-	content2, _ := json.Marshal(NewPOIUser(int(id2), "", "", 0))
-	return 1001, string(content2)
+	userId := DbManager.InsertUser(phone)
+	content, _ := json.Marshal(NewPOIUser(int(userId), "", "", 0))
+	return 1001, string(content)
 }
 
 func POIUserUpdateProfile(userId int, nickname string, avatar string, gender int) (int, string) {
-	dbClient, err := sql.Open("mysql", DB_URL_DEV)
-	if err != nil {
-		//TODO: Replace by proper error handling
-		//panic(err.Error())
-		fmt.Println(err.Error())
-	}
-	defer dbClient.Close()
+	DbManager.UpdateUserInfo(userId, nickname, avatar, gender)
 
-	stmtUpdate, err := dbClient.Prepare(
-		`UPDATE users SET nickname = ?, avatar = ?, gender = ? WHERE id = ?`)
-	if err != nil {
-		//TODO: Replace by proper error handling
-		//panic(err.Error())
-		fmt.Println(err.Error())
-	}
-
-	_, err = stmtUpdate.Exec(nickname, avatar, gender, userId)
-
-	content, _ := json.Marshal(NewPOIUser(userId, nickname, avatar, gender))
+	content, _ := json.Marshal(LoadPOIUser(userId))
 	return 0, string(content)
 }

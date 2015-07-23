@@ -16,7 +16,7 @@ func V1LoginPOST(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := r.PostForm
 	phone := vars.Get("phone")
-	//fmt.Fprintf(w, "[POST]/v1/login phone: %s", phone)
+	//fmt.Println("[POST]/v1/login phone: %s", phone)
 	status, content := POIUserLogin(phone)
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 
@@ -29,7 +29,7 @@ func V1LoginGET(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := r.Form
 	phone := vars["phone"][0]
-	//fmt.Fprintf(w, "[GET]/v1/login phone: %s", phone)
+	//fmt.Println("[GET]/v1/login phone: %s", phone)
 	status, content := POIUserLogin(phone)
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 
@@ -38,7 +38,7 @@ func V1LoginGET(w http.ResponseWriter, r *http.Request) {
 func V1LoginGETURL(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	phone := vars["phone"]
-	//fmt.Fprintf(w, "[GET URL]/v1/login phone: %s", phone)
+	//fmt.Println("[GET URL]/v1/login phone: %s", phone)
 	status, content := POIUserLogin(phone)
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 }
@@ -53,7 +53,7 @@ func V1UpdateProfilePOST(w http.ResponseWriter, r *http.Request) {
 	nickname := vars.Get("nickname")
 	avatar := vars.Get("avatar")
 	genderStr := vars.Get("gender")
-	//fmt.Fprintf(w, "[POST]/v1/update_profile user_id: %s, nickname: %s, avatar: %s, gender: %s", userId, nickname, avatar, gender)
+	//fmt.Println("[POST]/v1/update_profile user_id: %s, nickname: %s, avatar: %s, gender: %s", userIdStr, nickname, avatar, genderStr)
 
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
