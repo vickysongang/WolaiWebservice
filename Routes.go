@@ -70,4 +70,10 @@ var routes = Routes{
 		"/v1/update_profile/{userId}/{nickname}/{avatar}/{gender}",
 		V1UpdateProfileGETURL,
 	},
+	Route{
+		"V1WebSocket",
+		"GET",
+		"/V1/ws",
+		V1WebSocketHandler,
+	},
 }

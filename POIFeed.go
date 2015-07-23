@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	MICROBLOG = iota
-	SHARE     = iota
-	REPOST    = iota
+	FEEDTYPE_MICROBLOG = iota
+	FEEDTYPE_SHARE     = iota
+	FEEDTYPE_REPOST    = iota
 )
 
 type POIFeed struct {

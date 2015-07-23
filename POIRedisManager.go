@@ -31,6 +31,7 @@ const FEED_COMMENT_LIKE = "comment:like:"
 
 const USER_FEED = "user:feed:"
 const USER_FEED_LIKE = "user:feed_like:"
+const USER_FEED_COMMENT = "user:feed_comment:"
 const USER_FEED_COMMENT_LIKE = "user:feed_comment_like:"
 const USER_FEED_FAV = "user:feed_fav:"
 
@@ -159,4 +160,80 @@ func (rm *POIRedisManager) SaveFeedComment(feedComment *POIFeedComment) {
 	}
 
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "like_count", strconv.FormatInt(int64(feedComment.LikeCount), 10))
+}
+
+func (rm *POIRedisManager) PostFeed(feed *POIFeed) {
+	if feed == nil {
+		return
+	}
+
+	feedZ := redis.Z{Member: feed.Id, Score: feed.CreateTimestamp}
+
+	_ = rm.redisClient.ZAdd(FEEDFLOW_ATRIUM, feedZ)
+	_ = rm.redisClient.ZAdd(USER_FEED, feedZ)
+	if feed.FeedType == FEEDTYPE_REPOST {
+		_ = rm.redisClient.ZAdd(FEED_REPOST, feedZ)
+	}
+}
+
+func (rm *POIRedisManager) PostFeedComment(feedComment *POIFeedComment) {
+	if feedComment == nil {
+		return
+	}
+
+	feedCommentZ := redis.Z{Member: feedComment.Id, Score: feedComment.CreateTimestamp}
+
+	_ = rm.redisClient.ZAdd(FEED_COMMENT, feedCommentZ)
+	_ = rm.redisClient.ZAdd(USER_FEED_COMMENT, feedCommentZ)
+}
+
+func (rm *POIRedisManager) LikeFeed(feed *POIFeed, user *POIUser, timestamp float64) {
+	if feed == nil || user == nil {
+		return
+	}
+
+	feedZ := redis.Z{Member: feed.Id, Score: timestamp}
+	userZ := redis.Z{Member: strconv.FormatInt(int64(user.UserId), 10), Score: timestamp}
+
+	_ = rm.redisClient.ZAdd(FEED_LIKE, userZ)
+	_ = rm.redisClient.ZAdd(USER_FEED_LIKE, feedZ)
+}
+
+func (rm *POIRedisManager) LikeFeedComment(feedComment *POIFeedComment, user *POIUser, timestamp float64) {
+	if feedComment == nil || user == nil {
+		return
+	}
+
+	feedComentZ := redis.Z{Member: feedComment.Id, Score: timestamp}
+	userZ := redis.Z{Member: strconv.FormatInt(int64(user.UserId), 10), Score: timestamp}
+
+	_ = rm.redisClient.ZAdd(FEED_COMMENT_LIKE, userZ)
+	_ = rm.redisClient.ZAdd(USER_FEED_COMMENT_LIKE, feedCommentZ)
+}
+
+func (rm *POIRedisManager) FavoriteFeed(feed *POIFeed, user *POIUser, timestamp float64) {
+	if feed == nil || user == nil {
+		return
+	}
+
+	feedZ := redis.Z{Member: feed.Id, Score: timestamp}
+	userZ := redis.Z{Member: strconv.FormatInt(int64(user.UserId), 10), Score: timestamp}
+
+	_ = rm.redisClient.ZAdd(FEED_FAV, userZ)
+	_ = rm.redisClient.ZAdd(USER_FEED_FAV, feedZ)
+}
+
+// TO BE IMPLEMENTED
+func (rm *POIRedisManager) HasLikedFeed(feed *POIFeed, user *POIUser) bool {
+	return false
+}
+
+// TO BE IMPLEMENTED
+func (rm *POIRedisManager) HasLikedFeedComment(feedComment *POIFeedComment, user *POIUser) bool {
+	return false
+}
+
+// TO BE IMPLEMENTED
+func (rm *POIRedisManager) HasFavedFeed(feed *POIFeed, user *POIUser) bool {
+	return false
 }
