@@ -122,7 +122,7 @@ func (rm *POIRedisManager) LoadFeedComment(feedCommentId string) *POIFeedComment
 func (rm *POIRedisManager) SaveFeed(feed *POIFeed) {
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "id", feed.Id)
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "creator_id", strconv.FormatInt(int64(feed.Creator.UserId), 10))
-	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "create_timestamp", strconv.FormatFloat(feed.CreateTimestamp, 'f', 5, 64))
+	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "create_timestamp", strconv.FormatFloat(feed.CreateTimestamp, 'f', 6, 64))
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "feed_type", strconv.FormatInt(int64(feed.FeedType), 10))
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "text", feed.Text)
 
@@ -147,7 +147,7 @@ func (rm *POIRedisManager) SaveFeedComment(feedComment *POIFeedComment) {
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "id", feedComment.Id)
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "feed_id", feedComment.FeedId)
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "creator_id", strconv.FormatInt(int64(feedComment.Creator.UserId), 10))
-	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "create_timestamp", strconv.FormatFloat(feedComment.CreateTimestamp, 'f', 5, 64))
+	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "create_timestamp", strconv.FormatFloat(feedComment.CreateTimestamp, 'f', 6, 64))
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "text", feedComment.Text)
 
 	tmpBytes, _ := json.Marshal(feedComment.ImageList)
@@ -236,4 +236,30 @@ func (rm *POIRedisManager) HasLikedFeedComment(feedComment *POIFeedComment, user
 // TO BE IMPLEMENTED
 func (rm *POIRedisManager) HasFavedFeed(feed *POIFeed, user *POIUser) bool {
 	return false
+}
+
+func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int) POIFeeds {
+	feedZs := rm.redisClient.ZRevRangeWithScores(FEEDFLOW_ATRIUM, int64(start), int64(stop)).Val()
+
+	feeds := make([]POIFeed, len(feedZs))
+
+	for i := range feedZs {
+		str, _ := feedZs[i].Member.(string)
+		feeds[i] = *rm.LoadFeed(str)
+	}
+
+	return feeds
+}
+
+func (rm *POIRedisManager) GetFeedComment(feedId string, start, stop int) POIFeedComments {
+	feedCommentZs := rm.redisClient.ZRevRangeWithScores(FEED_COMMENT, int64(start), int64(stop)).Val()
+
+	feedComments := make([]POIFeedComment, len(feedCommentZs))
+
+	for i := range feedCommentZs {
+		str, _ := feedCommentZs[i].Member.(string)
+		feedComments[i] = *rm.LoadFeedComment(str)
+	}
+
+	return feedComments
 }

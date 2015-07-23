@@ -21,9 +21,10 @@ func (dbm *POIDBManager) GetUserById(userId int) *POIUser {
 	var nickname string
 	var avatar string
 	var gender int
+	var accessRight int
 
 	stmtQuery, err := dbm.dbClient.Prepare(
-		`SELECT nickname, avatar, gender FROM users WHERE id = ?`)
+		`SELECT nickname, avatar, gender, access_right FROM users WHERE id = ?`)
 	defer stmtQuery.Close()
 
 	if err != nil {
@@ -31,9 +32,9 @@ func (dbm *POIDBManager) GetUserById(userId int) *POIUser {
 	}
 
 	rowUser := stmtQuery.QueryRow(userId)
-	err = rowUser.Scan(&nickname, &avatar, &gender)
+	err = rowUser.Scan(&nickname, &avatar, &gender, &accessRight)
 
-	user := NewPOIUser(userId, nickname, avatar, gender)
+	user := NewPOIUser(userId, nickname, avatar, gender, accessRight)
 	return &user
 }
 
@@ -42,9 +43,10 @@ func (dbm *POIDBManager) GetUserByPhone(phone string) *POIUser {
 	var nickname string
 	var avatar string
 	var gender int
+	var accessRight int
 
 	stmtQuery, err := dbm.dbClient.Prepare(
-		`SELECT id, nickname, avatar, gender FROM users WHERE phone = ?`)
+		`SELECT id, nickname, avatar, gender, access_right FROM users WHERE phone = ?`)
 	defer stmtQuery.Close()
 
 	if err != nil {
@@ -52,12 +54,12 @@ func (dbm *POIDBManager) GetUserByPhone(phone string) *POIUser {
 	}
 
 	rowUser := stmtQuery.QueryRow(phone)
-	err = rowUser.Scan(&userId, &nickname, &avatar, &gender)
+	err = rowUser.Scan(&userId, &nickname, &avatar, &gender, &accessRight)
 	if err != nil {
 		return nil
 	}
 
-	user := NewPOIUser(userId, nickname, avatar, gender)
+	user := NewPOIUser(userId, nickname, avatar, gender, accessRight)
 	return &user
 }
 
@@ -87,6 +89,6 @@ func (dbm *POIDBManager) UpdateUserInfo(userId int, nickname string, avatar stri
 
 	_, err = stmtUpdate.Exec(nickname, avatar, gender, userId)
 
-	user := NewPOIUser(userId, nickname, avatar, gender)
+	user := NewPOIUser(userId, nickname, avatar, gender, 3)
 	return &user
 }

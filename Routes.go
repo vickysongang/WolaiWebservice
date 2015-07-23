@@ -73,7 +73,50 @@ var routes = Routes{
 	Route{
 		"V1WebSocket",
 		"GET",
-		"/V1/ws",
+		"/v1/ws",
 		V1WebSocketHandler,
+	},
+
+	Route{
+		"V1AtriumGET",
+		"GET",
+		"/v1/atrium",
+		V1AtriumGET,
+	},
+	Route{
+		"V1FeedPostGET",
+		"GET",
+		"/v1/feed/post",
+		V1FeedPostGET,
+	},
+	Route{
+		"V1FeedDetailGET",
+		"GET",
+		"/v1/feed/detail",
+		V1FeedDetailGET,
+	},
+	Route{
+		"V1FeedCommentGET",
+		"GET",
+		"/v1/feed/comment",
+		V1FeedCommentGET,
+	},
+	Route{
+		"V1FeedLikeGET",
+		"GET",
+		"/v1/feed/like",
+		V1FeedLikeGET,
+	},
+	Route{
+		"V1FeedFavGET",
+		"GET",
+		"/v1/feed/favorite",
+		V1FeedFavGET,
+	},
+	Route{
+		"V1FeedCommentLikeGET",
+		"GET",
+		"/v1/feed/comment/like",
+		V1FeedCommentLikeGET,
 	},
 }

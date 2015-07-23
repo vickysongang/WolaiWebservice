@@ -1,20 +1,21 @@
 package main
 
 import (
-	"encoding/json"
+	_ "encoding/json"
 )
 
 type POIUser struct {
-	UserId   int    `json:"userId"`
-	Nickname string `json:"nickname"`
-	Avatar   string `json:"avatar"`
-	Gender   int    `json:"gender"`
+	UserId      int    `json:"userId"`
+	Nickname    string `json:"nickname"`
+	Avatar      string `json:"avatar"`
+	Gender      int    `json:"gender"`
+	AccessRight int    `json:"accessRight"`
 }
 
 type POIUsers []POIUser
 
-func NewPOIUser(userId int, nickname string, avatar string, gender int) POIUser {
-	user := POIUser{userId, nickname, avatar, gender}
+func NewPOIUser(userId int, nickname string, avatar string, gender int, accessRight int) POIUser {
+	user := POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender, AccessRight: accessRight}
 	return user
 }
 
@@ -22,22 +23,21 @@ func LoadPOIUser(userId int) *POIUser {
 	return DbManager.GetUserById(userId)
 }
 
-func POIUserLogin(phone string) (int, string) {
+func POIUserLogin(phone string) (int, *POIUser) {
 	user := DbManager.GetUserByPhone(phone)
 
 	if user != nil {
-		content, _ := json.Marshal(user)
-		return 0, string(content)
+		return 0, user
 	}
 
 	userId := DbManager.InsertUser(phone)
-	content, _ := json.Marshal(NewPOIUser(int(userId), "", "", 0))
-	return 1001, string(content)
+	newUser := NewPOIUser(int(userId), "", "", 0, 3)
+	return 1001, &newUser
 }
 
-func POIUserUpdateProfile(userId int, nickname string, avatar string, gender int) (int, string) {
+func POIUserUpdateProfile(userId int, nickname string, avatar string, gender int) (int, *POIUser) {
 	DbManager.UpdateUserInfo(userId, nickname, avatar, gender)
 
-	content, _ := json.Marshal(LoadPOIUser(userId))
-	return 0, string(content)
+	user := LoadPOIUser(userId)
+	return 0, user
 }

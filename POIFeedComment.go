@@ -1,7 +1,8 @@
 package main
 
 import (
-	_ "encoding/json"
+	"encoding/json"
+	"github.com/satori/go.uuid"
 )
 
 type POIFeedComment struct {
@@ -13,10 +14,61 @@ type POIFeedComment struct {
 	ImageList       []string `json:"imageList,omitempty"`
 	ReplyTo         *POIUser `json:"replyTo,omitempty"`
 	LikeCount       int      `json:"likeCount"`
+	HasLiked        bool     `json:"hasLiked"`
 }
 
 type POIFeedComments []POIFeedComment
 
 func NewPOIFeedComment() POIFeedComment {
 	return POIFeedComment{ImageList: make([]string, 9)}
+}
+
+func (f *POIFeedComment) IncreaseLike() {
+	f.LikeCount = f.LikeCount + 1
+}
+
+func PostPOIFeedComment(userId int, feedId string, timestamp float64, text string, imageStr string,
+	replyToId int) *POIFeedComment {
+	feedComment := POIFeedComment{}
+
+	user := DbManager.GetUserById(userId)
+	if user == nil {
+		return nil
+	}
+
+	feedComment.Id = uuid.NewV4().String()
+	feedComment.FeedId = feedId
+	feedComment.Creator = user
+	feedComment.CreateTimestamp = timestamp
+	feedComment.Text = text
+
+	tmpList := make([]string, 9)
+	json.Unmarshal([]byte(imageStr), tmpList)
+	feedComment.ImageList = tmpList
+
+	if replyToId != 0 {
+		feedComment.ReplyTo = DbManager.GetUserById(replyToId)
+	}
+
+	RedisManager.SaveFeedComment(&feedComment)
+	RedisManager.PostFeedComment(&feedComment)
+
+	return &feedComment
+}
+
+func LikePOIFeedComment(userId int, feedCommentId string, timestamp float64) *POIFeedComment {
+	feedComment := RedisManager.LoadFeedComment(feedCommentId)
+	user := DbManager.GetUserById(userId)
+
+	if feedComment == nil || user == nil {
+		return nil
+	}
+
+	if !RedisManager.HasLikedFeedComment(feedComment, user) {
+		feedComment.IncreaseLike()
+		RedisManager.PostFeedComment(feedComment)
+		RedisManager.LikeFeedComment(feedComment, user, timestamp)
+	}
+
+	return feedComment
 }
