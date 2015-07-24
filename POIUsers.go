@@ -30,10 +30,11 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 		return 0, user
 	}
 
-	DbManager.InsertUser(phone)
-	newUser := DbManager.GetUserByPhone(phone)
+	id := DbManager.InsertUser(phone)
 
-	return 1001, newUser
+	newUser := NewPOIUser(id, "", "", 0, 3)
+
+	return 1001, &newUser
 }
 
 func POIUserUpdateProfile(userId int64, nickname string, avatar string, gender int64) (int64, *POIUser) {

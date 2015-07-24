@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -20,8 +20,8 @@ func NewPOIDBManager() POIDBManager {
 func (dbm *POIDBManager) GetUserById(userId int64) *POIUser {
 	var nickname string
 	var avatar string
-	var gender int64
-	var accessRight int64
+	var gender int
+	var accessRight int
 
 	stmtQuery, err := dbm.dbClient.Prepare(
 		`SELECT nickname, avatar, gender, access_right FROM users WHERE id = ?`)
@@ -34,16 +34,16 @@ func (dbm *POIDBManager) GetUserById(userId int64) *POIUser {
 	rowUser := stmtQuery.QueryRow(userId)
 	err = rowUser.Scan(&nickname, &avatar, &gender, &accessRight)
 
-	user := NewPOIUser(userId, nickname, avatar, gender, accessRight)
+	user := NewPOIUser(int64(userId), nickname, avatar, int64(gender), int64(accessRight))
 	return &user
 }
 
 func (dbm *POIDBManager) GetUserByPhone(phone string) *POIUser {
-	var userId int64
+	var userId int
 	var nickname string
 	var avatar string
-	var gender int64
-	var accessRight int64
+	var gender int
+	var accessRight int
 
 	stmtQuery, err := dbm.dbClient.Prepare(
 		`SELECT id, nickname, avatar, gender, access_right FROM users WHERE phone = ?`)
@@ -56,23 +56,31 @@ func (dbm *POIDBManager) GetUserByPhone(phone string) *POIUser {
 	rowUser := stmtQuery.QueryRow(phone)
 	err = rowUser.Scan(&userId, &nickname, &avatar, &gender, &accessRight)
 	if err != nil {
+		//panic(err.Error())
+		fmt.Println(err.Error())
 		return nil
 	}
 
-	user := NewPOIUser(userId, nickname, avatar, gender, accessRight)
+	user := NewPOIUser(int64(userId), nickname, avatar, int64(gender), int64(accessRight))
 	return &user
 }
 
-func (dbm *POIDBManager) InsertUser(phone string) {
+func (dbm *POIDBManager) InsertUser(phone string) int64 {
 	stmtInsert, err := dbm.dbClient.Prepare(
 		`INSERT INTO users(phone) VALUES(?)`)
 	defer stmtInsert.Close()
-
 	if err != nil {
 		panic(err.Error())
 	}
 
-	stmtInsert.Exec(phone)
+	result, err := stmtInsert.Exec(phone)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	id, _ := result.LastInsertId()
+
+	return id
 }
 
 func (dbm *POIDBManager) UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) *POIUser {
