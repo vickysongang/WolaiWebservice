@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -18,10 +18,10 @@ func NewPOIDBManager() POIDBManager {
 }
 
 func (dbm *POIDBManager) GetUserById(userId int64) *POIUser {
-	var nickname string
-	var avatar string
-	var gender int
-	var accessRight int
+	var nicknameNS sql.NullString
+	var avatarNS sql.NullString
+	var gender int64
+	var accessRight int64
 
 	stmtQuery, err := dbm.dbClient.Prepare(
 		`SELECT nickname, avatar, gender, access_right FROM users WHERE id = ?`)
@@ -32,18 +32,32 @@ func (dbm *POIDBManager) GetUserById(userId int64) *POIUser {
 	}
 
 	rowUser := stmtQuery.QueryRow(userId)
-	err = rowUser.Scan(&nickname, &avatar, &gender, &accessRight)
+	err = rowUser.Scan(&nicknameNS, &avatarNS, &gender, &accessRight)
 
-	user := NewPOIUser(int64(userId), nickname, avatar, int64(gender), int64(accessRight))
+	if err == sql.ErrNoRows {
+		return nil
+	}
+
+	nickname := ""
+	if nicknameNS.Valid {
+		nickname = nicknameNS.String
+	}
+
+	avatar := ""
+	if avatarNS.Valid {
+		avatar = avatarNS.String
+	}
+
+	user := NewPOIUser(int64(userId), nickname, avatar, gender, accessRight)
 	return &user
 }
 
 func (dbm *POIDBManager) GetUserByPhone(phone string) *POIUser {
-	var userId int
-	var nickname string
-	var avatar string
-	var gender int
-	var accessRight int
+	var userId int64
+	var nicknameNS sql.NullString
+	var avatarNS sql.NullString
+	var gender int64
+	var accessRight int64
 
 	stmtQuery, err := dbm.dbClient.Prepare(
 		`SELECT id, nickname, avatar, gender, access_right FROM users WHERE phone = ?`)
@@ -54,14 +68,22 @@ func (dbm *POIDBManager) GetUserByPhone(phone string) *POIUser {
 	}
 
 	rowUser := stmtQuery.QueryRow(phone)
-	err = rowUser.Scan(&userId, &nickname, &avatar, &gender, &accessRight)
-	if err != nil {
-		//panic(err.Error())
-		fmt.Println(err.Error())
+	err = rowUser.Scan(&userId, &nicknameNS, &avatarNS, &gender, &accessRight)
+	if err == sql.ErrNoRows {
 		return nil
 	}
 
-	user := NewPOIUser(int64(userId), nickname, avatar, int64(gender), int64(accessRight))
+	nickname := ""
+	if nicknameNS.Valid {
+		nickname = nicknameNS.String
+	}
+
+	avatar := ""
+	if avatarNS.Valid {
+		avatar = avatarNS.String
+	}
+
+	user := NewPOIUser(userId, nickname, avatar, gender, accessRight)
 	return &user
 }
 
