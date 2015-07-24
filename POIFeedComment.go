@@ -13,7 +13,7 @@ type POIFeedComment struct {
 	Text            string   `json:"text"`
 	ImageList       []string `json:"imageList,omitempty"`
 	ReplyTo         *POIUser `json:"replyTo,omitempty"`
-	LikeCount       int      `json:"likeCount"`
+	LikeCount       int64    `json:"likeCount"`
 	HasLiked        bool     `json:"hasLiked"`
 }
 
@@ -27,8 +27,8 @@ func (f *POIFeedComment) IncreaseLike() {
 	f.LikeCount = f.LikeCount + 1
 }
 
-func PostPOIFeedComment(userId int, feedId string, timestamp float64, text string, imageStr string,
-	replyToId int) *POIFeedComment {
+func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text string, imageStr string,
+	replyToId int64) *POIFeedComment {
 	feedComment := POIFeedComment{}
 
 	user := DbManager.GetUserById(userId)
@@ -56,7 +56,7 @@ func PostPOIFeedComment(userId int, feedId string, timestamp float64, text strin
 	return &feedComment
 }
 
-func LikePOIFeedComment(userId int, feedCommentId string, timestamp float64) *POIFeedComment {
+func LikePOIFeedComment(userId int64, feedCommentId string, timestamp float64) *POIFeedComment {
 	feedComment := RedisManager.LoadFeedComment(feedCommentId)
 	user := DbManager.GetUserById(userId)
 

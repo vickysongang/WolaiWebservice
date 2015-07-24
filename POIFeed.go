@@ -16,14 +16,14 @@ type POIFeed struct {
 	Id              string            `json:"id"`
 	Creator         *POIUser          `json:"creatorInfo"`
 	CreateTimestamp float64           `json:"createTimestamp"`
-	FeedType        int               `json:"feedType"`
+	FeedType        int64             `json:"feedType"`
 	Text            string            `json:"text"`
 	ImageList       []string          `json:"imageList,omitempty"`
 	OriginFeed      *POIFeed          `json:"originFeedInfo,omitempty"`
 	Attribute       map[string]string `json:"attribute,omitempty"`
-	LikeCount       int               `json:"likeCount"`
-	CommentCount    int               `json:"commentCount"`
-	RepostCount     int               `json:"repostCount"`
+	LikeCount       int64             `json:"likeCount"`
+	CommentCount    int64             `json:"commentCount"`
+	RepostCount     int64             `json:"repostCount"`
 	HasLiked        bool              `json:"hasLiked"`
 	HasFaved        bool              `json:"hasFaved"`
 }
@@ -51,7 +51,7 @@ type POIFeedDetail struct {
 	Comments POIFeedComments `json:"comments"`
 }
 
-func PostPOIFeed(userId int, timestamp float64, feedType int, text string, imageStr string,
+func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, imageStr string,
 	originFeedId string, attributeStr string) *POIFeed {
 	feed := POIFeed{}
 
@@ -88,7 +88,7 @@ func PostPOIFeed(userId int, timestamp float64, feedType int, text string, image
 	return &feed
 }
 
-func LikePOIFeed(userId int, feedId string, timestamp float64) *POIFeed {
+func LikePOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 	feed := RedisManager.LoadFeed(feedId)
 	user := DbManager.GetUserById(userId)
 
@@ -105,7 +105,7 @@ func LikePOIFeed(userId int, feedId string, timestamp float64) *POIFeed {
 	return feed
 }
 
-func FavPOIFeed(userId int, feedId string, timestamp float64) *POIFeed {
+func FavPOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 	feed := RedisManager.LoadFeed(feedId)
 	user := DbManager.GetUserById(userId)
 
@@ -120,7 +120,7 @@ func FavPOIFeed(userId int, feedId string, timestamp float64) *POIFeed {
 	return feed
 }
 
-func GetFeedDetail(feedId string, userId int, page int) *POIFeedDetail {
+func GetFeedDetail(feedId string, userId int64, page int64) *POIFeedDetail {
 	feed := RedisManager.LoadFeed(feedId)
 	user := DbManager.GetUserById(userId)
 
@@ -145,7 +145,7 @@ func GetFeedDetail(feedId string, userId int, page int) *POIFeedDetail {
 	return &feedDetail
 }
 
-func GetAtrium(userId int, page int) POIFeeds {
+func GetAtrium(userId int64, page int64) POIFeeds {
 	user := DbManager.GetUserById(userId)
 
 	if user == nil {

@@ -17,11 +17,11 @@ func NewPOIDBManager() POIDBManager {
 	return POIDBManager{dbClient: dbClient}
 }
 
-func (dbm *POIDBManager) GetUserById(userId int) *POIUser {
+func (dbm *POIDBManager) GetUserById(userId int64) *POIUser {
 	var nickname string
 	var avatar string
-	var gender int
-	var accessRight int
+	var gender int64
+	var accessRight int64
 
 	stmtQuery, err := dbm.dbClient.Prepare(
 		`SELECT nickname, avatar, gender, access_right FROM users WHERE id = ?`)
@@ -39,11 +39,11 @@ func (dbm *POIDBManager) GetUserById(userId int) *POIUser {
 }
 
 func (dbm *POIDBManager) GetUserByPhone(phone string) *POIUser {
-	var userId int
+	var userId int64
 	var nickname string
 	var avatar string
-	var gender int
-	var accessRight int
+	var gender int64
+	var accessRight int64
 
 	stmtQuery, err := dbm.dbClient.Prepare(
 		`SELECT id, nickname, avatar, gender, access_right FROM users WHERE phone = ?`)
@@ -63,7 +63,7 @@ func (dbm *POIDBManager) GetUserByPhone(phone string) *POIUser {
 	return &user
 }
 
-func (dbm *POIDBManager) InsertUser(phone string) int {
+func (dbm *POIDBManager) InsertUser(phone string) int64 {
 	stmtInsert, err := dbm.dbClient.Prepare(
 		`INSERT INTO users(phone) VALUES(?)`)
 	defer stmtInsert.Close()
@@ -75,10 +75,10 @@ func (dbm *POIDBManager) InsertUser(phone string) int {
 
 	result, _ := stmtInsert.Exec(phone)
 	id, _ := result.LastInsertId()
-	return int(id)
+	return id
 }
 
-func (dbm *POIDBManager) UpdateUserInfo(userId int, nickname string, avatar string, gender int) *POIUser {
+func (dbm *POIDBManager) UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) *POIUser {
 	stmtUpdate, err := dbm.dbClient.Prepare(
 		`UPDATE users SET nickname = ?, avatar = ?, gender = ? WHERE id = ?`)
 	defer stmtUpdate.Close()

@@ -59,7 +59,7 @@ func V1UpdateProfilePOST(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
-	status, content := POIUserUpdateProfile(int(userId), nickname, avatar, int(gender))
+	status, content := POIUserUpdateProfile(userId, nickname, avatar, gender)
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 
 }
@@ -79,7 +79,7 @@ func V1UpdateProfileGET(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
-	status, content := POIUserUpdateProfile(int(userId), nickname, avatar, int(gender))
+	status, content := POIUserUpdateProfile(userId, nickname, avatar, gender)
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 
 }
@@ -96,7 +96,7 @@ func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
-	status, content := POIUserUpdateProfile(int(userId), nickname, avatar, int(gender))
+	status, content := POIUserUpdateProfile(userId, nickname, avatar, gender)
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 }
 
@@ -117,7 +117,7 @@ func V1AtriumGET(w http.ResponseWriter, r *http.Request) {
 		page, _ = strconv.ParseInt(pageStr, 10, 64)
 	}
 
-	content := GetAtrium(int(userId), int(page))
+	content := GetAtrium(userId, page)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
@@ -157,7 +157,7 @@ func V1FeedPostGET(w http.ResponseWriter, r *http.Request) {
 		attributeStr = vars["attribute"][0]
 	}
 
-	content := PostPOIFeed(int(userId), timestamp, int(feedType), text, imageStr, originFeedId, attributeStr)
+	content := PostPOIFeed(userId, timestamp, feedType, text, imageStr, originFeedId, attributeStr)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
@@ -181,7 +181,7 @@ func V1FeedDetailGET(w http.ResponseWriter, r *http.Request) {
 		page, _ = strconv.ParseInt(pageStr, 10, 64)
 	}
 
-	content := GetFeedDetail(feedId, int(userId), int(page))
+	content := GetFeedDetail(feedId, userId, page)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
@@ -214,7 +214,7 @@ func V1FeedCommentGET(w http.ResponseWriter, r *http.Request) {
 		replyToId, _ = strconv.ParseInt(replyToStr, 10, 64)
 	}
 
-	content := PostPOIFeedComment(int(userId), feedId, timestamp, text, imageStr, int(replyToId))
+	content := PostPOIFeedComment(userId, feedId, timestamp, text, imageStr, replyToId)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 
@@ -236,7 +236,7 @@ func V1FeedLikeGET(w http.ResponseWriter, r *http.Request) {
 
 	feedId := vars["feedId"][0]
 
-	content := LikePOIFeed(int(userId), feedId, timestamp)
+	content := LikePOIFeed(userId, feedId, timestamp)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 
@@ -258,7 +258,7 @@ func V1FeedFavGET(w http.ResponseWriter, r *http.Request) {
 
 	feedId := vars["feedId"][0]
 
-	content := FavPOIFeed(int(userId), feedId, timestamp)
+	content := FavPOIFeed(userId, feedId, timestamp)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
@@ -279,7 +279,7 @@ func V1FeedCommentLikeGET(w http.ResponseWriter, r *http.Request) {
 
 	commentId := vars["commentId"][0]
 
-	content := LikePOIFeedComment(int(userId), commentId, timestamp)
+	content := LikePOIFeedComment(userId, commentId, timestamp)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 

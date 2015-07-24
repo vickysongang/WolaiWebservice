@@ -5,25 +5,25 @@ import (
 )
 
 type POIUser struct {
-	UserId      int    `json:"userId"`
+	UserId      int64  `json:"userId"`
 	Nickname    string `json:"nickname"`
 	Avatar      string `json:"avatar"`
-	Gender      int    `json:"gender"`
-	AccessRight int    `json:"accessRight"`
+	Gender      int64  `json:"gender"`
+	AccessRight int64  `json:"accessRight"`
 }
 
 type POIUsers []POIUser
 
-func NewPOIUser(userId int, nickname string, avatar string, gender int, accessRight int) POIUser {
+func NewPOIUser(userId int64, nickname string, avatar string, gender int64, accessRight int64) POIUser {
 	user := POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender, AccessRight: accessRight}
 	return user
 }
 
-func LoadPOIUser(userId int) *POIUser {
+func LoadPOIUser(userId int64) *POIUser {
 	return DbManager.GetUserById(userId)
 }
 
-func POIUserLogin(phone string) (int, *POIUser) {
+func POIUserLogin(phone string) (int64, *POIUser) {
 	user := DbManager.GetUserByPhone(phone)
 
 	if user != nil {
@@ -31,11 +31,11 @@ func POIUserLogin(phone string) (int, *POIUser) {
 	}
 
 	userId := DbManager.InsertUser(phone)
-	newUser := NewPOIUser(int(userId), "", "", 0, 3)
+	newUser := NewPOIUser(userId, "", "", 0, 3)
 	return 1001, &newUser
 }
 
-func POIUserUpdateProfile(userId int, nickname string, avatar string, gender int) (int, *POIUser) {
+func POIUserUpdateProfile(userId int64, nickname string, avatar string, gender int64) (int64, *POIUser) {
 	DbManager.UpdateUserInfo(userId, nickname, avatar, gender)
 
 	user := LoadPOIUser(userId)
