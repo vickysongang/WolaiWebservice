@@ -10,6 +10,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
+/*
+ * 1.1 Login
+ */
 func V1LoginPOST(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -44,6 +47,9 @@ func V1LoginGETURL(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 }
 
+/*
+ * 1.2 Update Profile
+ */
 func V1UpdateProfilePOST(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {

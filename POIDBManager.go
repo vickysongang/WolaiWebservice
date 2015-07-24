@@ -63,7 +63,7 @@ func (dbm *POIDBManager) GetUserByPhone(phone string) *POIUser {
 	return &user
 }
 
-func (dbm *POIDBManager) InsertUser(phone string) int64 {
+func (dbm *POIDBManager) InsertUser(phone string) {
 	stmtInsert, err := dbm.dbClient.Prepare(
 		`INSERT INTO users(phone) VALUES(?)`)
 	defer stmtInsert.Close()
@@ -72,10 +72,7 @@ func (dbm *POIDBManager) InsertUser(phone string) int64 {
 		panic(err.Error())
 	}
 
-	result, _ := stmtInsert.Exec(phone)
-
-	id, _ := result.LastInsertId()
-	return id
+	stmtInsert.Exec(phone)
 }
 
 func (dbm *POIDBManager) UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) *POIUser {
