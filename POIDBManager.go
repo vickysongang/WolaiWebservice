@@ -71,9 +71,9 @@ func (dbm *POIDBManager) InsertUser(phone string) int64 {
 	if err != nil {
 		panic(err.Error())
 	}
-	defer stmtInsert.Close()
 
 	result, _ := stmtInsert.Exec(phone)
+
 	id, _ := result.LastInsertId()
 	return id
 }

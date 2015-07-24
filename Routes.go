@@ -30,14 +30,21 @@ func NewRouter() *mux.Router {
 }
 
 var routes = Routes{
-	/*
-		Route{
-			"V1LoginPOST",
-			"POST",
-			"/v1/login",
-			V1LoginPOST,
-		},
-	*/
+	// Websocket
+	Route{
+		"V1WebSocket",
+		"GET",
+		"/v1/ws",
+		V1WebSocketHandler,
+	},
+
+	// 1.1 Login
+	Route{
+		"V1LoginPOST",
+		"POST",
+		"/v1/login",
+		V1LoginPOST,
+	},
 	Route{
 		"V1LoginGET",
 		"GET",
@@ -50,14 +57,14 @@ var routes = Routes{
 		"/v1/login/{phone}",
 		V1LoginGETURL,
 	},
-	/*
-		Route{
-			"V1UpdateProfilePOST",
-			"POST",
-			"/v1/update_profile",
-			V1UpdateProfilePOST,
-		},
-	*/
+
+	// 1.2 Update profile
+	Route{
+		"V1UpdateProfilePOST",
+		"POST",
+		"/v1/update_profile",
+		V1UpdateProfilePOST,
+	},
 	Route{
 		"V1UpdateProfileGET",
 		"GET",
@@ -70,49 +77,56 @@ var routes = Routes{
 		"/v1/update_profile/{userId}/{nickname}/{avatar}/{gender}",
 		V1UpdateProfileGETURL,
 	},
-	Route{
-		"V1WebSocket",
-		"GET",
-		"/v1/ws",
-		V1WebSocketHandler,
-	},
 
+	// 2.1 Atrium
 	Route{
 		"V1AtriumGET",
 		"GET",
 		"/v1/atrium",
 		V1AtriumGET,
 	},
+
+	// 2.2 Feed Post
 	Route{
 		"V1FeedPostGET",
 		"GET",
 		"/v1/feed/post",
 		V1FeedPostGET,
 	},
+
+	// 2.3 Feed Detial
 	Route{
 		"V1FeedDetailGET",
 		"GET",
 		"/v1/feed/detail",
 		V1FeedDetailGET,
 	},
-	Route{
-		"V1FeedCommentGET",
-		"GET",
-		"/v1/feed/comment",
-		V1FeedCommentGET,
-	},
+
+	// 2.4 Feed Like
 	Route{
 		"V1FeedLikeGET",
 		"GET",
 		"/v1/feed/like",
 		V1FeedLikeGET,
 	},
+
+	// 2.5 Feed Favorite
 	Route{
 		"V1FeedFavGET",
 		"GET",
 		"/v1/feed/favorite",
 		V1FeedFavGET,
 	},
+
+	// 2.6 Feed Comment
+	Route{
+		"V1FeedCommentGET",
+		"GET",
+		"/v1/feed/comment",
+		V1FeedCommentGET,
+	},
+
+	// 2.7 Feed Comment Like
 	Route{
 		"V1FeedCommentLikeGET",
 		"GET",
