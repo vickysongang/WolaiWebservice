@@ -111,8 +111,11 @@ func V1AtriumGET(w http.ResponseWriter, r *http.Request) {
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
-	pageStr := vars["page"][0]
-	page, _ := strconv.ParseInt(pageStr, 10, 64)
+	var page int64
+	if len(vars["page"][0]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
 
 	content := GetAtrium(int(userId), int(page))
 
@@ -138,9 +141,21 @@ func V1FeedPostGET(w http.ResponseWriter, r *http.Request) {
 	timestamp := float64(timestampMillis) / 1000000.0
 
 	text := vars["text"][0]
-	imageStr := vars["image"][0]
-	originFeedId := vars["originFeedId"][0]
-	attributeStr := vars["attribute"][0]
+
+	imageStr := "[]"
+	if len(vars["image"][0]) > 0 {
+		imageStr = vars["image"][0]
+	}
+
+	originFeedId := ""
+	if len(vars["originFeedId"][0]) > 0 {
+		originFeedId = vars["originFeedId"][0]
+	}
+
+	attributeStr := "{}"
+	if len(vars["attribute"][0]) > 0 {
+		attributeStr = vars["attribute"][0]
+	}
 
 	content := PostPOIFeed(int(userId), timestamp, int(feedType), text, imageStr, originFeedId, attributeStr)
 
@@ -160,8 +175,11 @@ func V1FeedDetailGET(w http.ResponseWriter, r *http.Request) {
 
 	feedId := vars["feedId"][0]
 
-	pageStr := vars["page"][0]
-	page, _ := strconv.ParseInt(pageStr, 10, 64)
+	var page int64
+	if len(vars["page"][0]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
 
 	content := GetFeedDetail(feedId, int(userId), int(page))
 
@@ -184,10 +202,17 @@ func V1FeedCommentGET(w http.ResponseWriter, r *http.Request) {
 
 	feedId := vars["feedId"][0]
 	text := vars["text"][0]
-	imageStr := vars["image"][0]
 
-	replyToStr := vars["replyToId"][0]
-	replyToId, _ := strconv.ParseInt(replyToStr, 10, 64)
+	imageStr := "[]"
+	if len(vars["image"][0]) > 0 {
+		imageStr = vars["image"][0]
+	}
+
+	var replyToId int64
+	if len(vars["replyToId"][0]) > 0 {
+		replyToStr := vars["replyToId"][0]
+		replyToId, _ = strconv.ParseInt(replyToStr, 10, 64)
+	}
 
 	content := PostPOIFeedComment(int(userId), feedId, timestamp, text, imageStr, int(replyToId))
 
