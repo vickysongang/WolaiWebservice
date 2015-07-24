@@ -112,7 +112,7 @@ func V1AtriumGET(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
 	var page int64
-	if len(vars["page"][0]) > 0 {
+	if len(vars["page"]) > 0 {
 		pageStr := vars["page"][0]
 		page, _ = strconv.ParseInt(pageStr, 10, 64)
 	}
@@ -143,17 +143,17 @@ func V1FeedPostGET(w http.ResponseWriter, r *http.Request) {
 	text := vars["text"][0]
 
 	imageStr := "[]"
-	if len(vars["image"][0]) > 0 {
+	if len(vars["image"]) > 0 {
 		imageStr = vars["image"][0]
 	}
 
 	originFeedId := ""
-	if len(vars["originFeedId"][0]) > 0 {
+	if len(vars["originFeedId"]) > 0 {
 		originFeedId = vars["originFeedId"][0]
 	}
 
 	attributeStr := "{}"
-	if len(vars["attribute"][0]) > 0 {
+	if len(vars["attribute"]) > 0 {
 		attributeStr = vars["attribute"][0]
 	}
 
@@ -176,7 +176,7 @@ func V1FeedDetailGET(w http.ResponseWriter, r *http.Request) {
 	feedId := vars["feedId"][0]
 
 	var page int64
-	if len(vars["page"][0]) > 0 {
+	if len(vars["page"]) > 0 {
 		pageStr := vars["page"][0]
 		page, _ = strconv.ParseInt(pageStr, 10, 64)
 	}
@@ -204,12 +204,12 @@ func V1FeedCommentGET(w http.ResponseWriter, r *http.Request) {
 	text := vars["text"][0]
 
 	imageStr := "[]"
-	if len(vars["image"][0]) > 0 {
+	if len(vars["image"]) > 0 {
 		imageStr = vars["image"][0]
 	}
 
 	var replyToId int64
-	if len(vars["replyToId"][0]) > 0 {
+	if len(vars["replyToId"]) > 0 {
 		replyToStr := vars["replyToId"][0]
 		replyToId, _ = strconv.ParseInt(replyToStr, 10, 64)
 	}
