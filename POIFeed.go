@@ -98,7 +98,7 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 
 	if !RedisManager.HasLikedFeed(feed, user) {
 		feed.IncreaseLike()
-		RedisManager.PostFeed(feed)
+		RedisManager.SaveFeed(feed)
 		RedisManager.LikeFeed(feed, user, timestamp)
 	}
 

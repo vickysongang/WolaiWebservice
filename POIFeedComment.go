@@ -36,6 +36,11 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 		return nil
 	}
 
+	feed := RedisManager.LoadFeed(feedId)
+	if feed == nil {
+		return nil
+	}
+
 	feedComment.Id = uuid.NewV4().String()
 	feedComment.FeedId = feedId
 	feedComment.Creator = user
@@ -50,6 +55,8 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 		feedComment.ReplyTo = DbManager.GetUserById(replyToId)
 	}
 
+	feed.IncreaseComment()
+	RedisManager.SaveFeed(feed)
 	RedisManager.SaveFeedComment(&feedComment)
 	RedisManager.PostFeedComment(&feedComment)
 
@@ -66,7 +73,7 @@ func LikePOIFeedComment(userId int64, feedCommentId string, timestamp float64) *
 
 	if !RedisManager.HasLikedFeedComment(feedComment, user) {
 		feedComment.IncreaseLike()
-		RedisManager.PostFeedComment(feedComment)
+		RedisManager.SaveFeedComment(feedComment)
 		RedisManager.LikeFeedComment(feedComment, user, timestamp)
 	}
 

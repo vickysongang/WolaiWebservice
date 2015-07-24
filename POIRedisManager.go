@@ -25,7 +25,7 @@ const FEEDFLOW_ATRIUM = "feed_flow:atrium"
 const FEED_LIKE = "feed:like:"
 const FEED_COMMENT = "feed:comment:"
 const FEED_FAV = "feed:fav:"
-const FEED_REPOST = "feed:repost"
+const FEED_REPOST = "feed:repost:"
 
 const FEED_COMMENT_LIKE = "comment:like:"
 
@@ -121,9 +121,9 @@ func (rm *POIRedisManager) LoadFeedComment(feedCommentId string) *POIFeedComment
 
 func (rm *POIRedisManager) SaveFeed(feed *POIFeed) {
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "id", feed.Id)
-	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "creator_id", strconv.FormatInt(int64(feed.Creator.UserId), 10))
+	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "creator_id", strconv.FormatInt(feed.Creator.UserId, 10))
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "create_timestamp", strconv.FormatFloat(feed.CreateTimestamp, 'f', 6, 64))
-	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "feed_type", strconv.FormatInt(int64(feed.FeedType), 10))
+	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "feed_type", strconv.FormatInt(feed.FeedType, 10))
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "text", feed.Text)
 
 	tmpBytes, _ := json.Marshal(feed.ImageList)
@@ -138,15 +138,15 @@ func (rm *POIRedisManager) SaveFeed(feed *POIFeed) {
 	tmpBytes, _ = json.Marshal(feed.Attribute)
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "attribute", string(tmpBytes))
 
-	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "like_count", strconv.FormatInt(int64(feed.LikeCount), 10))
-	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "comment_count", strconv.FormatInt(int64(feed.CommentCount), 10))
-	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "repost_count", strconv.FormatInt(int64(feed.RepostCount), 10))
+	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "like_count", strconv.FormatInt(feed.LikeCount, 10))
+	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "comment_count", strconv.FormatInt(feed.CommentCount, 10))
+	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "repost_count", strconv.FormatInt(feed.RepostCount, 10))
 }
 
 func (rm *POIRedisManager) SaveFeedComment(feedComment *POIFeedComment) {
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "id", feedComment.Id)
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "feed_id", feedComment.FeedId)
-	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "creator_id", strconv.FormatInt(int64(feedComment.Creator.UserId), 10))
+	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "creator_id", strconv.FormatInt(feedComment.Creator.UserId, 10))
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "create_timestamp", strconv.FormatFloat(feedComment.CreateTimestamp, 'f', 6, 64))
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "text", feedComment.Text)
 
@@ -154,12 +154,12 @@ func (rm *POIRedisManager) SaveFeedComment(feedComment *POIFeedComment) {
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "image_list", string(tmpBytes))
 
 	if feedComment.ReplyTo != nil {
-		_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "reply_to_user_id", strconv.FormatInt(int64(feedComment.ReplyTo.UserId), 10))
+		_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "reply_to_user_id", strconv.FormatInt(feedComment.ReplyTo.UserId, 10))
 	} else {
 		_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "reply_to_user_id", "")
 	}
 
-	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "like_count", strconv.FormatInt(int64(feedComment.LikeCount), 10))
+	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "like_count", strconv.FormatInt(feedComment.LikeCount, 10))
 }
 
 func (rm *POIRedisManager) PostFeed(feed *POIFeed) {
@@ -168,11 +168,13 @@ func (rm *POIRedisManager) PostFeed(feed *POIFeed) {
 	}
 
 	feedZ := redis.Z{Member: feed.Id, Score: feed.CreateTimestamp}
+	userIdStr := strconv.FormatInt(feed.Creator.UserId, 10)
 
 	_ = rm.redisClient.ZAdd(FEEDFLOW_ATRIUM, feedZ)
-	_ = rm.redisClient.ZAdd(USER_FEED, feedZ)
+	_ = rm.redisClient.ZAdd(USER_FEED+userIdStr, feedZ)
+
 	if feed.FeedType == FEEDTYPE_REPOST {
-		_ = rm.redisClient.ZAdd(FEED_REPOST, feedZ)
+		_ = rm.redisClient.ZAdd(FEED_REPOST+userIdStr, feedZ)
 	}
 }
 
@@ -182,9 +184,10 @@ func (rm *POIRedisManager) PostFeedComment(feedComment *POIFeedComment) {
 	}
 
 	feedCommentZ := redis.Z{Member: feedComment.Id, Score: feedComment.CreateTimestamp}
+	userIdStr := strconv.FormatInt(feedComment.Creator.UserId, 10)
 
-	_ = rm.redisClient.ZAdd(FEED_COMMENT, feedCommentZ)
-	_ = rm.redisClient.ZAdd(USER_FEED_COMMENT, feedCommentZ)
+	_ = rm.redisClient.ZAdd(FEED_COMMENT+feedComment.FeedId, feedCommentZ)
+	_ = rm.redisClient.ZAdd(USER_FEED_COMMENT+userIdStr, feedCommentZ)
 }
 
 func (rm *POIRedisManager) LikeFeed(feed *POIFeed, user *POIUser, timestamp float64) {
@@ -194,9 +197,10 @@ func (rm *POIRedisManager) LikeFeed(feed *POIFeed, user *POIUser, timestamp floa
 
 	feedZ := redis.Z{Member: feed.Id, Score: timestamp}
 	userZ := redis.Z{Member: strconv.FormatInt(user.UserId, 10), Score: timestamp}
+	userIdStr := strconv.FormatInt(feed.Creator.UserId, 10)
 
-	_ = rm.redisClient.ZAdd(FEED_LIKE, userZ)
-	_ = rm.redisClient.ZAdd(USER_FEED_LIKE, feedZ)
+	_ = rm.redisClient.ZAdd(FEED_LIKE+feed.Id, userZ)
+	_ = rm.redisClient.ZAdd(USER_FEED_LIKE+userIdStr, feedZ)
 }
 
 func (rm *POIRedisManager) LikeFeedComment(feedComment *POIFeedComment, user *POIUser, timestamp float64) {
@@ -206,9 +210,10 @@ func (rm *POIRedisManager) LikeFeedComment(feedComment *POIFeedComment, user *PO
 
 	feedCommentZ := redis.Z{Member: feedComment.Id, Score: timestamp}
 	userZ := redis.Z{Member: strconv.FormatInt(user.UserId, 10), Score: timestamp}
+	userIdStr := strconv.FormatInt(feedComment.Creator.UserId, 10)
 
-	_ = rm.redisClient.ZAdd(FEED_COMMENT_LIKE, userZ)
-	_ = rm.redisClient.ZAdd(USER_FEED_COMMENT_LIKE, feedCommentZ)
+	_ = rm.redisClient.ZAdd(FEED_COMMENT_LIKE+feedComment.Id, userZ)
+	_ = rm.redisClient.ZAdd(USER_FEED_COMMENT_LIKE+userIdStr, feedCommentZ)
 }
 
 func (rm *POIRedisManager) FavoriteFeed(feed *POIFeed, user *POIUser, timestamp float64) {
@@ -218,9 +223,10 @@ func (rm *POIRedisManager) FavoriteFeed(feed *POIFeed, user *POIUser, timestamp 
 
 	feedZ := redis.Z{Member: feed.Id, Score: timestamp}
 	userZ := redis.Z{Member: strconv.FormatInt(user.UserId, 10), Score: timestamp}
+	userIdStr := strconv.FormatInt(feed.Creator.UserId, 10)
 
-	_ = rm.redisClient.ZAdd(FEED_FAV, userZ)
-	_ = rm.redisClient.ZAdd(USER_FEED_FAV, feedZ)
+	_ = rm.redisClient.ZAdd(FEED_FAV+feed.Id, userZ)
+	_ = rm.redisClient.ZAdd(USER_FEED_FAV+userIdStr, feedZ)
 }
 
 // TO BE IMPLEMENTED
@@ -252,7 +258,7 @@ func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int64) POIFeeds {
 }
 
 func (rm *POIRedisManager) GetFeedComment(feedId string, start, stop int64) POIFeedComments {
-	feedCommentZs := rm.redisClient.ZRevRangeWithScores(FEED_COMMENT, start, stop).Val()
+	feedCommentZs := rm.redisClient.ZRevRangeWithScores(FEED_COMMENT+feedId, start, stop).Val()
 
 	feedComments := make([]POIFeedComment, len(feedCommentZs))
 
