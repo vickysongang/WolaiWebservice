@@ -235,7 +235,7 @@ func (rm *POIRedisManager) HasLikedFeed(feed *POIFeed, user *POIUser) bool {
 	}
 
 	feedId := feed.Id
-	userId := strconv.FormatInt(user.UserId, 64)
+	userId := strconv.FormatInt(user.UserId, 10)
 
 	var result bool
 	_, err := rm.redisClient.ZRank(FEED_LIKE+feedId, userId).Result()
