@@ -229,9 +229,23 @@ func (rm *POIRedisManager) FavoriteFeed(feed *POIFeed, user *POIUser, timestamp 
 	_ = rm.redisClient.ZAdd(USER_FEED_FAV+userIdStr, feedZ)
 }
 
-// TO BE IMPLEMENTED
 func (rm *POIRedisManager) HasLikedFeed(feed *POIFeed, user *POIUser) bool {
-	return false
+	if feed == nil || user == nil {
+		return false
+	}
+
+	feedId := feed.Id
+	userId := strconv.FormatInt(user.UserId, 64)
+
+	var result bool
+	_, err := rm.redisClient.ZRank(FEED_LIKE+feedId, userId).Result()
+	if err == redis.Nil {
+		result = false
+	} else {
+		result = true
+	}
+
+	return result
 }
 
 // TO BE IMPLEMENTED
