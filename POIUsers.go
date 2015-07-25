@@ -66,5 +66,5 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 
 	DbManager.InsertUserOauth(userId, openId)
 
-	return 0, user
+	return 1003, user
 }
