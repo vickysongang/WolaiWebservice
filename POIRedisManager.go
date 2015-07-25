@@ -257,8 +257,8 @@ func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int64) POIFeeds {
 	return feeds
 }
 
-func (rm *POIRedisManager) GetFeedComment(feedId string, start, stop int64) POIFeedComments {
-	feedCommentZs := rm.redisClient.ZRevRangeWithScores(FEED_COMMENT+feedId, start, stop).Val()
+func (rm *POIRedisManager) GetFeedComment(feedId string) POIFeedComments {
+	feedCommentZs := rm.redisClient.ZRevRangeWithScores(FEED_COMMENT+feedId, 0, -1).Val()
 
 	feedComments := make([]POIFeedComment, len(feedCommentZs))
 
@@ -268,4 +268,18 @@ func (rm *POIRedisManager) GetFeedComment(feedId string, start, stop int64) POIF
 	}
 
 	return feedComments
+}
+
+func (rm *POIRedisManager) GetFeedLikeList(feedId string) []*POIUser {
+	userStrs := rm.redisClient.ZRange(FEED_LIKE+feedId, 0, -1).Val()
+
+	users := make([]*POIUser, len(userStrs))
+
+	for i := range users {
+		str := userStrs[i]
+		userId, _ := strconv.ParseInt(str, 10, 64)
+		users[i] = DbManager.GetUserById(userId)
+	}
+
+	return users
 }

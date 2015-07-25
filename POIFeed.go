@@ -47,8 +47,9 @@ func (f *POIFeed) IncreaseRepost() {
 }
 
 type POIFeedDetail struct {
-	Feed     *POIFeed        `json:"feedInfo"`
-	Comments POIFeedComments `json:"comments"`
+	Feed       *POIFeed        `json:"feedInfo"`
+	LikedUsers []*POIUser      `json:"likedUsers"`
+	Comments   POIFeedComments `json:"comments"`
 }
 
 func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, imageStr string,
@@ -128,10 +129,12 @@ func GetFeedDetail(feedId string, userId int64, page int64) *POIFeedDetail {
 		return nil
 	}
 
-	start := page * 10
-	stop := page*10 + 9
+	likedUserList := RedisManager.GetFeedLikeList(feedId)
 
-	comments := RedisManager.GetFeedComment(feedId, start, stop)
+	//start := page * 10
+	//stop := page*10 + 9
+
+	comments := RedisManager.GetFeedComment(feedId)
 	for i := range comments {
 		comment := comments[i]
 		comments[i].HasLiked = RedisManager.HasLikedFeedComment(&comment, user)
@@ -140,7 +143,7 @@ func GetFeedDetail(feedId string, userId int64, page int64) *POIFeedDetail {
 	feed.HasLiked = RedisManager.HasLikedFeed(feed, user)
 	feed.HasFaved = RedisManager.HasFavedFeed(feed, user)
 
-	feedDetail := POIFeedDetail{Feed: feed, Comments: comments}
+	feedDetail := POIFeedDetail{Feed: feed, LikedUsers: likedUserList, Comments: comments}
 
 	return &feedDetail
 }
