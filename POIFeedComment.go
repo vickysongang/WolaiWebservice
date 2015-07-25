@@ -13,8 +13,8 @@ type POIFeedComment struct {
 	Text            string   `json:"text"`
 	ImageList       []string `json:"imageList,omitempty"`
 	ReplyTo         *POIUser `json:"replyTo,omitempty"`
-	LikeCount       int64    `json:"likeCount"`
-	HasLiked        bool     `json:"hasLiked"`
+	LikeCount       int64    `json:"-"`
+	HasLiked        bool     `json:"-"`
 }
 
 type POIFeedComments []POIFeedComment

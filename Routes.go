@@ -43,13 +43,13 @@ var routes = Routes{
 		"V1LoginPOST",
 		"POST",
 		"/v1/login",
-		V1LoginPOST,
+		V1Login,
 	},
 	Route{
 		"V1LoginGET",
 		"GET",
 		"/v1/login",
-		V1LoginGET,
+		V1Login,
 	},
 	Route{
 		"V1LoginGETURL",
@@ -63,13 +63,13 @@ var routes = Routes{
 		"V1UpdateProfilePOST",
 		"POST",
 		"/v1/update_profile",
-		V1UpdateProfilePOST,
+		V1UpdateProfile,
 	},
 	Route{
 		"V1UpdateProfileGET",
 		"GET",
 		"/v1/update_profile",
-		V1UpdateProfileGET,
+		V1UpdateProfile,
 	},
 	Route{
 		"V1UpdateProfileGETURL",
@@ -80,73 +80,131 @@ var routes = Routes{
 
 	// 1.3 Oauth Login
 	Route{
+		"V1OauthLoginPOST",
+		"POST",
+		"/v1/oauth/qq/login",
+		V1OauthLogin,
+	},
+	Route{
 		"V1OauthLoginGET",
 		"GET",
 		"/v1/oauth/qq/login",
-		V1OauthLoginGET,
+		V1OauthLogin,
 	},
 
 	// 1.4 Oauth Register
 	Route{
+		"V1OauthRegisterPOST",
+		"POST",
+		"/v1/oauth/qq/register",
+		V1OauthRegister,
+	},
+	Route{
 		"V1OauthRegisterGET",
 		"GET",
 		"/v1/oauth/qq/register",
-		V1OauthRegisterGET,
+		V1OauthRegister,
 	},
 
 	// 2.1 Atrium
 	Route{
+		"V1AtriumPOST",
+		"POST",
+		"/v1/atrium",
+		V1Atrium,
+	},
+	Route{
 		"V1AtriumGET",
 		"GET",
 		"/v1/atrium",
-		V1AtriumGET,
+		V1Atrium,
 	},
 
 	// 2.2 Feed Post
 	Route{
+		"V1FeedPostPOST",
+		"POST",
+		"/v1/feed/post",
+		V1FeedPost,
+	},
+	Route{
 		"V1FeedPostGET",
 		"GET",
 		"/v1/feed/post",
-		V1FeedPostGET,
+		V1FeedPost,
 	},
 
 	// 2.3 Feed Detial
 	Route{
+		"V1FeedDetailPOST",
+		"POST",
+		"/v1/feed/detail",
+		V1FeedDetail,
+	},
+	Route{
 		"V1FeedDetailGET",
 		"GET",
 		"/v1/feed/detail",
-		V1FeedDetailGET,
+		V1FeedDetail,
 	},
 
 	// 2.4 Feed Like
 	Route{
+		"V1FeedLikePOST",
+		"POST",
+		"/v1/feed/like",
+		V1FeedLike,
+	},
+	Route{
 		"V1FeedLikeGET",
 		"GET",
 		"/v1/feed/like",
-		V1FeedLikeGET,
+		V1FeedLike,
 	},
 
 	// 2.5 Feed Favorite
-	Route{
-		"V1FeedFavGET",
-		"GET",
-		"/v1/feed/favorite",
-		V1FeedFavGET,
-	},
+	/*
+		Route{
+			"V1FeedFavPOST",
+			"POST",
+			"/v1/feed/favorite",
+			V1FeedFav,
+		},
+		Route{
+			"V1FeedFavGET",
+			"GET",
+			"/v1/feed/favorite",
+			V1FeedFav,
+		},
+	*/
 
 	// 2.6 Feed Comment
+	Route{
+		"V1FeedCommentPOST",
+		"POST",
+		"/v1/feed/comment",
+		V1FeedComment,
+	},
 	Route{
 		"V1FeedCommentGET",
 		"GET",
 		"/v1/feed/comment",
-		V1FeedCommentGET,
+		V1FeedComment,
 	},
 
 	// 2.7 Feed Comment Like
-	Route{
-		"V1FeedCommentLikeGET",
-		"GET",
-		"/v1/feed/comment/like",
-		V1FeedCommentLikeGET,
-	},
+	/*
+		Route{
+			"V1FeedCommentLikePOST",
+			"POST",
+			"/v1/feed/comment/like",
+			V1FeedCommentLike,
+		},
+		Route{
+			"V1FeedCommentLikeGET",
+			"GET",
+			"/v1/feed/comment/like",
+			V1FeedCommentLike,
+		},
+	*/
 }

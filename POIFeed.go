@@ -23,9 +23,9 @@ type POIFeed struct {
 	Attribute       map[string]string `json:"attribute,omitempty"`
 	LikeCount       int64             `json:"likeCount"`
 	CommentCount    int64             `json:"commentCount"`
-	RepostCount     int64             `json:"repostCount"`
+	RepostCount     int64             `json:"-"`
 	HasLiked        bool              `json:"hasLiked"`
-	HasFaved        bool              `json:"hasFaved"`
+	HasFaved        bool              `json:"-"`
 }
 
 type POIFeeds []POIFeed
@@ -121,7 +121,7 @@ func FavPOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 	return feed
 }
 
-func GetFeedDetail(feedId string, userId int64, page int64) *POIFeedDetail {
+func GetFeedDetail(feedId string, userId int64) *POIFeedDetail {
 	feed := RedisManager.LoadFeed(feedId)
 	user := DbManager.GetUserById(userId)
 
@@ -130,9 +130,6 @@ func GetFeedDetail(feedId string, userId int64, page int64) *POIFeedDetail {
 	}
 
 	likedUserList := RedisManager.GetFeedLikeList(feedId)
-
-	//start := page * 10
-	//stop := page*10 + 9
 
 	comments := RedisManager.GetFeedComment(feedId)
 	for i := range comments {

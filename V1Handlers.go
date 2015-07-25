@@ -13,20 +13,7 @@ import (
 /*
  * 1.1 Login
  */
-func V1LoginPOST(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		panic(err)
-	}
-	vars := r.PostForm
-	phone := vars.Get("phone")
-	//fmt.Println("[POST]/v1/login phone: %s", phone)
-	status, content := POIUserLogin(phone)
-	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
-
-}
-
-func V1LoginGET(w http.ResponseWriter, r *http.Request) {
+func V1Login(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		panic(err)
@@ -50,27 +37,7 @@ func V1LoginGETURL(w http.ResponseWriter, r *http.Request) {
 /*
  * 1.2 Update Profile
  */
-func V1UpdateProfilePOST(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		panic(err)
-	}
-	vars := r.PostForm
-	userIdStr := vars.Get("userId")
-	nickname := vars.Get("nickname")
-	avatar := vars.Get("avatar")
-	genderStr := vars.Get("gender")
-	//fmt.Println("[POST]/v1/update_profile user_id: %s, nickname: %s, avatar: %s, gender: %s", userIdStr, nickname, avatar, genderStr)
-
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-	gender, _ := strconv.ParseInt(genderStr, 10, 64)
-
-	status, content := POIUserUpdateProfile(userId, nickname, avatar, gender)
-	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
-
-}
-
-func V1UpdateProfileGET(w http.ResponseWriter, r *http.Request) {
+func V1UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		panic(err)
@@ -109,8 +76,7 @@ func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
 /*
  * 1.3 Oauth Login
  */
-
-func V1OauthLoginGET(w http.ResponseWriter, r *http.Request) {
+func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		panic(err)
@@ -131,8 +97,7 @@ func V1OauthLoginGET(w http.ResponseWriter, r *http.Request) {
 /*
  * 1.4 Oauth Register
  */
-
-func V1OauthRegisterGET(w http.ResponseWriter, r *http.Request) {
+func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		panic(err)
@@ -152,7 +117,10 @@ func V1OauthRegisterGET(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 }
 
-func V1AtriumGET(w http.ResponseWriter, r *http.Request) {
+/*
+ * 2.1 Atrium
+ */
+func V1Atrium(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		panic(err)
@@ -174,7 +142,10 @@ func V1AtriumGET(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
-func V1FeedPostGET(w http.ResponseWriter, r *http.Request) {
+/*
+ * 2.2 Feed Post
+ */
+func V1FeedPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		panic(err)
@@ -201,7 +172,8 @@ func V1FeedPostGET(w http.ResponseWriter, r *http.Request) {
 
 	originFeedId := ""
 	if len(vars["originFeedId"]) > 0 {
-		originFeedId = vars["originFeedId"][0]
+		//originFeedId = vars["originFeedId"][0]
+		originFeedId = ""
 	}
 
 	attributeStr := "{}"
@@ -214,7 +186,10 @@ func V1FeedPostGET(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
-func V1FeedDetailGET(w http.ResponseWriter, r *http.Request) {
+/*
+ * 2.3 Feed Detail
+ */
+func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		panic(err)
@@ -227,18 +202,64 @@ func V1FeedDetailGET(w http.ResponseWriter, r *http.Request) {
 
 	feedId := vars["feedId"][0]
 
-	var page int64
-	if len(vars["page"]) > 0 {
-		pageStr := vars["page"][0]
-		page, _ = strconv.ParseInt(pageStr, 10, 64)
-	}
-
-	content := GetFeedDetail(feedId, userId, page)
+	content := GetFeedDetail(feedId, userId)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
-func V1FeedCommentGET(w http.ResponseWriter, r *http.Request) {
+/*
+ * 2.4 Feed Like
+ */
+func V1FeedLike(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	timestampNano := time.Now().UnixNano()
+	timestamp := float64(timestampNano) / 1000000000.0
+
+	feedId := vars["feedId"][0]
+
+	content := LikePOIFeed(userId, feedId, timestamp)
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+
+}
+
+/*
+ * 2.5 Feed Favorite
+ */
+func V1FeedFav(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	timestampNano := time.Now().UnixNano()
+	timestamp := float64(timestampNano) / 1000000000.0
+
+	feedId := vars["feedId"][0]
+
+	content := FavPOIFeed(userId, feedId, timestamp)
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
+/*
+ * 2.6 Feed Comment
+ */
+func V1FeedComment(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		panic(err)
@@ -272,50 +293,10 @@ func V1FeedCommentGET(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func V1FeedLikeGET(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		panic(err)
-	}
-
-	vars := r.Form
-
-	userIdStr := vars["userId"][0]
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-
-	timestampNano := time.Now().UnixNano()
-	timestamp := float64(timestampNano) / 1000000000.0
-
-	feedId := vars["feedId"][0]
-
-	content := LikePOIFeed(userId, feedId, timestamp)
-
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-
-}
-
-func V1FeedFavGET(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		panic(err)
-	}
-
-	vars := r.Form
-
-	userIdStr := vars["userId"][0]
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-
-	timestampNano := time.Now().UnixNano()
-	timestamp := float64(timestampNano) / 1000000000.0
-
-	feedId := vars["feedId"][0]
-
-	content := FavPOIFeed(userId, feedId, timestamp)
-
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-}
-
-func V1FeedCommentLikeGET(w http.ResponseWriter, r *http.Request) {
+/*
+ * 2.7 Feed Comment Like
+ */
+func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		panic(err)
