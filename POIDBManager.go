@@ -115,7 +115,42 @@ func (dbm *POIDBManager) UpdateUserInfo(userId int64, nickname string, avatar st
 	}
 
 	_, err = stmtUpdate.Exec(nickname, avatar, gender, userId)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	user := NewPOIUser(userId, nickname, avatar, gender, 3)
 	return &user
+}
+
+func (dbm *POIDBManager) InsertUserOauth(userId int64, qqOpenId string) {
+	stmtInsert, err := dbm.dbClient.Prepare(
+		`INSERT INTO user_oauth(user_id, open_id_qq) VALUES(?, ?)`)
+	defer stmtInsert.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	_, err = stmtInsert.Exec(userId, qqOpenId)
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func (dbm *POIDBManager) QueryUserByQQOpenId(qqOpenId string) int64 {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`SELECT user_id FROM user_oauth WHERE open_id_qq = ?`)
+	defer stmtQuery.Close()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	userRow := stmtQuery.QueryRow(qqOpenId)
+	var userId int64
+	err = userRow.Scan(&userId)
+	if err == sql.ErrNoRows {
+		return -1
+	}
+
+	return userId
 }

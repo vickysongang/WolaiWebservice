@@ -106,6 +106,52 @@ func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 }
 
+/*
+ * 1.3 Oauth Login
+ */
+
+func V1OauthLoginGET(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	openId := vars["openId"][0]
+
+	status, content := POIUserOauthLogin(openId)
+	if content == nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(status, ""))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(status, content))
+	}
+}
+
+/*
+ * 1.4 Oauth Register
+ */
+
+func V1OauthRegisterGET(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+	openId := vars["openId"][0]
+	phone := vars["phone"][0]
+	nickname := vars["nickname"][0]
+	avatar := vars["avatar"][0]
+	genderStr := vars["gender"][0]
+	//fmt.Fprintf(w, "[POST]/v1/update_profile user_id: %s, nickname: %s, avatar: %s, gender: %s", userId, nickname, avatar, gender)
+
+	gender, _ := strconv.ParseInt(genderStr, 10, 64)
+
+	status, content := POIUserOauthRegister(openId, phone, nickname, avatar, gender)
+	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
+}
+
 func V1AtriumGET(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {

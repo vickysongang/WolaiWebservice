@@ -43,3 +43,28 @@ func POIUserUpdateProfile(userId int64, nickname string, avatar string, gender i
 	user := LoadPOIUser(userId)
 	return 0, user
 }
+
+func POIUserOauthLogin(openId string) (int64, *POIUser) {
+	userId := DbManager.QueryUserByQQOpenId(openId)
+	if userId == -1 {
+		return 1002, nil
+	}
+
+	user := LoadPOIUser(userId)
+	return 0, user
+}
+
+func POIUserOauthRegister(openId string, phone string, nickname string, avatar string, gender int64) (int64, *POIUser) {
+	user := DbManager.GetUserByPhone(phone)
+	if user != nil {
+		return 0, user
+	}
+
+	userId := DbManager.InsertUser(phone)
+	DbManager.UpdateUserInfo(userId, nickname, avatar, gender)
+	user = LoadPOIUser(userId)
+
+	DbManager.InsertUserOauth(userId, openId)
+
+	return 0, user
+}

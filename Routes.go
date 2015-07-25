@@ -78,6 +78,22 @@ var routes = Routes{
 		V1UpdateProfileGETURL,
 	},
 
+	// 1.3 Oauth Login
+	Route{
+		"V1OauthLoginGET",
+		"GET",
+		"/v1/oauth/qq/login",
+		V1OauthLoginGET,
+	},
+
+	// 1.4 Oauth Register
+	Route{
+		"V1OauthRegisterGET",
+		"GET",
+		"/v1/oauth/qq/register",
+		V1OauthRegisterGET,
+	},
+
 	// 2.1 Atrium
 	Route{
 		"V1AtriumGET",
