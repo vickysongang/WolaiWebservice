@@ -226,7 +226,9 @@ func V1FeedLike(w http.ResponseWriter, r *http.Request) {
 
 	feedId := vars["feedId"][0]
 
-	content := LikePOIFeed(userId, feedId, timestamp)
+	_ = LikePOIFeed(userId, feedId, timestamp)
+
+	content := GetFeedDetail(feedId, userId)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 
@@ -287,7 +289,9 @@ func V1FeedComment(w http.ResponseWriter, r *http.Request) {
 		replyToId, _ = strconv.ParseInt(replyToStr, 10, 64)
 	}
 
-	content := PostPOIFeedComment(userId, feedId, timestamp, text, imageStr, replyToId)
+	_ = PostPOIFeedComment(userId, feedId, timestamp, text, imageStr, replyToId)
+
+	content := GetFeedDetail(feedId, userId)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 
