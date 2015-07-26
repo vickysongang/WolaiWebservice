@@ -208,7 +208,20 @@ var routes = Routes{
 		},
 	*/
 
-	// 3.1
+	// 3.1 User Info
+	Route{
+		"V1UserInfoPOST",
+		"POST",
+		"/v1/user/info",
+		V1UserInfo,
+	},
+	Route{
+		"V1UserInfoGET",
+		"GET",
+		"/v1/user/info",
+		V1UserInfo,
+	},
+
 	// 3.2
 	// 3.3 User MyFeed
 	Route{

@@ -325,6 +325,25 @@ func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 /*
  * 3.1 User MyProfile
  */
+func V1UserInfo(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	content := LoadPOIUser(userId)
+
+	if content == nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, ""))
+	}
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
 
 /*
  * 3.2 User MyWallet
