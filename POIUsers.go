@@ -68,3 +68,45 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 
 	return 1003, user
 }
+
+func POIUserFollow(userId, followId int64) (int64, bool) {
+	user := DbManager.GetUserById(userId)
+	follow := DbManager.GetUserById(followId)
+	if user == nil || follow == nil {
+		return 2, false
+	}
+
+	if RedisManager.HasFollowedUser(userId, followId) {
+		RedisManager.RemoveUserFollow(userId, followId)
+		return 0, false
+	}
+
+	RedisManager.CreateUserFollow(userId, followId)
+	return 0, true
+}
+
+func POIUserUnfollow(userId, followId int64) (int64, bool) {
+	user := DbManager.GetUserById(userId)
+	follow := DbManager.GetUserById(followId)
+	if user == nil || follow == nil {
+		return 2, false
+	}
+
+	if !RedisManager.HasFollowedUser(userId, followId) {
+		return 2, false
+	}
+
+	RedisManager.RemoveUserFollow(userId, followId)
+	return 0, false
+}
+
+func GetUserFollowing(userId int64) POIUsers {
+	user := DbManager.GetUserById(userId)
+	if user == nil {
+		return nil
+	}
+
+	users := RedisManager.GetUserFollowList(userId)
+
+	return users
+}

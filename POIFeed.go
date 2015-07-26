@@ -38,6 +38,10 @@ func (f *POIFeed) IncreaseLike() {
 	f.LikeCount = f.LikeCount + 1
 }
 
+func (f *POIFeed) DecreaseLike() {
+	f.LikeCount = f.LikeCount - 1
+}
+
 func (f *POIFeed) IncreaseComment() {
 	f.CommentCount = f.CommentCount + 1
 }
@@ -101,6 +105,10 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 		feed.IncreaseLike()
 		RedisManager.SaveFeed(feed)
 		RedisManager.LikeFeed(feed, user, timestamp)
+	} else {
+		feed.DecreaseLike()
+		RedisManager.SaveFeed(feed)
+		RedisManager.UnlikeFeed(feed, user)
 	}
 
 	return feed

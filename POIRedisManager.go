@@ -34,6 +34,8 @@ const USER_FEED_LIKE = "user:feed_like:"
 const USER_FEED_COMMENT = "user:feed_comment:"
 const USER_FEED_COMMENT_LIKE = "user:feed_comment_like:"
 const USER_FEED_FAV = "user:feed_fav:"
+const USER_FOLLOWING = "user:following:"
+const USER_FOLLOWER = "user:follower:"
 
 func NewPOIRedisManager() POIRedisManager {
 	client := redis.NewClient(&redis.Options{
@@ -204,6 +206,17 @@ func (rm *POIRedisManager) LikeFeed(feed *POIFeed, user *POIUser, timestamp floa
 	_ = rm.redisClient.ZAdd(USER_FEED_LIKE+userIdStr, feedZ)
 }
 
+func (rm *POIRedisManager) UnlikeFeed(feed *POIFeed, user *POIUser) {
+	if feed == nil || user == nil {
+		return
+	}
+
+	userIdStr := strconv.FormatInt(feed.Creator.UserId, 10)
+
+	_ = rm.redisClient.ZRem(FEED_LIKE+feed.Id, userIdStr)
+	_ = rm.redisClient.ZRem(USER_FEED_LIKE+userIdStr, feed.Id)
+}
+
 func (rm *POIRedisManager) LikeFeedComment(feedComment *POIFeedComment, user *POIUser, timestamp float64) {
 	if feedComment == nil || user == nil {
 		return
@@ -323,4 +336,52 @@ func (rm *POIRedisManager) GetFeedFlowUserFeedLike(userId int64, start, stop int
 	}
 
 	return feeds
+}
+
+func (rm *POIRedisManager) CreateUserFollow(userId, followId int64) {
+	userIdStr := strconv.FormatInt(userId, 10)
+	followIdStr := strconv.FormatInt(followId, 10)
+
+	_ = rm.redisClient.HSet(USER_FOLLOWING+userIdStr, followIdStr, "0")
+	_ = rm.redisClient.HSet(USER_FOLLOWER+followIdStr, userIdStr, "0")
+
+	return
+}
+
+func (rm *POIRedisManager) RemoveUserFollow(userId, followId int64) {
+	userIdStr := strconv.FormatInt(userId, 10)
+	followIdStr := strconv.FormatInt(followId, 10)
+
+	_ = rm.redisClient.HDel(USER_FOLLOWING+userIdStr, followIdStr)
+	_ = rm.redisClient.HDel(USER_FOLLOWER+followIdStr, userIdStr)
+
+	return
+}
+
+func (rm *POIRedisManager) HasFollowedUser(userId, followId int64) bool {
+	userIdStr := strconv.FormatInt(userId, 10)
+	followIdStr := strconv.FormatInt(followId, 10)
+
+	var result bool
+	_, err := rm.redisClient.HGet(USER_FOLLOWING+userIdStr, followIdStr).Result()
+	if err == redis.Nil {
+		result = false
+	} else {
+		result = true
+	}
+
+	return result
+}
+
+func (rm *POIRedisManager) GetUserFollowList(userId int64) POIUsers {
+	userIdStr := strconv.FormatInt(userId, 10)
+	userIds := rm.redisClient.HGetAll(USER_FOLLOWING + userIdStr).Val()
+
+	users := make(POIUsers, len(userIds))
+	for i := range userIds {
+		userIdtmp, _ := strconv.ParseInt(userIds[i], 10, 64)
+		users[i] = *(DbManager.GetUserById(userIdtmp))
+	}
+
+	return users
 }

@@ -323,15 +323,15 @@ func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
- * 3.1 User Profile
+ * 3.1 User MyProfile
  */
 
 /*
- * 3.2 User Wallet
+ * 3.2 User MyWallet
  */
 
 /*
- * 3.3 User Feed
+ * 3.3 User MyFeed
  */
 func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -356,11 +356,30 @@ func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
- * 3.4 User Follow
+ * 3.4 User MyFollowing
  */
+func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	content := GetUserFollowing(userId)
+
+	if content == nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, ""))
+	}
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
 
 /*
- * 3.5 User Like
+ * 3.5 User MyLike
  */
 func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -382,4 +401,48 @@ func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
 	content := GetUserLike(userId, page)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
+/*
+ * 3.6 User Follow
+ */
+func V1UserFollow(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	followIdStr := vars["followId"][0]
+	followId, _ := strconv.ParseInt(followIdStr, 10, 64)
+
+	status, content := POIUserFollow(userId, followId)
+
+	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
+}
+
+/*
+ * 3.7 User UnFollow
+ */
+func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	followIdStr := vars["followId"][0]
+	followId, _ := strconv.ParseInt(followIdStr, 10, 64)
+
+	status, content := POIUserUnfollow(userId, followId)
+
+	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 }

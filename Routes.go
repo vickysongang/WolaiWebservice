@@ -224,8 +224,21 @@ var routes = Routes{
 		V1UserMyFeed,
 	},
 
-	// 3.4
-	// 3.5 User Like
+	// 3.4 User MyFollowing
+	Route{
+		"V1UserMyFollowPOST",
+		"POST",
+		"/v1/user/myfollow",
+		V1UserMyFollowing,
+	},
+	Route{
+		"V1UserMyFollowGET",
+		"GET",
+		"/v1/user/myfollow",
+		V1UserMyFollowing,
+	},
+
+	// 3.5 User MyLike
 	Route{
 		"V1UserMyLikePOST",
 		"POST",
@@ -237,5 +250,33 @@ var routes = Routes{
 		"GET",
 		"/v1/user/mylike",
 		V1UserMyLike,
+	},
+
+	// 3.6 User Follow
+	Route{
+		"V1UserFollowPOST",
+		"POST",
+		"/v1/user/follow",
+		V1UserFollow,
+	},
+	Route{
+		"V1UserFollowGET",
+		"GET",
+		"/v1/user/follow",
+		V1UserFollow,
+	},
+
+	// 3.5 User MyLike
+	Route{
+		"V1UserUnfollowPOST",
+		"POST",
+		"/v1/user/unfollow",
+		V1UserUnfollow,
+	},
+	Route{
+		"V1UserUnfollowGET",
+		"GET",
+		"/v1/user/unfollow",
+		V1UserUnfollow,
 	},
 }
