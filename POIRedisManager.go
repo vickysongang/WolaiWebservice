@@ -69,7 +69,8 @@ func (rm *POIRedisManager) LoadFeed(feedId string) *POIFeed {
 	feed.FeedType = tmpInt
 
 	feed.Text = hashMap["text"]
-	json.Unmarshal([]byte(hashMap["image_list"]), &(feed.ImageList))
+	json.Unmarshal([]byte(hashMap["image_list"]), &feed.ImageList)
+	json.Unmarshal([]byte(hashMap["attribute"]), &feed.Attribute)
 
 	if hashMap["origin_feed_id"] != "" {
 		feed.OriginFeed = rm.LoadFeed(hashMap["origin_feed_id"])
