@@ -48,7 +48,7 @@ func (f *POIFeed) IncreaseRepost() {
 
 type POIFeedDetail struct {
 	Feed       *POIFeed        `json:"feedInfo"`
-	LikedUsers []*POIUser      `json:"likedUsers"`
+	LikedUsers POIUsers        `json:"likedUsers"`
 	Comments   POIFeedComments `json:"comments"`
 }
 
@@ -156,6 +156,44 @@ func GetAtrium(userId int64, page int64) POIFeeds {
 	stop := page*10 + 9
 
 	feeds := RedisManager.GetFeedFlowAtrium(start, stop)
+	for i := range feeds {
+		feed := feeds[i]
+		feeds[i].HasLiked = RedisManager.HasLikedFeed(&feed, user)
+		feeds[i].HasFaved = RedisManager.HasFavedFeed(&feed, user)
+	}
+
+	return feeds
+}
+
+func GetUserFeed(userId int64, page int64) POIFeeds {
+	user := DbManager.GetUserById(userId)
+	if user == nil {
+		return nil
+	}
+
+	start := page * 10
+	stop := page*10 + 9
+
+	feeds := RedisManager.GetFeedFlowUserFeed(userId, start, stop)
+	for i := range feeds {
+		feed := feeds[i]
+		feeds[i].HasLiked = RedisManager.HasLikedFeed(&feed, user)
+		feeds[i].HasFaved = RedisManager.HasFavedFeed(&feed, user)
+	}
+
+	return feeds
+}
+
+func GetUserLike(userId int64, page int64) POIFeeds {
+	user := DbManager.GetUserById(userId)
+	if user == nil {
+		return nil
+	}
+
+	start := page * 10
+	stop := page*10 + 9
+
+	feeds := RedisManager.GetFeedFlowUserFeedLike(userId, start, stop)
 	for i := range feeds {
 		feed := feeds[i]
 		feeds[i].HasLiked = RedisManager.HasLikedFeed(&feed, user)

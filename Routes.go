@@ -207,4 +207,35 @@ var routes = Routes{
 			V1FeedCommentLike,
 		},
 	*/
+
+	// 3.1
+	// 3.2
+	// 3.3 User MyFeed
+	Route{
+		"V1UserMyFeedPOST",
+		"POST",
+		"/v1/user/myfeed",
+		V1UserMyFeed,
+	},
+	Route{
+		"V1UserMyFeedGET",
+		"GET",
+		"/v1/user/myfeed",
+		V1UserMyFeed,
+	},
+
+	// 3.4
+	// 3.5 User Like
+	Route{
+		"V1UserMyLikePOST",
+		"POST",
+		"/v1/user/mylike",
+		V1UserMyLike,
+	},
+	Route{
+		"V1UserMyLikeGET",
+		"GET",
+		"/v1/user/mylike",
+		V1UserMyLike,
+	},
 }

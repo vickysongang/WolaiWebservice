@@ -321,3 +321,65 @@ func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 
 }
+
+/*
+ * 3.1 User Profile
+ */
+
+/*
+ * 3.2 User Wallet
+ */
+
+/*
+ * 3.3 User Feed
+ */
+func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+
+	content := GetUserFeed(userId, page)
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
+/*
+ * 3.4 User Follow
+ */
+
+/*
+ * 3.5 User Like
+ */
+func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+
+	content := GetUserLike(userId, page)
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}

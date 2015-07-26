@@ -259,19 +259,6 @@ func (rm *POIRedisManager) HasFavedFeed(feed *POIFeed, user *POIUser) bool {
 	return false
 }
 
-func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int64) POIFeeds {
-	feedZs := rm.redisClient.ZRevRangeWithScores(FEEDFLOW_ATRIUM, start, stop).Val()
-
-	feeds := make([]POIFeed, len(feedZs))
-
-	for i := range feedZs {
-		str, _ := feedZs[i].Member.(string)
-		feeds[i] = *rm.LoadFeed(str)
-	}
-
-	return feeds
-}
-
 func (rm *POIRedisManager) GetFeedComment(feedId string) POIFeedComments {
 	feedCommentZs := rm.redisClient.ZRevRangeWithScores(FEED_COMMENT+feedId, 0, -1).Val()
 
@@ -285,16 +272,55 @@ func (rm *POIRedisManager) GetFeedComment(feedId string) POIFeedComments {
 	return feedComments
 }
 
-func (rm *POIRedisManager) GetFeedLikeList(feedId string) []*POIUser {
+func (rm *POIRedisManager) GetFeedLikeList(feedId string) POIUsers {
 	userStrs := rm.redisClient.ZRange(FEED_LIKE+feedId, 0, -1).Val()
 
-	users := make([]*POIUser, len(userStrs))
+	users := make(POIUsers, len(userStrs))
 
 	for i := range users {
 		str := userStrs[i]
 		userId, _ := strconv.ParseInt(str, 10, 64)
-		users[i] = DbManager.GetUserById(userId)
+		users[i] = *(DbManager.GetUserById(userId))
 	}
 
 	return users
+}
+
+func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int64) POIFeeds {
+	feedZs := rm.redisClient.ZRevRangeWithScores(FEEDFLOW_ATRIUM, start, stop).Val()
+
+	feeds := make(POIFeeds, len(feedZs))
+
+	for i := range feedZs {
+		str, _ := feedZs[i].Member.(string)
+		feeds[i] = *rm.LoadFeed(str)
+	}
+
+	return feeds
+}
+
+func (rm *POIRedisManager) GetFeedFlowUserFeed(userId int64, start, stop int64) POIFeeds {
+	userIdStr := strconv.FormatInt(userId, 10)
+	feedIds := rm.redisClient.ZRange(USER_FEED+userIdStr, start, stop).Val()
+
+	feeds := make(POIFeeds, len(feedIds))
+	for i := range feedIds {
+		feedId := feedIds[i]
+		feeds[i] = *(rm.LoadFeed(feedId))
+	}
+
+	return feeds
+}
+
+func (rm *POIRedisManager) GetFeedFlowUserFeedLike(userId int64, start, stop int64) POIFeeds {
+	userIdStr := strconv.FormatInt(userId, 10)
+	feedIds := rm.redisClient.ZRange(USER_FEED_LIKE+userIdStr, start, stop).Val()
+
+	feeds := make(POIFeeds, len(feedIds))
+	for i := range feedIds {
+		feedId := feedIds[i]
+		feeds[i] = *(rm.LoadFeed(feedId))
+	}
+
+	return feeds
 }
