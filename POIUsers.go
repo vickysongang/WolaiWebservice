@@ -57,6 +57,7 @@ func POIUserOauthLogin(openId string) (int64, *POIUser) {
 func POIUserOauthRegister(openId string, phone string, nickname string, avatar string, gender int64) (int64, *POIUser) {
 	user := DbManager.GetUserByPhone(phone)
 	if user != nil {
+		DbManager.InsertUserOauth(user.UserId, openId)
 		return 0, user
 	}
 
