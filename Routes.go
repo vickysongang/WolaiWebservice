@@ -38,6 +38,16 @@ var routes = Routes{
 		V1WebSocketHandler,
 	},
 
+	// Dummy
+	/*
+		Route{
+			"Dummy",
+			"GET",
+			"/dummy",
+			Dummy,
+		},
+	*/
+
 	// 1.1 Login
 	Route{
 		"V1LoginPOST",
@@ -279,7 +289,7 @@ var routes = Routes{
 		V1UserFollow,
 	},
 
-	// 3.5 User MyLike
+	// 3.7 User Unfollow
 	Route{
 		"V1UserUnfollowPOST",
 		"POST",
@@ -291,5 +301,19 @@ var routes = Routes{
 		"GET",
 		"/v1/user/unfollow",
 		V1UserUnfollow,
+	},
+
+	// 4.1 Get Conversation ID
+	Route{
+		"V1GetConversationIDPOST",
+		"POST",
+		"/v1/conversation/get",
+		V1GetConversationID,
+	},
+	Route{
+		"V1GetConversationIDGET",
+		"GET",
+		"/v1/conversation/get",
+		V1GetConversationID,
 	},
 }

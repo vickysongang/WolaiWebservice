@@ -11,6 +11,12 @@ import (
 )
 
 /*
+func Dummy(w http.ResponseWriter, r *http.Request) {
+	dummy()
+}
+*/
+
+/*
  * 1.1 Login
  */
 func V1Login(w http.ResponseWriter, r *http.Request) {
@@ -464,4 +470,32 @@ func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
 	status, content := POIUserUnfollow(userId, followId)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
+}
+
+/*
+ * 4.1 Get Conversation ID
+ */
+func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	targetIdStr := vars["targetId"][0]
+	targetId, _ := strconv.ParseInt(targetIdStr, 10, 64)
+
+	user := DbManager.GetUserById(userId)
+	target := DbManager.GetUserById(targetId)
+
+	if user == nil || target == nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, ""))
+	}
+
+	content := dummy(userIdStr, targetIdStr)
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
