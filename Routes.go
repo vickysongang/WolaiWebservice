@@ -130,6 +130,20 @@ var routes = Routes{
 		V1TeacherRecommendation,
 	},
 
+	// 1.7 Teacher Profile
+	Route{
+		"V1TeacherProfilePOST",
+		"POST",
+		"/v1/teacher/profile",
+		V1TeacherProfile,
+	},
+	Route{
+		"V1TeacherProfileGET",
+		"GET",
+		"/v1/teacher/profile",
+		V1TeacherProfile,
+	},
+
 	// 2.1 Atrium
 	Route{
 		"V1AtriumPOST",

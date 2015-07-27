@@ -144,6 +144,34 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
+ * 1.7 Teacher Profile
+ */
+func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	teacherIdStr := vars["teacherId"][0]
+	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
+
+	teacher := DbManager.GetUserById(teacherId)
+	if teacher.AccessRight != 2 {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, ""))
+	}
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	_ = DbManager.GetUserById(userId)
+
+	content := GetTeacherProfile(userId, teacherId)
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
+/*
  * 2.1 Atrium
  */
 func V1Atrium(w http.ResponseWriter, r *http.Request) {

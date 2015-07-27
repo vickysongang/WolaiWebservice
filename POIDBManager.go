@@ -204,6 +204,52 @@ func (dbm *POIDBManager) QueryTeacherList() POITeachers {
 	return teachers
 }
 
+func (dbm *POIDBManager) QueryTeacherProfile(userId int64) POITeacherProfile {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`
+		SELECT users.nickname, users.avatar, users.gender, 
+			teacher_profile.service_time, teacher_profile.intro, 
+			school.name, department.name
+		FROM users, teacher_profile, school, department
+		WHERE users.id = ?
+			AND users.id = teacher_profile.user_id
+			AND teacher_profile.school_id = school.id 
+			AND teacher_profile.department_id = department.id`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
+
+	row := stmtQuery.QueryRow(userId)
+	var nicknameNS sql.NullString
+	var avatarNS sql.NullString
+	var gender int64
+	var serviceTime int64
+	var intro string
+	var school string
+	var department string
+
+	err = row.Scan(&nicknameNS, &avatarNS, &gender, &serviceTime, &intro, &school, &department)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	nickname := ""
+	if nicknameNS.Valid {
+		nickname = nicknameNS.String
+	}
+
+	avatar := ""
+	if avatarNS.Valid {
+		avatar = avatarNS.String
+	}
+
+	teacherProfile := POITeacherProfile{POITeacher: POITeacher{POIUser: POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender},
+		ServiceTime: serviceTime, School: school, Department: department}, Intro: intro}
+
+	return teacherProfile
+}
+
 func (dbm *POIDBManager) QueryTeacherLabelById(userId int64) []string {
 	stmtQuery, err := dbm.dbClient.Prepare(
 		`
@@ -224,9 +270,43 @@ func (dbm *POIDBManager) QueryTeacherLabelById(userId int64) []string {
 
 	for rows.Next() {
 		err = rows.Scan(&label)
+		if err != nil {
+			panic(err.Error())
+		}
 
 		labels = append(labels, label)
 	}
 
 	return labels
+}
+
+func (dbm *POIDBManager) QueryTeacherSubjectById(userId int64) POITeacherSubjects {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`
+		SELECT subject.name, teacher_to_subject.description FROM teacher_to_subject, subject
+		WHERE teacher_to_subject.user_id = ? AND teacher_to_subject.subject_id = subject.id`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
+
+	rows, err := stmtQuery.Query(userId)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var name string
+	var description string
+	subjects := make(POITeacherSubjects, 0)
+
+	for rows.Next() {
+		err = rows.Scan(&name, &description)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		subjects = append(subjects, POITeacherSubject{SubjectName: name, Description: description})
+	}
+
+	return subjects
 }
