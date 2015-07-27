@@ -154,3 +154,79 @@ func (dbm *POIDBManager) QueryUserByQQOpenId(qqOpenId string) int64 {
 
 	return userId
 }
+
+func (dbm *POIDBManager) QueryTeacherList() POITeachers {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`
+		SELECT users.id, users.nickname, users.avatar, users.gender, 
+			teacher_profile.service_time, school.name, department.name
+		FROM users, teacher_profile, school, department
+		WHERE users.access_right = 2 
+			AND users.id = teacher_profile.user_id 
+			AND teacher_profile.school_id = school.id 
+			AND teacher_profile.department_id = department.id`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
+
+	rows, err := stmtQuery.Query()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var userId int64
+	var nicknameNS sql.NullString
+	var avatarNS sql.NullString
+	var gender int64
+	var serviceTime int64
+	var school string
+	var department string
+	teachers := make(POITeachers, 0)
+
+	for rows.Next() {
+		err = rows.Scan(&userId, &nicknameNS, &avatarNS, &gender, &serviceTime, &school, &department)
+
+		nickname := ""
+		if nicknameNS.Valid {
+			nickname = nicknameNS.String
+		}
+
+		avatar := ""
+		if avatarNS.Valid {
+			avatar = avatarNS.String
+		}
+
+		teachers = append(teachers, POITeacher{POIUser: POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender},
+			ServiceTime: serviceTime, School: school, Department: department})
+	}
+
+	return teachers
+}
+
+func (dbm *POIDBManager) QueryTeacherLabelById(userId int64) []string {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`
+		SELECT teacher_label.name FROM teacher_to_label, teacher_label
+		WHERE teacher_to_label.user_id = ? AND teacher_to_label.label_id = teacher_label.id`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
+
+	rows, err := stmtQuery.Query(userId)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var label string
+	labels := make([]string, 0)
+
+	for rows.Next() {
+		err = rows.Scan(&label)
+
+		labels = append(labels, label)
+	}
+
+	return labels
+}

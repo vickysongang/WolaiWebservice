@@ -124,6 +124,26 @@ func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
+ * 1.6 Teacher Recommendation
+ */
+func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	_ = DbManager.GetUserById(userId)
+
+	content := GetTeacherRecommendationList()
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
+/*
  * 2.1 Atrium
  */
 func V1Atrium(w http.ResponseWriter, r *http.Request) {

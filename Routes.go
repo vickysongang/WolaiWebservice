@@ -116,6 +116,20 @@ var routes = Routes{
 		V1OauthRegister,
 	},
 
+	// 1.6 Teacher Recommendation
+	Route{
+		"V1TeacherRecommendationPOST",
+		"POST",
+		"/v1/teacher/recommendation",
+		V1TeacherRecommendation,
+	},
+	Route{
+		"V1TeacherRecommendationGET",
+		"GET",
+		"/v1/teacher/recommendation",
+		V1TeacherRecommendation,
+	},
+
 	// 2.1 Atrium
 	Route{
 		"V1AtriumPOST",
