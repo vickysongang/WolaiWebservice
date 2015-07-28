@@ -160,6 +160,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 	teacher := DbManager.GetUserById(teacherId)
 	if teacher.AccessRight != 2 {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, ""))
+		return
 	}
 
 	userIdStr := vars["userId"][0]
@@ -394,9 +395,9 @@ func V1UserInfo(w http.ResponseWriter, r *http.Request) {
 
 	if content == nil {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, ""))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 	}
-
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
 /*
@@ -446,9 +447,9 @@ func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
 
 	if content == nil {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, ""))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 	}
-
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
 /*
@@ -542,8 +543,8 @@ func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
 
 	if user == nil || target == nil {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, ""))
+	} else {
+		content := dummy(userIdStr, targetIdStr)
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 	}
-
-	content := dummy(userIdStr, targetIdStr)
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
