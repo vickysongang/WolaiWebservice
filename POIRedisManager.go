@@ -200,7 +200,7 @@ func (rm *POIRedisManager) LikeFeed(feed *POIFeed, user *POIUser, timestamp floa
 
 	feedZ := redis.Z{Member: feed.Id, Score: timestamp}
 	userZ := redis.Z{Member: strconv.FormatInt(user.UserId, 10), Score: timestamp}
-	userIdStr := strconv.FormatInt(feed.Creator.UserId, 10)
+	userIdStr := strconv.FormatInt(user.UserId, 10)
 
 	_ = rm.redisClient.ZAdd(FEED_LIKE+feed.Id, userZ)
 	_ = rm.redisClient.ZAdd(USER_FEED_LIKE+userIdStr, feedZ)
@@ -211,7 +211,7 @@ func (rm *POIRedisManager) UnlikeFeed(feed *POIFeed, user *POIUser) {
 		return
 	}
 
-	userIdStr := strconv.FormatInt(feed.Creator.UserId, 10)
+	userIdStr := strconv.FormatInt(user.UserId, 10)
 
 	_ = rm.redisClient.ZRem(FEED_LIKE+feed.Id, userIdStr)
 	_ = rm.redisClient.ZRem(USER_FEED_LIKE+userIdStr, feed.Id)
@@ -237,7 +237,7 @@ func (rm *POIRedisManager) FavoriteFeed(feed *POIFeed, user *POIUser, timestamp 
 
 	feedZ := redis.Z{Member: feed.Id, Score: timestamp}
 	userZ := redis.Z{Member: strconv.FormatInt(user.UserId, 10), Score: timestamp}
-	userIdStr := strconv.FormatInt(feed.Creator.UserId, 10)
+	userIdStr := strconv.FormatInt(user.UserId, 10)
 
 	_ = rm.redisClient.ZAdd(FEED_FAV+feed.Id, userZ)
 	_ = rm.redisClient.ZAdd(USER_FEED_FAV+userIdStr, feedZ)

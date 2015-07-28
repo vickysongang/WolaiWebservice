@@ -37,7 +37,7 @@ type POITeacherProfile struct {
 	HasFollowed   bool               `json:"hasFollowed"`
 }
 
-func GetTeacherRecommendationList() POITeachers {
+func GetTeacherRecommendationList(page int64) POITeachers {
 	teachers := DbManager.QueryTeacherList()
 
 	for i := range teachers {

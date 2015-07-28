@@ -138,7 +138,13 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	_ = DbManager.GetUserById(userId)
 
-	content := GetTeacherRecommendationList()
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+
+	content := GetTeacherRecommendationList(page)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
