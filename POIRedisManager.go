@@ -314,7 +314,7 @@ func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int64) POIFeeds {
 
 func (rm *POIRedisManager) GetFeedFlowUserFeed(userId int64, start, stop int64) POIFeeds {
 	userIdStr := strconv.FormatInt(userId, 10)
-	feedIds := rm.redisClient.ZRange(USER_FEED+userIdStr, start, stop).Val()
+	feedIds := rm.redisClient.ZRevRange(USER_FEED+userIdStr, start, stop).Val()
 
 	feeds := make(POIFeeds, len(feedIds))
 	for i := range feedIds {
@@ -327,7 +327,7 @@ func (rm *POIRedisManager) GetFeedFlowUserFeed(userId int64, start, stop int64) 
 
 func (rm *POIRedisManager) GetFeedFlowUserFeedLike(userId int64, start, stop int64) POIFeeds {
 	userIdStr := strconv.FormatInt(userId, 10)
-	feedIds := rm.redisClient.ZRange(USER_FEED_LIKE+userIdStr, start, stop).Val()
+	feedIds := rm.redisClient.ZRevRange(USER_FEED_LIKE+userIdStr, start, stop).Val()
 
 	feeds := make(POIFeeds, len(feedIds))
 	for i := range feedIds {
