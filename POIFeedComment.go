@@ -59,6 +59,7 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	RedisManager.SaveFeed(feed)
 	RedisManager.SaveFeedComment(&feedComment)
 	RedisManager.PostFeedComment(&feedComment)
+	go SendCommentNotification(feedComment.Id)
 
 	return &feedComment
 }
