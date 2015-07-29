@@ -105,6 +105,7 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 		feed.IncreaseLike()
 		RedisManager.SaveFeed(feed)
 		RedisManager.LikeFeed(feed, user, timestamp)
+
 		go SendLikeNotification(userId, timestamp, feedId)
 	} else {
 		feed.DecreaseLike()

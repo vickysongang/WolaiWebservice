@@ -176,9 +176,15 @@ func SendCommentNotification(feedCommentId string) {
 		return
 	}
 
-	LCSendTypedMessage(1000, feed.Creator.UserId, lcTMsg)
+	// if someone comments himself...
+	if feedComment.Creator.UserId != feed.Creator.UserId {
+		LCSendTypedMessage(1000, feed.Creator.UserId, lcTMsg)
+	}
+
 	if feedComment.ReplyTo != nil {
-		LCSendTypedMessage(1000, feedComment.ReplyTo.UserId, lcTMsg)
+		if feedComment.ReplyTo.UserId != feed.Creator.UserId {
+			LCSendTypedMessage(1000, feedComment.ReplyTo.UserId, lcTMsg)
+		}
 	}
 
 	return
@@ -188,6 +194,10 @@ func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 	user := DbManager.GetUserById(userId)
 	feed := RedisManager.LoadFeed(feedId)
 	if user == nil || feed == nil {
+		return
+	}
+
+	if user.UserId == feed.Creator.UserId {
 		return
 	}
 
