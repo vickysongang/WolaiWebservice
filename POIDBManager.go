@@ -204,6 +204,51 @@ func (dbm *POIDBManager) QueryTeacherList() POITeachers {
 	return teachers
 }
 
+func (dbm *POIDBManager) QueryTeacher(userId int64) *POITeacher {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`
+		SELECT users.nickname, users.avatar, users.gender, 
+			teacher_profile.service_time,
+			school.name, department.name
+		FROM users, teacher_profile, school, department
+		WHERE users.id = ?
+			AND users.id = teacher_profile.user_id
+			AND teacher_profile.school_id = school.id 
+			AND teacher_profile.department_id = department.id`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
+
+	row := stmtQuery.QueryRow(userId)
+	var nicknameNS sql.NullString
+	var avatarNS sql.NullString
+	var gender int64
+	var serviceTime int64
+	var school string
+	var department string
+
+	err = row.Scan(&nicknameNS, &avatarNS, &gender, &serviceTime, &school, &department)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	nickname := ""
+	if nicknameNS.Valid {
+		nickname = nicknameNS.String
+	}
+
+	avatar := ""
+	if avatarNS.Valid {
+		avatar = avatarNS.String
+	}
+
+	teacher := POITeacher{POIUser: POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender},
+		ServiceTime: serviceTime, School: school, Department: department}
+
+	return &teacher
+}
+
 func (dbm *POIDBManager) QueryTeacherProfile(userId int64) POITeacherProfile {
 	stmtQuery, err := dbm.dbClient.Prepare(
 		`

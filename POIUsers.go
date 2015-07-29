@@ -77,6 +77,10 @@ func POIUserFollow(userId, followId int64) (int64, bool) {
 		return 2, false
 	}
 
+	if follow.AccessRight != 2 {
+		return 2, false
+	}
+
 	if RedisManager.HasFollowedUser(userId, followId) {
 		RedisManager.RemoveUserFollow(userId, followId)
 		return 0, false
@@ -101,13 +105,13 @@ func POIUserUnfollow(userId, followId int64) (int64, bool) {
 	return 0, false
 }
 
-func GetUserFollowing(userId int64) POIUsers {
+func GetUserFollowing(userId int64) POITeachers {
 	user := DbManager.GetUserById(userId)
 	if user == nil {
 		return nil
 	}
 
-	users := RedisManager.GetUserFollowList(userId)
+	teachers := RedisManager.GetUserFollowList(userId)
 
-	return users
+	return teachers
 }

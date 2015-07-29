@@ -10,7 +10,7 @@ type POITeacher struct {
 	School      string   `json:"school"`
 	Department  string   `json:"department"`
 	ServiceTime int64    `json:"serviceTime"`
-	LabelList   []string `json:"labelList"`
+	LabelList   []string `json:"labelList,omitempty"`
 }
 type POITeachers []POITeacher
 

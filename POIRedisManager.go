@@ -373,15 +373,15 @@ func (rm *POIRedisManager) HasFollowedUser(userId, followId int64) bool {
 	return result
 }
 
-func (rm *POIRedisManager) GetUserFollowList(userId int64) POIUsers {
+func (rm *POIRedisManager) GetUserFollowList(userId int64) POITeachers {
 	userIdStr := strconv.FormatInt(userId, 10)
 	userIds := rm.redisClient.HKeys(USER_FOLLOWING + userIdStr).Val()
 
-	users := make(POIUsers, len(userIds))
+	teachers := make(POITeachers, len(userIds))
 	for i := range userIds {
 		userIdtmp, _ := strconv.ParseInt(userIds[i], 10, 64)
-		users[i] = *(DbManager.GetUserById(userIdtmp))
+		teachers[i] = *(DbManager.QueryTeacher(userIdtmp))
 	}
 
-	return users
+	return teachers
 }
