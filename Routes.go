@@ -39,14 +39,12 @@ var routes = Routes{
 	},
 
 	// Dummy
-	/*
-		Route{
-			"Dummy",
-			"GET",
-			"/dummy",
-			Dummy,
-		},
-	*/
+	Route{
+		"Dummy",
+		"GET",
+		"/dummy",
+		Dummy,
+	},
 
 	// 1.1 Login
 	Route{
