@@ -2,6 +2,7 @@ package main
 
 import (
 	_ "encoding/json"
+	"strconv"
 )
 
 type POIUser struct {
@@ -114,4 +115,21 @@ func GetUserFollowing(userId int64) POITeachers {
 	teachers := RedisManager.GetUserFollowList(userId)
 
 	return teachers
+}
+
+func GetUserConversation(userId1, userId2 int64) (int64, string) {
+	user1 := DbManager.GetUserById(userId1)
+	user2 := DbManager.GetUserById(userId2)
+
+	if user1 == nil || user2 == nil {
+		return 2, ""
+	}
+
+	convId := RedisManager.GetConversation(userId1, userId2)
+	if convId == "" {
+		convId = LCGetConversationId(strconv.FormatInt(userId1, 10), strconv.FormatInt(userId2, 10))
+		RedisManager.SaveConversation(convId, userId1, userId2)
+	}
+
+	return 0, convId
 }

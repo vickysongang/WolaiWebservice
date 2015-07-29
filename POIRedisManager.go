@@ -37,6 +37,8 @@ const USER_FEED_FAV = "user:feed_fav:"
 const USER_FOLLOWING = "user:following:"
 const USER_FOLLOWER = "user:follower:"
 
+const USER_CONVERSATION = "conversation:"
+
 func NewPOIRedisManager() POIRedisManager {
 	client := redis.NewClient(&redis.Options{
 		Addr:     REDIS_HOST + REDIS_PORT,
@@ -384,4 +386,24 @@ func (rm *POIRedisManager) GetUserFollowList(userId int64) POITeachers {
 	}
 
 	return teachers
+}
+
+func (rm *POIRedisManager) SaveConversation(conversationId string, userId1, userId2 int64) {
+	userId1Str := strconv.FormatInt(userId1, 10)
+	userId2Str := strconv.FormatInt(userId2, 10)
+
+	_ = rm.redisClient.HSet(USER_CONVERSATION+userId1Str, userId2Str, conversationId)
+	_ = rm.redisClient.HSet(USER_CONVERSATION+userId2Str, userId1Str, conversationId)
+}
+
+func (rm *POIRedisManager) GetConversation(userId1, userId2 int64) string {
+	userId1Str := strconv.FormatInt(userId1, 10)
+	userId2Str := strconv.FormatInt(userId2, 10)
+
+	convId, err := rm.redisClient.HGet(USER_CONVERSATION+userId1Str, userId2Str).Result()
+	if err == redis.Nil {
+		return ""
+	}
+
+	return convId
 }

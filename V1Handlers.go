@@ -559,13 +559,7 @@ func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
 	targetIdStr := vars["targetId"][0]
 	targetId, _ := strconv.ParseInt(targetIdStr, 10, 64)
 
-	user := DbManager.GetUserById(userId)
-	target := DbManager.GetUserById(targetId)
+	status, content := GetUserConversation(userId, targetId)
 
-	if user == nil || target == nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, ""))
-	} else {
-		content := LCGetConversationId(userIdStr, targetIdStr)
-		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-	}
+	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 }
