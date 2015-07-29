@@ -66,9 +66,11 @@ func NewLCCommentNotification(feedCommentId, feedId string) LCMessage {
 
 	lcTMsg := LCTypedMessage{Type: 4, Text: "您有一条新的消息", Attribute: attr}
 	userIdStr := strconv.FormatInt(feed.Creator.UserId, 10)
+	_, convId := GetUserConversation(1000, feed.Creator.UserId)
+
 	lcMsg := LCMessage{
 		SendId:         userIdStr,
-		ConversationId: LCGetConversationId("1000", userIdStr),
+		ConversationId: convId,
 		Message:        lcTMsg,
 		Transient:      true,
 	}
