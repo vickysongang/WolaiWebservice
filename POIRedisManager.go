@@ -375,7 +375,7 @@ func (rm *POIRedisManager) HasFollowedUser(userId, followId int64) bool {
 
 func (rm *POIRedisManager) GetUserFollowList(userId int64) POIUsers {
 	userIdStr := strconv.FormatInt(userId, 10)
-	userIds := rm.redisClient.HGetAll(USER_FOLLOWING + userIdStr).Val()
+	userIds := rm.redisClient.HKeys(USER_FOLLOWING + userIdStr).Val()
 
 	users := make(POIUsers, len(userIds))
 	for i := range userIds {
