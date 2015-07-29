@@ -410,6 +410,22 @@ func V1UserInfo(w http.ResponseWriter, r *http.Request) {
  * 3.2 User MyWallet
  */
 
+func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	content := (userId - 8888) * 10
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
 /*
  * 3.3 User MyFeed
  */

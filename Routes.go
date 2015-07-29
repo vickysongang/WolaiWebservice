@@ -260,7 +260,20 @@ var routes = Routes{
 		V1UserInfo,
 	},
 
-	// 3.2
+	// 3.2 User Wallet
+	Route{
+		"V1UserMyWalletPOST",
+		"POST",
+		"/v1/user/mywallet",
+		V1UserMyWallet,
+	},
+	Route{
+		"V1UserMyWalletGET",
+		"GET",
+		"/v1/user/mywallet",
+		V1UserMyWallet,
+	},
+
 	// 3.3 User MyFeed
 	Route{
 		"V1UserMyFeedPOST",
