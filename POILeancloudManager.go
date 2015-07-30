@@ -182,6 +182,7 @@ func SendCommentNotification(feedCommentId string) {
 	}
 
 	if feedComment.ReplyTo != nil {
+		// if someone replies the author... the poor man should not be notified twice
 		if feedComment.ReplyTo.UserId != feed.Creator.UserId {
 			LCSendTypedMessage(1000, feedComment.ReplyTo.UserId, lcTMsg)
 		}
