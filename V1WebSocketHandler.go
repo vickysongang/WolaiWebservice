@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"net/http"
@@ -31,7 +32,11 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		var msg POIWSMessage
 		print_binary(p)
+		fmt.Println("WSSocket recieved: ", string(p))
+		json.Unmarshal([]byte(p), msg)
+		WsManager.OrderInput <- msg
 
 		err = conn.WriteMessage(messageType, p)
 		if err != nil {
