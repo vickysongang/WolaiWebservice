@@ -12,19 +12,28 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func print_binary(s []byte) {
-	fmt.Printf("Received b:")
-	for n := 0; n < len(s); n++ {
-		fmt.Printf("%d,", s[n])
-	}
-	fmt.Printf("\n")
-}
-
 func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
 	}
+
+	_, p, err := conn.ReadMessage()
+	if err != nil {
+		return
+	}
+
+	var msg POIWSMessage
+
+	fmt.Println("WebSocketHandler: recieved: ", string(p))
+	err = json.Unmarshal([]byte(p), &msg)
+	if err != nil {
+		fmt.Println("WebSocketHandler: unstructed message")
+	}
+
+	userChan := make(chan POIWSMessage)
+	WsManager.SetUserChan(msg.UserId, userChan)
+	go WebSocketWriteHandler(conn, userChan)
 
 	for {
 		messageType, p, err := conn.ReadMessage()
@@ -32,18 +41,29 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var msg POIWSMessage
-		print_binary(p)
 		fmt.Println("WSSocket recieved: ", string(p))
 		err = json.Unmarshal([]byte(p), &msg)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
+
 		WsManager.OrderInput <- msg
 
 		err = conn.WriteMessage(messageType, p)
 		if err != nil {
 			return
+		}
+	}
+}
+
+func WebSocketWriteHandler(conn *websocket.Conn, userChan chan POIWSMessage) {
+	for {
+		select {
+		case msg := <-userChan:
+			if msg.OperationCode == -1 {
+				return
+			}
+			err := conn.WriteJSON(msg)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		}
 	}
 }

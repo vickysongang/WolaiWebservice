@@ -10,7 +10,8 @@ func POIOrderHandler() {
 		select {
 		case msg = <-WsManager.OrderInput:
 			fmt.Println("WSHandler recieve: ", msg.MessageId)
-			//WsManager.UserMap[msg.UserId] <- NewType2Message
+			userChan := WsManager.GetUserChan(msg.UserId)
+			userChan <- NewType2Message()
 		}
 	}
 }

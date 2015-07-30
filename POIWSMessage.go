@@ -14,6 +14,20 @@ type POIWSMessage struct {
 	Attribute     map[string]interface{} `json:"attr"`
 }
 
+func NewCloseMessage(userId int64) POIWSMessage {
+	timestampNano := time.Now().UnixNano()
+	timestampMillis := timestampNano / 1000
+	timestamp := float64(timestampMillis) / 1000000.0
+
+	return POIWSMessage{
+		MessageId:     uuid.NewV4().String(),
+		UserId:        userId,
+		OperationCode: -1,
+		Timestamp:     timestamp,
+		Attribute:     make(map[string]interface{}),
+	}
+}
+
 func NewType2Message() POIWSMessage {
 	timestampNano := time.Now().UnixNano()
 	timestampMillis := timestampNano / 1000
