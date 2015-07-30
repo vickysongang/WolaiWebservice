@@ -37,7 +37,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("WSSocket recieved: ", string(p))
 		err = json.Unmarshal([]byte(p), &msg)
 		if err != nil {
-			fmt.Print(err.Error())
+			fmt.Println(err.Error())
 		}
 		WsManager.OrderInput <- msg
 
