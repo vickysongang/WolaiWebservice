@@ -34,7 +34,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	userChan := make(chan POIWSMessage)
 	WsManager.SetUserChan(msg.UserId, userChan)
 	go WebSocketWriteHandler(conn, userChan)
-	userChan <- msg
 
 	for {
 		_, p, err = conn.ReadMessage()
