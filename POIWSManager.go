@@ -12,8 +12,9 @@ type POIWSManager struct {
 
 func NewPOIWSManager() POIWSManager {
 	return POIWSManager{
-		OrderInput: make(chan POIWSMessage),
-		UserMap:    make(map[int64](chan POIWSMessage)),
+		OrderInput:        make(chan POIWSMessage),
+		UserMap:           make(map[int64](chan POIWSMessage)),
+		OnlineTeacherList: make(map[int64]bool),
 	}
 }
 
