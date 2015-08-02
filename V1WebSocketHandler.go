@@ -12,7 +12,22 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
+func WebSocketWriteHandler(conn *websocket.Conn, userChan chan POIWSMessage) {
+	for {
+		select {
+		case msg := <-userChan:
+			if msg.OperationCode == -1 {
+				return
+			}
+			err := conn.WriteJSON(msg)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+		}
+	}
+}
+
+func V1WSOrderHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
@@ -25,10 +40,10 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	var msg POIWSMessage
 
-	fmt.Println("WebSocketHandler: recieved: ", string(p))
+	fmt.Println("V1WSOrderHandler: recieved: ", string(p))
 	err = json.Unmarshal([]byte(p), &msg)
 	if err != nil {
-		fmt.Println("WebSocketHandler: unstructed message")
+		fmt.Println("V1WSOrderHandler: unstructed message")
 		return
 	}
 
@@ -43,24 +58,47 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Println("WSSocket recieved: ", string(p))
+		fmt.Println("V1WSOrderHandler recieved: ", string(p))
 		err = json.Unmarshal([]byte(p), &msg)
 
 		WsManager.OrderInput <- msg
 	}
 }
 
-func WebSocketWriteHandler(conn *websocket.Conn, userChan chan POIWSMessage) {
+func V1WSSessionHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+
+	_, p, err := conn.ReadMessage()
+	if err != nil {
+		return
+	}
+
+	var msg POIWSMessage
+
+	fmt.Println("V1WSSessionHandler: recieved: ", string(p))
+	err = json.Unmarshal([]byte(p), &msg)
+	if err != nil {
+		fmt.Println("V1WSSessionHandler: unstructed message")
+		return
+	}
+
+	userChan := make(chan POIWSMessage)
+	WsManager.SetUserChan(msg.UserId, userChan)
+	go WebSocketWriteHandler(conn, userChan)
+	WsManager.SessionInput <- msg
+
 	for {
-		select {
-		case msg := <-userChan:
-			if msg.OperationCode == -1 {
-				return
-			}
-			err := conn.WriteJSON(msg)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
+		_, p, err = conn.ReadMessage()
+		if err != nil {
+			return
 		}
+
+		fmt.Println("V1WSSessionHandler recieved: ", string(p))
+		err = json.Unmarshal([]byte(p), &msg)
+
+		WsManager.SessionInput <- msg
 	}
 }

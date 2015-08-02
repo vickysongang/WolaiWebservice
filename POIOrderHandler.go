@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 )
 
 func POIOrderHandler() {
@@ -11,9 +12,11 @@ func POIOrderHandler() {
 	for {
 		select {
 		case msg = <-WsManager.OrderInput:
-			fmt.Println("WSHandler recieve: ", msg.MessageId)
 			userChan := WsManager.GetUserChan(msg.UserId)
 			user := DbManager.GetUserById(msg.UserId)
+
+			timestampNano := time.Now().UnixNano()
+			timestamp := float64(timestampNano) / 1000000000.0
 
 			switch msg.OperationCode {
 			case 1:
@@ -92,6 +95,15 @@ func POIOrderHandler() {
 				confirmChan := WsManager.GetUserChan(teacherIdConfirmed)
 				fmt.Println("Order confirmed: " + orderIdConfirmedStr + "to teacher ID: " + teacherIdConfirmedStr)
 				confirmChan <- msgConfirm
+
+				orderConfirmed := DbManager.QueryOrderById(orderIdConfirmed)
+				session := NewPOISession(orderConfirmed.Id,
+					DbManager.GetUserById(orderConfirmed.Creator.UserId),
+					DbManager.GetUserById(teacherIdConfirmed),
+					timestamp, orderConfirmed.Date)
+				sessionPtr := DbManager.InsertSession(&session)
+
+				SendSessionNotification(sessionPtr.Id, 1)
 			}
 		}
 	}

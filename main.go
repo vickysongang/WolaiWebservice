@@ -19,6 +19,7 @@ func init() {
 
 func main() {
 	go POIOrderHandler()
+	go POISessionHandler()
 
 	router := NewRouter()
 

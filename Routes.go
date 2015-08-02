@@ -35,7 +35,19 @@ var routes = Routes{
 		"V1WebSocket",
 		"GET",
 		"/v1/ws",
-		V1WebSocketHandler,
+		V1WSOrderHandler,
+	},
+	Route{
+		"V1WebSocketOrder",
+		"GET",
+		"/v1/ws/order",
+		V1WSOrderHandler,
+	},
+	Route{
+		"V1WebSocketSession",
+		"GET",
+		"/v1/ws/session",
+		V1WSSessionHandler,
 	},
 
 	// Dummy

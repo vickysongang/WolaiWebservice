@@ -12,7 +12,7 @@ import (
 
 func Dummy(w http.ResponseWriter, r *http.Request) {
 	//LCSendCommentNotification("6232a882-6b3a-48ae-9a5c-734c297ec486", "40f375e0-49e2-4663-bbed-809d9846816e")
-	json.NewEncoder(w).Encode(NewPOIResponse(0, ""))
+	SendSessionNotification(1, 1)
 }
 
 /*

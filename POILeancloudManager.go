@@ -90,6 +90,35 @@ func NewLCLikeNotification(userId int64, timestamp float64, feedId string) *LCTy
 	return &lcTMsg
 }
 
+func NewSessionNotification(oprCode int64, sessionId int64) *LCTypedMessage {
+	session := DbManager.QuerySessionById(sessionId)
+	if session == nil {
+		return nil
+	}
+
+	attr := make(map[string]string)
+	sessionIdStr := strconv.FormatInt(sessionId, 10)
+	switch oprCode {
+	case 1:
+		attr["oprCode"] = "1"
+		attr["sessionId"] = sessionIdStr
+		attr["countdown"] = "10"
+		attr["planTime"] = session.PlanTime
+	case 2:
+		attr["oprCode"] = "2"
+		attr["sessionId"] = sessionIdStr
+		tmpStr, _ := json.Marshal(session.Teacher)
+		attr["teacherInfo"] = string(tmpStr)
+	case 3:
+		attr["oprCode"] = "3"
+		attr["sessionId"] = sessionIdStr
+	}
+
+	lcTMsg := LCTypedMessage{Type: 6, Text: "您有一条上课提醒", Attribute: attr}
+
+	return &lcTMsg
+}
+
 func LCGetConversationId(member1, member2 string) string {
 	url := LC_CONV_ID
 	fmt.Println("URL:>", url)
@@ -210,4 +239,26 @@ func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 	LCSendTypedMessage(1000, feed.Creator.UserId, lcTMsg)
 
 	return
+}
+
+func SendSessionNotification(sessionId int64, oprCode int64) {
+	session := DbManager.QuerySessionById(sessionId)
+	if session == nil {
+		return
+	}
+
+	lcTMsg := NewSessionNotification(oprCode, sessionId)
+	if lcTMsg == nil {
+		return
+	}
+
+	switch oprCode {
+	case 1:
+		LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, lcTMsg)
+	case 2:
+		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg)
+	case 3:
+		LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, lcTMsg)
+		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg)
+	}
 }

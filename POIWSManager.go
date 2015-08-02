@@ -6,6 +6,7 @@ import (
 
 type POIWSManager struct {
 	OrderInput        chan POIWSMessage
+	SessionInput      chan POIWSMessage
 	UserMap           map[int64](chan POIWSMessage)
 	OnlineTeacherList map[int64]bool
 }
@@ -13,6 +14,7 @@ type POIWSManager struct {
 func NewPOIWSManager() POIWSManager {
 	return POIWSManager{
 		OrderInput:        make(chan POIWSMessage),
+		SessionInput:      make(chan POIWSMessage),
 		UserMap:           make(map[int64](chan POIWSMessage)),
 		OnlineTeacherList: make(map[int64]bool),
 	}

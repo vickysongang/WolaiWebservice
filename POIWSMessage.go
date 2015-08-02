@@ -28,6 +28,20 @@ func NewCloseMessage(userId int64) POIWSMessage {
 	}
 }
 
+func NewType1Message() POIWSMessage {
+	timestampNano := time.Now().UnixNano()
+	timestampMillis := timestampNano / 1000
+	timestamp := float64(timestampMillis) / 1000000.0
+
+	return POIWSMessage{
+		MessageId:     uuid.NewV4().String(),
+		UserId:        10001,
+		OperationCode: 1,
+		Timestamp:     timestamp,
+		Attribute:     make(map[string]string),
+	}
+}
+
 func NewType2Message() POIWSMessage {
 	timestampNano := time.Now().UnixNano()
 	timestampMillis := timestampNano / 1000
@@ -51,6 +65,20 @@ func NewType3Message() POIWSMessage {
 		MessageId:     uuid.NewV4().String(),
 		UserId:        10001,
 		OperationCode: 3,
+		Timestamp:     timestamp,
+		Attribute:     make(map[string]string),
+	}
+}
+
+func NewType5Message() POIWSMessage {
+	timestampNano := time.Now().UnixNano()
+	timestampMillis := timestampNano / 1000
+	timestamp := float64(timestampMillis) / 1000000.0
+
+	return POIWSMessage{
+		MessageId:     uuid.NewV4().String(),
+		UserId:        10001,
+		OperationCode: 5,
 		Timestamp:     timestamp,
 		Attribute:     make(map[string]string),
 	}
