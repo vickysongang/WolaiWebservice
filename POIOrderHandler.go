@@ -23,31 +23,31 @@ func POIOrderHandler() {
 
 				if user.AccessRight == 2 {
 					WsManager.OnlineTeacherList[msg.UserId] = true
-					break
-				}
 
-				orderDispatchIdStr := msg.Attribute["orderId"]
-				orderDispatchId, _ := strconv.ParseInt(orderDispatchIdStr, 10, 64)
-				orderDispatch := DbManager.QueryOrderById(orderDispatchId)
-				orderDispatchByte, _ := json.Marshal(orderDispatch)
-				var countdown string
-				if orderDispatch.Type == 1 || orderDispatch.Type == 3 {
-					countdown = "90"
 				} else {
-					countdown = "300"
-				}
+					orderDispatchIdStr := msg.Attribute["orderId"]
+					orderDispatchId, _ := strconv.ParseInt(orderDispatchIdStr, 10, 64)
+					orderDispatch := DbManager.QueryOrderById(orderDispatchId)
+					orderDispatchByte, _ := json.Marshal(orderDispatch)
+					var countdown string
+					if orderDispatch.Type == 1 || orderDispatch.Type == 3 {
+						countdown = "90"
+					} else {
+						countdown = "300"
+					}
 
-				DbManager.UpdateOrderStatus(orderDispatchId, ORDER_STATUS_DISPATHCING)
+					DbManager.UpdateOrderStatus(orderDispatchId, ORDER_STATUS_DISPATHCING)
 
-				msgDispatch := NewType3Message()
-				msgDispatch.Attribute["orderInfo"] = string(orderDispatchByte)
-				msgDispatch.Attribute["countdown"] = countdown
+					msgDispatch := NewType3Message()
+					msgDispatch.Attribute["orderInfo"] = string(orderDispatchByte)
+					msgDispatch.Attribute["countdown"] = countdown
 
-				for teacherId, _ := range WsManager.OnlineTeacherList {
-					msgDispatch.UserId = teacherId
-					dispatchChan := WsManager.GetUserChan(teacherId)
-					fmt.Println("Order dispatched: ", orderDispatchId, " to teacher ID: ", teacherId)
-					dispatchChan <- msgDispatch
+					for teacherId, _ := range WsManager.OnlineTeacherList {
+						msgDispatch.UserId = teacherId
+						dispatchChan := WsManager.GetUserChan(teacherId)
+						fmt.Println("Order dispatched: ", orderDispatchId, " to teacher ID: ", teacherId)
+						dispatchChan <- msgDispatch
+					}
 				}
 			case 5:
 				ack6 := NewType6Message()

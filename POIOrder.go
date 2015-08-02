@@ -120,7 +120,7 @@ func (dbm *POIDBManager) UpdateOrderStatus(orderId int64, status string) {
 	}
 	defer stmtUpdate.Close()
 
-	_, err = stmtUpdate.Exec()
+	_, err = stmtUpdate.Exec(orderId, status)
 	if err != nil {
 		fmt.Println(err.Error())
 		return
