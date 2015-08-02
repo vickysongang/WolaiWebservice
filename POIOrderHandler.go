@@ -34,7 +34,7 @@ func POIOrderHandler() {
 				if orderDispatch.Type == 1 || orderDispatch.Type == 3 {
 					countdown = "90"
 				} else {
-					countdown = "500"
+					countdown = "300"
 				}
 
 				DbManager.UpdateOrderStatus(orderDispatchId, ORDER_STATUS_DISPATHCING)
@@ -66,6 +66,7 @@ func POIOrderHandler() {
 				msgPresent.Attribute["teacherInfo"] = string(teacherByte)
 				msgPresent.Attribute["time"] = timePresentStr
 				msgPresent.Attribute["orderId"] = orderPresentIdStr
+				msgPresent.Attribute["countdown"] = "300"
 
 				presentChan := WsManager.UserMap[msgPresent.UserId]
 				fmt.Println("Order presented: "+orderPresentIdStr, " to creator ID: ", orderPresent.Creator.UserId)
