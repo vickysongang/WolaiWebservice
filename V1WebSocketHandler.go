@@ -29,6 +29,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal([]byte(p), &msg)
 	if err != nil {
 		fmt.Println("WebSocketHandler: unstructed message")
+		return
 	}
 
 	userChan := make(chan POIWSMessage)
