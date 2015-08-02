@@ -34,9 +34,10 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	userChan := make(chan POIWSMessage)
 	WsManager.SetUserChan(msg.UserId, userChan)
 	go WebSocketWriteHandler(conn, userChan)
+	userChan <- msg
 
 	for {
-		messageType, p, err := conn.ReadMessage()
+		_, p, err = conn.ReadMessage()
 		if err != nil {
 			return
 		}
@@ -45,11 +46,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		err = json.Unmarshal([]byte(p), &msg)
 
 		WsManager.OrderInput <- msg
-
-		err = conn.WriteMessage(messageType, p)
-		if err != nil {
-			return
-		}
 	}
 }
 

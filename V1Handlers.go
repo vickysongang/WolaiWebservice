@@ -526,7 +526,7 @@ func V1UserFollow(w http.ResponseWriter, r *http.Request) {
 func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 
 	vars := r.Form
@@ -548,7 +548,7 @@ func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
 func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 
 	vars := r.Form
@@ -560,6 +560,74 @@ func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
 	targetId, _ := strconv.ParseInt(targetIdStr, 10, 64)
 
 	status, content := GetUserConversation(userId, targetId)
+
+	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
+}
+
+/*
+ * 5.1 Grade List
+ */
+func V1GradeList(w http.ResponseWriter, r *http.Request) {
+	content := DbManager.QueryGradeList()
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
+/*
+ *
+ */
+func V1SubjectList(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	vars := r.Form
+
+	_ = vars["gradeId"][0]
+	//gradeId, _ := strconv.ParseInt(gradeIdStr, 10, 64)
+
+	content := DbManager.QuerySubjectList()
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
+/*
+ * 5.3 Order Create
+ */
+func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	timestampNano := time.Now().UnixNano()
+	timestamp := float64(timestampNano) / 1000000000.0
+
+	gradeIdStr := vars["gradeId"][0]
+	gradeId, _ := strconv.ParseInt(gradeIdStr, 10, 64)
+
+	subjectIdStr := vars["subjectId"][0]
+	subjectId, _ := strconv.ParseInt(subjectIdStr, 10, 64)
+
+	date := vars["date"][0]
+
+	periodIdStr := vars["periodId"][0]
+	periodId, _ := strconv.ParseInt(periodIdStr, 10, 64)
+
+	lengthStr := vars["length"][0]
+	length, _ := strconv.ParseInt(lengthStr, 10, 64)
+
+	orderTypeStr := vars["orderType"][0]
+	orderType, _ := strconv.ParseInt(orderTypeStr, 10, 64)
+
+	status, content := OrderCreate(userId, timestamp, gradeId, subjectId, date,
+		periodId, length, orderType)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 }

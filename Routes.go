@@ -355,4 +355,46 @@ var routes = Routes{
 		"/v1/conversation/get",
 		V1GetConversationID,
 	},
+
+	//5.1 Grade List
+	Route{
+		"V1GradeListPOST",
+		"POST",
+		"/v1/grade/list",
+		V1GradeList,
+	},
+	Route{
+		"V1GradeListGET",
+		"GET",
+		"/v1/grade/list",
+		V1GradeList,
+	},
+
+	//5.2 Subject List
+	Route{
+		"V1SubjectListPOST",
+		"POST",
+		"/v1/subject/list",
+		V1SubjectList,
+	},
+	Route{
+		"V1SubjectListGET",
+		"GET",
+		"/v1/subject/list",
+		V1SubjectList,
+	},
+
+	// 5.3 Create Order
+	Route{
+		"V1OrderCreatePOST",
+		"POST",
+		"/v1/order/create",
+		V1OrderCreate,
+	},
+	Route{
+		"V1OrderCreateGET",
+		"GET",
+		"/v1/order/create",
+		V1OrderCreate,
+	},
 }

@@ -7,11 +7,11 @@ import (
 )
 
 type POIWSMessage struct {
-	MessageId     string                 `json:"msgId"`
-	UserId        int64                  `json:"userId"`
-	OperationCode int64                  `json:"oprCode"`
-	Timestamp     float64                `json:"timestamp"`
-	Attribute     map[string]interface{} `json:"attr"`
+	MessageId     string            `json:"msgId"`
+	UserId        int64             `json:"userId"`
+	OperationCode int64             `json:"oprCode"`
+	Timestamp     float64           `json:"timestamp"`
+	Attribute     map[string]string `json:"attr"`
 }
 
 func NewCloseMessage(userId int64) POIWSMessage {
@@ -24,7 +24,7 @@ func NewCloseMessage(userId int64) POIWSMessage {
 		UserId:        userId,
 		OperationCode: -1,
 		Timestamp:     timestamp,
-		Attribute:     make(map[string]interface{}),
+		Attribute:     make(map[string]string),
 	}
 }
 
@@ -38,7 +38,7 @@ func NewType2Message() POIWSMessage {
 		UserId:        10001,
 		OperationCode: 2,
 		Timestamp:     timestamp,
-		Attribute:     make(map[string]interface{}),
+		Attribute:     make(map[string]string),
 	}
 }
 
@@ -52,7 +52,7 @@ func NewType3Message() POIWSMessage {
 		UserId:        10001,
 		OperationCode: 3,
 		Timestamp:     timestamp,
-		Attribute:     make(map[string]interface{}),
+		Attribute:     make(map[string]string),
 	}
 }
 
@@ -66,7 +66,7 @@ func NewType6Message() POIWSMessage {
 		UserId:        10001,
 		OperationCode: 6,
 		Timestamp:     timestamp,
-		Attribute:     make(map[string]interface{}),
+		Attribute:     make(map[string]string),
 	}
 }
 
@@ -80,7 +80,7 @@ func NewType7Message() POIWSMessage {
 		UserId:        10001,
 		OperationCode: 7,
 		Timestamp:     timestamp,
-		Attribute:     make(map[string]interface{}),
+		Attribute:     make(map[string]string),
 	}
 }
 
@@ -94,7 +94,7 @@ func NewType10Message() POIWSMessage {
 		UserId:        10001,
 		OperationCode: 10,
 		Timestamp:     timestamp,
-		Attribute:     make(map[string]interface{}),
+		Attribute:     make(map[string]string),
 	}
 }
 
@@ -108,6 +108,6 @@ func NewType11Message() POIWSMessage {
 		UserId:        10001,
 		OperationCode: 11,
 		Timestamp:     timestamp,
-		Attribute:     make(map[string]interface{}),
+		Attribute:     make(map[string]string),
 	}
 }

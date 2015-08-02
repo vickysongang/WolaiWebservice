@@ -7,10 +7,11 @@ import (
 
 type POITeacher struct {
 	POIUser
-	School      string   `json:"school"`
-	Department  string   `json:"department"`
-	ServiceTime int64    `json:"serviceTime"`
-	LabelList   []string `json:"labelList,omitempty"`
+	School       string   `json:"school"`
+	Department   string   `json:"department"`
+	ServiceTime  int64    `json:"serviceTime"`
+	LabelList    []string `json:"labelList,omitempty"`
+	PricePerHour int64    `json:"pricePerHour"`
 }
 type POITeachers []POITeacher
 

@@ -208,7 +208,7 @@ func (dbm *POIDBManager) QueryTeacher(userId int64) *POITeacher {
 	stmtQuery, err := dbm.dbClient.Prepare(
 		`
 		SELECT users.nickname, users.avatar, users.gender, 
-			teacher_profile.service_time,
+			teacher_profile.service_time, teacher_profile.price_per_hour, 
 			school.name, department.name
 		FROM users, teacher_profile, school, department
 		WHERE users.id = ?
@@ -225,10 +225,11 @@ func (dbm *POIDBManager) QueryTeacher(userId int64) *POITeacher {
 	var avatarNS sql.NullString
 	var gender int64
 	var serviceTime int64
+	var price int64
 	var school string
 	var department string
 
-	err = row.Scan(&nicknameNS, &avatarNS, &gender, &serviceTime, &school, &department)
+	err = row.Scan(&nicknameNS, &avatarNS, &gender, &serviceTime, &price, &school, &department)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -244,7 +245,7 @@ func (dbm *POIDBManager) QueryTeacher(userId int64) *POITeacher {
 	}
 
 	teacher := POITeacher{POIUser: POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender},
-		ServiceTime: serviceTime, School: school, Department: department}
+		ServiceTime: serviceTime, School: school, Department: department, PricePerHour: price}
 
 	return &teacher
 }
@@ -253,7 +254,7 @@ func (dbm *POIDBManager) QueryTeacherProfile(userId int64) POITeacherProfile {
 	stmtQuery, err := dbm.dbClient.Prepare(
 		`
 		SELECT users.nickname, users.avatar, users.gender, 
-			teacher_profile.service_time, teacher_profile.intro, 
+			teacher_profile.service_time, teacher_profile.intro, teacher_profile.price_per_hour, 
 			school.name, department.name
 		FROM users, teacher_profile, school, department
 		WHERE users.id = ?
@@ -271,10 +272,11 @@ func (dbm *POIDBManager) QueryTeacherProfile(userId int64) POITeacherProfile {
 	var gender int64
 	var serviceTime int64
 	var intro string
+	var price int64
 	var school string
 	var department string
 
-	err = row.Scan(&nicknameNS, &avatarNS, &gender, &serviceTime, &intro, &school, &department)
+	err = row.Scan(&nicknameNS, &avatarNS, &gender, &serviceTime, &intro, &price, &school, &department)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -290,7 +292,7 @@ func (dbm *POIDBManager) QueryTeacherProfile(userId int64) POITeacherProfile {
 	}
 
 	teacherProfile := POITeacherProfile{POITeacher: POITeacher{POIUser: POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender},
-		ServiceTime: serviceTime, School: school, Department: department}, Intro: intro}
+		ServiceTime: serviceTime, School: school, Department: department, PricePerHour: price}, Intro: intro}
 
 	return teacherProfile
 }

@@ -5,8 +5,9 @@ import (
 )
 
 type POIWSManager struct {
-	OrderInput chan POIWSMessage
-	UserMap    map[int64](chan POIWSMessage)
+	OrderInput        chan POIWSMessage
+	UserMap           map[int64](chan POIWSMessage)
+	OnlineTeacherList map[int64]bool
 }
 
 func NewPOIWSManager() POIWSManager {
