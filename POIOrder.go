@@ -55,7 +55,7 @@ func NewPOIOrder(creator *POIUser, timestamp float64, gradeId int64, subjectId i
 func (dbm *POIDBManager) InsertOrder(order *POIOrder) *POIOrder {
 	stmtInsert, err := dbm.dbClient.Prepare(
 		`INSERT INTO orders(creator, create_timestamp, grade_id, subject_id, date,
-			period_id, length, type, status) VALUES(?, ?, ?, ?, ?, ?, ?, ?)`)
+			period_id, length, type, status) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil
