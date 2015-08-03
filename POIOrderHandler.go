@@ -29,14 +29,15 @@ func POIOrderHandler() {
 				if user.AccessRight == 2 {
 					WsManager.OnlineTeacherList[msg.UserId] = true
 				}
+
 			case 1:
+				ack2 := NewType2Message()
+				ack2.UserId = msg.UserId
+				userChan <- ack2
+
 				orderDispatchIdStr := msg.Attribute["orderId"]
 				orderDispatchId, _ := strconv.ParseInt(orderDispatchIdStr, 10, 64)
 				orderDispatch := DbManager.QueryOrderById(orderDispatchId)
-				if orderDispatch == nil {
-					fmt.Println("order not found")
-					break
-				}
 				orderDispatchByte, _ := json.Marshal(orderDispatch)
 				var countdown string
 				if orderDispatch.Type == 1 || orderDispatch.Type == 3 {
