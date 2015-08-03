@@ -19,6 +19,12 @@ func POISessionHandler() {
 			_ = float64(timestampNano) / 1000000000.0
 
 			switch msg.OperationCode {
+			case -1:
+				sessionCancelIdStr := msg.Attribute["sessionId"]
+				sessionCancelId, _ := strconv.ParseInt(sessionCancelIdStr, 10, 64)
+				go SendSessionNotification(sessionCancelId, -1)
+				fmt.Println("POISessionHandler: session start cancel: " + sessionCancelIdStr)
+
 			case 0:
 				sessionStartIdStr := msg.Attribute["sessionId"]
 				sessionStartId, _ := strconv.ParseInt(sessionStartIdStr, 10, 64)

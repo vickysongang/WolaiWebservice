@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 const LC_SEND_MSG = "https://leancloud.cn/1.1/rtm/messages"
@@ -82,6 +84,9 @@ func NewSessionNotification(oprCode int64, sessionId int64) *LCTypedMessage {
 	attr := make(map[string]string)
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	switch oprCode {
+	case -1:
+		attr["oprCode"] = "-1"
+		attr["sessionId"] = sessionIdStr
 	case 1:
 		attr["oprCode"] = "1"
 		attr["sessionId"] = sessionIdStr
@@ -113,8 +118,104 @@ func NewPersonalOrderNotification(orderId int64, teacherId int64) *LCTypedMessag
 	teacherStr, _ := json.Marshal(teacher)
 	orderStr, _ := json.Marshal(order)
 
+	attr["oprCode"] = "1"
 	attr["teacherInfo"] = string(teacherStr)
 	attr["orderInfo"] = string(orderStr)
+
+	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
+
+	return &lcTMsg
+}
+
+func NewSessionCreatedNotification(sessionId int64) *LCTypedMessage {
+	session := DbManager.QuerySessionById(sessionId)
+	if session == nil {
+		return nil
+	}
+
+	order := DbManager.QueryOrderById(session.OrderId)
+	if order == nil {
+		return nil
+	}
+
+	attr := make(map[string]string)
+	orderStr, _ := json.Marshal(order)
+
+	attr["oprCode"] = "2"
+	attr["orderInfo"] = string(orderStr)
+
+	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
+
+	return &lcTMsg
+}
+
+func NewSessionReminderNotification(sessionId int64, hours int64) *LCTypedMessage {
+	session := DbManager.QuerySessionById(sessionId)
+	if session == nil {
+		return nil
+	}
+
+	order := DbManager.QueryOrderById(session.OrderId)
+	if order == nil {
+		return nil
+	}
+
+	attr := make(map[string]string)
+	orderStr, _ := json.Marshal(order)
+
+	var hourDur time.Duration
+	hourDur = time.Duration(hours)
+	remaining := hourDur * time.Hour
+
+	attr["oprCode"] = "3"
+	attr["orderInfo"] = string(orderStr)
+	attr["remaining"] = remaining.String()
+
+	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
+
+	return &lcTMsg
+}
+
+func NewSessionCancelNotification(sessionId int64) *LCTypedMessage {
+	session := DbManager.QuerySessionById(sessionId)
+	if session == nil {
+		return nil
+	}
+
+	order := DbManager.QueryOrderById(session.OrderId)
+	if order == nil {
+		return nil
+	}
+
+	attr := make(map[string]string)
+	orderStr, _ := json.Marshal(order)
+
+	attr["oprCode"] = "4"
+	attr["orderInfo"] = string(orderStr)
+
+	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
+
+	return &lcTMsg
+}
+
+func NewSessionReportNotification(sessionId int64) *LCTypedMessage {
+	session := DbManager.QuerySessionById(sessionId)
+	if session == nil {
+		return nil
+	}
+
+	teacher := DbManager.QueryTeacher(session.Teacher.UserId)
+	if teacher == nil {
+		return nil
+	}
+
+	attr := make(map[string]string)
+
+	sum := int64(math.Floor(float64(session.Length*teacher.PricePerHour) / 100.0 / 3600.0))
+	attr["oprCode"] = "5"
+	attr["sessionId"] = strconv.FormatInt(sessionId, 10)
+	attr["length"] = strconv.FormatInt(session.Length, 10)
+	attr["price"] = strconv.FormatInt(sum, 10)
 
 	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
 
