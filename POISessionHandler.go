@@ -33,6 +33,9 @@ func POISessionHandler() {
 
 				msgStuJoin := NewType1Message()
 				msgStuJoin.UserId = sessionJoin.Teacher.UserId
+				msgStuJoin.Attribute["accept"] = sessionAccept
+				msgStuJoin.Attribute["sessionId"] = sessionJoinIdStr
+
 				startChan := WsManager.GetUserChan(sessionJoin.Teacher.UserId)
 				startChan <- msgStuJoin
 				fmt.Println("POISessionHandler: session answer: " + sessionJoinIdStr + " accept: " + sessionAccept)
@@ -44,6 +47,8 @@ func POISessionHandler() {
 
 				msgPause := NewType3Message()
 				msgPause.UserId = sessionPause.Creator.UserId
+				msgPause.Attribute["sessionId"] = sessionPauseIdStr
+
 				pauseChan := WsManager.GetUserChan(sessionPause.Creator.UserId)
 				pauseChan <- msgPause
 				fmt.Println("POISessionHandler: session pause: " + sessionPauseIdStr)
@@ -55,6 +60,8 @@ func POISessionHandler() {
 
 				msgResume := NewType5Message()
 				msgResume.UserId = sessionResume.Creator.UserId
+				msgResume.Attribute["sessionId"] = sessionResumeIdStr
+
 				resumeChan := WsManager.GetUserChan(sessionResume.Creator.UserId)
 				resumeChan <- msgResume
 				fmt.Println("POISessionHandler: session resume: " + sessionResumeIdStr)
@@ -66,6 +73,8 @@ func POISessionHandler() {
 
 				msgEnd := NewType7Message()
 				msgEnd.UserId = sessionEnd.Creator.UserId
+				msgEnd.Attribute["sessionId"] = sessionEndIdStr
+
 				endChan := WsManager.GetUserChan(sessionEnd.Creator.UserId)
 				endChan <- msgEnd
 				go SendSessionNotification(sessionEndId, 3)
