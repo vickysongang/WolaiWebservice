@@ -21,49 +21,49 @@ func POIOrderHandler() {
 			timestamp := float64(timestampNano) / 1000000000.0
 
 			switch msg.OperationCode {
-			case 1:
+			case 0:
 				ack2 := NewType2Message()
 				ack2.UserId = msg.UserId
 				userChan <- ack2
 
 				if user.AccessRight == 2 {
 					WsManager.OnlineTeacherList[msg.UserId] = true
-
+				}
+			case 1:
+				orderDispatchIdStr := msg.Attribute["orderId"]
+				orderDispatchId, _ := strconv.ParseInt(orderDispatchIdStr, 10, 64)
+				orderDispatch := DbManager.QueryOrderById(orderDispatchId)
+				if orderDispatch == nil {
+					fmt.Println("order not found")
+					break
+				}
+				orderDispatchByte, _ := json.Marshal(orderDispatch)
+				var countdown string
+				if orderDispatch.Type == 1 || orderDispatch.Type == 3 {
+					countdown = "90"
 				} else {
-					orderDispatchIdStr := msg.Attribute["orderId"]
-					orderDispatchId, _ := strconv.ParseInt(orderDispatchIdStr, 10, 64)
-					orderDispatch := DbManager.QueryOrderById(orderDispatchId)
-					if orderDispatch == nil {
-						fmt.Println("order not found")
+					countdown = "300"
+				}
+
+				DbManager.UpdateOrderStatus(orderDispatchId, ORDER_STATUS_DISPATHCING)
+
+				msgDispatch := NewType3Message()
+				msgDispatch.Attribute["orderInfo"] = string(orderDispatchByte)
+				msgDispatch.Attribute["countdown"] = countdown
+
+				for teacherId, ok := range WsManager.OnlineTeacherList {
+					if !ok {
+						fmt.Println("OrderHandler Err")
 						break
 					}
-					orderDispatchByte, _ := json.Marshal(orderDispatch)
-					var countdown string
-					if orderDispatch.Type == 1 || orderDispatch.Type == 3 {
-						countdown = "90"
-					} else {
-						countdown = "300"
-					}
 
-					DbManager.UpdateOrderStatus(orderDispatchId, ORDER_STATUS_DISPATHCING)
-
-					msgDispatch := NewType3Message()
-					msgDispatch.Attribute["orderInfo"] = string(orderDispatchByte)
-					msgDispatch.Attribute["countdown"] = countdown
-
-					for teacherId, ok := range WsManager.OnlineTeacherList {
-						if !ok {
-							fmt.Println("OrderHandler Err")
-							break
-						}
-
-						msgDispatch.UserId = teacherId
-						fmt.Println("Got teacherId: ", teacherId)
-						dispatchChan := WsManager.GetUserChan(teacherId)
-						fmt.Println("Order dispatched: ", orderDispatchId, " to teacher ID: ", teacherId)
-						dispatchChan <- msgDispatch
-					}
+					msgDispatch.UserId = teacherId
+					fmt.Println("Got teacherId: ", teacherId)
+					dispatchChan := WsManager.GetUserChan(teacherId)
+					fmt.Println("Order dispatched: ", orderDispatchId, " to teacher ID: ", teacherId)
+					dispatchChan <- msgDispatch
 				}
+
 			case 5:
 				ack6 := NewType6Message()
 				ack6.UserId = msg.UserId
