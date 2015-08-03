@@ -12,7 +12,7 @@ func POIOrderHandler() {
 		select {
 		case msg := <-WsManager.OrderInput:
 			userChan := WsManager.GetUserChan(msg.UserId)
-			user := DbManager.GetUserById(msg.UserId)
+			user := DbManager.QueryUserById(msg.UserId)
 
 			aaa, _ := json.Marshal(msg)
 			fmt.Println("POIOrderHandler: ", string(aaa))
@@ -110,8 +110,8 @@ func POIOrderHandler() {
 
 				orderConfirmed := DbManager.QueryOrderById(orderIdConfirmed)
 				session := NewPOISession(orderConfirmed.Id,
-					DbManager.GetUserById(orderConfirmed.Creator.UserId),
-					DbManager.GetUserById(teacherIdConfirmed),
+					DbManager.QueryUserById(orderConfirmed.Creator.UserId),
+					DbManager.QueryUserById(teacherIdConfirmed),
 					timestamp, orderConfirmed.Date)
 				sessionPtr := DbManager.InsertSession(&session)
 

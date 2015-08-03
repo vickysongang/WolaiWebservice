@@ -9,24 +9,7 @@ import (
 	"strconv"
 )
 
-const APP_ID = "fyug6fiiadinzpha6nnlaajo22kam8rhba28oc9n86girasu"
-const APP_KEY = "r8pjshqr1edfvsgi0m17pq64j86pru7buae5bcw5f8yjxxbq"
-const MASTER_KEY = "7e5nby4ljia5sqei97v5efvelf1a5cgplkasubm1q3gugs9u"
-
-const LC_CONV_ID = "https://api.leancloud.cn/1.1/classes/_Conversation"
 const LC_SEND_MSG = "https://leancloud.cn/1.1/rtm/messages"
-
-type LeanCloudConvReq struct {
-	Name   string   `json:"name"`
-	Member []string `json:"m"`
-}
-
-func NewLeanCloudConvReq(name, member1, member2 string) LeanCloudConvReq {
-	member := make([]string, 2)
-	member[0] = member1
-	member[1] = member2
-	return LeanCloudConvReq{Name: name, Member: member}
-}
 
 type LCMessage struct {
 	SendId         string `json:"from_peer"`
@@ -42,8 +25,8 @@ type LCTypedMessage struct {
 }
 
 func NewLCCommentNotification(feedCommentId string) *LCTypedMessage {
-	feedComment := RedisManager.LoadFeedComment(feedCommentId)
-	feed := RedisManager.LoadFeed(feedComment.FeedId)
+	feedComment := RedisManager.GetFeedComment(feedCommentId)
+	feed := RedisManager.GetFeed(feedComment.FeedId)
 	if feedComment == nil || feed == nil {
 		return nil
 	}
@@ -66,8 +49,8 @@ func NewLCCommentNotification(feedCommentId string) *LCTypedMessage {
 }
 
 func NewLCLikeNotification(userId int64, timestamp float64, feedId string) *LCTypedMessage {
-	user := DbManager.GetUserById(userId)
-	feed := RedisManager.LoadFeed(feedId)
+	user := DbManager.QueryUserById(userId)
+	feed := RedisManager.GetFeed(feedId)
 
 	if user == nil || feed == nil {
 		return nil
@@ -119,40 +102,9 @@ func NewSessionNotification(oprCode int64, sessionId int64) *LCTypedMessage {
 	return &lcTMsg
 }
 
-func LCGetConversationId(member1, member2 string) string {
-	url := LC_CONV_ID
-	fmt.Println("URL:>", url)
-
-	lcReq := NewLeanCloudConvReq("conversation", member1, member2)
-
-	query, _ := json.Marshal(lcReq)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
-	req.Header.Set("X-AVOSCloud-Application-Id", APP_ID)
-	req.Header.Set("X-AVOSCloud-Application-Key", APP_KEY)
-	req.Header.Set("Content-Type", "application/json")
-	fmt.Println("Request: ", string(query))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
-
-	var respMap map[string]string
-	_ = json.Unmarshal(body, &respMap)
-
-	return respMap["objectId"]
-}
-
 func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
-	user := DbManager.GetUserById(userId)
-	target := DbManager.GetUserById(targetId)
+	user := DbManager.QueryUserById(userId)
+	target := DbManager.QueryUserById(targetId)
 	if user == nil || target == nil {
 		return
 	}
@@ -191,74 +143,4 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 	fmt.Println("response Body:", string(body))
 
 	return
-}
-
-func SendCommentNotification(feedCommentId string) {
-	feedComment := RedisManager.LoadFeedComment(feedCommentId)
-	feed := RedisManager.LoadFeed(feedComment.FeedId)
-	if feedComment == nil || feed == nil {
-		return
-	}
-
-	lcTMsg := NewLCCommentNotification(feedCommentId)
-	if lcTMsg == nil {
-		return
-	}
-
-	// if someone comments himself...
-	if feedComment.Creator.UserId != feed.Creator.UserId {
-		LCSendTypedMessage(1000, feed.Creator.UserId, lcTMsg)
-	}
-
-	if feedComment.ReplyTo != nil {
-		// if someone replies the author... the poor man should not be notified twice
-		if feedComment.ReplyTo.UserId != feed.Creator.UserId {
-			LCSendTypedMessage(1000, feedComment.ReplyTo.UserId, lcTMsg)
-		}
-	}
-
-	return
-}
-
-func SendLikeNotification(userId int64, timestamp float64, feedId string) {
-	user := DbManager.GetUserById(userId)
-	feed := RedisManager.LoadFeed(feedId)
-	if user == nil || feed == nil {
-		return
-	}
-
-	if user.UserId == feed.Creator.UserId {
-		return
-	}
-
-	lcTMsg := NewLCLikeNotification(userId, timestamp, feedId)
-	if lcTMsg == nil {
-		return
-	}
-
-	LCSendTypedMessage(1000, feed.Creator.UserId, lcTMsg)
-
-	return
-}
-
-func SendSessionNotification(sessionId int64, oprCode int64) {
-	session := DbManager.QuerySessionById(sessionId)
-	if session == nil {
-		return
-	}
-
-	lcTMsg := NewSessionNotification(oprCode, sessionId)
-	if lcTMsg == nil {
-		return
-	}
-
-	switch oprCode {
-	case 1:
-		LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, lcTMsg)
-	case 2:
-		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg)
-	case 3:
-		LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, lcTMsg)
-		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg)
-	}
 }

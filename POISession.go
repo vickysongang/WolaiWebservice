@@ -102,8 +102,8 @@ func (dbm *POIDBManager) QuerySessionById(sessionId int64) *POISession {
 	session := POISession{
 		Id:              sessionId,
 		OrderId:         orderId,
-		Creator:         DbManager.GetUserById(creatorId),
-		Teacher:         DbManager.GetUserById(tutorId),
+		Creator:         DbManager.QueryUserById(creatorId),
+		Teacher:         DbManager.QueryUserById(tutorId),
 		CreateTimestamp: createTimstamp,
 		PlanTime:        planTime,
 		StartTime:       startTime,

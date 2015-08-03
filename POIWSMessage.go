@@ -1,7 +1,6 @@
 package main
 
 import (
-	_ "encoding/json"
 	"github.com/satori/go.uuid"
 	"time"
 )

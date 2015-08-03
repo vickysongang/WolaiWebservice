@@ -13,7 +13,7 @@ func POISessionHandler() {
 		select {
 		case msg = <-WsManager.SessionInput:
 			//userChan := WsManager.GetUserChan(msg.UserId)
-			_ = DbManager.GetUserById(msg.UserId)
+			_ = DbManager.QueryUserById(msg.UserId)
 
 			timestampNano := time.Now().UnixNano()
 			_ = float64(timestampNano) / 1000000000.0

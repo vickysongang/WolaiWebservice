@@ -52,7 +52,7 @@ func NewPOIRedisManager() POIRedisManager {
 	return POIRedisManager{redisClient: client}
 }
 
-func (rm *POIRedisManager) LoadFeed(feedId string) *POIFeed {
+func (rm *POIRedisManager) GetFeed(feedId string) *POIFeed {
 	if !rm.redisClient.HExists(CACHE_FEED+feedId, "id").Val() {
 		return nil
 	}
@@ -64,7 +64,7 @@ func (rm *POIRedisManager) LoadFeed(feedId string) *POIFeed {
 	feed.Id = hashMap["id"]
 
 	tmpInt, _ := strconv.ParseInt(hashMap["creator_id"], 10, 64)
-	feed.Creator = DbManager.GetUserById(tmpInt)
+	feed.Creator = DbManager.QueryUserById(tmpInt)
 
 	tmpFloat, _ := strconv.ParseFloat(hashMap["create_timestamp"], 64)
 	feed.CreateTimestamp = tmpFloat
@@ -77,7 +77,7 @@ func (rm *POIRedisManager) LoadFeed(feedId string) *POIFeed {
 	json.Unmarshal([]byte(hashMap["attribute"]), &feed.Attribute)
 
 	if hashMap["origin_feed_id"] != "" {
-		feed.OriginFeed = rm.LoadFeed(hashMap["origin_feed_id"])
+		feed.OriginFeed = rm.GetFeed(hashMap["origin_feed_id"])
 	}
 
 	tmpInt, _ = strconv.ParseInt(hashMap["like_count"], 10, 64)
@@ -92,7 +92,7 @@ func (rm *POIRedisManager) LoadFeed(feedId string) *POIFeed {
 	return &feed
 }
 
-func (rm *POIRedisManager) LoadFeedComment(feedCommentId string) *POIFeedComment {
+func (rm *POIRedisManager) GetFeedComment(feedCommentId string) *POIFeedComment {
 	if !rm.redisClient.HExists(CACHE_FEEDCOMMENT+feedCommentId, "id").Val() {
 		return nil
 	}
@@ -105,7 +105,7 @@ func (rm *POIRedisManager) LoadFeedComment(feedCommentId string) *POIFeedComment
 	feedComment.FeedId = hashMap["feed_id"]
 
 	tmpInt, _ := strconv.ParseInt(hashMap["creator_id"], 10, 64)
-	feedComment.Creator = DbManager.GetUserById(tmpInt)
+	feedComment.Creator = DbManager.QueryUserById(tmpInt)
 
 	tmpFloat, _ := strconv.ParseFloat(hashMap["create_timestamp"], 64)
 	feedComment.CreateTimestamp = tmpFloat
@@ -115,7 +115,7 @@ func (rm *POIRedisManager) LoadFeedComment(feedCommentId string) *POIFeedComment
 
 	if hashMap["reply_to_user_id"] != "" {
 		tmpInt, _ = strconv.ParseInt(hashMap["reply_to_user_id"], 10, 64)
-		feedComment.ReplyTo = DbManager.GetUserById(tmpInt)
+		feedComment.ReplyTo = DbManager.QueryUserById(tmpInt)
 	}
 
 	tmpInt, _ = strconv.ParseInt(hashMap["like_count"], 10, 64)
@@ -124,7 +124,7 @@ func (rm *POIRedisManager) LoadFeedComment(feedCommentId string) *POIFeedComment
 	return &feedComment
 }
 
-func (rm *POIRedisManager) SaveFeed(feed *POIFeed) {
+func (rm *POIRedisManager) SetFeed(feed *POIFeed) {
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "id", feed.Id)
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "creator_id", strconv.FormatInt(feed.Creator.UserId, 10))
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "create_timestamp", strconv.FormatFloat(feed.CreateTimestamp, 'f', 6, 64))
@@ -148,7 +148,7 @@ func (rm *POIRedisManager) SaveFeed(feed *POIFeed) {
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "repost_count", strconv.FormatInt(feed.RepostCount, 10))
 }
 
-func (rm *POIRedisManager) SaveFeedComment(feedComment *POIFeedComment) {
+func (rm *POIRedisManager) SetFeedComment(feedComment *POIFeedComment) {
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "id", feedComment.Id)
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "feed_id", feedComment.FeedId)
 	_ = rm.redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "creator_id", strconv.FormatInt(feedComment.Creator.UserId, 10))
@@ -274,14 +274,14 @@ func (rm *POIRedisManager) HasFavedFeed(feed *POIFeed, user *POIUser) bool {
 	return false
 }
 
-func (rm *POIRedisManager) GetFeedComment(feedId string) POIFeedComments {
+func (rm *POIRedisManager) GetFeedComments(feedId string) POIFeedComments {
 	feedCommentZs := rm.redisClient.ZRevRangeWithScores(FEED_COMMENT+feedId, 0, -1).Val()
 
 	feedComments := make([]POIFeedComment, len(feedCommentZs))
 
 	for i := range feedCommentZs {
 		str, _ := feedCommentZs[i].Member.(string)
-		feedComments[i] = *rm.LoadFeedComment(str)
+		feedComments[i] = *rm.GetFeedComment(str)
 	}
 
 	return feedComments
@@ -295,7 +295,7 @@ func (rm *POIRedisManager) GetFeedLikeList(feedId string) POIUsers {
 	for i := range users {
 		str := userStrs[i]
 		userId, _ := strconv.ParseInt(str, 10, 64)
-		users[i] = *(DbManager.GetUserById(userId))
+		users[i] = *(DbManager.QueryUserById(userId))
 	}
 
 	return users
@@ -308,7 +308,7 @@ func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int64) POIFeeds {
 
 	for i := range feedZs {
 		str, _ := feedZs[i].Member.(string)
-		feeds[i] = *rm.LoadFeed(str)
+		feeds[i] = *rm.GetFeed(str)
 	}
 
 	return feeds
@@ -321,7 +321,7 @@ func (rm *POIRedisManager) GetFeedFlowUserFeed(userId int64, start, stop int64) 
 	feeds := make(POIFeeds, len(feedIds))
 	for i := range feedIds {
 		feedId := feedIds[i]
-		feeds[i] = *(rm.LoadFeed(feedId))
+		feeds[i] = *(rm.GetFeed(feedId))
 	}
 
 	return feeds
@@ -334,13 +334,13 @@ func (rm *POIRedisManager) GetFeedFlowUserFeedLike(userId int64, start, stop int
 	feeds := make(POIFeeds, len(feedIds))
 	for i := range feedIds {
 		feedId := feedIds[i]
-		feeds[i] = *(rm.LoadFeed(feedId))
+		feeds[i] = *(rm.GetFeed(feedId))
 	}
 
 	return feeds
 }
 
-func (rm *POIRedisManager) CreateUserFollow(userId, followId int64) {
+func (rm *POIRedisManager) SetUserFollow(userId, followId int64) {
 	userIdStr := strconv.FormatInt(userId, 10)
 	followIdStr := strconv.FormatInt(followId, 10)
 
@@ -388,7 +388,7 @@ func (rm *POIRedisManager) GetUserFollowList(userId int64) POITeachers {
 	return teachers
 }
 
-func (rm *POIRedisManager) SaveConversation(conversationId string, userId1, userId2 int64) {
+func (rm *POIRedisManager) SetConversation(conversationId string, userId1, userId2 int64) {
 	userId1Str := strconv.FormatInt(userId1, 10)
 	userId2Str := strconv.FormatInt(userId2, 10)
 

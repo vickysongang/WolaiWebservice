@@ -1,8 +1,9 @@
 package main
 
 import (
-	_ "encoding/json"
-	"strconv"
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type POIUser struct {
@@ -20,116 +21,141 @@ func NewPOIUser(userId int64, nickname string, avatar string, gender int64, acce
 	return user
 }
 
-func LoadPOIUser(userId int64) *POIUser {
-	return DbManager.GetUserById(userId)
+func (dbm *POIDBManager) InsertUser(phone string) int64 {
+	stmtInsert, err := dbm.dbClient.Prepare(
+		`INSERT INTO users(phone) VALUES(?)`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtInsert.Close()
+
+	result, err := stmtInsert.Exec(phone)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	id, _ := result.LastInsertId()
+
+	return id
 }
 
-func POIUserLogin(phone string) (int64, *POIUser) {
-	user := DbManager.GetUserByPhone(phone)
-
-	if user != nil {
-		return 0, user
+func (dbm *POIDBManager) QueryUserById(userId int64) *POIUser {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`SELECT nickname, avatar, gender, access_right FROM users WHERE id = ?`)
+	if err != nil {
+		panic(err.Error())
 	}
+	defer stmtQuery.Close()
 
-	id := DbManager.InsertUser(phone)
+	var nicknameNS sql.NullString
+	var avatarNS sql.NullString
+	var gender int64
+	var accessRight int64
 
-	newUser := DbManager.GetUserById(id)
+	rowUser := stmtQuery.QueryRow(userId)
 
-	return 1001, newUser
-}
-
-func POIUserUpdateProfile(userId int64, nickname string, avatar string, gender int64) (int64, *POIUser) {
-	DbManager.UpdateUserInfo(userId, nickname, avatar, gender)
-
-	user := LoadPOIUser(userId)
-	return 0, user
-}
-
-func POIUserOauthLogin(openId string) (int64, *POIUser) {
-	userId := DbManager.QueryUserByQQOpenId(openId)
-	if userId == -1 {
-		return 1002, nil
-	}
-
-	user := LoadPOIUser(userId)
-	return 0, user
-}
-
-func POIUserOauthRegister(openId string, phone string, nickname string, avatar string, gender int64) (int64, *POIUser) {
-	user := DbManager.GetUserByPhone(phone)
-	if user != nil {
-		DbManager.InsertUserOauth(user.UserId, openId)
-		return 0, user
-	}
-
-	userId := DbManager.InsertUser(phone)
-	DbManager.UpdateUserInfo(userId, nickname, avatar, gender)
-	user = LoadPOIUser(userId)
-
-	DbManager.InsertUserOauth(userId, openId)
-
-	return 1003, user
-}
-
-func POIUserFollow(userId, followId int64) (int64, bool) {
-	user := DbManager.GetUserById(userId)
-	follow := DbManager.GetUserById(followId)
-	if user == nil || follow == nil {
-		return 2, false
-	}
-
-	if follow.AccessRight != 2 {
-		return 2, false
-	}
-
-	if RedisManager.HasFollowedUser(userId, followId) {
-		RedisManager.RemoveUserFollow(userId, followId)
-		return 0, false
-	}
-
-	RedisManager.CreateUserFollow(userId, followId)
-	return 0, true
-}
-
-func POIUserUnfollow(userId, followId int64) (int64, bool) {
-	user := DbManager.GetUserById(userId)
-	follow := DbManager.GetUserById(followId)
-	if user == nil || follow == nil {
-		return 2, false
-	}
-
-	if !RedisManager.HasFollowedUser(userId, followId) {
-		return 2, false
-	}
-
-	RedisManager.RemoveUserFollow(userId, followId)
-	return 0, false
-}
-
-func GetUserFollowing(userId int64) POITeachers {
-	user := DbManager.GetUserById(userId)
-	if user == nil {
+	err = rowUser.Scan(&nicknameNS, &avatarNS, &gender, &accessRight)
+	if err == sql.ErrNoRows {
 		return nil
 	}
 
-	teachers := RedisManager.GetUserFollowList(userId)
+	nickname := ""
+	if nicknameNS.Valid {
+		nickname = nicknameNS.String
+	}
 
-	return teachers
+	avatar := ""
+	if avatarNS.Valid {
+		avatar = avatarNS.String
+	}
+
+	user := NewPOIUser(int64(userId), nickname, avatar, gender, accessRight)
+
+	return &user
 }
 
-func GetUserConversation(userId1, userId2 int64) (int64, string) {
-	user1 := DbManager.GetUserById(userId1)
-	user2 := DbManager.GetUserById(userId2)
+func (dbm *POIDBManager) QueryUserByPhone(phone string) *POIUser {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`SELECT id, nickname, avatar, gender, access_right FROM users WHERE phone = ?`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
 
-	if user1 == nil || user2 == nil {
-		return 2, ""
+	var userId int64
+	var nicknameNS sql.NullString
+	var avatarNS sql.NullString
+	var gender int64
+	var accessRight int64
+
+	rowUser := stmtQuery.QueryRow(phone)
+	err = rowUser.Scan(&userId, &nicknameNS, &avatarNS, &gender, &accessRight)
+	if err == sql.ErrNoRows {
+		return nil
 	}
 
-	convId := RedisManager.GetConversation(userId1, userId2)
-	if convId == "" {
-		convId = LCGetConversationId(strconv.FormatInt(userId1, 10), strconv.FormatInt(userId2, 10))
-		RedisManager.SaveConversation(convId, userId1, userId2)
+	nickname := ""
+	if nicknameNS.Valid {
+		nickname = nicknameNS.String
 	}
 
-	return 0, convId
+	avatar := ""
+	if avatarNS.Valid {
+		avatar = avatarNS.String
+	}
+
+	user := NewPOIUser(userId, nickname, avatar, gender, accessRight)
+
+	return &user
+}
+
+func (dbm *POIDBManager) UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) *POIUser {
+	stmtUpdate, err := dbm.dbClient.Prepare(
+		`UPDATE users SET nickname = ?, avatar = ?, gender = ? WHERE id = ?`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtUpdate.Close()
+
+	_, err = stmtUpdate.Exec(nickname, avatar, gender, userId)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	user := NewPOIUser(userId, nickname, avatar, gender, 3)
+
+	return &user
+}
+
+func (dbm *POIDBManager) InsertUserOauth(userId int64, qqOpenId string) {
+	stmtInsert, err := dbm.dbClient.Prepare(
+		`INSERT INTO user_oauth(user_id, open_id_qq) VALUES(?, ?)`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtInsert.Close()
+
+	_, err = stmtInsert.Exec(userId, qqOpenId)
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func (dbm *POIDBManager) QueryUserByQQOpenId(qqOpenId string) int64 {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`SELECT user_id FROM user_oauth WHERE open_id_qq = ?`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
+
+	var userId int64
+
+	userRow := stmtQuery.QueryRow(qqOpenId)
+	err = userRow.Scan(&userId)
+	if err == sql.ErrNoRows {
+		return -1
+	}
+
+	return userId
 }

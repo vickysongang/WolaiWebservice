@@ -11,7 +11,6 @@ import (
 )
 
 func Dummy(w http.ResponseWriter, r *http.Request) {
-	//LCSendCommentNotification("6232a882-6b3a-48ae-9a5c-734c297ec486", "40f375e0-49e2-4663-bbed-809d9846816e")
 	SendSessionNotification(1, 1)
 }
 
@@ -135,7 +134,7 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-	_ = DbManager.GetUserById(userId)
+	_ = DbManager.QueryUserById(userId)
 
 	var page int64
 	if len(vars["page"]) > 0 {
@@ -162,7 +161,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 	teacherIdStr := vars["teacherId"][0]
 	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
 
-	teacher := DbManager.GetUserById(teacherId)
+	teacher := DbManager.QueryUserById(teacherId)
 	if teacher.AccessRight != 2 {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, ""))
 		return
@@ -170,7 +169,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-	_ = DbManager.GetUserById(userId)
+	_ = DbManager.QueryUserById(userId)
 
 	content := GetTeacherProfile(userId, teacherId)
 

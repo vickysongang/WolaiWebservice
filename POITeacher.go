@@ -1,8 +1,9 @@
 package main
 
 import (
-	_ "encoding/json"
-	"math"
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type POITeacher struct {
@@ -16,7 +17,6 @@ type POITeacher struct {
 type POITeachers []POITeacher
 
 type POITeacherSubject struct {
-	//SubjectId   int64  `json:"subjectId"`
 	SubjectName string `json:"subjectName"`
 	Description string `json:"description"`
 }
@@ -38,34 +38,205 @@ type POITeacherProfile struct {
 	HasFollowed   bool               `json:"hasFollowed"`
 }
 
-func GetTeacherRecommendationList(page int64) POITeachers {
-	teachers := DbManager.QueryTeacherList()
+func (dbm *POIDBManager) QueryTeacherList() POITeachers {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`
+		SELECT users.id, users.nickname, users.avatar, users.gender, 
+			teacher_profile.service_time, school.name, department.name
+		FROM users, teacher_profile, school, department
+		WHERE users.access_right = 2 
+			AND users.id = teacher_profile.user_id 
+			AND teacher_profile.school_id = school.id 
+			AND teacher_profile.department_id = department.id`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
 
-	for i := range teachers {
-		teachers[i].LabelList = DbManager.QueryTeacherLabelById(teachers[i].UserId)
+	rows, err := stmtQuery.Query()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var userId int64
+	var nicknameNS sql.NullString
+	var avatarNS sql.NullString
+	var gender int64
+	var serviceTime int64
+	var school string
+	var department string
+	teachers := make(POITeachers, 0)
+
+	for rows.Next() {
+		err = rows.Scan(&userId, &nicknameNS, &avatarNS, &gender, &serviceTime, &school, &department)
+
+		nickname := ""
+		if nicknameNS.Valid {
+			nickname = nicknameNS.String
+		}
+
+		avatar := ""
+		if avatarNS.Valid {
+			avatar = avatarNS.String
+		}
+
+		teachers = append(teachers, POITeacher{POIUser: POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender},
+			ServiceTime: serviceTime, School: school, Department: department})
 	}
 
 	return teachers
 }
 
-func GetTeacherProfile(userId, teacherId int64) POITeacherProfile {
-	teacherProfile := DbManager.QueryTeacherProfile(teacherId)
+func (dbm *POIDBManager) QueryTeacher(userId int64) *POITeacher {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`
+		SELECT users.nickname, users.avatar, users.gender, 
+			teacher_profile.service_time, teacher_profile.price_per_hour, 
+			school.name, department.name
+		FROM users, teacher_profile, school, department
+		WHERE users.id = ?
+			AND users.id = teacher_profile.user_id
+			AND teacher_profile.school_id = school.id 
+			AND teacher_profile.department_id = department.id`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
 
-	teacherProfile.LabelList = DbManager.QueryTeacherLabelById(teacherId)
+	row := stmtQuery.QueryRow(userId)
+	var nicknameNS sql.NullString
+	var avatarNS sql.NullString
+	var gender int64
+	var serviceTime int64
+	var price int64
+	var school string
+	var department string
 
-	teacherProfile.SubjectList = DbManager.QueryTeacherSubjectById(teacherId)
+	err = row.Scan(&nicknameNS, &avatarNS, &gender, &serviceTime, &price, &school, &department)
+	if err != nil {
+		panic(err.Error())
+	}
 
-	mod := math.Mod(float64(teacherId), 50)
+	nickname := ""
+	if nicknameNS.Valid {
+		nickname = nicknameNS.String
+	}
 
-	teacherProfile.Rating = float64(50-mod) / 10.0
+	avatar := ""
+	if avatarNS.Valid {
+		avatar = avatarNS.String
+	}
 
-	resumes := make(POITeacherResumes, 2)
-	resumes[0] = POITeacherResume{Start: 2008, Stop: -1, Name: "电线杆子科技大学"}
-	resumes[1] = POITeacherResume{Start: 2005, Stop: 2008, Name: "马路牙子高级中学"}
+	teacher := POITeacher{POIUser: POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender},
+		ServiceTime: serviceTime, School: school, Department: department, PricePerHour: price}
 
-	teacherProfile.EducationList = resumes
+	return &teacher
+}
 
-	teacherProfile.HasFollowed = RedisManager.HasFollowedUser(userId, teacherId)
+func (dbm *POIDBManager) QueryTeacherProfile(userId int64) POITeacherProfile {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`
+		SELECT users.nickname, users.avatar, users.gender, 
+			teacher_profile.service_time, teacher_profile.intro, teacher_profile.price_per_hour, 
+			school.name, department.name
+		FROM users, teacher_profile, school, department
+		WHERE users.id = ?
+			AND users.id = teacher_profile.user_id
+			AND teacher_profile.school_id = school.id 
+			AND teacher_profile.department_id = department.id`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
+
+	row := stmtQuery.QueryRow(userId)
+	var nicknameNS sql.NullString
+	var avatarNS sql.NullString
+	var gender int64
+	var serviceTime int64
+	var intro string
+	var price int64
+	var school string
+	var department string
+
+	err = row.Scan(&nicknameNS, &avatarNS, &gender, &serviceTime, &intro, &price, &school, &department)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	nickname := ""
+	if nicknameNS.Valid {
+		nickname = nicknameNS.String
+	}
+
+	avatar := ""
+	if avatarNS.Valid {
+		avatar = avatarNS.String
+	}
+
+	teacherProfile := POITeacherProfile{POITeacher: POITeacher{POIUser: POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender},
+		ServiceTime: serviceTime, School: school, Department: department, PricePerHour: price}, Intro: intro}
 
 	return teacherProfile
+}
+
+func (dbm *POIDBManager) QueryTeacherLabelById(userId int64) []string {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`
+		SELECT teacher_label.name FROM teacher_to_label, teacher_label
+		WHERE teacher_to_label.user_id = ? AND teacher_to_label.label_id = teacher_label.id`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
+
+	rows, err := stmtQuery.Query(userId)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var label string
+	labels := make([]string, 0)
+
+	for rows.Next() {
+		err = rows.Scan(&label)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		labels = append(labels, label)
+	}
+
+	return labels
+}
+
+func (dbm *POIDBManager) QueryTeacherSubjectById(userId int64) POITeacherSubjects {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`
+		SELECT subject.name, teacher_to_subject.description FROM teacher_to_subject, subject
+		WHERE teacher_to_subject.user_id = ? AND teacher_to_subject.subject_id = subject.id`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
+
+	rows, err := stmtQuery.Query(userId)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var name string
+	var description string
+	subjects := make(POITeacherSubjects, 0)
+
+	for rows.Next() {
+		err = rows.Scan(&name, &description)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		subjects = append(subjects, POITeacherSubject{SubjectName: name, Description: description})
+	}
+
+	return subjects
 }

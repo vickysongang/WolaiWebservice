@@ -31,12 +31,12 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	replyToId int64) *POIFeedComment {
 	feedComment := POIFeedComment{}
 
-	user := DbManager.GetUserById(userId)
+	user := DbManager.QueryUserById(userId)
 	if user == nil {
 		return nil
 	}
 
-	feed := RedisManager.LoadFeed(feedId)
+	feed := RedisManager.GetFeed(feedId)
 	if feed == nil {
 		return nil
 	}
@@ -52,12 +52,12 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	feedComment.ImageList = tmpList
 
 	if replyToId != 0 {
-		feedComment.ReplyTo = DbManager.GetUserById(replyToId)
+		feedComment.ReplyTo = DbManager.QueryUserById(replyToId)
 	}
 
 	feed.IncreaseComment()
-	RedisManager.SaveFeed(feed)
-	RedisManager.SaveFeedComment(&feedComment)
+	RedisManager.SetFeed(feed)
+	RedisManager.SetFeedComment(&feedComment)
 	RedisManager.PostFeedComment(&feedComment)
 	go SendCommentNotification(feedComment.Id)
 
@@ -65,8 +65,8 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 }
 
 func LikePOIFeedComment(userId int64, feedCommentId string, timestamp float64) *POIFeedComment {
-	feedComment := RedisManager.LoadFeedComment(feedCommentId)
-	user := DbManager.GetUserById(userId)
+	feedComment := RedisManager.GetFeedComment(feedCommentId)
+	user := DbManager.QueryUserById(userId)
 
 	if feedComment == nil || user == nil {
 		return nil
@@ -74,7 +74,7 @@ func LikePOIFeedComment(userId int64, feedCommentId string, timestamp float64) *
 
 	if !RedisManager.HasLikedFeedComment(feedComment, user) {
 		feedComment.IncreaseLike()
-		RedisManager.SaveFeedComment(feedComment)
+		RedisManager.SetFeedComment(feedComment)
 		RedisManager.LikeFeedComment(feedComment, user, timestamp)
 	}
 
