@@ -3,12 +3,14 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 )
 
 var (
 	DbManager    POIDBManager
 	RedisManager POIRedisManager
 	WsManager    POIWSManager
+	Ticker       *time.Ticker
 )
 
 const (
@@ -21,11 +23,13 @@ func init() {
 	DbManager = NewPOIDBManager()
 	RedisManager = NewPOIRedisManager()
 	WsManager = NewPOIWSManager()
+	Ticker = time.NewTicker(time.Millisecond * 5000)
 }
 
 func main() {
 	go POIOrderHandler()
 	go POISessionHandler()
+	go POISessionTickerHandler()
 
 	router := NewRouter()
 

@@ -458,3 +458,22 @@ func (rm *POIRedisManager) SetSessionTicker(timestamp int64, tickerInfo string) 
 
 	_ = RedisManager.redisClient.ZAdd(SESSION_TICKER, tickerZ)
 }
+
+func (rm *POIRedisManager) GetSessionTicks(timestamp int64) []string {
+	ticks, err := rm.redisClient.ZRangeByScore(SESSION_TICKER,
+		redis.ZRangeByScore{
+			Min:    "-inf",
+			Max:    strconv.FormatInt(timestamp, 10),
+			Offset: 0,
+			Count:  10,
+		}).Result()
+	if err == redis.Nil {
+		return nil
+	}
+
+	for i := range ticks {
+		_ = rm.redisClient.ZRem(SESSION_TICKER, ticks[i])
+	}
+
+	return ticks
+}
