@@ -52,12 +52,7 @@ func POIOrderHandler() {
 				msgDispatch.Attribute["orderInfo"] = string(orderDispatchByte)
 				msgDispatch.Attribute["countdown"] = countdown
 
-				for teacherId, ok := range WsManager.OnlineTeacherList {
-					if !ok {
-						fmt.Println("OrderHandler Err")
-						break
-					}
-
+				for teacherId, _ := range WsManager.OnlineTeacherList {
 					msgDispatch.UserId = teacherId
 					fmt.Println("Got teacherId: ", teacherId)
 					dispatchChan := WsManager.GetUserChan(teacherId)
