@@ -15,6 +15,9 @@ func POIOrderHandler() {
 			userChan := WsManager.GetUserChan(msg.UserId)
 			user := DbManager.GetUserById(msg.UserId)
 
+			aaa, _ := json.Marshal(msg)
+			fmt.Println("POIOrderHandler: ", string(aaa))
+
 			timestampNano := time.Now().UnixNano()
 			timestamp := float64(timestampNano) / 1000000000.0
 
