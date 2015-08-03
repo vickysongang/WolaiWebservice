@@ -56,12 +56,14 @@ func SendSessionNotification(sessionId int64, oprCode int64) {
 		return
 	}
 
-	lcTMsg := NewSessionNotification(oprCode, sessionId)
+	lcTMsg := NewSessionNotification(sessionId, oprCode)
 	if lcTMsg == nil {
 		return
 	}
 
 	switch oprCode {
+	case -1:
+		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg)
 	case 1:
 		LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, lcTMsg)
 	case 2:

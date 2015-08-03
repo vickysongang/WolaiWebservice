@@ -75,7 +75,7 @@ func NewLCLikeNotification(userId int64, timestamp float64, feedId string) *LCTy
 	return &lcTMsg
 }
 
-func NewSessionNotification(oprCode int64, sessionId int64) *LCTypedMessage {
+func NewSessionNotification(sessionId int64, oprCode int64) *LCTypedMessage {
 	session := DbManager.QuerySessionById(sessionId)
 	if session == nil {
 		return nil
