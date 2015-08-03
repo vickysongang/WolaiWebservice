@@ -129,3 +129,19 @@ func (dbm *POIDBManager) UpdateOrderStatus(orderId int64, status string) {
 		return
 	}
 }
+
+func (dbm *POIDBManager) UpdateOrderDate(orderId int64, date string) {
+	stmtUpdate, err := dbm.dbClient.Prepare(
+		`UPDATE orders SET date = ? WHERE id = ?`)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	defer stmtUpdate.Close()
+
+	_, err = stmtUpdate.Exec(date, orderId)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}

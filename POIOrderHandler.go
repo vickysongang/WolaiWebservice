@@ -19,6 +19,7 @@ func POIOrderHandler() {
 
 			timestampNano := time.Now().UnixNano()
 			timestamp := float64(timestampNano) / 1000000000.0
+			timestampInt := time.Now().Unix()
 
 			switch msg.OperationCode {
 			case 0:
@@ -54,10 +55,10 @@ func POIOrderHandler() {
 
 				for teacherId, _ := range WsManager.OnlineTeacherList {
 					msgDispatch.UserId = teacherId
-					fmt.Println("Got teacherId: ", teacherId)
 					dispatchChan := WsManager.GetUserChan(teacherId)
-					fmt.Println("Order dispatched: ", orderDispatchId, " to teacher ID: ", teacherId)
 					dispatchChan <- msgDispatch
+					RedisManager.SetOrderDispatch(orderDispatchId, teacherId, timestampInt)
+					fmt.Println("Order dispatched: ", orderDispatchId, " to teacher ID: ", teacherId)
 				}
 
 			case 5:
@@ -67,8 +68,11 @@ func POIOrderHandler() {
 
 				orderPresentIdStr := msg.Attribute["orderId"]
 				timePresentStr := msg.Attribute["time"]
-				orderIdPresentId, _ := strconv.ParseInt(orderPresentIdStr, 10, 64)
-				orderPresent := DbManager.QueryOrderById(orderIdPresentId)
+				orderPresentId, _ := strconv.ParseInt(orderPresentIdStr, 10, 64)
+				orderPresent := DbManager.QueryOrderById(orderPresentId)
+
+				RedisManager.SetOrderResponse(orderPresentId, msg.UserId, timestampInt)
+				RedisManager.SetOrderPlanTime(orderPresentId, msg.UserId, timePresentStr)
 
 				msgPresent := NewType7Message()
 				msgPresent.UserId = orderPresent.Creator.UserId
@@ -94,6 +98,12 @@ func POIOrderHandler() {
 				orderIdConfirmed, _ := strconv.ParseInt(orderIdConfirmedStr, 10, 64)
 				teacherIdConfirmed, _ := strconv.ParseInt(teacherIdConfirmedStr, 10, 64)
 
+				planTime := RedisManager.GetOrderPlanTime(orderIdConfirmed, msg.UserId)
+				if planTime == "" {
+					break
+				}
+
+				DbManager.UpdateOrderDate(orderIdConfirmed, planTime)
 				DbManager.UpdateOrderStatus(orderIdConfirmed, ORDER_STATUS_CONFIRMED)
 
 				msgConfirm := NewType11Message()
@@ -115,7 +125,31 @@ func POIOrderHandler() {
 				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))
 				go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionCreatedNotification(sessionPtr.Id))
 
-				go SendSessionNotification(sessionPtr.Id, 1)
+				if orderConfirmed.Type == 1 {
+					go SendSessionNotification(sessionPtr.Id, 1)
+				} else if orderConfirmed.Type == 2 {
+					planTime, _ := time.Parse(time.RFC3339, orderConfirmed.Date)
+					planTimeTS := planTime.Unix()
+
+					sessionStart := make(map[string]int64)
+					sessionStart["type"] = 6
+					sessionStart["oprCode"] = 1
+					sessionStart["sessionId"] = sessionPtr.Id
+					jsonStart, _ := json.Marshal(sessionStart)
+					RedisManager.SetSessionTicker(planTimeTS, string(jsonStart))
+
+					sessionReminder := make(map[string]int64)
+					sessionReminder["type"] = 5
+					sessionReminder["oprCode"] = 3
+					sessionReminder["sessionId"] = sessionPtr.Id
+					sessionReminder["hours"] = 2
+					jsonReminder, _ := json.Marshal(sessionReminder)
+					RedisManager.SetSessionTicker(planTimeTS-3600*2, string(jsonReminder))
+
+					sessionReminder["hours"] = 24
+					jsonReminder, _ = json.Marshal(sessionReminder)
+					RedisManager.SetSessionTicker(planTimeTS-3600*24, string(jsonReminder))
+				}
 			}
 		}
 	}

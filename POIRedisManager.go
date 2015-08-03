@@ -12,32 +12,42 @@ type POIRedisManager struct {
 	redisClient *redis.Client
 }
 
-const REDIS_HOST = "121.41.108.66:"
-const REDIS_PORT = "6379"
-const REDIS_DB = 0
-const REDIS_PASSWORD = "Poi11223"
+const (
+	REDIS_HOST     = "121.41.108.66:"
+	REDIS_PORT     = "6379"
+	REDIS_DB       = 0
+	REDIS_PASSWORD = "Poi11223"
+)
 
-const CACHE_FEED = "cache:feed:"
-const CACHE_FEEDCOMMENT = "cache:feed_comment:"
+const (
+	CACHE_FEED        = "cache:feed:"
+	CACHE_FEEDCOMMENT = "cache:feed_comment:"
 
-const FEEDFLOW_ATRIUM = "feed_flow:atrium"
+	FEEDFLOW_ATRIUM = "feed_flow:atrium"
 
-const FEED_LIKE = "feed:like:"
-const FEED_COMMENT = "feed:comment:"
-const FEED_FAV = "feed:fav:"
-const FEED_REPOST = "feed:repost:"
+	FEED_LIKE    = "feed:like:"
+	FEED_COMMENT = "feed:comment:"
+	FEED_FAV     = "feed:fav:"
+	FEED_REPOST  = "feed:repost:"
 
-const FEED_COMMENT_LIKE = "comment:like:"
+	FEED_COMMENT_LIKE = "comment:like:"
 
-const USER_FEED = "user:feed:"
-const USER_FEED_LIKE = "user:feed_like:"
-const USER_FEED_COMMENT = "user:feed_comment:"
-const USER_FEED_COMMENT_LIKE = "user:feed_comment_like:"
-const USER_FEED_FAV = "user:feed_fav:"
-const USER_FOLLOWING = "user:following:"
-const USER_FOLLOWER = "user:follower:"
+	USER_FEED              = "user:feed:"
+	USER_FEED_LIKE         = "user:feed_like:"
+	USER_FEED_COMMENT      = "user:feed_comment:"
+	USER_FEED_COMMENT_LIKE = "user:feed_comment_like:"
+	USER_FEED_FAV          = "user:feed_fav:"
+	USER_FOLLOWING         = "user:following:"
+	USER_FOLLOWER          = "user:follower:"
 
-const USER_CONVERSATION = "conversation:"
+	USER_CONVERSATION = "conversation:"
+
+	ORDER_DISPATCH = "order:dispatch:"
+	ORDER_RESPONSE = "order:response:"
+	ORDER_PLANTIME = "order:plan_time:"
+
+	SESSION_TICKER = "session:ticker"
+)
 
 func NewPOIRedisManager() POIRedisManager {
 	client := redis.NewClient(&redis.Options{
@@ -406,4 +416,45 @@ func (rm *POIRedisManager) GetConversation(userId1, userId2 int64) string {
 	}
 
 	return convId
+}
+
+func (rm *POIRedisManager) SetOrderDispatch(orderId int64, userId int64, timestamp int64) {
+	orderIdStr := strconv.FormatInt(orderId, 10)
+	userIdStr := strconv.FormatInt(userId, 10)
+	timestampStr := strconv.FormatInt(timestamp, 10)
+
+	_ = rm.redisClient.HSet(ORDER_DISPATCH+orderIdStr, userIdStr, timestampStr)
+}
+
+func (rm *POIRedisManager) SetOrderResponse(orderId int64, userId int64, timestamp int64) {
+	orderIdStr := strconv.FormatInt(orderId, 10)
+	userIdStr := strconv.FormatInt(userId, 10)
+	timestampStr := strconv.FormatInt(timestamp, 10)
+
+	_ = rm.redisClient.HSet(ORDER_RESPONSE+orderIdStr, userIdStr, timestampStr)
+}
+
+func (rm *POIRedisManager) SetOrderPlanTime(orderId int64, userId int64, time string) {
+	orderIdStr := strconv.FormatInt(orderId, 10)
+	userIdStr := strconv.FormatInt(userId, 10)
+
+	_ = rm.redisClient.HSet(ORDER_PLANTIME+orderIdStr, userIdStr, time)
+}
+
+func (rm *POIRedisManager) GetOrderPlanTime(orderId int64, userId int64) string {
+	orderIdStr := strconv.FormatInt(orderId, 10)
+	userIdStr := strconv.FormatInt(userId, 10)
+
+	time, err := rm.redisClient.HGet(ORDER_PLANTIME+orderIdStr, userIdStr).Result()
+	if err == redis.Nil {
+		return ""
+	}
+
+	return time
+}
+
+func (rm *POIRedisManager) SetSessionTicker(timestamp int64, tickerInfo string) {
+	tickerZ := redis.Z{Member: tickerInfo, Score: float64(timestamp)}
+
+	_ = RedisManager.redisClient.ZAdd(SESSION_TICKER, tickerZ)
 }
