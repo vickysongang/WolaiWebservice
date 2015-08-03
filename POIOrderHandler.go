@@ -77,6 +77,7 @@ func POIOrderHandler() {
 				msgPresent := NewType7Message()
 				msgPresent.UserId = orderPresent.Creator.UserId
 				teacher := DbManager.QueryTeacher(msg.UserId)
+				teacher.LabelList = DbManager.QueryTeacherLabelById(teacher.UserId)
 				teacherByte, _ := json.Marshal(teacher)
 				msgPresent.Attribute["teacherInfo"] = string(teacherByte)
 				msgPresent.Attribute["time"] = timePresentStr

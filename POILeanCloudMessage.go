@@ -102,6 +102,25 @@ func NewSessionNotification(oprCode int64, sessionId int64) *LCTypedMessage {
 	return &lcTMsg
 }
 
+func NewPersonalOrderNotification(orderId int64, teacherId int64) *LCTypedMessage {
+	order := DbManager.QueryOrderById(orderId)
+	teacher := DbManager.QueryUserById(teacherId)
+	if order == nil || teacher == nil {
+		return nil
+	}
+
+	attr := make(map[string]string)
+	teacherStr, _ := json.Marshal(teacher)
+	orderStr, _ := json.Marshal(order)
+
+	attr["teacherInfo"] = string(teacherStr)
+	attr["orderInfo"] = string(orderStr)
+
+	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
+
+	return &lcTMsg
+}
+
 func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 	user := DbManager.QueryUserById(userId)
 	target := DbManager.QueryUserById(targetId)
