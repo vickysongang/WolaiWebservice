@@ -693,3 +693,9 @@ func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	_ = sessionId + rating + userId
 	json.NewEncoder(w).Encode(NewPOIResponse(0, ""))
 }
+
+func V1Banner(w http.ResponseWriter, r *http.Request) {
+	content := DbManager.QueryBannerList()
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}

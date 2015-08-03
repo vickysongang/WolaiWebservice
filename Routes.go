@@ -436,4 +436,17 @@ var routes = Routes{
 		"/v1/session/rating",
 		V1SessionRating,
 	},
+
+	Route{
+		"V1BannerPOST",
+		"POST",
+		"/v1/banner",
+		V1Banner,
+	},
+	Route{
+		"V1BannerGET",
+		"GET",
+		"/v1/banner",
+		V1Banner,
+	},
 }
