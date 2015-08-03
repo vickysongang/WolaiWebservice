@@ -102,6 +102,10 @@ func (dbm *POIDBManager) QueryOrderById(orderId int64) *POIOrder {
 	if err == sql.ErrNoRows {
 		return nil
 	}
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
 
 	creator := DbManager.GetUserById(userId)
 	order := NewPOIOrder(creator, timestamp, gradeId, subjectId, date,

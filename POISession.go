@@ -94,6 +94,10 @@ func (dbm *POIDBManager) QuerySessionById(sessionId int64) *POISession {
 	if err == sql.ErrNoRows {
 		return nil
 	}
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
 
 	session := POISession{
 		Id:              sessionId,

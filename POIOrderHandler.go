@@ -31,6 +31,10 @@ func POIOrderHandler() {
 					orderDispatchIdStr := msg.Attribute["orderId"]
 					orderDispatchId, _ := strconv.ParseInt(orderDispatchIdStr, 10, 64)
 					orderDispatch := DbManager.QueryOrderById(orderDispatchId)
+					if orderDispatch == nil {
+						fmt.Println("order not found")
+						break
+					}
 					orderDispatchByte, _ := json.Marshal(orderDispatch)
 					var countdown string
 					if orderDispatch.Type == 1 || orderDispatch.Type == 3 {
