@@ -409,4 +409,18 @@ var routes = Routes{
 		"/v1/order/create",
 		V1OrderCreate,
 	},
+
+	//5.4 Personal Order Confirm
+	Route{
+		"V1OrderPersonalConfirmPOST",
+		"POST",
+		"/v1/order/personal/confirm",
+		V1OrderPersonalConfirm,
+	},
+	Route{
+		"V1OrderPersonalConfirmGET",
+		"GET",
+		"/v1/order/personal/confirm",
+		V1OrderPersonalConfirm,
+	},
 }

@@ -614,6 +614,12 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
+	var teacherId int64
+	if len(vars["teacherId"]) > 0 {
+		teacherIdStr := vars["teacherId"][0]
+		teacherId, _ = strconv.ParseInt(teacherIdStr, 10, 64)
+	}
+
 	timestampNano := time.Now().UnixNano()
 	timestamp := float64(timestampNano) / 1000000000.0
 
@@ -634,8 +640,35 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 	orderTypeStr := vars["orderType"][0]
 	orderType, _ := strconv.ParseInt(orderTypeStr, 10, 64)
 
-	status, content := OrderCreate(userId, timestamp, gradeId, subjectId, date,
+	status, content := OrderCreate(userId, teacherId, timestamp, gradeId, subjectId, date,
 		periodId, length, orderType)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
+}
+
+/*
+ * 5.4 Personal Order Confirm
+ */
+func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	vars := r.Form
+
+	timestampNano := time.Now().UnixNano()
+	timestamp := float64(timestampNano) / 1000000000.0
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	orderIdStr := vars["orderId"][0]
+	orderId, _ := strconv.ParseInt(orderIdStr, 10, 64)
+
+	acceptStr := vars["accept"][0]
+	accept, _ := strconv.ParseInt(acceptStr, 10, 64)
+
+	status := OrderPersonalConfirm(userId, orderId, accept, timestamp)
+	json.NewEncoder(w).Encode(NewPOIResponse(status, ""))
 }
