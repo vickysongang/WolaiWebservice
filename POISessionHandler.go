@@ -11,7 +11,7 @@ func POISessionHandler() {
 	var msg POIWSMessage
 	for {
 		select {
-		case msg = <-WsManager.OrderInput:
+		case msg = <-WsManager.SessionInput:
 			//userChan := WsManager.GetUserChan(msg.UserId)
 			_ = DbManager.GetUserById(msg.UserId)
 

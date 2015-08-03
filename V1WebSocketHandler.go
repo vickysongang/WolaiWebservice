@@ -49,15 +49,14 @@ func V1WSOrderHandler(w http.ResponseWriter, r *http.Request) {
 
 	userChan := make(chan POIWSMessage)
 	WsManager.SetUserChan(msg.UserId, userChan)
-	fmt.Println("aaa")
 	go WebSocketWriteHandler(conn, userChan)
-	fmt.Println("bbb")
+
 	WsManager.OrderInput <- msg
-	fmt.Println("ccc")
 
 	for {
 		_, p, err = conn.ReadMessage()
 		if err != nil {
+			fmt.Println(err.Error())
 			return
 		}
 
