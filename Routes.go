@@ -423,4 +423,17 @@ var routes = Routes{
 		"/v1/order/personal/confirm",
 		V1OrderPersonalConfirm,
 	},
+
+	Route{
+		"V1SessionRatingPOST",
+		"POST",
+		"/v1/session/rating",
+		V1SessionRating,
+	},
+	Route{
+		"V1SessionRatingGET",
+		"GET",
+		"/v1/session/rating",
+		V1SessionRating,
+	},
 }

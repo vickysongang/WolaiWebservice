@@ -672,3 +672,24 @@ func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
 	status := OrderPersonalConfirm(userId, orderId, accept, timestamp)
 	json.NewEncoder(w).Encode(NewPOIResponse(status, ""))
 }
+
+func V1SessionRating(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	sessionIdStr := vars["sesionId"][0]
+	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
+
+	ratingStr := vars["rating"][0]
+	rating, _ := strconv.ParseInt(ratingStr, 10, 64)
+
+	_ = sessionId + rating + userId
+	json.NewEncoder(w).Encode(NewPOIResponse(0, ""))
+}
