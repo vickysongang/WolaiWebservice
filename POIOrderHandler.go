@@ -116,7 +116,10 @@ func POIOrderHandler() {
 					timestamp, orderConfirmed.Date)
 				sessionPtr := DbManager.InsertSession(&session)
 
-				SendSessionNotification(sessionPtr.Id, 1)
+				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))
+				go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionCreatedNotification(sessionPtr.Id))
+
+				go SendSessionNotification(sessionPtr.Id, 1)
 			}
 		}
 	}

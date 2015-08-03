@@ -83,8 +83,13 @@ func POISessionHandler() {
 
 				endChan := WsManager.GetUserChan(sessionEnd.Creator.UserId)
 				endChan <- msgEnd
+
 				go SendSessionNotification(sessionEndId, 3)
+				go LCSendTypedMessage(sessionEnd.Creator.UserId, sessionEnd.Teacher.UserId, NewSessionReportNotification(sessionEnd.Id))
+				go LCSendTypedMessage(sessionEnd.Teacher.UserId, sessionEnd.Creator.UserId, NewSessionReportNotification(sessionEnd.Id))
+
 				fmt.Println("POISessionHandler: session end: " + sessionEndIdStr)
+
 			}
 		}
 	}
