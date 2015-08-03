@@ -98,7 +98,7 @@ func POIOrderHandler() {
 				orderIdConfirmed, _ := strconv.ParseInt(orderIdConfirmedStr, 10, 64)
 				teacherIdConfirmed, _ := strconv.ParseInt(teacherIdConfirmedStr, 10, 64)
 
-				planTime := RedisManager.GetOrderPlanTime(orderIdConfirmed, msg.UserId)
+				planTime := RedisManager.GetOrderPlanTime(orderIdConfirmed, teacherIdConfirmed)
 				if planTime == "" {
 					break
 				}

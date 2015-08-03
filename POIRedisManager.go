@@ -434,23 +434,23 @@ func (rm *POIRedisManager) SetOrderResponse(orderId int64, userId int64, timesta
 	_ = rm.redisClient.HSet(ORDER_RESPONSE+orderIdStr, userIdStr, timestampStr)
 }
 
-func (rm *POIRedisManager) SetOrderPlanTime(orderId int64, userId int64, time string) {
+func (rm *POIRedisManager) SetOrderPlanTime(orderId int64, userId int64, planTime string) {
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	userIdStr := strconv.FormatInt(userId, 10)
 
-	_ = rm.redisClient.HSet(ORDER_PLANTIME+orderIdStr, userIdStr, time)
+	_ = rm.redisClient.HSet(ORDER_PLANTIME+orderIdStr, userIdStr, planTime)
 }
 
 func (rm *POIRedisManager) GetOrderPlanTime(orderId int64, userId int64) string {
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	userIdStr := strconv.FormatInt(userId, 10)
 
-	time, err := rm.redisClient.HGet(ORDER_PLANTIME+orderIdStr, userIdStr).Result()
+	planTime, err := rm.redisClient.HGet(ORDER_PLANTIME+orderIdStr, userIdStr).Result()
 	if err == redis.Nil {
 		return ""
 	}
 
-	return time
+	return planTime
 }
 
 func (rm *POIRedisManager) SetSessionTicker(timestamp int64, tickerInfo string) {
