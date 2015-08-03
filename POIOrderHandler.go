@@ -12,8 +12,11 @@ func POIOrderHandler() {
 	for {
 		select {
 		case msg = <-WsManager.OrderInput:
+			fmt.Println("ddd")
 			userChan := WsManager.GetUserChan(msg.UserId)
+			fmt.Println("eee")
 			user := DbManager.GetUserById(msg.UserId)
+			fmt.Println("fff")
 
 			aaa, _ := json.Marshal(msg)
 			fmt.Println("POIOrderHandler: ", string(aaa))
