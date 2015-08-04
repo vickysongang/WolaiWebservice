@@ -684,7 +684,7 @@ func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
-	sessionIdStr := vars["sesionId"][0]
+	sessionIdStr := vars["sessionId"][0]
 	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
 
 	ratingStr := vars["rating"][0]
