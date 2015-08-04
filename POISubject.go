@@ -43,7 +43,7 @@ func (dbm *POIDBManager) QuerySubjectList() POISubjects {
 func (dbm *POIDBManager) QuerySubjectListByGrade(gradeId int64) POISubjects {
 	stmtQuery, err := dbm.dbClient.Prepare(
 		`SELECT subject.id, subject.name FROM subject, grade_to_subject 
-			WHERE grade_to_subject.grade_id AND grade_to_subject.grade_id = ?`)
+			WHERE grade_to_subject.subject_id = subject.id AND grade_to_subject.grade_id = ?`)
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil
