@@ -13,13 +13,6 @@ type POIRedisManager struct {
 }
 
 const (
-	REDIS_HOST     = "121.41.108.66:"
-	REDIS_PORT     = "6381"
-	REDIS_DB       = 0
-	REDIS_PASSWORD = ""
-)
-
-const (
 	CACHE_FEED        = "cache:feed:"
 	CACHE_FEEDCOMMENT = "cache:feed_comment:"
 

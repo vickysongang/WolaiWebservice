@@ -21,15 +21,11 @@ func GetTeacherProfile(userId, teacherId int64) POITeacherProfile {
 
 	teacherProfile.SubjectList = DbManager.QueryTeacherSubjectById(teacherId)
 
+	teacherProfile.EducationList = DbManager.QueryTeacherResumeById(userId)
+
 	mod := math.Mod(float64(teacherId), 50)
 
 	teacherProfile.Rating = float64(50-mod) / 10.0
-
-	resumes := make(POITeacherResumes, 2)
-	resumes[0] = POITeacherResume{Start: 2008, Stop: -1, Name: "电线杆子科技大学"}
-	resumes[1] = POITeacherResume{Start: 2005, Stop: 2008, Name: "马路牙子高级中学"}
-
-	teacherProfile.EducationList = resumes
 
 	teacherProfile.HasFollowed = RedisManager.HasFollowedUser(userId, teacherId)
 

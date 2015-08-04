@@ -240,3 +240,38 @@ func (dbm *POIDBManager) QueryTeacherSubjectById(userId int64) POITeacherSubject
 
 	return subjects
 }
+
+func (dbm *POIDBManager) QueryTeacherResumeById(userId int64) POITeacherResumes {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`
+		SELECT start, stop, name FROM teacher_to_resume WHERE user_id = ?`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtQuery.Close()
+
+	rows, err := stmtQuery.Query(userId)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var start int64
+	var stop int64
+	var name string
+	resumes := make(POITeacherResumes, 0)
+
+	for rows.Next() {
+		err = rows.Scan(&start, &stop, &name)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		resumes = append(resumes, POITeacherResume{
+			Start: start,
+			Stop:  stop,
+			Name:  name,
+		})
+	}
+
+	return resumes
+}
