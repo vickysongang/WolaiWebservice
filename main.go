@@ -33,7 +33,7 @@ const (
 
 	DB_URL = "webservice:Wolai11223@tcp(rdse58d3a61484hx8c69.mysql.rds.aliyuncs.com:3306)/wolai"
 
-	REDIS_HOST     = "10.171.232.244:"
+	REDIS_HOST     = "10.168.229.56:"
 	REDIS_PORT     = "6379"
 	REDIS_DB       = 0
 	REDIS_PASSWORD = "Poi11223"
