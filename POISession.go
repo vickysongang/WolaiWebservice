@@ -132,3 +132,35 @@ func (dbm *POIDBManager) UpdateSessionStatus(sessionId int64, status string) {
 		return
 	}
 }
+
+func (dbm *POIDBManager) UpdateSessionStart(sessionId int64, start int64) {
+	stmtUpdate, err := dbm.dbClient.Prepare(
+		`UPDATE sessions SET start_time = ? WHERE id = ?`)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	defer stmtUpdate.Close()
+
+	_, err = stmtUpdate.Exec(start, sessionId)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}
+
+func (dbm *POIDBManager) UpdateSessionEnd(sessionId int64, end int64, length int64) {
+	stmtUpdate, err := dbm.dbClient.Prepare(
+		`UPDATE sessions SET end_time = ?, length = ? WHERE id = ?`)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	defer stmtUpdate.Close()
+
+	_, err = stmtUpdate.Exec(end, length, sessionId)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+}

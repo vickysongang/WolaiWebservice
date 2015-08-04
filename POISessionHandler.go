@@ -15,14 +15,14 @@ func POISessionHandler() {
 			//userChan := WsManager.GetUserChan(msg.UserId)
 			_ = DbManager.QueryUserById(msg.UserId)
 
-			timestampNano := time.Now().UnixNano()
-			_ = float64(timestampNano) / 1000000000.0
+			timestampInt := time.Now().Unix()
 
 			switch msg.OperationCode {
 			case -1:
 				sessionCancelIdStr := msg.Attribute["sessionId"]
 				sessionCancelId, _ := strconv.ParseInt(sessionCancelIdStr, 10, 64)
 				go SendSessionNotification(sessionCancelId, -1)
+				DbManager.UpdateSessionStatus(sessionCancelId, SESSION_STATUS_CANCELLED)
 				fmt.Println("POISessionHandler: session start cancel: " + sessionCancelIdStr)
 
 			case 0:
@@ -44,6 +44,10 @@ func POISessionHandler() {
 
 				startChan := WsManager.GetUserChan(sessionJoin.Teacher.UserId)
 				startChan <- msgStuJoin
+				if sessionAccept == "1" {
+					DbManager.UpdateSessionStatus(sessionJoinId, SESSION_STATUS_SERVING)
+					DbManager.UpdateSessionStart(sessionJoinId, timestampInt)
+				}
 				fmt.Println("POISessionHandler: session answer: " + sessionJoinIdStr + " accept: " + sessionAccept)
 
 			case 3:
@@ -83,6 +87,9 @@ func POISessionHandler() {
 
 				endChan := WsManager.GetUserChan(sessionEnd.Creator.UserId)
 				endChan <- msgEnd
+
+				DbManager.UpdateSessionStatus(sessionEndId, SESSION_STATUS_COMPLETE)
+				DbManager.UpdateSessionEnd(sessionEndId, timestampInt, timestampInt-sessionEnd.StartTime)
 
 				go SendSessionNotification(sessionEndId, 3)
 				go LCSendTypedMessage(sessionEnd.Creator.UserId, sessionEnd.Teacher.UserId, NewSessionReportNotification(sessionEnd.Id))
