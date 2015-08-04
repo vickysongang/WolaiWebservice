@@ -90,6 +90,7 @@ func POISessionHandler() {
 
 				DbManager.UpdateSessionStatus(sessionEndId, SESSION_STATUS_COMPLETE)
 				DbManager.UpdateSessionEnd(sessionEndId, timestampInt, timestampInt-sessionEnd.StartTime)
+				DbManager.UpdateTeacherServiceTime(sessionEnd.Teacher.UserId, sessionEnd.Length)
 
 				go SendSessionNotification(sessionEndId, 3)
 				go LCSendTypedMessage(sessionEnd.Creator.UserId, sessionEnd.Teacher.UserId, NewSessionReportNotification(sessionEnd.Id))

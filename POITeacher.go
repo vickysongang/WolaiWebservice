@@ -275,3 +275,17 @@ func (dbm *POIDBManager) QueryTeacherResumeById(userId int64) POITeacherResumes 
 
 	return resumes
 }
+
+func (dbm *POIDBManager) UpdateTeacherServiceTime(userId int64, length int64) {
+	stmtUpdate, err := dbm.dbClient.Prepare(
+		`UPDATE teacher_profile SET service_time = service_time + ? WHERE user_id = ?`)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer stmtUpdate.Close()
+
+	_, err = stmtUpdate.Exec(length, userId)
+	if err != nil {
+		panic(err.Error())
+	}
+}
