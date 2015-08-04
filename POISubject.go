@@ -39,3 +39,32 @@ func (dbm *POIDBManager) QuerySubjectList() POISubjects {
 
 	return subjects
 }
+
+func (dbm *POIDBManager) QuerySubjectListByGrade(gradeId int64) POISubjects {
+	stmtQuery, err := dbm.dbClient.Prepare(
+		`SELECT subject.id, subject.name FROM subject, grade_to_subject 
+			WHERE grade_to_subject.grade_id AND grade_to_subject.grade_id = ?`)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
+
+	rows, err := stmtQuery.Query(gradeId)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
+
+	var id int64
+	var name string
+	subjects := make(POISubjects, 0)
+
+	for rows.Next() {
+		err = rows.Scan(&id, &name)
+
+		subjects = append(subjects, POISubject{Id: id, Name: name})
+	}
+
+	return subjects
+
+}

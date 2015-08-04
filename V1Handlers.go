@@ -592,12 +592,17 @@ func V1SubjectList(w http.ResponseWriter, r *http.Request) {
 
 	vars := r.Form
 
-	_ = vars["gradeId"][0]
-	//gradeId, _ := strconv.ParseInt(gradeIdStr, 10, 64)
+	gradeIdStr := vars["gradeId"][0]
+	gradeId, _ := strconv.ParseInt(gradeIdStr, 10, 64)
 
-	content := DbManager.QuerySubjectList()
+	if gradeId == 0 {
+		content := DbManager.QuerySubjectList()
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	} else {
+		content := DbManager.QuerySubjectListByGrade(gradeId)
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
