@@ -21,7 +21,7 @@ func GetTeacherProfile(userId, teacherId int64) POITeacherProfile {
 
 	teacherProfile.SubjectList = DbManager.QueryTeacherSubjectById(teacherId)
 
-	teacherProfile.EducationList = DbManager.QueryTeacherResumeById(userId)
+	teacherProfile.EducationList = DbManager.QueryTeacherResumeById(teacherId)
 
 	mod := math.Mod(float64(teacherId), 50)
 
