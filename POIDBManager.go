@@ -11,6 +11,12 @@ type POIDBManager struct {
 }
 
 func NewPOIDBManager() POIDBManager {
-	dbClient, _ := sql.Open("mysql", DB_URL)
+	dbClient, _ := sql.Open("mysql",
+		Config.Database.Username+":"+
+			Config.Database.Password+"@"+
+			Config.Database.Method+"("+
+			Config.Database.Address+":"+
+			Config.Database.Port+")/"+
+			Config.Database.Database)
 	return POIDBManager{dbClient: dbClient}
 }

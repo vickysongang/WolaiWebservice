@@ -1,7 +1,6 @@
 package main
 
 import (
-	_ "encoding/json"
 	"fmt"
 	"strconv"
 	"time"

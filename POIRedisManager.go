@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"gopkg.in/redis.v3"
-
 	"fmt"
 	"strconv"
+
+	"gopkg.in/redis.v3"
 )
 
 type POIRedisManager struct {
@@ -44,9 +44,9 @@ const (
 
 func NewPOIRedisManager() POIRedisManager {
 	client := redis.NewClient(&redis.Options{
-		Addr:     REDIS_HOST + REDIS_PORT,
-		Password: REDIS_PASSWORD,
-		DB:       0,
+		Addr:     Config.Redis.Host + Config.Redis.Port,
+		Password: Config.Redis.Password,
+		DB:       Config.Redis.Db,
 	})
 
 	pong, err := client.Ping().Result()

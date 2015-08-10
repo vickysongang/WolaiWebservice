@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/satori/go.uuid"
 	"time"
+
+	"github.com/satori/go.uuid"
 )
 
 type POIWSMessage struct {

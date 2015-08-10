@@ -264,8 +264,8 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 	query, _ := json.Marshal(lcMsg)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
-	req.Header.Set("X-AVOSCloud-Application-Id", APP_ID)
-	req.Header.Set("X-AVOSCloud-Master-Key", MASTER_KEY)
+	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
+	req.Header.Set("X-AVOSCloud-Master-Key", Config.LeanCloud.MasterKey)
 	req.Header.Set("Content-Type", "application/json")
 	fmt.Println("Request: ", string(query))
 
