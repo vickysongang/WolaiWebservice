@@ -142,16 +142,14 @@ func POIOrderHandler() {
 					sessionReminder["type"] = 5
 					sessionReminder["oprCode"] = 3
 					sessionReminder["sessionId"] = sessionPtr.Id
-					sessionReminder["hours"] = 2
-					jsonReminder, _ := json.Marshal(sessionReminder)
-					if timestampInt < planTimeTS-3600*2 {
-						RedisManager.SetSessionTicker(planTimeTS-3600*2, string(jsonReminder))
-					}
 
-					sessionReminder["hours"] = 24
-					jsonReminder, _ = json.Marshal(sessionReminder)
-					if timestampInt < planTimeTS-3600*24 {
-						RedisManager.SetSessionTicker(planTimeTS-3600*24, string(jsonReminder))
+					for d := range Config.Reminder.Durations {
+						hours := int64(Config.Reminder.Durations[d].Hours())
+						sessionReminder["hours"] = hours
+						jsonReminder, _ := json.Marshal(sessionReminder)
+						if timestampInt < planTimeTS-3600*hours {
+							RedisManager.SetSessionTicker(planTimeTS-3600*hours, string(jsonReminder))
+						}
 					}
 				}
 			}

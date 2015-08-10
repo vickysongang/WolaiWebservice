@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	_ "encoding/json"
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
