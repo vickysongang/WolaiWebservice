@@ -12,7 +12,7 @@ func POIOrderHandler() {
 		select {
 		case msg := <-WsManager.OrderInput:
 			userChan := WsManager.GetUserChan(msg.UserId)
-			user := DbManager.QueryUserById(msg.UserId)
+			user := QueryUserById(msg.UserId)
 
 			aaa, _ := json.Marshal(msg)
 			fmt.Println("POIOrderHandler: ", string(aaa))
@@ -76,8 +76,8 @@ func POIOrderHandler() {
 
 				msgPresent := NewType7Message()
 				msgPresent.UserId = orderPresent.Creator.UserId
-				teacher := DbManager.QueryTeacher(msg.UserId)
-				teacher.LabelList = DbManager.QueryTeacherLabelById(teacher.UserId)
+				teacher := QueryTeacher(msg.UserId)
+				teacher.LabelList = QueryTeacherLabelById(teacher.UserId)
 				teacherByte, _ := json.Marshal(teacher)
 				msgPresent.Attribute["teacherInfo"] = string(teacherByte)
 				msgPresent.Attribute["time"] = timePresentStr
@@ -117,8 +117,8 @@ func POIOrderHandler() {
 
 				orderConfirmed := DbManager.QueryOrderById(orderIdConfirmed)
 				session := NewPOISession(orderConfirmed.Id,
-					DbManager.QueryUserById(orderConfirmed.Creator.UserId),
-					DbManager.QueryUserById(teacherIdConfirmed),
+					QueryUserById(orderConfirmed.Creator.UserId),
+					QueryUserById(teacherIdConfirmed),
 					timestamp, orderConfirmed.Date)
 				sessionPtr := DbManager.InsertSession(&session)
 

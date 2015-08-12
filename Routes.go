@@ -449,4 +449,10 @@ var routes = Routes{
 		"/v1/banner",
 		V1Banner,
 	},
+	Route{
+		"TestGET",
+		"GET",
+		"/test",
+		Test,
+	},
 }

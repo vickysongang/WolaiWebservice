@@ -30,7 +30,7 @@ func SendCommentNotification(feedCommentId string) {
 }
 
 func SendLikeNotification(userId int64, timestamp float64, feedId string) {
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 	feed := RedisManager.GetFeed(feedId)
 	if user == nil || feed == nil {
 		return

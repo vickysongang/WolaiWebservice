@@ -5,32 +5,33 @@ import (
 )
 
 func LoadPOIUser(userId int64) *POIUser {
-	return DbManager.QueryUserById(userId)
+	return QueryUserById(userId)
 }
 
 func POIUserLogin(phone string) (int64, *POIUser) {
-	user := DbManager.QueryUserByPhone(phone)
+	user := QueryUserByPhone(phone)
 
 	if user != nil {
 		return 0, user
 	}
 
-	id := DbManager.InsertUser(phone)
+	id := InsertUser(phone)
 
-	newUser := DbManager.QueryUserById(id)
+	newUser := QueryUserById(id)
 
 	return 1001, newUser
 }
 
 func POIUserUpdateProfile(userId int64, nickname string, avatar string, gender int64) (int64, *POIUser) {
-	DbManager.UpdateUserInfo(userId, nickname, avatar, gender)
-
+    userJson := `{"Nickname":"`+nickname+`","Avatar":"`+avatar+`","Gender":`+strconv.FormatInt(gender,10)+`}`
+//	DbManager.UpdateUserInfo(userId, nickname, avatar, gender)
+    UpdateUserInfo(userId,userJson)
 	user := LoadPOIUser(userId)
 	return 0, user
 }
 
 func POIUserOauthLogin(openId string) (int64, *POIUser) {
-	userId := DbManager.QueryUserByQQOpenId(openId)
+	userId := QueryUserByQQOpenId(openId)
 	if userId == -1 {
 		return 1002, nil
 	}
@@ -40,24 +41,26 @@ func POIUserOauthLogin(openId string) (int64, *POIUser) {
 }
 
 func POIUserOauthRegister(openId string, phone string, nickname string, avatar string, gender int64) (int64, *POIUser) {
-	user := DbManager.QueryUserByPhone(phone)
+	user := QueryUserByPhone(phone)
 	if user != nil {
-		DbManager.InsertUserOauth(user.UserId, openId)
+		InsertUserOauth(user.UserId, openId)
 		return 0, user
 	}
 
-	userId := DbManager.InsertUser(phone)
-	DbManager.UpdateUserInfo(userId, nickname, avatar, gender)
+	userId := InsertUser(phone)
+	userJson := `{"Nickname":"`+nickname+`","Avatar":"`+avatar+`","Gender":`+strconv.FormatInt(gender,10)+`}`
+    UpdateUserInfo(userId,userJson)
+//	DbManager.UpdateUserInfo(userId, nickname, avatar, gender)
 	user = LoadPOIUser(userId)
 
-	DbManager.InsertUserOauth(userId, openId)
+	InsertUserOauth(userId, openId)
 
 	return 1003, user
 }
 
 func POIUserFollow(userId, followId int64) (int64, bool) {
-	user := DbManager.QueryUserById(userId)
-	follow := DbManager.QueryUserById(followId)
+	user := QueryUserById(userId)
+	follow := QueryUserById(followId)
 	if user == nil || follow == nil {
 		return 2, false
 	}
@@ -76,8 +79,8 @@ func POIUserFollow(userId, followId int64) (int64, bool) {
 }
 
 func POIUserUnfollow(userId, followId int64) (int64, bool) {
-	user := DbManager.QueryUserById(userId)
-	follow := DbManager.QueryUserById(followId)
+	user := QueryUserById(userId)
+	follow := QueryUserById(followId)
 	if user == nil || follow == nil {
 		return 2, false
 	}
@@ -91,7 +94,7 @@ func POIUserUnfollow(userId, followId int64) (int64, bool) {
 }
 
 func GetUserFollowing(userId int64) POITeachers {
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 	if user == nil {
 		return nil
 	}
@@ -102,8 +105,8 @@ func GetUserFollowing(userId int64) POITeachers {
 }
 
 func GetUserConversation(userId1, userId2 int64) (int64, string) {
-	user1 := DbManager.QueryUserById(userId1)
-	user2 := DbManager.QueryUserById(userId2)
+	user1 := QueryUserById(userId1)
+	user2 := QueryUserById(userId2)
 
 	if user1 == nil || user2 == nil {
 		return 2, ""

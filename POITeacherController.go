@@ -5,23 +5,23 @@ import (
 )
 
 func GetTeacherRecommendationList(page int64) POITeachers {
-	teachers := DbManager.QueryTeacherList()
+	teachers := QueryTeacherList()
 
 	for i := range teachers {
-		teachers[i].LabelList = DbManager.QueryTeacherLabelById(teachers[i].UserId)
+		teachers[i].LabelList = QueryTeacherLabelById(teachers[i].UserId)
 	}
 
 	return teachers
 }
 
 func GetTeacherProfile(userId, teacherId int64) POITeacherProfile {
-	teacherProfile := DbManager.QueryTeacherProfile(teacherId)
+	teacherProfile := QueryTeacherProfile(teacherId)
 
-	teacherProfile.LabelList = DbManager.QueryTeacherLabelById(teacherId)
+	teacherProfile.LabelList = QueryTeacherLabelById(teacherId)
 
-	teacherProfile.SubjectList = DbManager.QueryTeacherSubjectById(teacherId)
+	teacherProfile.SubjectList = QueryTeacherSubjectById(teacherId)
 
-	teacherProfile.EducationList = DbManager.QueryTeacherResumeById(teacherId)
+	teacherProfile.EducationList = QueryTeacherResumeById(teacherId)
 
 	mod := math.Mod(float64(teacherId), 50)
 

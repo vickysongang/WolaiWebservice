@@ -106,7 +106,7 @@ func (dbm *POIDBManager) QueryOrderById(orderId int64) *POIOrder {
 		return nil
 	}
 
-	creator := DbManager.QueryUserById(userId)
+	creator := QueryUserById(userId)
 	order := NewPOIOrder(creator, timestamp, gradeId, subjectId, date,
 		periodId, length, OrderTypeRevDict[orderType], orderStatus)
 	order.Id = orderId

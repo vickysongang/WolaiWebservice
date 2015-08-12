@@ -2,69 +2,46 @@ package main
 
 import (
 	"fmt"
-
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/astaxie/beego/orm"
 )
 
 type POISubject struct {
-	Id   int64  `json:"id"`
+	Id   int64  `json:"id" orm:"pk"`
 	Name string `json:"name"`
 }
 
 type POISubjects []POISubject
 
-func (dbm *POIDBManager) QuerySubjectList() POISubjects {
-	stmtQuery, err := dbm.dbClient.Prepare(
-		`SELECT id, name FROM subject`)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
-	}
+func init(){
+	orm.RegisterModel(new(POISubject))
+}
 
-	rows, err := stmtQuery.Query()
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
-	}
-
-	var id int64
-	var name string
+func QuerySubjectList() POISubjects{
 	subjects := make(POISubjects, 0)
-
-	for rows.Next() {
-		err = rows.Scan(&id, &name)
-
-		subjects = append(subjects, POISubject{Id: id, Name: name})
+	qb,_ := orm.NewQueryBuilder("mysql")
+	qb.Select("id,name").From("subject")
+	sql := qb.String()
+	o := orm.NewOrm()
+	_,err := o.Raw(sql).QueryRows(&subjects)
+	if err == orm.ErrNoRows{
+		return nil
 	}
-
 	return subjects
 }
 
-func (dbm *POIDBManager) QuerySubjectListByGrade(gradeId int64) POISubjects {
-	stmtQuery, err := dbm.dbClient.Prepare(
-		`SELECT subject.id, subject.name FROM subject, grade_to_subject 
-			WHERE grade_to_subject.subject_id = subject.id AND grade_to_subject.grade_id = ?`)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
-	}
-
-	rows, err := stmtQuery.Query(gradeId)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
-	}
-
-	var id int64
-	var name string
+func QuerySubjectListByGrade(gradeId int64) POISubjects{
 	subjects := make(POISubjects, 0)
-
-	for rows.Next() {
-		err = rows.Scan(&id, &name)
-
-		subjects = append(subjects, POISubject{Id: id, Name: name})
+	qb,_ := orm.NewQueryBuilder("mysql")
+	qb.Select("subject.id,subject.name").From("subject").InnerJoin("grade_to_subject").On("grade_to_subject.subject_id = subject.id").
+	Where("grade_to_subject.grade_id = ?")
+	sql := qb.String()
+	fmt.Println(sql)
+	o := orm.NewOrm()
+	_,err := o.Raw(sql,gradeId).QueryRows(&subjects)
+	if err == orm.ErrNoRows{
+		return nil
 	}
-
 	return subjects
-
 }
+

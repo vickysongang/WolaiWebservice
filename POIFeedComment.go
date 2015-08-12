@@ -31,7 +31,7 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	replyToId int64) *POIFeedComment {
 	feedComment := POIFeedComment{}
 
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 	if user == nil {
 		return nil
 	}
@@ -52,7 +52,7 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	feedComment.ImageList = tmpList
 
 	if replyToId != 0 {
-		feedComment.ReplyTo = DbManager.QueryUserById(replyToId)
+		feedComment.ReplyTo = QueryUserById(replyToId)
 	}
 
 	feed.IncreaseComment()
@@ -66,7 +66,7 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 
 func LikePOIFeedComment(userId int64, feedCommentId string, timestamp float64) *POIFeedComment {
 	feedComment := RedisManager.GetFeedComment(feedCommentId)
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 
 	if feedComment == nil || user == nil {
 		return nil

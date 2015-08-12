@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
 	"github.com/gorilla/mux"
 )
 
@@ -143,7 +142,7 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-	_ = DbManager.QueryUserById(userId)
+	_ = QueryUserById(userId)
 
 	var page int64
 	if len(vars["page"]) > 0 {
@@ -170,7 +169,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 	teacherIdStr := vars["teacherId"][0]
 	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
 
-	teacher := DbManager.QueryUserById(teacherId)
+	teacher := QueryUserById(teacherId)
 	if teacher.AccessRight != 2 {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, ""))
 		return
@@ -178,7 +177,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-	_ = DbManager.QueryUserById(userId)
+	_ = QueryUserById(userId)
 
 	content := GetTeacherProfile(userId, teacherId)
 
@@ -576,8 +575,7 @@ func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
  * 5.1 Grade List
  */
 func V1GradeList(w http.ResponseWriter, r *http.Request) {
-	content := DbManager.QueryGradeList()
-
+	content := QueryGradeList()
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
@@ -596,12 +594,11 @@ func V1SubjectList(w http.ResponseWriter, r *http.Request) {
 	gradeId, _ := strconv.ParseInt(gradeIdStr, 10, 64)
 
 	if gradeId == 0 {
-		content := DbManager.QuerySubjectList()
+		content := QuerySubjectList()
 		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 	} else {
-		content := DbManager.QuerySubjectListByGrade(gradeId)
+		content := QuerySubjectListByGrade(gradeId)
 		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-
 	}
 }
 
@@ -700,7 +697,12 @@ func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1Banner(w http.ResponseWriter, r *http.Request) {
-	content := DbManager.QueryBannerList()
-
+//	content := DbManager.QueryBannerList()
+    content := QueryBannerList()
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
+func Test(w http.ResponseWriter,r *http.Request){
+	content := QueryTeacherProfile(10234)
+	json.NewEncoder(w).Encode(NewPOIResponse(0,content))
 }

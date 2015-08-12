@@ -51,7 +51,7 @@ func NewLCCommentNotification(feedCommentId string) *LCTypedMessage {
 }
 
 func NewLCLikeNotification(userId int64, timestamp float64, feedId string) *LCTypedMessage {
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 	feed := RedisManager.GetFeed(feedId)
 
 	if user == nil || feed == nil {
@@ -109,7 +109,7 @@ func NewSessionNotification(sessionId int64, oprCode int64) *LCTypedMessage {
 
 func NewPersonalOrderNotification(orderId int64, teacherId int64) *LCTypedMessage {
 	order := DbManager.QueryOrderById(orderId)
-	teacher := DbManager.QueryUserById(teacherId)
+	teacher := QueryUserById(teacherId)
 	if order == nil || teacher == nil {
 		return nil
 	}
@@ -221,7 +221,7 @@ func NewSessionReportNotification(sessionId int64) *LCTypedMessage {
 		return nil
 	}
 
-	teacher := DbManager.QueryTeacher(session.Teacher.UserId)
+	teacher := QueryTeacher(session.Teacher.UserId)
 	if teacher == nil {
 		return nil
 	}
@@ -242,8 +242,8 @@ func NewSessionReportNotification(sessionId int64) *LCTypedMessage {
 }
 
 func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
-	user := DbManager.QueryUserById(userId)
-	target := DbManager.QueryUserById(targetId)
+	user := QueryUserById(userId)
+	target := QueryUserById(targetId)
 	if user == nil || target == nil {
 		return
 	}

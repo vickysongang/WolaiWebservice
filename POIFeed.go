@@ -60,7 +60,7 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 	originFeedId string, attributeStr string) *POIFeed {
 	feed := POIFeed{}
 
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 	if user == nil {
 		return nil
 	}
@@ -95,7 +95,7 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 
 func LikePOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 	feed := RedisManager.GetFeed(feedId)
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 
 	if feed == nil || user == nil {
 		return nil
@@ -118,7 +118,7 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 
 func FavPOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 	feed := RedisManager.GetFeed(feedId)
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 
 	if feed == nil || user == nil {
 		return nil
@@ -133,7 +133,7 @@ func FavPOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 
 func GetFeedDetail(feedId string, userId int64) *POIFeedDetail {
 	feed := RedisManager.GetFeed(feedId)
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 
 	if feed == nil || user == nil {
 		return nil
@@ -156,7 +156,7 @@ func GetFeedDetail(feedId string, userId int64) *POIFeedDetail {
 }
 
 func GetAtrium(userId int64, page int64) POIFeeds {
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 
 	if user == nil {
 		return nil
@@ -176,7 +176,7 @@ func GetAtrium(userId int64, page int64) POIFeeds {
 }
 
 func GetUserFeed(userId int64, page int64) POIFeeds {
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 	if user == nil {
 		return nil
 	}
@@ -195,7 +195,7 @@ func GetUserFeed(userId int64, page int64) POIFeeds {
 }
 
 func GetUserLike(userId int64, page int64) POIFeeds {
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 	if user == nil {
 		return nil
 	}
