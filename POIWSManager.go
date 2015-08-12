@@ -9,8 +9,11 @@ type POIWSManager struct {
 	orderMap   map[int64](chan POIWSMessage)
 	sessionMap map[int64](chan POIWSMessage)
 
-	onlineUserMap    map[int64]bool
-	onlineTeacherMap map[int64]bool
+	onlineUserMap    map[int64]int64
+	onlineTeacherMap map[int64]int64
+
+	teacherDispatchMap map[int64]map[int64]int64
+	orderDispatchMap   map[int64]map[int64]int64
 }
 
 func NewPOIWSManager() POIWSManager {
@@ -18,9 +21,6 @@ func NewPOIWSManager() POIWSManager {
 		userMap:    make(map[int64](chan POIWSMessage)),
 		orderMap:   make(map[int64](chan POIWSMessage)),
 		sessionMap: make(map[int64](chan POIWSMessage)),
-
-		onlineUserMap:    make(map[int64]bool),
-		onlineTeacherMap: make(map[int64]bool),
 	}
 }
 

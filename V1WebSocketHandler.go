@@ -18,11 +18,13 @@ var upgrader = websocket.Upgrader{
 func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		fmt.Println(err.Error())
 		return
 	}
 
 	_, p, err := conn.ReadMessage()
 	if err != nil {
+		fmt.Println(err.Error())
 		return
 	}
 	fmt.Println("V1WSHandler: recieved: ", string(p))
