@@ -38,7 +38,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		err = conn.WriteJSON(resp)
 		conn.Close()
 
-		fmt.Println("V1WSHandler: unstructed message; UserId: ", msg.UserId)
+		fmt.Println("V1WSHandler: unstructed message")
 		return
 	}
 
@@ -67,11 +67,12 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("V1WSHandler: illegal websocket login; UserId: ", msg.UserId)
 		return
 	} else {
-		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_LOGIN_RESP)
-		err = conn.WriteJSON(resp)
+		loginResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_LOGIN_RESP)
+		err = conn.WriteJSON(loginResp)
 	}
 
-	go WebSocketWriteHandler(conn, msg.UserId, userChan)
+	userId := msg.UserId
+	go WebSocketWriteHandler(conn, userId, userChan)
 
 	for {
 		_, p, err = conn.ReadMessage()
@@ -80,11 +81,28 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Println("V1WSOrderHandler recieved: ", string(p))
 		err = json.Unmarshal([]byte(p), &msg)
+		if err != nil {
+			fmt.Println("V1WSHandler: recieved: ", string(p))
+			fmt.Println("V1WSHandler: unstructed message")
+			continue
+		}
 
-		if msg.OperationCode == WS_PONG {
+		if msg.UserId != userId {
+			continue
+		}
+
+		if msg.OperationCode != WS_PONG {
+			fmt.Println("V1WSHandler: recieved: ", string(p))
+		}
+
+		switch msg.OperationCode {
+		case WS_PONG:
 			userChan <- msg
+		case WS_LOGOUT:
+			_, _ = WSUserLogout(msg.UserId)
+			logoutResp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
+			userChan <- logoutResp
 		}
 	}
 }
@@ -93,6 +111,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 	pingTicker := time.NewTicker(time.Second * 15)
 	pongTicker := time.NewTicker(time.Second * 20)
 	pingpong := true
+
 	for {
 		select {
 		case <-pingTicker.C:
@@ -106,6 +125,10 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			if pingpong {
 				pingpong = false
 			} else {
+				_, _ = WSUserLogout(userId)
+				fmt.Println("WebSocketWriteHandler: user timed out; UserId: ", userId)
+
+				close(userChan)
 				conn.Close()
 				return
 			}
@@ -118,7 +141,9 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 				if err != nil {
 					fmt.Println(err.Error())
 				}
+
 				if msg.OperationCode == WS_FORCE_QUIT || msg.OperationCode == WS_FORCE_LOGOUT {
+					close(userChan)
 					conn.Close()
 					return
 				}
