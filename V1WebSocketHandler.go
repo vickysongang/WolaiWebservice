@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -13,22 +15,45 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func WebSocketWriteHandler(conn *websocket.Conn, userChan chan POIWSMessage) {
+func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POIWSMessage) {
+	pingTicker := time.NewTicker(time.Second * 15)
+	pongTicker := time.NewTicker(time.Second * 20)
+	pingpong := true
 	for {
 		select {
-		case msg := <-userChan:
-			if msg.OperationCode == -1 {
-				return
-			}
-			err := conn.WriteJSON(msg)
+		case <-pingTicker.C:
+			pingMsg := NewPOIWSMessage("", userId, WS_PING)
+			err := conn.WriteJSON(pingMsg)
 			if err != nil {
 				fmt.Println(err.Error())
+			}
+
+		case <-pongTicker.C:
+			if pingpong {
+				pingpong = false
+			} else {
+				conn.Close()
+				return
+			}
+
+		case msg := <-userChan:
+			if msg.OperationCode == WS_PONG {
+				pingpong = true
+			} else {
+				err := conn.WriteJSON(msg)
+				if err != nil {
+					fmt.Println(err.Error())
+				}
+				if msg.OperationCode == WS_FORCE_QUIT || msg.OperationCode == WS_FORCE_LOGOUT {
+					conn.Close()
+					return
+				}
 			}
 		}
 	}
 }
 
-func V1WSOrderHandler(w http.ResponseWriter, r *http.Request) {
+func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
@@ -38,21 +63,48 @@ func V1WSOrderHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
+	fmt.Println("V1WSHandler: recieved: ", string(p))
 
 	var msg POIWSMessage
-
-	fmt.Println("V1WSOrderHandler: recieved: ", string(p))
 	err = json.Unmarshal([]byte(p), &msg)
 	if err != nil {
-		fmt.Println("V1WSOrderHandler: unstructed message")
+		// Force quit the user if msg is unstructed
+		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
+		resp.Attribute["errMsg"] = "unstructed message"
+		err = conn.WriteJSON(resp)
+
+		fmt.Println("V1WSHandler: unstructed message; UserId: ", msg.UserId)
 		return
 	}
 
-	userChan := make(chan POIWSMessage)
-	WsManager.SetUserChan(msg.UserId, userChan)
-	go WebSocketWriteHandler(conn, userChan)
+	timestampNano := time.Now().UnixNano()
+	timestampMillis := timestampNano / 1000
+	timestamp := float64(timestampMillis) / 1000000.0
+	if math.Abs(msg.Timestamp-timestamp) > 12*3600 {
+		// Force quit the user if timestamp difference is too significant
+		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
+		resp.Attribute["errMsg"] = "local time not accepted"
+		err = conn.WriteJSON(resp)
 
-	WsManager.OrderInput <- msg
+		fmt.Println("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
+		return
+	}
+
+	userChan, ok := WSUserLogin(msg)
+	if !ok {
+		// Force quit illegal login
+		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
+		resp.Attribute["errMsg"] = "illegal websocket login"
+		err = conn.WriteJSON(resp)
+
+		fmt.Println("V1WSHandler: illegal websocket login; UserId: ", msg.UserId)
+		return
+	} else {
+		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_LOGIN_RESP)
+		err = conn.WriteJSON(resp)
+	}
+
+	go WebSocketWriteHandler(conn, msg.UserId, userChan)
 
 	for {
 		_, p, err = conn.ReadMessage()
@@ -64,44 +116,8 @@ func V1WSOrderHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("V1WSOrderHandler recieved: ", string(p))
 		err = json.Unmarshal([]byte(p), &msg)
 
-		WsManager.OrderInput <- msg
-	}
-}
-
-func V1WSSessionHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		return
-	}
-
-	_, p, err := conn.ReadMessage()
-	if err != nil {
-		return
-	}
-
-	var msg POIWSMessage
-
-	fmt.Println("V1WSSessionHandler: recieved: ", string(p))
-	err = json.Unmarshal([]byte(p), &msg)
-	if err != nil {
-		fmt.Println("V1WSSessionHandler: unstructed message")
-		return
-	}
-
-	userChan := make(chan POIWSMessage)
-	WsManager.SetUserChan(msg.UserId, userChan)
-	go WebSocketWriteHandler(conn, userChan)
-	WsManager.SessionInput <- msg
-
-	for {
-		_, p, err = conn.ReadMessage()
-		if err != nil {
-			return
+		if msg.OperationCode == 1 {
+			userChan <- msg
 		}
-
-		fmt.Println("V1WSSessionHandler recieved: ", string(p))
-		err = json.Unmarshal([]byte(p), &msg)
-
-		WsManager.SessionInput <- msg
 	}
 }

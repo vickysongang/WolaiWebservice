@@ -29,8 +29,6 @@ func init() {
 }
 
 func main() {
-	go POIOrderHandler()
-	go POISessionHandler()
 	go POISessionTickerHandler()
 
 	router := NewRouter()
