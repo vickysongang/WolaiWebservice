@@ -19,11 +19,7 @@ var (
 )
 
 func init() {
-	//	if _, err := toml.DecodeFile("/var/lib/poi/POIWolaiWebService.toml", &Config); err != nil {
-	//		fmt.Println(err.Error())
-	//	}
-
-	if _, err := toml.DecodeFile("D:\\POI\\POIWolaiWebService.toml", &Config); err != nil {
+	if _, err := toml.DecodeFile("/var/lib/poi/POIWolaiWebService.toml", &Config); err != nil {
 		fmt.Println(err.Error())
 	}
 	DbManager = NewPOIDBManager()
