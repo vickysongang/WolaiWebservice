@@ -1,6 +1,8 @@
 package main
 
-import ()
+import (
+	"time"
+)
 
 func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	userChan := make(chan POIWSMessage)
@@ -21,6 +23,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	}
 
 	WsManager.SetUserChan(msg.UserId, userChan)
+	WsManager.SetUserOnline(msg.UserId, time.Now().Unix())
 
 	return userChan, true
 }
@@ -34,5 +37,6 @@ func WSUserLogout(userId int64) (chan POIWSMessage, bool) {
 
 	userChan = WsManager.GetUserChan(userId)
 	WsManager.RemoveUserChan(userId)
+	WsManager.SetUserOffline(userId)
 	return userChan, true
 }

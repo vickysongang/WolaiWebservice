@@ -5,15 +5,19 @@ import (
 )
 
 type POIWSManager struct {
-	userMap    map[int64](chan POIWSMessage)
-	orderMap   map[int64](chan POIWSMessage)
-	sessionMap map[int64](chan POIWSMessage)
+	userMap    map[int64](chan POIWSMessage) // userId to chan
+	orderMap   map[int64](chan POIWSMessage) // orderId to chan
+	sessionMap map[int64](chan POIWSMessage) // sessionId to chan
 
-	onlineUserMap    map[int64]int64
-	onlineTeacherMap map[int64]int64
+	onlineUserMap    map[int64]int64 // userId to online timestamp
+	onlineTeacherMap map[int64]int64 // teacher userId to online timestamp
 
-	teacherDispatchMap map[int64]map[int64]int64
-	orderDispatchMap   map[int64]map[int64]int64
+	orderDispatchMap        map[int64]map[int64]int64 // orderId to teacherId to timestamp
+	teacherOrderDispatchMap map[int64]map[int64]int64 // teacherId to orderId to timestamp
+	userOrderDispatchMap    map[int64]map[int64]int64 // userId to orderId to timestamp
+
+	sessionLiveMap     map[int64]int64 // sessionId to timestamp
+	userSessionLiveMap map[int64]int64 // userId to sessionId
 }
 
 func NewPOIWSManager() POIWSManager {
@@ -21,6 +25,13 @@ func NewPOIWSManager() POIWSManager {
 		userMap:    make(map[int64](chan POIWSMessage)),
 		orderMap:   make(map[int64](chan POIWSMessage)),
 		sessionMap: make(map[int64](chan POIWSMessage)),
+
+		orderDispatchMap:        make(map[int64]map[int64]int64),
+		teacherOrderDispatchMap: make(map[int64]map[int64]int64),
+		userOrderDispatchMap:    make(map[int64]map[int64]int64),
+
+		sessionLiveMap:     make(map[int64]int64),
+		userSessionLiveMap: make(map[int64]int64),
 	}
 }
 
@@ -85,4 +96,85 @@ func (wsm *POIWSManager) RemoveSessionChan(sessionId int64) {
 func (wsm *POIWSManager) HasSessionChan(sessionId int64) bool {
 	_, ok := wsm.sessionMap[sessionId]
 	return ok
+}
+
+func (wsm *POIWSManager) SetUserOnline(userId int64, timestamp int64) {
+	wsm.onlineUserMap[userId] = timestamp
+}
+
+func (wsm *POIWSManager) SetUserOffline(userId int64) {
+	if _, ok := wsm.onlineUserMap[userId]; ok {
+		delete(wsm.onlineUserMap, userId)
+	}
+}
+
+func (wsm *POIWSManager) SetTeacherOnline(userId int64, timestamp int64) {
+	wsm.onlineTeacherMap[userId] = timestamp
+}
+
+func (wsm *POIWSManager) SetTeacherOffline(userId int64) {
+	if _, ok := wsm.onlineTeacherMap[userId]; ok {
+		delete(wsm.onlineTeacherMap, userId)
+	}
+}
+
+func (wsm *POIWSManager) SetOrderCreate(orderId int64, userId int64, timestamp int64) {
+	if _, ok := wsm.userOrderDispatchMap[userId]; !ok {
+		wsm.userOrderDispatchMap[userId] = make(map[int64]int64)
+	}
+	wsm.userOrderDispatchMap[userId][orderId] = timestamp
+}
+
+func (wsm *POIWSManager) SetOrderDispatch(orderId int64, userId int64, timestamp int64) {
+	if _, ok := wsm.orderDispatchMap[orderId]; !ok {
+		wsm.orderDispatchMap[orderId] = make(map[int64]int64)
+	}
+	wsm.orderDispatchMap[orderId][userId] = timestamp
+
+	if _, ok := wsm.teacherOrderDispatchMap[userId]; !ok {
+		wsm.teacherOrderDispatchMap[userId] = make(map[int64]int64)
+	}
+	wsm.teacherOrderDispatchMap[userId][orderId] = timestamp
+}
+
+func (wsm *POIWSManager) RemoveOrderDispatch(orderId int64, userId int64) {
+	if _, ok := wsm.userOrderDispatchMap[userId]; !ok {
+		return
+	}
+
+	if _, ok := wsm.userOrderDispatchMap[userId][orderId]; !ok {
+		return
+	}
+
+	delete(wsm.userOrderDispatchMap[userId], orderId)
+
+	if _, ok := wsm.orderDispatchMap[orderId]; !ok {
+		return
+	}
+
+	for teacherId, _ := range wsm.orderDispatchMap[orderId] {
+		if _, ok := wsm.teacherOrderDispatchMap[teacherId]; !ok {
+			continue
+		}
+
+		if _, ok := wsm.teacherOrderDispatchMap[teacherId][orderId]; !ok {
+			continue
+		}
+
+		delete(wsm.teacherOrderDispatchMap[teacherId], orderId)
+	}
+
+	delete(wsm.orderDispatchMap, orderId)
+}
+
+func (wsm *POIWSManager) HasDispatchedUser(orderId int64, userId int64) bool {
+	if _, ok := wsm.orderDispatchMap[orderId]; !ok {
+		return false
+	}
+
+	if _, ok := wsm.orderDispatchMap[orderId][userId]; !ok {
+		return false
+	}
+
+	return true
 }

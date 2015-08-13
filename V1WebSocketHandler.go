@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -42,10 +43,8 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	timestampNano := time.Now().UnixNano()
-	timestampMillis := timestampNano / 1000
-	timestamp := float64(timestampMillis) / 1000000.0
-	if math.Abs(msg.Timestamp-timestamp) > 12*3600 {
+	timestamp := time.Now().Unix()
+	if math.Abs(msg.Timestamp-float64(timestamp)) > 12*3600 {
 		// Force quit the user if timestamp difference is too significant
 		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
 		resp.Attribute["errMsg"] = "local time not accepted"
@@ -72,6 +71,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId := msg.UserId
+	user := DbManager.QueryUserById(userId)
 	go WebSocketWriteHandler(conn, userId, userChan)
 
 	for {
@@ -92,6 +92,18 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
+		timestamp = time.Now().Unix()
+		if math.Abs(msg.Timestamp-float64(timestamp)) > 12*3600 {
+			// Force quit the user if timestamp difference is too significant
+			resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
+			resp.Attribute["errMsg"] = "local time not accepted"
+			err = conn.WriteJSON(resp)
+			conn.Close()
+
+			fmt.Println("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
+			return
+		}
+
 		if msg.OperationCode != WS_PONG {
 			fmt.Println("V1WSHandler: recieved: ", string(p))
 		}
@@ -99,10 +111,69 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		switch msg.OperationCode {
 		case WS_PONG:
 			userChan <- msg
+
 		case WS_LOGOUT:
 			_, _ = WSUserLogout(msg.UserId)
-			logoutResp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
-			userChan <- logoutResp
+			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
+			userChan <- resp
+
+		case WS_ORDER_TEACHER_ONLINE:
+			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_TEACHER_RESP)
+			if user.AccessRight == 2 {
+				WsManager.SetTeacherOnline(userId, timestamp)
+				resp.Attribute["errCode"] = "0"
+			} else {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "You are not a teacher"
+			}
+			userChan <- resp
+
+		case WS_ORDER_TEACHER_OFFLINE:
+			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_TEACHER_OFFLINE_RESP)
+			if user.AccessRight == 2 {
+				WsManager.SetTeacherOffline(userId)
+				resp.Attribute["errCode"] = "0"
+			} else {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "You are not a teacher"
+			}
+			userChan <- resp
+
+		case WS_ORDER_CREATE:
+			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_CREATE_RESP)
+			if InitOrderDispatch(msg, userId, timestamp) {
+				resp.Attribute["errCode"] = "0"
+			} else {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "Error on order creation"
+			}
+			userChan <- resp
+
+		case WS_ORDER_REPLY,
+			WS_ORDER_CONFIRM,
+			WS_ORDER_CANCEL:
+			resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
+
+			orderIdStr, ok := msg.Attribute["orderId"]
+			if !ok {
+				resp.Attribute["errCode"] = "2"
+				userChan <- resp
+				break
+			}
+
+			orderId, err := strconv.ParseInt(orderIdStr, 10, 64)
+			if err != nil {
+				resp.Attribute["errCode"] = "2"
+				userChan <- resp
+				break
+			}
+
+			if !WsManager.HasOrderChan(orderId) {
+				break
+			}
+			orderChan := WsManager.GetOrderChan(orderId)
+			orderChan <- msg
+
 		}
 	}
 }
@@ -128,6 +199,8 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 				_, _ = WSUserLogout(userId)
 				fmt.Println("WebSocketWriteHandler: user timed out; UserId: ", userId)
 
+				WsManager.SetUserOffline(userId)
+				WsManager.SetTeacherOffline(userId)
 				close(userChan)
 				conn.Close()
 				return
