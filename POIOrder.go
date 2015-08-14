@@ -1,23 +1,28 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
+	"encoding/json"
+	"time"
 
+	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type POIOrder struct {
-	Id              int64    `json:"id"`
-	Creator         *POIUser `json:"creatorInfo"`
-	CreateTimestamp float64  `json:"createTimestamp"`
-	GradeId         int64    `json:"gradeId"`
-	SubjectId       int64    `json:"subjectId"`
-	Date            string   `json:"date"`
-	PeriodId        int64    `json:"periodId"`
-	Length          int64    `json:"length"`
-	Type            int64    `json:"orderType"`
-	Status          string   `json:"-"`
+	Id              int64     `json:"id" orm:"pk"`
+	Creator         *POIUser  `json:"creatorInfo" orm:"-"`
+	CreateTimestamp float64   `json:"createTimestamp"`
+	GradeId         int64     `json:"gradeId"`
+	SubjectId       int64     `json:"subjectId"`
+	Date            string    `json:"date"`
+	PeriodId        int64     `json:"periodId"`
+	Length          int64     `json:"length"`
+	Type            int64     `json:"orderType" orm:"-"`
+	Status          string    `json:"-"`
+	Created         int64     `json:"-" orm:"column(creator)"`
+	CreateTime      time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+	LastUpdateTime  time.Time `json:"-"`
+	OrderType       string    `json:"-" orm:"column(type)"`
 }
 
 var (
@@ -43,6 +48,14 @@ const (
 	ORDER_STATUS_CANCELLED   = "cancelled"
 )
 
+func (o *POIOrder) TableName() string {
+	return "orders"
+}
+
+func init() {
+	orm.RegisterModel(new(POIOrder))
+}
+
 func NewPOIOrder(creator *POIUser, timestamp float64, gradeId int64, subjectId int64,
 	date string, periodId int64, length int64,
 	orderType int64, orderStatus string) POIOrder {
@@ -51,97 +64,55 @@ func NewPOIOrder(creator *POIUser, timestamp float64, gradeId int64, subjectId i
 		Type: orderType, Status: orderStatus}
 }
 
-func (dbm *POIDBManager) InsertOrder(order *POIOrder) *POIOrder {
-	stmtInsert, err := dbm.dbClient.Prepare(
-		`INSERT INTO orders(creator, create_timestamp, grade_id, subject_id, date,
-			period_id, length, type, status) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
-	}
-	defer stmtInsert.Close()
-
+func InsertOrder(order *POIOrder) *POIOrder {
+	o := orm.NewOrm()
 	orderTypeStr := OrderTypeDict[order.Type]
-	result, err := stmtInsert.Exec(order.Creator.UserId, order.CreateTimestamp, order.GradeId,
-		order.SubjectId, order.Date, order.PeriodId, order.Length, orderTypeStr, order.Status)
+	order.OrderType = orderTypeStr
+	if order.Created == 0 {
+		order.Created = order.Creator.UserId
+	}
+	orderId, err := o.Insert(order)
 	if err != nil {
-		fmt.Println(err.Error())
 		return nil
 	}
-
-	orderId, _ := result.LastInsertId()
 	order.Id = orderId
-
 	return order
 }
 
-func (dbm *POIDBManager) QueryOrderById(orderId int64) *POIOrder {
-	stmtQuery, err := dbm.dbClient.Prepare(
-		`SELECT creator, create_timestamp, grade_id, subject_id, date, period_id,
-		length, type, status FROM orders WHERE id = ?`)
+func QueryOrderById(orderId int64) *POIOrder {
+	order := POIOrder{}
+	o := orm.NewOrm()
+	db, _ := orm.NewQueryBuilder("mysql")
+	db.Select("id,creator,create_timestamp,grade_id,subject_id,date,period_id,length,type,status").
+		From("orders").Where("id = ?")
+	sql := db.String()
+	err := o.Raw(sql, orderId).QueryRow(&order)
 	if err != nil {
-		fmt.Println(err.Error())
 		return nil
 	}
-	defer stmtQuery.Close()
-
-	var userId int64
-	var timestamp float64
-	var gradeId int64
-	var subjectId int64
-	var date string
-	var periodId int64
-	var length int64
-	var orderType string
-	var orderStatus string
-
-	row := stmtQuery.QueryRow(orderId)
-	err = row.Scan(&userId, &timestamp, &gradeId, &subjectId, &date,
-		&periodId, &length, &orderType, &orderStatus)
-	if err == sql.ErrNoRows {
-		return nil
-	}
-	if err != nil {
-		fmt.Println(err.Error())
-		return nil
-	}
-
-	creator := QueryUserById(userId)
-	order := NewPOIOrder(creator, timestamp, gradeId, subjectId, date,
-		periodId, length, OrderTypeRevDict[orderType], orderStatus)
-	order.Id = orderId
-
+	order.Type = OrderTypeRevDict[order.OrderType]
+	creator := QueryUserById(order.Created)
+	order.Creator = creator
 	return &order
 }
 
-func (dbm *POIDBManager) UpdateOrderStatus(orderId int64, status string) {
-	stmtUpdate, err := dbm.dbClient.Prepare(
-		`UPDATE orders SET status = ? WHERE id = ?`)
+/*
+* orderId为主键
+* 参数orderInfo为JSON串,JSON里的字段需和POIOrder结构体里的字段相对应,如下：
+* {"Status":"created"}
+ */
+func UpdateOrderInfo(orderId int64, orderInfo string) {
+	o := orm.NewOrm()
+	var r interface{}
+	err := json.Unmarshal([]byte(orderInfo), &r)
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		panic(err.Error())
 	}
-	defer stmtUpdate.Close()
-
-	_, err = stmtUpdate.Exec(status, orderId)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
+	info, _ := r.(map[string]interface{})
+	var params orm.Params = make(orm.Params)
+	for k, v := range info {
+		params[k] = v
 	}
-}
-
-func (dbm *POIDBManager) UpdateOrderDate(orderId int64, date string) {
-	stmtUpdate, err := dbm.dbClient.Prepare(
-		`UPDATE orders SET date = ? WHERE id = ?`)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	defer stmtUpdate.Close()
-
-	_, err = stmtUpdate.Exec(date, orderId)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
+	o.QueryTable("orders").Filter("id", orderId).Update(params)
+	return
 }

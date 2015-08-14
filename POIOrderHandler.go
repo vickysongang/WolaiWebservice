@@ -38,7 +38,7 @@ func POIOrderHandler() {
 
 				orderDispatchIdStr := msg.Attribute["orderId"]
 				orderDispatchId, _ := strconv.ParseInt(orderDispatchIdStr, 10, 64)
-				orderDispatch := DbManager.QueryOrderById(orderDispatchId)
+				orderDispatch := QueryOrderById(orderDispatchId)
 				orderDispatchByte, _ := json.Marshal(orderDispatch)
 				var countdown string
 				if orderDispatch.Type == 1 || orderDispatch.Type == 3 {
@@ -47,7 +47,8 @@ func POIOrderHandler() {
 					countdown = "300"
 				}
 
-				DbManager.UpdateOrderStatus(orderDispatchId, ORDER_STATUS_DISPATHCING)
+				statusInfo := `{"Status":"` + ORDER_STATUS_DISPATHCING + `"}`
+				UpdateOrderInfo(orderDispatchId, statusInfo)
 
 				msgDispatch := NewType3Message()
 				msgDispatch.Attribute["orderInfo"] = string(orderDispatchByte)
@@ -69,7 +70,7 @@ func POIOrderHandler() {
 				orderPresentIdStr := msg.Attribute["orderId"]
 				timePresentStr := msg.Attribute["time"]
 				orderPresentId, _ := strconv.ParseInt(orderPresentIdStr, 10, 64)
-				orderPresent := DbManager.QueryOrderById(orderPresentId)
+				orderPresent := QueryOrderById(orderPresentId)
 
 				RedisManager.SetOrderResponse(orderPresentId, msg.UserId, timestampInt)
 				RedisManager.SetOrderPlanTime(orderPresentId, msg.UserId, timePresentStr)
@@ -103,8 +104,11 @@ func POIOrderHandler() {
 					break
 				}
 
-				DbManager.UpdateOrderDate(orderIdConfirmed, planTime)
-				DbManager.UpdateOrderStatus(orderIdConfirmed, ORDER_STATUS_CONFIRMED)
+				dateInfo := `{"Date":"` + planTime + `"}`
+				UpdateOrderInfo(orderIdConfirmed, dateInfo)
+				
+				statusInfo := `{"Status":"` + ORDER_STATUS_CONFIRMED + `"}`
+				UpdateOrderInfo(orderIdConfirmed, statusInfo)
 
 				msgConfirm := NewType11Message()
 				msgConfirm.UserId = teacherIdConfirmed
@@ -115,7 +119,7 @@ func POIOrderHandler() {
 				fmt.Println("Order confirmed: " + orderIdConfirmedStr + "to teacher ID: " + teacherIdConfirmedStr)
 				confirmChan <- msgConfirm
 
-				orderConfirmed := DbManager.QueryOrderById(orderIdConfirmed)
+				orderConfirmed := QueryOrderById(orderIdConfirmed)
 				session := NewPOISession(orderConfirmed.Id,
 					QueryUserById(orderConfirmed.Creator.UserId),
 					QueryUserById(teacherIdConfirmed),

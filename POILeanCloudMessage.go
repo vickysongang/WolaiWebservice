@@ -108,7 +108,7 @@ func NewSessionNotification(sessionId int64, oprCode int64) *LCTypedMessage {
 }
 
 func NewPersonalOrderNotification(orderId int64, teacherId int64) *LCTypedMessage {
-	order := DbManager.QueryOrderById(orderId)
+	order := QueryOrderById(orderId)
 	teacher := QueryUserById(teacherId)
 	if order == nil || teacher == nil {
 		return nil
@@ -128,7 +128,7 @@ func NewPersonalOrderNotification(orderId int64, teacherId int64) *LCTypedMessag
 }
 
 func NewPersonalOrderRejectNotification(orderId int64) *LCTypedMessage {
-	order := DbManager.QueryOrderById(orderId)
+	order := QueryOrderById(orderId)
 	if order == nil {
 		return nil
 	}
@@ -150,7 +150,7 @@ func NewSessionCreatedNotification(sessionId int64) *LCTypedMessage {
 		return nil
 	}
 
-	order := DbManager.QueryOrderById(session.OrderId)
+	order := QueryOrderById(session.OrderId)
 	if order == nil {
 		return nil
 	}
@@ -172,7 +172,7 @@ func NewSessionReminderNotification(sessionId int64, hours int64) *LCTypedMessag
 		return nil
 	}
 
-	order := DbManager.QueryOrderById(session.OrderId)
+	order := QueryOrderById(session.OrderId)
 	if order == nil {
 		return nil
 	}
@@ -199,7 +199,7 @@ func NewSessionCancelNotification(sessionId int64) *LCTypedMessage {
 		return nil
 	}
 
-	order := DbManager.QueryOrderById(session.OrderId)
+	order := QueryOrderById(session.OrderId)
 	if order == nil {
 		return nil
 	}

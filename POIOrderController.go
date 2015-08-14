@@ -18,7 +18,7 @@ func OrderCreate(creatorId int64, teacherId int64, timestamp float64, gradeId in
 	order := NewPOIOrder(creator, timestamp, gradeId, subjectId,
 		date, periodId, length, orderType, ORDER_STATUS_CREATED)
 
-	orderPtr := DbManager.InsertOrder(&order)
+	orderPtr := InsertOrder(&order)
 
 	if orderPtr == nil {
 		return 2, nil
@@ -32,7 +32,7 @@ func OrderCreate(creatorId int64, teacherId int64, timestamp float64, gradeId in
 }
 
 func OrderPersonalConfirm(userId int64, orderId int64, accept int64, timestamp float64) int64 {
-	order := DbManager.QueryOrderById(orderId)
+	order := QueryOrderById(orderId)
 	teacher := QueryUserById(userId)
 	if order == nil || teacher == nil {
 		return 2

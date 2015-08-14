@@ -31,11 +31,11 @@ func init() {
 		Config.Database.Method+"("+
 		Config.Database.Address+":"+
 		Config.Database.Port+")/"+
-		Config.Database.Database,30)
+		Config.Database.Database, 30)
 }
 
 func main() {
-	 orm.Debug = true
+	orm.Debug = true
 	go POIOrderHandler()
 	go POISessionHandler()
 	go POISessionTickerHandler()

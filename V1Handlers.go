@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 	"github.com/gorilla/mux"
+//	"github.com/satori/go.uuid"
 )
 
 func Dummy(w http.ResponseWriter, r *http.Request) {
@@ -703,6 +704,8 @@ func V1Banner(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter,r *http.Request){
-	content := QueryTeacherProfile(10234)
-	json.NewEncoder(w).Encode(NewPOIResponse(0,content))
+//	sessionInfo := `{"Status":"created"}`
+	sessionInfo := `{"Status":"` + "complete" + `","StartTime":` + strconv.FormatInt(20150814,10) + `}`
+    UpdateSessionInfo(524,sessionInfo)
+//	json.NewEncoder(w).Encode(NewPOIResponse(0,content))
 }

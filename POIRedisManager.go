@@ -10,6 +10,7 @@ import (
 
 type POIRedisManager struct {
 	redisClient *redis.Client
+	redisError  error
 }
 
 const (
@@ -48,11 +49,9 @@ func NewPOIRedisManager() POIRedisManager {
 		Password: Config.Redis.Password,
 		DB:       Config.Redis.Db,
 	})
-
 	pong, err := client.Ping().Result()
-	fmt.Println(pong, err)
-
-	return POIRedisManager{redisClient: client}
+	fmt.Println("Connect redis:",pong, err)
+	return POIRedisManager{redisClient: client,redisError:err}
 }
 
 func (rm *POIRedisManager) GetFeed(feedId string) *POIFeed {
