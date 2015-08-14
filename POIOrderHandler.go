@@ -58,7 +58,11 @@ func POIOrderHandler() {
 					msgDispatch.UserId = teacherId
 					dispatchChan := WsManager.GetUserChan(teacherId)
 					dispatchChan <- msgDispatch
-					RedisManager.SetOrderDispatch(orderDispatchId, teacherId, timestampInt)
+					if RedisManager.redisError == nil {
+						RedisManager.SetOrderDispatch(orderDispatchId, teacherId, timestampInt)
+					}
+					orderDispatch := POIOrderDispatch{OrderId: orderDispatchId, TeacherId: teacherId}
+					go InsertOrderDispatch(&orderDispatch)
 					fmt.Println("Order dispatched: ", orderDispatchId, " to teacher ID: ", teacherId)
 				}
 
@@ -72,8 +76,13 @@ func POIOrderHandler() {
 				orderPresentId, _ := strconv.ParseInt(orderPresentIdStr, 10, 64)
 				orderPresent := QueryOrderById(orderPresentId)
 
-				RedisManager.SetOrderResponse(orderPresentId, msg.UserId, timestampInt)
-				RedisManager.SetOrderPlanTime(orderPresentId, msg.UserId, timePresentStr)
+				if RedisManager.redisError == nil {
+					RedisManager.SetOrderResponse(orderPresentId, msg.UserId, timestampInt)
+					RedisManager.SetOrderPlanTime(orderPresentId, msg.UserId, timePresentStr)
+				}
+				
+				dispatchInfo := `{"PlanTime":"` + timePresentStr + `","ReplyTime":"` + time.Now().String() + `"}`
+				go UpdateOrderDispatchInfo(orderPresentId, msg.UserId, dispatchInfo)
 
 				msgPresent := NewType7Message()
 				msgPresent.UserId = orderPresent.Creator.UserId
@@ -99,14 +108,20 @@ func POIOrderHandler() {
 				orderIdConfirmed, _ := strconv.ParseInt(orderIdConfirmedStr, 10, 64)
 				teacherIdConfirmed, _ := strconv.ParseInt(teacherIdConfirmedStr, 10, 64)
 
-				planTime := RedisManager.GetOrderPlanTime(orderIdConfirmed, teacherIdConfirmed)
+				var planTime string
+				if RedisManager.redisError == nil {
+					planTime = RedisManager.GetOrderPlanTime(orderIdConfirmed, teacherIdConfirmed)
+				} else {
+					planTime = GetOrderDispatch(orderIdConfirmed, teacherIdConfirmed).PlanTime
+				}
+
 				if planTime == "" {
 					break
 				}
 
 				dateInfo := `{"Date":"` + planTime + `"}`
 				UpdateOrderInfo(orderIdConfirmed, dateInfo)
-				
+
 				statusInfo := `{"Status":"` + ORDER_STATUS_CONFIRMED + `"}`
 				UpdateOrderInfo(orderIdConfirmed, statusInfo)
 

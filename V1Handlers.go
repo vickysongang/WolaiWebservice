@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
 	"github.com/gorilla/mux"
-//	"github.com/satori/go.uuid"
+	//	"github.com/satori/go.uuid"
 )
 
 func Dummy(w http.ResponseWriter, r *http.Request) {
@@ -698,14 +699,13 @@ func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1Banner(w http.ResponseWriter, r *http.Request) {
-//	content := DbManager.QueryBannerList()
-    content := QueryBannerList()
+	//	content := DbManager.QueryBannerList()
+	content := QueryBannerList()
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
-func Test(w http.ResponseWriter,r *http.Request){
-//	sessionInfo := `{"Status":"created"}`
-	sessionInfo := `{"Status":"` + "complete" + `","StartTime":` + strconv.FormatInt(20150814,10) + `}`
-    UpdateSessionInfo(524,sessionInfo)
-//	json.NewEncoder(w).Encode(NewPOIResponse(0,content))
+func Test(w http.ResponseWriter, r *http.Request) {
+	dispatchInfo := `{"ReplyTime":"` + time.Now().String() + `"}`
+	UpdateOrderDispatchInfo(1,10003, dispatchInfo)
+	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
