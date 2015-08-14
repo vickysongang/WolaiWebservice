@@ -15,7 +15,7 @@ func POIWSOrderHandler(orderId int64) {
 
 	dispatchTicker := time.NewTicker(time.Second * 3)
 	waitingTimer := time.NewTimer(time.Second * 120)
-	var selectTimer *time.Timer
+	selectTimer := time.NewTimer(time.Second * 180)
 	replied := false
 
 	timestamp := time.Now().Unix()
@@ -48,6 +48,9 @@ func POIWSOrderHandler(orderId int64) {
 			return
 
 		case <-selectTimer.C:
+			if replied {
+				break
+			}
 			dispatchTicker.Stop()
 
 			expireMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_EXPIRE)
