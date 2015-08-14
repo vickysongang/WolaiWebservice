@@ -16,8 +16,8 @@ type POIWSManager struct {
 	teacherOrderDispatchMap map[int64]map[int64]int64 // teacherId to orderId to timestamp
 	userOrderDispatchMap    map[int64]map[int64]int64 // userId to orderId to timestamp
 
-	sessionLiveMap     map[int64]int64 // sessionId to timestamp
-	userSessionLiveMap map[int64]int64 // userId to sessionId
+	sessionLiveMap     map[int64]int64          // sessionId to timestamp
+	userSessionLiveMap map[int64]map[int64]bool // userId to sessionId
 }
 
 func NewPOIWSManager() POIWSManager {
@@ -26,12 +26,15 @@ func NewPOIWSManager() POIWSManager {
 		orderMap:   make(map[int64](chan POIWSMessage)),
 		sessionMap: make(map[int64](chan POIWSMessage)),
 
+		onlineUserMap:    make(map[int64]int64),
+		onlineTeacherMap: make(map[int64]int64),
+
 		orderDispatchMap:        make(map[int64]map[int64]int64),
 		teacherOrderDispatchMap: make(map[int64]map[int64]int64),
 		userOrderDispatchMap:    make(map[int64]map[int64]int64),
 
 		sessionLiveMap:     make(map[int64]int64),
-		userSessionLiveMap: make(map[int64]int64),
+		userSessionLiveMap: make(map[int64]map[int64]bool),
 	}
 }
 
@@ -177,4 +180,40 @@ func (wsm *POIWSManager) HasDispatchedUser(orderId int64, userId int64) bool {
 	}
 
 	return true
+}
+
+func (wsm *POIWSManager) SetSessionLive(sessionId int64, timestamp int64) {
+	wsm.sessionLiveMap[sessionId] = timestamp
+}
+
+func (wsm *POIWSManager) RemoveSessionLive(sessionId int64) {
+	if _, ok := wsm.sessionLiveMap[sessionId]; ok {
+		delete(wsm.sessionMap, sessionId)
+	}
+}
+
+func (wsm *POIWSManager) SetUserSession(sessionId int64, teacherId int64, studentId int64) {
+	if _, ok := wsm.userSessionLiveMap[teacherId]; !ok {
+		wsm.userSessionLiveMap[teacherId] = make(map[int64]bool)
+	}
+	wsm.userSessionLiveMap[teacherId][sessionId] = true
+
+	if _, ok := wsm.userSessionLiveMap[studentId]; !ok {
+		wsm.userSessionLiveMap[studentId] = make(map[int64]bool)
+	}
+	wsm.userSessionLiveMap[studentId][sessionId] = true
+}
+
+func (wsm *POIWSManager) RemoveUserSession(sessionId int64, teacherId int64, studentId int64) {
+	if _, ok := wsm.userSessionLiveMap[teacherId]; ok {
+		if _, ok := wsm.userSessionLiveMap[teacherId][sessionId]; ok {
+			delete(wsm.userSessionLiveMap[teacherId], sessionId)
+		}
+	}
+
+	if _, ok := wsm.userSessionLiveMap[studentId]; ok {
+		if _, ok := wsm.userSessionLiveMap[studentId][sessionId]; ok {
+			delete(wsm.userSessionLiveMap[studentId], sessionId)
+		}
+	}
 }
