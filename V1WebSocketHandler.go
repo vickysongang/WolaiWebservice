@@ -174,15 +174,8 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			orderChan := WsManager.GetOrderChan(orderId)
 			orderChan <- msg
 
-		case WS_SESSION_START:
-			resp := NewPOIWSMessage(msg.MessageId, userId, WS_SESSION_START_RESP)
-			if !InitSessionMonitor(msg) {
-				resp.Attribute["errCode"] = "2"
-				resp.Attribute["errMsg"] = "Error on session init"
-				userChan <- resp
-			}
-
-		case WS_SESSION_ACCEPT,
+		case WS_SESSION_START,
+			WS_SESSION_ACCEPT,
 			WS_SESSION_PAUSE,
 			WS_SESSION_RESUME,
 			WS_SESSION_FINISH:

@@ -165,17 +165,8 @@ func POIWSSessionHandler(sessionId int64) {
 	}
 }
 
-func InitSessionMonitor(msg POIWSMessage) bool {
-	sessionIdStr, ok := msg.Attribute["sessionId"]
-	if !ok {
-		return false
-	}
-
-	sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
-	if err != nil {
-		fmt.Println(err.Error())
-		return false
-	}
+func InitSessionMonitor(sessionId int64) bool {
+	sessionIdStr := strconv.FormatInt(sessionId, 10)
 
 	session := DbManager.QuerySessionById(sessionId)
 	if session == nil {
@@ -201,8 +192,6 @@ func InitSessionMonitor(msg POIWSMessage) bool {
 	WsManager.SetUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
 
 	go POIWSSessionHandler(sessionId)
-
-	sessionChan <- msg
 
 	return true
 }

@@ -226,6 +226,8 @@ func POIWSOrderHandler(orderId int64) {
 
 				if order.Type == 1 {
 					go SendSessionNotification(sessionPtr.Id, 1)
+					_ = InitSessionMonitor(sessionPtr.Id)
+
 				} else if order.Type == 2 {
 					planTime, _ := time.Parse(time.RFC3339, order.Date)
 					planTimeTS := planTime.Unix()
