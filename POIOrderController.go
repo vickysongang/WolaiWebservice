@@ -46,7 +46,7 @@ func OrderPersonalConfirm(userId int64, orderId int64, accept int64, timestamp f
 			QueryUserById(order.Creator.UserId),
 			QueryUserById(userId),
 			timestamp, order.Date)
-		sessionPtr := DbManager.InsertSession(&session)
+		sessionPtr := InsertSession(&session)
 
 		go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))
 		go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionCreatedNotification(sessionPtr.Id))

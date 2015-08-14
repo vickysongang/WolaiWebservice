@@ -26,8 +26,9 @@ func GetTeacherProfile(userId, teacherId int64) POITeacherProfile {
 	mod := math.Mod(float64(teacherId), 50)
 
 	teacherProfile.Rating = float64(50-mod) / 10.0
-
-	teacherProfile.HasFollowed = RedisManager.HasFollowedUser(userId, teacherId)
-
+	
+	if RedisManager.redisError == nil {
+		teacherProfile.HasFollowed = RedisManager.HasFollowedUser(userId, teacherId)
+	}
 	return teacherProfile
 }

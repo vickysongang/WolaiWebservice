@@ -35,7 +35,7 @@ func POISessionHandler() {
 			case 1:
 				sessionJoinIdStr := msg.Attribute["sessionId"]
 				sessionJoinId, _ := strconv.ParseInt(sessionJoinIdStr, 10, 64)
-				sessionJoin := DbManager.QuerySessionById(sessionJoinId)
+				sessionJoin := QuerySessionById(sessionJoinId)
 				sessionAccept := msg.Attribute["accept"]
 
 				msgStuJoin := NewType1Message()
@@ -54,7 +54,7 @@ func POISessionHandler() {
 			case 3:
 				sessionPauseIdStr := msg.Attribute["sessionId"]
 				sessionPauseId, _ := strconv.ParseInt(sessionPauseIdStr, 10, 64)
-				sessionPause := DbManager.QuerySessionById(sessionPauseId)
+				sessionPause := QuerySessionById(sessionPauseId)
 
 				msgPause := NewType3Message()
 				msgPause.UserId = sessionPause.Creator.UserId
@@ -67,7 +67,7 @@ func POISessionHandler() {
 			case 5:
 				sessionResumeIdStr := msg.Attribute["sessionId"]
 				sessionResumeId, _ := strconv.ParseInt(sessionResumeIdStr, 10, 64)
-				sessionResume := DbManager.QuerySessionById(sessionResumeId)
+				sessionResume := QuerySessionById(sessionResumeId)
 
 				msgResume := NewType5Message()
 				msgResume.UserId = sessionResume.Creator.UserId
@@ -80,7 +80,7 @@ func POISessionHandler() {
 			case 7:
 				sessionEndIdStr := msg.Attribute["sessionId"]
 				sessionEndId, _ := strconv.ParseInt(sessionEndIdStr, 10, 64)
-				sessionEnd := DbManager.QuerySessionById(sessionEndId)
+				sessionEnd := QuerySessionById(sessionEndId)
 
 				msgEnd := NewType7Message()
 				msgEnd.UserId = sessionEnd.Creator.UserId

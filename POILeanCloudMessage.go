@@ -27,8 +27,16 @@ type LCTypedMessage struct {
 }
 
 func NewLCCommentNotification(feedCommentId string) *LCTypedMessage {
-	feedComment := RedisManager.GetFeedComment(feedCommentId)
-	feed := RedisManager.GetFeed(feedComment.FeedId)
+	var feedComment *POIFeedComment
+	var feed *POIFeed
+	if RedisManager.redisError == nil {
+		feedComment = RedisManager.GetFeedComment(feedCommentId)
+		feed = RedisManager.GetFeed(feedComment.FeedId)
+	} else {
+		feedComment = GetFeedComment(feedCommentId)
+		feed = GetFeed(feedComment.FeedId)
+	}
+
 	if feedComment == nil || feed == nil {
 		return nil
 	}
@@ -52,8 +60,12 @@ func NewLCCommentNotification(feedCommentId string) *LCTypedMessage {
 
 func NewLCLikeNotification(userId int64, timestamp float64, feedId string) *LCTypedMessage {
 	user := QueryUserById(userId)
-	feed := RedisManager.GetFeed(feedId)
-
+	var feed *POIFeed
+	if RedisManager.redisError == nil {
+		feed = RedisManager.GetFeed(feedId)
+	} else {
+		feed = GetFeed(feedId)
+	}
 	if user == nil || feed == nil {
 		return nil
 	}
@@ -76,7 +88,7 @@ func NewLCLikeNotification(userId int64, timestamp float64, feedId string) *LCTy
 }
 
 func NewSessionNotification(sessionId int64, oprCode int64) *LCTypedMessage {
-	session := DbManager.QuerySessionById(sessionId)
+	session := QuerySessionById(sessionId)
 	if session == nil {
 		return nil
 	}
@@ -145,7 +157,7 @@ func NewPersonalOrderRejectNotification(orderId int64) *LCTypedMessage {
 }
 
 func NewSessionCreatedNotification(sessionId int64) *LCTypedMessage {
-	session := DbManager.QuerySessionById(sessionId)
+	session := QuerySessionById(sessionId)
 	if session == nil {
 		return nil
 	}
@@ -167,7 +179,7 @@ func NewSessionCreatedNotification(sessionId int64) *LCTypedMessage {
 }
 
 func NewSessionReminderNotification(sessionId int64, hours int64) *LCTypedMessage {
-	session := DbManager.QuerySessionById(sessionId)
+	session := QuerySessionById(sessionId)
 	if session == nil {
 		return nil
 	}
@@ -194,7 +206,7 @@ func NewSessionReminderNotification(sessionId int64, hours int64) *LCTypedMessag
 }
 
 func NewSessionCancelNotification(sessionId int64) *LCTypedMessage {
-	session := DbManager.QuerySessionById(sessionId)
+	session := QuerySessionById(sessionId)
 	if session == nil {
 		return nil
 	}
@@ -216,7 +228,7 @@ func NewSessionCancelNotification(sessionId int64) *LCTypedMessage {
 }
 
 func NewSessionReportNotification(sessionId int64) *LCTypedMessage {
-	session := DbManager.QuerySessionById(sessionId)
+	session := QuerySessionById(sessionId)
 	if session == nil {
 		return nil
 	}

@@ -1,10 +1,16 @@
 package main
 
-import ()
-
 func SendCommentNotification(feedCommentId string) {
-	feedComment := RedisManager.GetFeedComment(feedCommentId)
-	feed := RedisManager.GetFeed(feedComment.FeedId)
+	var feedComment *POIFeedComment
+	var feed *POIFeed
+	if RedisManager.redisError == nil {
+		feedComment = RedisManager.GetFeedComment(feedCommentId)
+		feed = RedisManager.GetFeed(feedComment.FeedId)
+	} else {
+		feedComment = GetFeedComment(feedCommentId)
+		feed = GetFeed(feedComment.FeedId)
+	}
+
 	if feedComment == nil || feed == nil {
 		return
 	}
@@ -31,7 +37,13 @@ func SendCommentNotification(feedCommentId string) {
 
 func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 	user := QueryUserById(userId)
-	feed := RedisManager.GetFeed(feedId)
+	var feed *POIFeed
+	if RedisManager.redisError == nil {
+		feed = RedisManager.GetFeed(feedId)
+	} else {
+		feed = GetFeed(feedId)
+	}
+
 	if user == nil || feed == nil {
 		return
 	}
@@ -51,7 +63,7 @@ func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 }
 
 func SendSessionNotification(sessionId int64, oprCode int64) {
-	session := DbManager.QuerySessionById(sessionId)
+	session := QuerySessionById(sessionId)
 	if session == nil {
 		return
 	}

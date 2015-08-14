@@ -23,9 +23,8 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 }
 
 func POIUserUpdateProfile(userId int64, nickname string, avatar string, gender int64) (int64, *POIUser) {
-    userJson := `{"Nickname":"`+nickname+`","Avatar":"`+avatar+`","Gender":`+strconv.FormatInt(gender,10)+`}`
-//	DbManager.UpdateUserInfo(userId, nickname, avatar, gender)
-    UpdateUserInfo(userId,userJson)
+	userJson := `{"Nickname":"` + nickname + `","Avatar":"` + avatar + `","Gender":` + strconv.FormatInt(gender, 10) + `}`
+	UpdateUserInfo(userId, userJson)
 	user := LoadPOIUser(userId)
 	return 0, user
 }
@@ -48,13 +47,10 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 	}
 
 	userId := InsertUser(phone)
-	userJson := `{"Nickname":"`+nickname+`","Avatar":"`+avatar+`","Gender":`+strconv.FormatInt(gender,10)+`}`
-    UpdateUserInfo(userId,userJson)
-//	DbManager.UpdateUserInfo(userId, nickname, avatar, gender)
+	userJson := `{"Nickname":"` + nickname + `","Avatar":"` + avatar + `","Gender":` + strconv.FormatInt(gender, 10) + `}`
+	UpdateUserInfo(userId, userJson)
 	user = LoadPOIUser(userId)
-
 	InsertUserOauth(userId, openId)
-
 	return 1003, user
 }
 
@@ -68,13 +64,13 @@ func POIUserFollow(userId, followId int64) (int64, bool) {
 	if follow.AccessRight != 2 {
 		return 2, false
 	}
-
-	if RedisManager.HasFollowedUser(userId, followId) {
-		RedisManager.RemoveUserFollow(userId, followId)
-		return 0, false
+	if RedisManager.redisError == nil {
+		if RedisManager.HasFollowedUser(userId, followId) {
+			RedisManager.RemoveUserFollow(userId, followId)
+			return 0, false
+		}
+		RedisManager.SetUserFollow(userId, followId)
 	}
-
-	RedisManager.SetUserFollow(userId, followId)
 	return 0, true
 }
 
@@ -84,12 +80,14 @@ func POIUserUnfollow(userId, followId int64) (int64, bool) {
 	if user == nil || follow == nil {
 		return 2, false
 	}
+	if RedisManager.redisError == nil {
+		if !RedisManager.HasFollowedUser(userId, followId) {
+			return 2, false
+		}
 
-	if !RedisManager.HasFollowedUser(userId, followId) {
-		return 2, false
+		RedisManager.RemoveUserFollow(userId, followId)
 	}
 
-	RedisManager.RemoveUserFollow(userId, followId)
 	return 0, false
 }
 
@@ -98,9 +96,10 @@ func GetUserFollowing(userId int64) POITeachers {
 	if user == nil {
 		return nil
 	}
-
-	teachers := RedisManager.GetUserFollowList(userId)
-
+	var teachers POITeachers
+	if RedisManager.redisError == nil {
+		teachers = RedisManager.GetUserFollowList(userId)
+	}
 	return teachers
 }
 
@@ -111,11 +110,13 @@ func GetUserConversation(userId1, userId2 int64) (int64, string) {
 	if user1 == nil || user2 == nil {
 		return 2, ""
 	}
-
-	convId := RedisManager.GetConversation(userId1, userId2)
-	if convId == "" {
-		convId = LCGetConversationId(strconv.FormatInt(userId1, 10), strconv.FormatInt(userId2, 10))
-		RedisManager.SetConversation(convId, userId1, userId2)
+	var convId string
+	if RedisManager.redisError == nil {
+		convId = RedisManager.GetConversation(userId1, userId2)
+		if convId == "" {
+			convId = LCGetConversationId(strconv.FormatInt(userId1, 10), strconv.FormatInt(userId2, 10))
+			RedisManager.SetConversation(convId, userId1, userId2)
+		}
 	}
 
 	return 0, convId
