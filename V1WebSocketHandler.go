@@ -174,6 +174,40 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			orderChan := WsManager.GetOrderChan(orderId)
 			orderChan <- msg
 
+		case WS_SESSION_START:
+			resp := NewPOIWSMessage(msg.MessageId, userId, WS_SESSION_START_RESP)
+			if !InitSessionMonitor(msg) {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "Error on session init"
+				userChan <- resp
+			}
+
+		case WS_SESSION_ACCEPT,
+			WS_SESSION_PAUSE,
+			WS_SESSION_RESUME,
+			WS_SESSION_FINISH:
+			resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
+
+			sessionIdStr, ok := msg.Attribute["sessionId"]
+			if !ok {
+				resp.Attribute["errCode"] = "2"
+				userChan <- resp
+				break
+			}
+
+			sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
+			if err != nil {
+				resp.Attribute["errCode"] = "2"
+				userChan <- resp
+				break
+			}
+
+			if !WsManager.HasSessionChan(sessionId) {
+				break
+			}
+			sessionChan := WsManager.GetSessionChan(sessionId)
+			sessionChan <- msg
+
 		}
 	}
 }

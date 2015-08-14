@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -10,17 +11,16 @@ func POIWSSessionHandler(sessionId int64) {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	sessionChan := WsManager.GetSessionChan(sessionId)
 
-	// var length int64
-	// var startAt int64
-	// var lastSync int64
-	// var pauseAt int64
+	var length int64
+	var lastSync int64
+	//var pauseAt int64
 
 	isServing := false
 	isPaused := false
 
 	syncTicker := time.NewTicker(time.Second * 60)
 	waitingTimer := time.NewTimer(time.Minute * 20)
-	//timestamp := time.Now().Unix()
+	timestamp := time.Now().Unix()
 
 	syncTicker.Stop()
 	for {
@@ -48,10 +48,25 @@ func POIWSSessionHandler(sessionId int64) {
 			if !isServing || isPaused {
 				break
 			}
-			//syncMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_SYNC)
+
+			timestamp = time.Now().Unix()
+			length = length + (timestamp - lastSync)
+
+			syncMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_SYNC)
+			syncMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+			if WsManager.HasUserChan(session.Teacher.UserId) {
+				teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+				teacherChan <- syncMsg
+			}
+			if WsManager.HasUserChan(session.Creator.UserId) {
+				syncMsg.UserId = session.Creator.UserId
+				stuChan := WsManager.GetUserChan(session.Creator.UserId)
+				stuChan <- syncMsg
+			}
 
 		case msg := <-sessionChan:
-			//timestamp = time.Now().Unix()
+			timestamp = time.Now().Unix()
+			session = DbManager.QuerySessionById(sessionId)
 			userChan := WsManager.GetUserChan(msg.UserId)
 
 			switch msg.OperationCode {
@@ -103,24 +118,70 @@ func POIWSSessionHandler(sessionId int64) {
 				if acceptStr == "-1" {
 					break
 				} else if acceptStr == "1" {
-					// startAt = timestamp
-					// lastSync = timestamp
-					// isServing = true
-					// syncTicker = time.NewTicker(time.Second * 60)
-					// waitingTimer.Stop()
+					lastSync = timestamp
+					isServing = true
+					syncTicker = time.NewTicker(time.Second * 60)
+					waitingTimer.Stop()
+
+					DbManager.UpdateSessionStatus(sessionId, SESSION_STATUS_SERVING)
+					DbManager.UpdateSessionStart(sessionId, timestamp)
+
+					fmt.Println("POIWSSessionHandler: session start: " + sessionIdStr)
 				}
+
+			case WS_SESSION_FINISH:
+				finishResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_FINISH_RESP)
+				if msg.UserId != session.Teacher.UserId {
+					finishResp.Attribute["errCode"] = "2"
+					finishResp.Attribute["errMsg"] = "You are not the teacher of this session"
+					userChan <- finishResp
+					break
+				}
+				finishResp.Attribute["errCode"] = "0"
+				userChan <- finishResp
+
+				finishMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_FINISH)
+				finishMsg.Attribute["sessionId"] = sessionIdStr
+
+				length = length + (timestamp - lastSync)
+
+				DbManager.UpdateSessionStatus(sessionId, SESSION_STATUS_COMPLETE)
+				DbManager.UpdateSessionEnd(sessionId, timestamp, length)
+				DbManager.UpdateTeacherServiceTime(session.Teacher.UserId, length)
+
+				go SendSessionNotification(sessionId, 3)
+				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionReportNotification(session.Id))
+				go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionReportNotification(session.Id))
+
+				fmt.Println("POIWSSessionHandler: session end: " + sessionIdStr)
+
+				WsManager.RemoveSessionLive(sessionId)
+				WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
+				WsManager.RemoveSessionChan(sessionId)
+				close(sessionChan)
+				return
 			}
 		}
 	}
 }
 
-func InitSessionMonitor(sessionId int64) {
-	session := DbManager.QuerySessionById(sessionId)
-	if session == nil {
-		return
+func InitSessionMonitor(msg POIWSMessage) bool {
+	sessionIdStr, ok := msg.Attribute["sessionId"]
+	if !ok {
+		return false
 	}
 
-	sessionIdStr := strconv.FormatInt(sessionId, 10)
+	sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
+	if err != nil {
+		fmt.Println(err.Error())
+		return false
+	}
+
+	session := DbManager.QuerySessionById(sessionId)
+	if session == nil {
+		return false
+	}
+
 	if WsManager.HasUserChan(session.Teacher.UserId) {
 		alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_ALERT)
 		alertMsg.Attribute["sessionId"] = sessionIdStr
@@ -135,5 +196,13 @@ func InitSessionMonitor(sessionId int64) {
 	sessionChan := make(chan POIWSMessage)
 	WsManager.SetSessionChan(sessionId, sessionChan)
 
+	timestamp := time.Now().Unix()
+	WsManager.SetSessionLive(sessionId, timestamp)
+	WsManager.SetUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
+
 	go POIWSSessionHandler(sessionId)
+
+	sessionChan <- msg
+
+	return true
 }
