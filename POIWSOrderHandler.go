@@ -91,6 +91,7 @@ func POIWSOrderHandler(orderId int64) {
 					teacherChan := WsManager.GetUserChan(teacherId)
 					teacherChan <- dispatchMsg
 
+					WsManager.SetOrderDispatch(orderId, teacherId, timestamp)
 					RedisManager.SetOrderDispatch(orderId, teacherId, timestamp)
 					fmt.Println("OrderDispatched: ", orderId, " to Teacher: ", teacherId)
 				}
