@@ -48,7 +48,7 @@ func POIWSOrderHandler(orderId int64) {
 			return
 
 		case <-selectTimer.C:
-			if replied {
+			if !replied {
 				break
 			}
 			dispatchTicker.Stop()
