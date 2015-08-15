@@ -176,6 +176,7 @@ func InitSessionMonitor(sessionId int64) bool {
 	if WsManager.HasUserChan(session.Teacher.UserId) {
 		alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_ALERT)
 		alertMsg.Attribute["sessionId"] = sessionIdStr
+		alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
 		alertMsg.Attribute["countdown"] = "10"
 		alertMsg.Attribute["planTime"] = session.PlanTime
 		teacherChan := WsManager.GetUserChan(session.Teacher.UserId)

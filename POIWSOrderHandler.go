@@ -116,11 +116,7 @@ func POIWSOrderHandler(orderId int64) {
 
 				if !replied {
 					waitingTimer.Stop()
-					if order.Type == 1 {
-						selectTimer = time.NewTimer(time.Second * 90)
-					} else {
-						selectTimer = time.NewTimer(time.Second * 300)
-					}
+					selectTimer = time.NewTimer(time.Second * 300)
 					replied = true
 				}
 
