@@ -199,6 +199,7 @@ func POIWSOrderHandler(orderId int64) {
 					} else {
 						resultMsg.Attribute["status"] = "-1"
 					}
+					resultMsg.UserId = dispatchId
 					dispatchChan <- resultMsg
 				}
 				fmt.Println("OrderConfirmed: ", orderId, " to teacher: ", teacherId)

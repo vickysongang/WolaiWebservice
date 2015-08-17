@@ -84,6 +84,7 @@ func POIWSSessionHandler(sessionId int64) {
 				if WsManager.HasUserChan(session.Creator.UserId) {
 					startMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_START)
 					startMsg.Attribute["sessionId"] = sessionIdStr
+					startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 					creatorChan := WsManager.GetUserChan(session.Creator.UserId)
 					creatorChan <- startMsg
 				}
@@ -142,6 +143,10 @@ func POIWSSessionHandler(sessionId int64) {
 
 				finishMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_FINISH)
 				finishMsg.Attribute["sessionId"] = sessionIdStr
+				if WsManager.HasUserChan(session.Creator.UserId) {
+					creatorChan := WsManager.GetUserChan(session.Creator.UserId)
+					creatorChan <- finishMsg
+				}
 
 				length = length + (timestamp - lastSync)
 
