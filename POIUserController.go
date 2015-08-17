@@ -23,8 +23,11 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 }
 
 func POIUserUpdateProfile(userId int64, nickname string, avatar string, gender int64) (int64, *POIUser) {
-	userJson := `{"Nickname":"` + nickname + `","Avatar":"` + avatar + `","Gender":` + strconv.FormatInt(gender, 10) + `}`
-	UpdateUserInfo(userId, userJson)
+	userInfo := make(map[string]interface{})
+	userInfo["Nickname"] = nickname
+	userInfo["Avatar"] = avatar
+	userInfo["Gender"] = gender
+	UpdateUserInfo(userId, userInfo)
 	user := LoadPOIUser(userId)
 	return 0, user
 }
@@ -47,8 +50,11 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 	}
 
 	userId := InsertUser(phone)
-	userJson := `{"Nickname":"` + nickname + `","Avatar":"` + avatar + `","Gender":` + strconv.FormatInt(gender, 10) + `}`
-	UpdateUserInfo(userId, userJson)
+	userInfo := make(map[string]interface{})
+	userInfo["Nickname"] = nickname
+	userInfo["Avatar"] = avatar
+	userInfo["Gender"] = gender
+	UpdateUserInfo(userId, userInfo)
 	user = LoadPOIUser(userId)
 	InsertUserOauth(userId, openId)
 	return 1003, user

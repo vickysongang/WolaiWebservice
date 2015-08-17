@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -23,6 +22,7 @@ type POIOrder struct {
 	CreateTime      time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
 	LastUpdateTime  time.Time `json:"-"`
 	OrderType       string    `json:"-" orm:"column(type)"`
+	PricePerHour    int64     `json:"pricePerHour"`
 }
 
 type POIOrderDispatch struct {
@@ -128,43 +128,20 @@ func QueryOrderById(orderId int64) *POIOrder {
 	return &order
 }
 
-/*
-* orderId为主键
-* 参数orderInfo为JSON串,JSON里的字段需和POIOrder结构体里的字段相对应,如下：
-* {"Status":"created"}
- */
-func UpdateOrderInfo(orderId int64, orderInfo string) {
+func UpdateOrderInfo(orderId int64, orderInfo map[string]interface{}) {
 	o := orm.NewOrm()
-	var r interface{}
-	err := json.Unmarshal([]byte(orderInfo), &r)
-	if err != nil {
-		panic(err.Error())
-	}
-	info, _ := r.(map[string]interface{})
 	var params orm.Params = make(orm.Params)
-	for k, v := range info {
+	for k, v := range orderInfo {
 		params[k] = v
 	}
 	o.QueryTable("orders").Filter("id", orderId).Update(params)
 	return
 }
 
-/*
-* orderId为订单id
-* userId为老师的用户id
-* 参数dispatchInfo为JSON串,JSON里的字段需和POIOrderDispatch结构体里的字段相对应,如下：
-* {"Result":"S"}
- */
-func UpdateOrderDispatchInfo(orderId int64, userId int64, dispatchInfo string) {
+func UpdateOrderDispatchInfo(orderId int64, userId int64, dispatchInfo map[string]interface{}) {
 	o := orm.NewOrm()
-	var r interface{}
-	err := json.Unmarshal([]byte(dispatchInfo), &r)
-	if err != nil {
-		panic(err.Error())
-	}
-	info, _ := r.(map[string]interface{})
 	var params orm.Params = make(orm.Params)
-	for k, v := range info {
+	for k, v := range dispatchInfo {
 		params[k] = v
 	}
 	o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("teacher_id", userId).Update(params)

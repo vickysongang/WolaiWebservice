@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -31,6 +29,7 @@ type POITradeRecord struct {
 	TradeAmount int64     `json:"tradeAmount"`
 	CreateTime  time.Time `json:"_" orm:"auto_now_add;type(datetime)"`
 	Result      string    `json:"result"`
+	Balance     int64     `json:"balance"`
 }
 
 type POIUsers []POIUser
@@ -95,22 +94,10 @@ func QueryUserByPhone(phone string) *POIUser {
 	return user
 }
 
-/*
-* userId为主键
-* 参数userInfo为JSON串,JSON里的字段需和POIUser结构体里的字段相对应,如下：
-* {"Nickname":"昵称","Gender":0}
- */
-func UpdateUserInfo(userId int64, userInfo string) *POIUser {
+func UpdateUserInfo(userId int64, userInfo map[string]interface{}) *POIUser {
 	o := orm.NewOrm()
-	var r interface{}
-	fmt.Println(userInfo)
-	err := json.Unmarshal([]byte(userInfo), &r)
-	if err != nil {
-		panic(err.Error())
-	}
-	info, _ := r.(map[string]interface{})
 	var params orm.Params = make(orm.Params)
-	for k, v := range info {
+	for k, v := range userInfo {
 		params[k] = v
 	}
 	o.QueryTable("users").Filter("id", userId).Update(params)

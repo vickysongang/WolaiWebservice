@@ -137,8 +137,9 @@ func POIWSSessionHandler(sessionId int64) {
 					syncTicker = time.NewTicker(time.Second * 60)
 					waitingTimer.Stop()
 
-					sessionJson := `{"Status":"` + SESSION_STATUS_SERVING + `"}`
-					UpdateSessionInfo(sessionId, sessionJson)
+					sessionInfo := make(map[string]interface{})
+					sessionInfo["Status"] = SESSION_STATUS_SERVING
+					UpdateSessionInfo(sessionId, sessionInfo)
 
 					fmt.Println("POIWSSessionHandler: session start: " + sessionIdStr)
 				}
@@ -184,8 +185,9 @@ func POIWSSessionHandler(sessionId int64) {
 				length = length + (timestamp - lastSync)
 
 				// ToDo
-				sessionJson := `{"Status":"` + SESSION_STATUS_COMPLETE + `"}`
-				UpdateSessionInfo(sessionId, sessionJson)
+				sessionInfo := make(map[string]interface{})
+				sessionInfo["Status"] = SESSION_STATUS_COMPLETE
+				UpdateSessionInfo(sessionId, sessionInfo)
 
 				go SendSessionNotification(sessionId, 3)
 				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionReportNotification(session.Id))

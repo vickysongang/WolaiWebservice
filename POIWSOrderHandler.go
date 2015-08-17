@@ -11,8 +11,9 @@ func POIWSOrderHandler(orderId int64) {
 	order := QueryOrderById(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan := WsManager.GetOrderChan(orderId)
-	orderJson := `{"Status":"` + ORDER_STATUS_DISPATHCING + `"}`
-	UpdateOrderInfo(orderId, orderJson)
+	orderInfo := make(map[string]interface{})
+	orderInfo["Status"] = ORDER_STATUS_DISPATHCING
+	UpdateOrderInfo(orderId, orderInfo)
 
 	dispatchTicker := time.NewTicker(time.Second * 3)
 	waitingTimer := time.NewTimer(time.Second * 120)
@@ -210,8 +211,9 @@ func POIWSOrderHandler(orderId int64) {
 					break
 				}
 
-				orderJson := `{"Status":"` + ORDER_STATUS_CONFIRMED + `"}`
-				UpdateOrderInfo(orderId, orderJson)
+				orderInfo := make(map[string]interface{})
+				orderInfo["Status"] = ORDER_STATUS_CONFIRMED
+				UpdateOrderInfo(orderId, orderInfo)
 
 				session := NewPOISession(order.Id,
 					QueryUserById(order.Creator.UserId),

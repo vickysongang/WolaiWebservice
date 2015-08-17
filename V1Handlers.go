@@ -705,7 +705,8 @@ func V1Banner(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	dispatchInfo := `{"ReplyTime":"` + time.Now().String() + `"}`
-	UpdateOrderDispatchInfo(1,10003, dispatchInfo)
+	sessionInfo := make(map[string]interface{})
+	sessionInfo["Status"] = "complete"
+	UpdateSessionInfo(1, sessionInfo)
 	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }

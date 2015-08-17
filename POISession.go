@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -88,22 +86,10 @@ func QuerySessionById(sessionId int64) *POISession {
 	return &session
 }
 
-/*
-* sessionId为主键
-* 参数sessionInfo为JSON串,JSON里的字段需和POISession结构体里的字段相对应,如下：
-* {"Status":"created"}
- */
-func UpdateSessionInfo(sessionId int64, sessionInfo string) {
+func UpdateSessionInfo(sessionId int64, sessionInfo map[string]interface{}) {
 	o := orm.NewOrm()
-	var r interface{}
-	fmt.Println("sessionInfo:", sessionInfo)
-	err := json.Unmarshal([]byte(sessionInfo), &r)
-	if err != nil {
-		panic(err.Error())
-	}
-	info, _ := r.(map[string]interface{})
 	var params orm.Params = make(orm.Params)
-	for k, v := range info {
+	for k, v := range sessionInfo {
 		params[k] = v
 	}
 	o.QueryTable("sessions").Filter("id", sessionId).Update(params)
