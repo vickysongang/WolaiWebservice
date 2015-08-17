@@ -16,8 +16,8 @@ type POIWSManager struct {
 	teacherOrderDispatchMap map[int64]map[int64]int64 // teacherId to orderId to timestamp
 	userOrderDispatchMap    map[int64]map[int64]int64 // userId to orderId to timestamp
 
-	sessionLiveMap map[int64]int64 // sessionId to timestamp	userSessionLiveMap map[int64]map[int64]bool // userId to sessionId
-
+	sessionLiveMap     map[int64]int64          // sessionId to timestamp
+	userSessionLiveMap map[int64]map[int64]bool // userId to sessionId
 }
 
 func NewPOIWSManager() POIWSManager {
@@ -39,18 +39,66 @@ func NewPOIWSManager() POIWSManager {
 }
 
 func (wsm *POIWSManager) SetUserChan(userId int64, userChan chan POIWSMessage) {
-	if oldChan, ok := wsm.UserMap[userId]; ok {
-		msg := NewCloseMessage(userId)
-		oldChan <- msg
-		fmt.Println("WSManager: chan removed, userId: ", userId)
-	}
-
-	wsm.UserMap[userId] = userChan
-	fmt.Println("WSManager: chan created, userId: ", userId)
+	wsm.userMap[userId] = userChan
+	fmt.Println("WSManager: user chan created, userId: ", userId)
 }
 
 func (wsm *POIWSManager) GetUserChan(userId int64) chan POIWSMessage {
-	return wsm.UserMap[userId]
+	return wsm.userMap[userId]
+}
+
+func (wsm *POIWSManager) RemoveUserChan(userId int64) {
+	if _, ok := wsm.userMap[userId]; ok {
+		delete(wsm.userMap, userId)
+		fmt.Println("WSManager: user chan removed, userId: ", userId)
+	}
+}
+
+func (wsm *POIWSManager) HasUserChan(userId int64) bool {
+	_, ok := wsm.userMap[userId]
+	return ok
+}
+
+func (wsm *POIWSManager) SetOrderChan(orderId int64, orderChan chan POIWSMessage) {
+	wsm.orderMap[orderId] = orderChan
+	fmt.Println("WSManager: order chan created, orderId: ", orderId)
+}
+
+func (wsm *POIWSManager) GetOrderChan(orderId int64) chan POIWSMessage {
+	return wsm.orderMap[orderId]
+}
+
+func (wsm *POIWSManager) RemoveOrderChan(orderId int64) {
+	if _, ok := wsm.orderMap[orderId]; ok {
+		delete(wsm.orderMap, orderId)
+		fmt.Println("WSManager: order chan removed, orderId: ", orderId)
+	}
+}
+
+func (wsm *POIWSManager) HasOrderChan(orderId int64) bool {
+	_, ok := wsm.orderMap[orderId]
+	return ok
+}
+
+func (wsm *POIWSManager) SetSessionChan(sessionId int64, sessionChan chan POIWSMessage) {
+	wsm.sessionMap[sessionId] = sessionChan
+	fmt.Println("WSManager: session chan created, sessionId: ", sessionId)
+}
+
+func (wsm *POIWSManager) GetSessionChan(sessionId int64) chan POIWSMessage {
+	return wsm.sessionMap[sessionId]
+}
+
+func (wsm *POIWSManager) RemoveSessionChan(sessionId int64) {
+	if _, ok := wsm.sessionMap[sessionId]; ok {
+		delete(wsm.sessionMap, sessionId)
+		fmt.Println("WSManager: session chan created, sessionId: ", sessionId)
+	}
+}
+
+func (wsm *POIWSManager) HasSessionChan(sessionId int64) bool {
+	_, ok := wsm.sessionMap[sessionId]
+	return ok
 }
 
 func (wsm *POIWSManager) SetUserOnline(userId int64, timestamp int64) {

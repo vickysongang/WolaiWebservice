@@ -7,7 +7,7 @@ import (
 )
 
 func POIWSSessionHandler(sessionId int64) {
-	session := DbManager.QuerySessionById(sessionId)
+	session := QuerySessionById(sessionId)
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	sessionChan := WsManager.GetSessionChan(sessionId)
 
@@ -67,7 +67,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 		case msg := <-sessionChan:
 			timestamp = time.Now().Unix()
-			session = DbManager.QuerySessionById(sessionId)
+			session = QuerySessionById(sessionId)
 			userChan := WsManager.GetUserChan(msg.UserId)
 
 			switch msg.OperationCode {
@@ -137,8 +137,8 @@ func POIWSSessionHandler(sessionId int64) {
 					syncTicker = time.NewTicker(time.Second * 60)
 					waitingTimer.Stop()
 
-					DbManager.UpdateSessionStatus(sessionId, SESSION_STATUS_SERVING)
-					DbManager.UpdateSessionStart(sessionId, timestamp)
+					sessionJson := `{"Status":"` + SESSION_STATUS_SERVING + `"}`
+					UpdateSessionInfo(sessionId, sessionJson)
 
 					fmt.Println("POIWSSessionHandler: session start: " + sessionIdStr)
 				}
@@ -183,9 +183,9 @@ func POIWSSessionHandler(sessionId int64) {
 
 				length = length + (timestamp - lastSync)
 
-				DbManager.UpdateSessionStatus(sessionId, SESSION_STATUS_COMPLETE)
-				DbManager.UpdateSessionEnd(sessionId, timestamp, length)
-				DbManager.UpdateTeacherServiceTime(session.Teacher.UserId, length)
+				// ToDo
+				sessionJson := `{"Status":"` + SESSION_STATUS_COMPLETE + `"}`
+				UpdateSessionInfo(sessionId, sessionJson)
 
 				go SendSessionNotification(sessionId, 3)
 				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionReportNotification(session.Id))
@@ -206,7 +206,7 @@ func POIWSSessionHandler(sessionId int64) {
 func InitSessionMonitor(sessionId int64) bool {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 
-	session := DbManager.QuerySessionById(sessionId)
+	session := QuerySessionById(sessionId)
 	if session == nil {
 		return false
 	}

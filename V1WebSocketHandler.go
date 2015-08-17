@@ -25,7 +25,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, p, err := conn.ReadMessage()
 	if err != nil {
-		a
 		fmt.Println(err.Error())
 		return
 	}
@@ -72,7 +71,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId := msg.UserId
-	user := DbManager.QueryUserById(userId)
+	user := QueryUserById(userId)
 	go WebSocketWriteHandler(conn, userId, userChan)
 
 	for {

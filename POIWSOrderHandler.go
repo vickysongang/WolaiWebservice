@@ -8,10 +8,11 @@ import (
 )
 
 func POIWSOrderHandler(orderId int64) {
-	order := DbManager.QueryOrderById(orderId)
+	order := QueryOrderById(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan := WsManager.GetOrderChan(orderId)
-	DbManager.UpdateOrderStatus(orderId, ORDER_STATUS_DISPATHCING)
+	orderJson := `{"Status":"` + ORDER_STATUS_DISPATHCING + `"}`
+	UpdateOrderInfo(orderId, orderJson)
 
 	dispatchTicker := time.NewTicker(time.Second * 3)
 	waitingTimer := time.NewTimer(time.Second * 120)
@@ -136,8 +137,8 @@ func POIWSOrderHandler(orderId int64) {
 				} else {
 					presentMsg.Attribute["countdown"] = "300"
 				}
-				teacher := DbManager.QueryTeacher(msg.UserId)
-				teacher.LabelList = DbManager.QueryTeacherLabelById(msg.UserId)
+				teacher := QueryTeacher(msg.UserId)
+				teacher.LabelList = QueryTeacherLabelById(msg.UserId)
 				teacherByte, _ := json.Marshal(teacher)
 				presentMsg.Attribute["teacherInfo"] = string(teacherByte)
 
@@ -209,14 +210,14 @@ func POIWSOrderHandler(orderId int64) {
 					break
 				}
 
-				DbManager.UpdateOrderDate(orderId, planTime)
-				DbManager.UpdateOrderStatus(orderId, ORDER_STATUS_CONFIRMED)
+				orderJson := `{"Status":"` + ORDER_STATUS_CONFIRMED + `"}`
+				UpdateOrderInfo(orderId, orderJson)
 
 				session := NewPOISession(order.Id,
-					DbManager.QueryUserById(order.Creator.UserId),
-					DbManager.QueryUserById(teacherId),
+					QueryUserById(order.Creator.UserId),
+					QueryUserById(teacherId),
 					float64(timestamp), order.Date)
-				sessionPtr := DbManager.InsertSession(&session)
+				sessionPtr := InsertSession(&session)
 
 				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))
 				go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionCreatedNotification(sessionPtr.Id))
@@ -267,7 +268,7 @@ func InitOrderDispatch(msg POIWSMessage, userId int64, timestamp int64) bool {
 		return false
 	}
 
-	order := DbManager.QueryOrderById(orderId)
+	order := QueryOrderById(orderId)
 	if userId != order.Creator.UserId {
 		return false
 	}

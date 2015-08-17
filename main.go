@@ -34,8 +34,6 @@ func init() {
 
 func main() {
 	orm.Debug = true
-	go POIOrderHandler()
-	go POISessionHandler()
 	go POISessionTickerHandler()
 
 	router := NewRouter()
