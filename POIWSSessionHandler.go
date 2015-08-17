@@ -15,6 +15,7 @@ func POIWSSessionHandler(sessionId int64) {
 	var lastSync int64
 	//var pauseAt int64
 
+	isCalling := false
 	isServing := false
 	isPaused := false
 
@@ -89,6 +90,7 @@ func POIWSSessionHandler(sessionId int64) {
 					creatorChan <- startMsg
 				}
 
+				isCalling = true
 				go SendSessionNotification(sessionId, 2)
 
 			case WS_SESSION_ACCEPT:
@@ -108,6 +110,17 @@ func POIWSSessionHandler(sessionId int64) {
 					break
 				}
 
+				if !isCalling {
+					acceptResp.Attribute["errCode"] = "2"
+					acceptResp.Attribute["errMsg"] = "nobody is calling"
+					userChan <- acceptResp
+					break
+				}
+
+				acceptResp.Attribute["errCode"] = "0"
+				userChan <- acceptResp
+
+				isCalling = false
 				acceptMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_ACCEPT)
 				acceptMsg.Attribute["sessionId"] = sessionIdStr
 				acceptMsg.Attribute["accept"] = acceptStr
@@ -128,6 +141,26 @@ func POIWSSessionHandler(sessionId int64) {
 					DbManager.UpdateSessionStart(sessionId, timestamp)
 
 					fmt.Println("POIWSSessionHandler: session start: " + sessionIdStr)
+				}
+
+			case WS_SESSION_CANCEL:
+				cancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_CANCEL_RESP)
+				if msg.UserId != session.Teacher.UserId {
+					cancelResp.Attribute["errCode"] = "2"
+					cancelResp.Attribute["errMsg"] = "You are not the teacher of this session"
+					userChan <- cancelResp
+					break
+				}
+				cancelResp.Attribute["errCode"] = "0"
+				userChan <- cancelResp
+
+				isCalling = false
+				cancelMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_CANCEL)
+				cancelMsg.Attribute["sessionId"] = sessionIdStr
+				cancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+				if WsManager.HasUserChan(session.Creator.UserId) {
+					creatorChan := WsManager.GetUserChan(session.Creator.UserId)
+					creatorChan <- cancelMsg
 				}
 
 			case WS_SESSION_FINISH:
