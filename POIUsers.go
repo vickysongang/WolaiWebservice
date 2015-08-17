@@ -101,9 +101,9 @@ func UpdateUserInfo(userId int64, userInfo map[string]interface{}) *POIUser {
 		params[k] = v
 	}
 	o.QueryTable("users").Filter("id", userId).Update(params)
-	u := QueryUserById(userId)
-	u.AccessRight = 3
-	return u
+	user := QueryUserById(userId)
+	user.AccessRight = 3
+	return user
 }
 
 func InsertUserOauth(userId int64, qqOpenId string) {
