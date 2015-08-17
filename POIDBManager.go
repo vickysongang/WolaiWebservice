@@ -2,13 +2,13 @@ package main
 
 import (
 	"database/sql"
-
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type POIDBManager struct {
 	dbClient *sql.DB
 }
+
 
 func NewPOIDBManager() POIDBManager {
 	dbClient, _ := sql.Open("mysql",
@@ -20,3 +20,4 @@ func NewPOIDBManager() POIDBManager {
 			Config.Database.Database)
 	return POIDBManager{dbClient: dbClient}
 }
+

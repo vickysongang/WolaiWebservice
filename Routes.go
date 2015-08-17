@@ -32,10 +32,16 @@ func NewRouter() *mux.Router {
 var routes = Routes{
 	// Websocket
 	Route{
-		"V1WebSocket",
+		"V1WebSocketOrder",
 		"GET",
-		"/v1/ws",
-		V1WebSocketHandler,
+		"/v1/ws/order",
+		V1WSOrderHandler,
+	},
+	Route{
+		"V1WebSocketSession",
+		"GET",
+		"/v1/ws/session",
+		V1WSSessionHandler,
 	},
 
 	// Dummy
@@ -442,5 +448,11 @@ var routes = Routes{
 		"GET",
 		"/v1/banner",
 		V1Banner,
+	},
+	Route{
+		"TestGET",
+		"GET",
+		"/test",
+		Test,
 	},
 }

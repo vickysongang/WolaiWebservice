@@ -10,6 +10,7 @@ import (
 
 type POIRedisManager struct {
 	redisClient *redis.Client
+	redisError  error
 }
 
 const (
@@ -48,11 +49,9 @@ func NewPOIRedisManager() POIRedisManager {
 		Password: Config.Redis.Password,
 		DB:       Config.Redis.Db,
 	})
-
 	pong, err := client.Ping().Result()
-	fmt.Println(pong, err)
-
-	return POIRedisManager{redisClient: client}
+	fmt.Println("Connect redis:",pong, err)
+	return POIRedisManager{redisClient: client,redisError:err}
 }
 
 func (rm *POIRedisManager) GetFeed(feedId string) *POIFeed {
@@ -67,7 +66,7 @@ func (rm *POIRedisManager) GetFeed(feedId string) *POIFeed {
 	feed.Id = hashMap["id"]
 
 	tmpInt, _ := strconv.ParseInt(hashMap["creator_id"], 10, 64)
-	feed.Creator = DbManager.QueryUserById(tmpInt)
+	feed.Creator = QueryUserById(tmpInt)
 
 	tmpFloat, _ := strconv.ParseFloat(hashMap["create_timestamp"], 64)
 	feed.CreateTimestamp = tmpFloat
@@ -108,7 +107,7 @@ func (rm *POIRedisManager) GetFeedComment(feedCommentId string) *POIFeedComment 
 	feedComment.FeedId = hashMap["feed_id"]
 
 	tmpInt, _ := strconv.ParseInt(hashMap["creator_id"], 10, 64)
-	feedComment.Creator = DbManager.QueryUserById(tmpInt)
+	feedComment.Creator = QueryUserById(tmpInt)
 
 	tmpFloat, _ := strconv.ParseFloat(hashMap["create_timestamp"], 64)
 	feedComment.CreateTimestamp = tmpFloat
@@ -118,7 +117,7 @@ func (rm *POIRedisManager) GetFeedComment(feedCommentId string) *POIFeedComment 
 
 	if hashMap["reply_to_user_id"] != "" {
 		tmpInt, _ = strconv.ParseInt(hashMap["reply_to_user_id"], 10, 64)
-		feedComment.ReplyTo = DbManager.QueryUserById(tmpInt)
+		feedComment.ReplyTo = QueryUserById(tmpInt)
 	}
 
 	tmpInt, _ = strconv.ParseInt(hashMap["like_count"], 10, 64)
@@ -298,7 +297,7 @@ func (rm *POIRedisManager) GetFeedLikeList(feedId string) POIUsers {
 	for i := range users {
 		str := userStrs[i]
 		userId, _ := strconv.ParseInt(str, 10, 64)
-		users[i] = *(DbManager.QueryUserById(userId))
+		users[i] = *(QueryUserById(userId))
 	}
 
 	return users
@@ -385,7 +384,7 @@ func (rm *POIRedisManager) GetUserFollowList(userId int64) POITeachers {
 	teachers := make(POITeachers, len(userIds))
 	for i := range userIds {
 		userIdtmp, _ := strconv.ParseInt(userIds[i], 10, 64)
-		teachers[i] = *(DbManager.QueryTeacher(userIdtmp))
+		teachers[i] = *(QueryTeacher(userIdtmp))
 	}
 
 	return teachers

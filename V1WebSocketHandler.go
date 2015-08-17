@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"net/http"
+<<<<<<< HEAD
 	"strconv"
 	"time"
+=======
+>>>>>>> beegoorm
 
 	"github.com/gorilla/websocket"
 )
@@ -16,33 +18,42 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
+func WebSocketWriteHandler(conn *websocket.Conn, userChan chan POIWSMessage) {
+	for {
+		select {
+		case msg := <-userChan:
+			if msg.OperationCode == -1 {
+				return
+			}
+			err := conn.WriteJSON(msg)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+		}
+	}
+}
+
+func V1WSOrderHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println(err.Error())
 		return
 	}
 
 	_, p, err := conn.ReadMessage()
 	if err != nil {
-		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println("V1WSHandler: recieved: ", string(p))
 
 	var msg POIWSMessage
+
+	fmt.Println("V1WSOrderHandler: recieved: ", string(p))
 	err = json.Unmarshal([]byte(p), &msg)
 	if err != nil {
-		// Force quit the user if msg is unstructed
-		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
-		resp.Attribute["errMsg"] = "unstructed message"
-		err = conn.WriteJSON(resp)
-		conn.Close()
-
-		fmt.Println("V1WSHandler: unstructed message")
+		fmt.Println("V1WSOrderHandler: unstructed message")
 		return
 	}
 
+<<<<<<< HEAD
 	timestamp := time.Now().Unix()
 	if math.Abs(msg.Timestamp-float64(timestamp)) > 12*3600 {
 		// Force quit the user if timestamp difference is too significant
@@ -73,6 +84,13 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	userId := msg.UserId
 	user := DbManager.QueryUserById(userId)
 	go WebSocketWriteHandler(conn, userId, userChan)
+=======
+	userChan := make(chan POIWSMessage)
+	WsManager.SetUserChan(msg.UserId, userChan)
+	go WebSocketWriteHandler(conn, userChan)
+
+	WsManager.OrderInput <- msg
+>>>>>>> beegoorm
 
 	for {
 		_, p, err = conn.ReadMessage()
@@ -81,13 +99,10 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		fmt.Println("V1WSOrderHandler recieved: ", string(p))
 		err = json.Unmarshal([]byte(p), &msg)
-		if err != nil {
-			fmt.Println("V1WSHandler: recieved: ", string(p))
-			fmt.Println("V1WSHandler: unstructed message")
-			continue
-		}
 
+<<<<<<< HEAD
 		if msg.UserId != userId {
 			continue
 		}
@@ -203,52 +218,55 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			sessionChan <- msg
 
 		}
+=======
+		WsManager.OrderInput <- msg
+>>>>>>> beegoorm
 	}
 }
 
-func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POIWSMessage) {
-	pingTicker := time.NewTicker(time.Second * 15)
-	pongTicker := time.NewTicker(time.Second * 20)
-	pingpong := true
+func V1WSSessionHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
 
-	for {
-		select {
-		case <-pingTicker.C:
-			pingMsg := NewPOIWSMessage("", userId, WS_PING)
-			err := conn.WriteJSON(pingMsg)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
+	_, p, err := conn.ReadMessage()
+	if err != nil {
+		return
+	}
 
-		case <-pongTicker.C:
-			if pingpong {
-				pingpong = false
-			} else {
-				_, _ = WSUserLogout(userId)
-				fmt.Println("WebSocketWriteHandler: user timed out; UserId: ", userId)
+	var msg POIWSMessage
 
+<<<<<<< HEAD
 				WsManager.SetUserOffline(userId)
 				WsManager.SetTeacherOffline(userId)
 				close(userChan)
 				conn.Close()
 				return
 			}
+=======
+	fmt.Println("V1WSSessionHandler: recieved: ", string(p))
+	err = json.Unmarshal([]byte(p), &msg)
+	if err != nil {
+		fmt.Println("V1WSSessionHandler: unstructed message")
+		return
+	}
+>>>>>>> beegoorm
 
-		case msg := <-userChan:
-			if msg.OperationCode == WS_PONG {
-				pingpong = true
-			} else {
-				err := conn.WriteJSON(msg)
-				if err != nil {
-					fmt.Println(err.Error())
-				}
+	userChan := make(chan POIWSMessage)
+	WsManager.SetUserChan(msg.UserId, userChan)
+	go WebSocketWriteHandler(conn, userChan)
+	WsManager.SessionInput <- msg
 
-				if msg.OperationCode == WS_FORCE_QUIT || msg.OperationCode == WS_FORCE_LOGOUT {
-					close(userChan)
-					conn.Close()
-					return
-				}
-			}
+	for {
+		_, p, err = conn.ReadMessage()
+		if err != nil {
+			return
 		}
+
+		fmt.Println("V1WSSessionHandler recieved: ", string(p))
+		err = json.Unmarshal([]byte(p), &msg)
+
+		WsManager.SessionInput <- msg
 	}
 }

@@ -18,7 +18,7 @@ func POISessionTickerHandler() {
 			_ = json.Unmarshal([]byte(ticks[i]), &tickInfo)
 
 			sessionId := tickInfo["sessionId"]
-			session := DbManager.QuerySessionById(sessionId)
+			session := QuerySessionById(sessionId)
 			if session == nil {
 				continue
 			}
