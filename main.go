@@ -22,7 +22,7 @@ func init() {
 	if _, err := toml.DecodeFile("/var/lib/poi/POIWolaiWebService.toml", &Config); err != nil {
 		fmt.Println(err.Error())
 	}
-	DbManager = NewPOIDBManager()
+//	DbManager = NewPOIDBManager()
 	RedisManager = NewPOIRedisManager()
 	WsManager = NewPOIWSManager()
 	Ticker = time.NewTicker(time.Millisecond * 5000)

@@ -24,10 +24,19 @@ type POIOAuth struct {
 	OpenIdQq string
 }
 
+type POITradeRecord struct {
+	Id          int64     `json:"id" orm:"pk"`
+	UserId      int64     `json:"userId"`
+	TradeType   string    `json:"tradeType"`
+	TradeAmount int64     `json:"tradeAmount"`
+	CreateTime  time.Time `json:"_" orm:"auto_now_add;type(datetime)"`
+	Result      string    `json:"result"`
+}
+
 type POIUsers []POIUser
 
 func init() {
-	orm.RegisterModel(new(POIUser), new(POIOAuth))
+	orm.RegisterModel(new(POIUser), new(POIOAuth), new(POITradeRecord))
 }
 
 /*
@@ -39,6 +48,10 @@ func (u *POIUser) TableName() string {
 
 func (a *POIOAuth) TableName() string {
 	return "user_oauth"
+}
+
+func (tr *POITradeRecord) TableName() string {
+	return "trade_record"
 }
 
 func NewPOIUser(userId int64, nickname string, avatar string, gender int64, accessRight int64) POIUser {
@@ -120,4 +133,10 @@ func QueryUserByQQOpenId(qqOpenId string) int64 {
 	o := orm.NewOrm()
 	o.Raw(sql, qqOpenId).QueryRow(&userOauth)
 	return userOauth.UserId
+}
+
+func InsertTradeRecord(userId int64, tradeType string, tradeAmount int64, result string) {
+	o := orm.NewOrm()
+	tradeRecord := POITradeRecord{UserId: userId, TradeType: tradeType, TradeAmount: tradeAmount, Result: result}
+	o.Insert(&tradeRecord)
 }
