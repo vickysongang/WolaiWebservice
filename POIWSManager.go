@@ -5,7 +5,6 @@ import (
 )
 
 type POIWSManager struct {
-<<<<<<< HEAD
 	userMap    map[int64](chan POIWSMessage) // userId to chan
 	orderMap   map[int64](chan POIWSMessage) // orderId to chan
 	sessionMap map[int64](chan POIWSMessage) // sessionId to chan
@@ -17,19 +16,12 @@ type POIWSManager struct {
 	teacherOrderDispatchMap map[int64]map[int64]int64 // teacherId to orderId to timestamp
 	userOrderDispatchMap    map[int64]map[int64]int64 // userId to orderId to timestamp
 
-	sessionLiveMap     map[int64]int64          // sessionId to timestamp
-	userSessionLiveMap map[int64]map[int64]bool // userId to sessionId
-=======
-	OrderInput        chan POIWSMessage
-	SessionInput      chan POIWSMessage
-	UserMap           map[int64](chan POIWSMessage)
-	OnlineTeacherList map[int64]bool
->>>>>>> beegoorm
+	sessionLiveMap map[int64]int64 // sessionId to timestamp	userSessionLiveMap map[int64]map[int64]bool // userId to sessionId
+
 }
 
 func NewPOIWSManager() POIWSManager {
 	return POIWSManager{
-<<<<<<< HEAD
 		userMap:    make(map[int64](chan POIWSMessage)),
 		orderMap:   make(map[int64](chan POIWSMessage)),
 		sessionMap: make(map[int64](chan POIWSMessage)),
@@ -43,12 +35,6 @@ func NewPOIWSManager() POIWSManager {
 
 		sessionLiveMap:     make(map[int64]int64),
 		userSessionLiveMap: make(map[int64]map[int64]bool),
-=======
-		OrderInput:        make(chan POIWSMessage),
-		SessionInput:      make(chan POIWSMessage),
-		UserMap:           make(map[int64](chan POIWSMessage)),
-		OnlineTeacherList: make(map[int64]bool),
->>>>>>> beegoorm
 	}
 }
 
