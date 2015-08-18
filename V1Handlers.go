@@ -746,10 +746,10 @@ func V1Banner(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	//	content := QueryOrderInSession4Student(10011, 0, 10)
+	content := QueryOrderInSession4Student(10011, 0, 5)
 	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-	//	GetLeanCloundMessageLogs()
-	od := POIOrderDispatch{OrderId: 1, TeacherId: 10010}
-	content := InsertOrderDispatch(&od)
+	//	content := GetLeanCloundMessageLogs()
+	//	od := POIOrderDispatch{OrderId: 1, TeacherId: 10010}
+	//	content := InsertOrderDispatch(&od)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }

@@ -26,6 +26,18 @@ type LCTypedMessage struct {
 	Attribute map[string]string `json:"_lcattrs,omitempty"`
 }
 
+type LCMessageLog struct {
+	MsgId     string `json:"msg-id"`
+	ConvId    string `json:"conv-id"`
+	From      string `json:"from"`
+	To        string `json:"to"`
+	FromIp    string `json:"from-ip"`
+	Timestamp string `json:"timestamp"`
+	Data      string `json:"data,string"`
+}
+
+type LCMessageLogs []LCMessageLog
+
 func NewLCCommentNotification(feedCommentId string) *LCTypedMessage {
 	var feedComment *POIFeedComment
 	var feed *POIFeed
@@ -296,7 +308,7 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 	return
 }
 
-func GetLeanCloundMessageLogs() {
+func GetLeanCloundMessageLogs() string {
 	url := fmt.Sprintf("%s/%s?%s", LC_SEND_MSG, "logs", "limit=1")
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
@@ -309,5 +321,12 @@ func GetLeanCloundMessageLogs() {
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(body))
+	content := string(body)
+	var messageLogs LCMessageLogs
+	json.Unmarshal(body, &messageLogs)
+	for i := range messageLogs {
+		messageLog := messageLogs[i]
+		fmt.Println(messageLog.Data)
+	}
+	return content
 }

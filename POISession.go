@@ -142,7 +142,6 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 			orderInSession.TimeToStr = timeTo.Format(time.RFC3339)
 		}
 		orderInSession.TotalCoat = float64(orderInSession.PricePerHour) * (float64(orderInSession.Length) / 60.0)
-		orderInSessions = append(orderInSessions, orderInSession)
 	}
 	return orderInSessions
 }
@@ -175,7 +174,6 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 			orderInSession.TimeToStr = timeTo.Format(time.RFC3339)
 		}
 		orderInSession.TotalCoat = float64(orderInSession.PricePerHour) * (float64(orderInSession.Length) / 60.0)
-		orderInSessions = append(orderInSessions, orderInSession)
 	}
 	return orderInSessions
 }
