@@ -188,6 +188,9 @@ func POIWSOrderHandler(orderId int64) {
 				confirmResp.Attribute["errCode"] = "0"
 				userChan <- confirmResp
 
+				dispatchTicker.Stop()
+				selectTimer.Stop()
+
 				resultMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER_RESULT)
 				resultMsg.Attribute["orderId"] = orderIdStr
 
@@ -273,28 +276,32 @@ func POIWSOrderHandler(orderId int64) {
 					break
 				}
 
-				recoverTeacherMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_RECOVER_TEACHER)
-				orderByte, _ := json.Marshal(order)
-				recoverTeacherMsg.Attribute["orderInfo"] = string(orderByte)
+				var countdown int64
+				var replied int64
 				if replyTs == 0 {
-					recoverTeacherMsg.Attribute["replied"] = "0"
+					replied = 0
 					if order.Type == 1 {
-						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
-							90+WsManager.orderDispatchMap[orderId][msg.UserId]-timestamp, 10)
+						countdown = 90 + WsManager.orderDispatchMap[orderId][msg.UserId] - timestamp
 					} else {
-						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
-							300+WsManager.orderDispatchMap[orderId][msg.UserId]-timestamp, 10)
+						countdown = 300 + WsManager.orderDispatchMap[orderId][msg.UserId] - timestamp
 					}
 				} else {
-					recoverTeacherMsg.Attribute["replied"] = "1"
+					replied = 1
 					if order.Type == 1 {
-						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
-							90+replyTs-timestamp, 10)
+						countdown = 90 + replyTs - timestamp
 					} else {
-						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
-							300+replyTs-timestamp, 10)
+						countdown = 300 + replyTs - timestamp
 					}
 				}
+				if countdown < 0 {
+					break
+				}
+				orderByte, _ := json.Marshal(order)
+
+				recoverTeacherMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_RECOVER_TEACHER)
+				recoverTeacherMsg.Attribute["orderInfo"] = string(orderByte)
+				recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
+				recoverTeacherMsg.Attribute["replied"] = strconv.FormatInt(replied, 10)
 				recoverChan := WsManager.GetUserChan(msg.UserId)
 				recoverChan <- recoverTeacherMsg
 
@@ -309,21 +316,24 @@ func POIWSOrderHandler(orderId int64) {
 				recoverChan <- msg
 
 				for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
-					recoverPresMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_PRESENT)
-					recoverPresMsg.Attribute["orderId"] = orderIdStr
-					recoverPresMsg.Attribute["time"] = RedisManager.GetOrderPlanTime(orderId, teacherId)
+					var countdown int64
 					if order.Type == 1 {
-						recoverPresMsg.Attribute["countdown"] = strconv.FormatInt(
-							90+WsManager.teacherOrderDispatchMap[teacherId][orderId]-timestamp, 10)
+						countdown = 90 + WsManager.teacherOrderDispatchMap[teacherId][orderId] - timestamp
 					} else {
-						recoverPresMsg.Attribute["countdown"] = strconv.FormatInt(
-							300+WsManager.teacherOrderDispatchMap[teacherId][orderId]-timestamp, 10)
+						countdown = 300 + WsManager.teacherOrderDispatchMap[teacherId][orderId] - timestamp
+					}
+					if countdown < 0 {
+						break
 					}
 					teacher := QueryTeacher(msg.UserId)
 					teacher.LabelList = QueryTeacherLabelById(msg.UserId)
 					teacherByte, _ := json.Marshal(teacher)
-					recoverPresMsg.Attribute["teacherInfo"] = string(teacherByte)
 
+					recoverPresMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_PRESENT)
+					recoverPresMsg.Attribute["orderId"] = orderIdStr
+					recoverPresMsg.Attribute["time"] = RedisManager.GetOrderPlanTime(orderId, teacherId)
+					recoverPresMsg.Attribute["teacherInfo"] = string(teacherByte)
+					recoverPresMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
 					recoverChan <- recoverPresMsg
 					fmt.Println("OrderRecover: ", orderId, " replied by teacher: ", msg.UserId)
 				}
