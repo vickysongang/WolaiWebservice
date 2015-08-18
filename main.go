@@ -33,7 +33,8 @@ func init() {
 }
 
 func main() {
-	orm.Debug = true
+	orm.Debug = false
+
 	go POISessionTickerHandler()
 
 	router := NewRouter()
