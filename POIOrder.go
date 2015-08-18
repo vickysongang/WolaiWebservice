@@ -120,7 +120,7 @@ func QueryOrderById(orderId int64) *POIOrder {
 	order := POIOrder{}
 	o := orm.NewOrm()
 	db, _ := orm.NewQueryBuilder("mysql")
-	db.Select("id,creator,create_timestamp,grade_id,subject_id,date,period_id,length,type,status").
+	db.Select("id,creator,grade_id,subject_id,date,period_id,length,type,status").
 		From("orders").Where("id = ?")
 	sql := db.String()
 	err := o.Raw(sql, orderId).QueryRow(&order)

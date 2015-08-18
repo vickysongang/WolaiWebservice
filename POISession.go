@@ -91,7 +91,7 @@ func InsertSession(session *POISession) *POISession {
 func QuerySessionById(sessionId int64) *POISession {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("id,order_id, creator, tutor, create_timestamp, plan_time, start_time, end_time,length, status, rating, comment").
+	qb.Select("id,order_id, creator, tutor, plan_time, length, status, rating, comment").
 		From("sessions").Where("id = ?")
 	sql := qb.String()
 	session := POISession{}
