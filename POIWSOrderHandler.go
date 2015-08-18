@@ -258,6 +258,11 @@ func POIWSOrderHandler(orderId int64) {
 					}
 				}
 
+				WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
+				WsManager.RemoveOrderChan(orderId)
+				close(orderChan)
+				return
+
 			case WS_ORDER_RECOVER_TEACHER:
 				replyTs, ok := WsManager.teacherOrderDispatchMap[msg.UserId][orderId]
 				if !ok {
@@ -287,7 +292,7 @@ func POIWSOrderHandler(orderId int64) {
 							90+replyTs-timestamp, 10)
 					} else {
 						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
-							300+replyTs, 10)
+							300+replyTs-timestamp, 10)
 					}
 				}
 				recoverChan := WsManager.GetUserChan(msg.UserId)
