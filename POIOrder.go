@@ -153,7 +153,7 @@ func UpdateOrderDispatchInfo(orderId int64, userId int64, dispatchInfo map[strin
 	return
 }
 
-func GetOrderDispatch(orderId, userId int64) *POIOrderDispatch {
+func QueryOrderDispatch(orderId, userId int64) *POIOrderDispatch {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("id,order_id,teacher_id,dispatch_time,reply_time,plan_time,result").From("order_dispatch").
