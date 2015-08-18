@@ -446,13 +446,13 @@ var routes = Routes{
 	Route{
 		"v1MyOrdersGET",
 		"GET",
-		"/v1/myorders",
+		"/v1/user/myorders",
 		V1OrderInSession,
 	},
 	Route{
 		"v1MyOrdersPost",
 		"POST",
-		"/v1/myorders",
+		"/v1/user/myorders",
 		V1OrderInSession,
 	},
 	Route{

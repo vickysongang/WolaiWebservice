@@ -705,15 +705,23 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-	pageNumStr := vars["pageNum"][0]
-	pageNum, _ := strconv.ParseInt(pageNumStr, 10, 64)
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		panic(err.Error())
+	}
+	var pageNum int64
+	if len(vars["page"]) == 0 {
+		pageNum = 1
+	} else {
+		pageNumStr := vars["page"][0]
+		pageNum, _ = strconv.ParseInt(pageNumStr, 10, 64)
+	}
 
 	var pageCount int64
-	if len(vars["pageCount"]) == 0 {
+	if len(vars["count"]) == 0 {
 		pageCount = 10
 	} else {
-		pageCountStr := vars["pageCount"][0]
+		pageCountStr := vars["count"][0]
 		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
 	}
 	var typeStr string
@@ -725,8 +733,10 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 	var content POIOrderInSessions
 	if typeStr == "student" {
 		content = QueryOrderInSession4Student(userId, int(pageNum), int(pageCount))
-	} else {
+	} else if typeStr == "teacher" {
 		content = QueryOrderInSession4Teacher(userId, int(pageNum), int(pageCount))
+	} else {
+		content = nil
 	}
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
