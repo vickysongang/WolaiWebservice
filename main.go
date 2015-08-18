@@ -29,12 +29,11 @@ func init() {
 		Config.Database.Method+"("+
 		Config.Database.Address+":"+
 		Config.Database.Port+")/"+
-		Config.Database.Database, 30)
+		Config.Database.Database+"?charset=utf8&loc=Asia%2FShanghai", 30)
 }
 
 func main() {
 	orm.Debug = false
-
 	go POISessionTickerHandler()
 
 	router := NewRouter()
