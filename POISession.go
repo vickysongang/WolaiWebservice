@@ -41,6 +41,7 @@ type POIOrderInSession struct {
 	Length         int64     `json:"timeLength"`
 	TotalCoat      float64   `json:"totalCost"`
 	Tutor          int64     `json:"-"`
+	Creator        int64     `json:"-"`
 	PlanTime       string    `json:"-"`
 	TimeFrom       time.Time `json:"-"`
 	TimeTo         time.Time `json:"-"`
@@ -124,7 +125,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 	o := orm.NewOrm()
 	start := (pageNum - 1) * pageCount
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("sessions.order_id,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
+	qb.Select("sessions.order_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
 		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour").
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
 		Where("orders.creator = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
@@ -158,7 +159,7 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 	o := orm.NewOrm()
 	start := (pageNum - 1) * pageCount
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("sessions.order_id,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
+	qb.Select("sessions.order_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
 		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour").
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
 		Where("sessions.tutor = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
@@ -167,7 +168,7 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 	fmt.Println(len(orderInSessions))
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
-		user := QueryUserById(orderInSession.Tutor)
+		user := QueryUserById(orderInSession.Creator)
 		orderInSession.User = user
 		if orderInSession.Status == SESSION_STATUS_COMPLETE {
 			orderInSession.TimeFromStr = orderInSession.TimeFrom.Format(time.RFC3339)
