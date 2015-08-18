@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/astaxie/beego/orm"
 )
 
 const LC_SEND_MSG = "https://leancloud.cn/1.1/rtm/messages"
@@ -27,16 +29,24 @@ type LCTypedMessage struct {
 }
 
 type LCMessageLog struct {
-	MsgId     string `json:"msg-id"`
-	ConvId    string `json:"conv-id"`
-	From      string `json:"from"`
-	To        string `json:"to"`
-	FromIp    string `json:"from-ip"`
-	Timestamp string `json:"timestamp"`
-	Data      string `json:"data,string"`
+	MsgId      string    `json:"msg-id" orm:"pk"`
+	ConvId     string    `json:"conv-id"`
+	From       string    `json:"from"`
+	CreateTime time.Time `json:"createTime" orm:"type(datetime)"`
+	FromIp     string    `json:"from-ip"`
+	To         string    `json:"to"`
+	Data       string    `json:"data"`
 }
 
 type LCMessageLogs []LCMessageLog
+
+func (ml *LCMessageLog) TableName() string {
+	return "message_logs"
+}
+
+func init() {
+	orm.RegisterModel(new(LCMessageLog))
+}
 
 func NewLCCommentNotification(feedCommentId string) *LCTypedMessage {
 	var feedComment *POIFeedComment
@@ -308,8 +318,17 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 	return
 }
 
+func InsertLCMessageLog(messageLog *LCMessageLog) *LCMessageLog {
+	o := orm.NewOrm()
+	_, err := o.Insert(messageLog)
+	if err != nil {
+		panic(err.Error())
+	}
+	return messageLog
+}
+
 func GetLeanCloundMessageLogs() string {
-	url := fmt.Sprintf("%s/%s?%s", LC_SEND_MSG, "logs", "limit=1")
+	url := fmt.Sprintf("%s/%s?%s", LC_SEND_MSG, "logs", "limit=2")
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Application-Key", Config.LeanCloud.AppKey)
@@ -322,11 +341,29 @@ func GetLeanCloundMessageLogs() string {
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	content := string(body)
-	var messageLogs LCMessageLogs
-	json.Unmarshal(body, &messageLogs)
-	for i := range messageLogs {
-		messageLog := messageLogs[i]
-		fmt.Println(messageLog.Data)
+	//	var messageLogs LCMessageLogs
+	var objs []interface{}
+	json.Unmarshal(body, &objs)
+	for _, v := range objs {
+		messageMap, _ := v.(map[string]interface{})
+		messageLog := LCMessageLog{}
+		msgIdStr, _ := messageMap["msg-id"].(string)
+		messageLog.MsgId = msgIdStr
+		convIdStr, _ := messageMap["conv-id"].(string)
+		messageLog.ConvId = convIdStr
+		fromStr, _ := messageMap["from"].(string)
+		messageLog.From = fromStr
+		toStr, _ := messageMap["to"].(string)
+		messageLog.To = toStr
+		fromIpStr, _ := messageMap["from-ip"].(string)
+		messageLog.FromIp = fromIpStr
+		datasStr, _ := messageMap["data"].(string)
+		messageLog.Data = datasStr
+		fmt.Println(messageMap["timestamp"])
+		timestamp, _ := messageMap["timestamp"].(float64)
+		messageLog.CreateTime = time.Unix(int64(timestamp/1000), 0)
+		InsertLCMessageLog(&messageLog)
 	}
+	fmt.Println(content)
 	return content
 }
