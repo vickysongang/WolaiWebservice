@@ -20,7 +20,7 @@ type POIOrder struct {
 	Status          string    `json:"-"`
 	Created         int64     `json:"-" orm:"column(creator)"`
 	CreateTime      time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
-	LastUpdateTime  time.Time `json:"-"`
+	LastUpdateTime  time.Time `json:"-" orm:"auto_now;type(datetime)"`
 	OrderType       string    `json:"-" orm:"column(type)"`
 	PricePerHour    int64     `json:"pricePerHour"`
 }

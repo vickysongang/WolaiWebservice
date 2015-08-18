@@ -295,3 +295,19 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 
 	return
 }
+
+func GetLeanCloundMessageLogs() {
+	url := fmt.Sprintf("%s/%s?%s", LC_SEND_MSG, "logs", "limit=1")
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
+	req.Header.Set("X-AVOSCloud-Application-Key", Config.LeanCloud.AppKey)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(body))
+}
