@@ -2,13 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	//"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
-	//	"github.com/satori/go.uuid"
 )
 
 func Dummy(w http.ResponseWriter, r *http.Request) {
