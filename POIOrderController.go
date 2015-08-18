@@ -15,8 +15,8 @@ func OrderCreate(creatorId int64, teacherId int64, timestamp float64, gradeId in
 		return 2, nil
 	}
 
-	order := NewPOIOrder(creator, timestamp, gradeId, subjectId,
-		date, periodId, length, orderType, ORDER_STATUS_CREATED)
+	order := NewPOIOrder(creator, gradeId, subjectId, date, periodId,
+		length, orderType, ORDER_STATUS_CREATED)
 
 	orderPtr := InsertOrder(&order)
 
@@ -45,7 +45,7 @@ func OrderPersonalConfirm(userId int64, orderId int64, accept int64, timestamp f
 		session := NewPOISession(order.Id,
 			QueryUserById(order.Creator.UserId),
 			QueryUserById(userId),
-			timestamp, order.Date)
+			order.Date)
 		sessionPtr := InsertSession(&session)
 
 		go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))

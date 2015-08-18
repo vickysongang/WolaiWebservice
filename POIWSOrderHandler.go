@@ -11,8 +11,10 @@ func POIWSOrderHandler(orderId int64) {
 	order := QueryOrderById(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan := WsManager.GetOrderChan(orderId)
-	orderInfo := make(map[string]interface{})
-	orderInfo["Status"] = ORDER_STATUS_DISPATHCING
+
+	orderInfo := map[string]interface{}{
+		"Status": ORDER_STATUS_DISPATHCING,
+	}
 	UpdateOrderInfo(orderId, orderInfo)
 
 	dispatchTicker := time.NewTicker(time.Second * 3)
@@ -35,7 +37,6 @@ func POIWSOrderHandler(orderId int64) {
 				userChan := WsManager.GetUserChan(order.Creator.UserId)
 				userChan <- expireMsg
 			}
-
 			for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
 				if WsManager.HasUserChan(teacherId) {
 					expireMsg.UserId = teacherId
@@ -44,6 +45,10 @@ func POIWSOrderHandler(orderId int64) {
 				}
 			}
 
+			orderInfo := map[string]interface{}{
+				"Status": ORDER_STATUS_CANCELLED,
+			}
+			UpdateOrderInfo(orderId, orderInfo)
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
 			close(orderChan)
@@ -61,7 +66,6 @@ func POIWSOrderHandler(orderId int64) {
 				userChan := WsManager.GetUserChan(order.Creator.UserId)
 				userChan <- expireMsg
 			}
-
 			for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
 				if WsManager.HasUserChan(teacherId) {
 					expireMsg.UserId = teacherId
@@ -70,6 +74,10 @@ func POIWSOrderHandler(orderId int64) {
 				}
 			}
 
+			orderInfo := map[string]interface{}{
+				"Status": ORDER_STATUS_CANCELLED,
+			}
+			UpdateOrderInfo(orderId, orderInfo)
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
 			close(orderChan)
@@ -79,13 +87,16 @@ func POIWSOrderHandler(orderId int64) {
 			timestamp = time.Now().Unix()
 
 			orderByte, _ := json.Marshal(order)
+			var countdown int64
+			if order.Type == 1 {
+				countdown = 90
+			} else {
+				countdown = 300
+			}
+
 			dispatchMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_DISPATCH)
 			dispatchMsg.Attribute["orderInfo"] = string(orderByte)
-			if order.Type == 1 {
-				dispatchMsg.Attribute["countdown"] = "90"
-			} else {
-				dispatchMsg.Attribute["countdown"] = "300"
-			}
+			dispatchMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
 
 			for teacherId, _ := range WsManager.onlineTeacherMap {
 				if !WsManager.HasDispatchedUser(orderId, teacherId) && WsManager.HasUserChan(teacherId) {
@@ -154,7 +165,6 @@ func POIWSOrderHandler(orderId int64) {
 
 				cancelMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_CANCEL)
 				cancelMsg.Attribute["orderId"] = orderIdStr
-
 				for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
 					if WsManager.HasUserChan(teacherId) {
 						cancelMsg.UserId = teacherId
@@ -163,6 +173,10 @@ func POIWSOrderHandler(orderId int64) {
 					}
 				}
 
+				orderInfo := map[string]interface{}{
+					"Status": ORDER_STATUS_CANCELLED,
+				}
+				UpdateOrderInfo(orderId, orderInfo)
 				WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 				WsManager.RemoveOrderChan(orderId)
 				close(orderChan)
@@ -215,17 +229,10 @@ func POIWSOrderHandler(orderId int64) {
 					break
 				}
 
-				//orderInfo := make(map[string]interface{})
-				//orderInfo["Status"] = ORDER_STATUS_CONFIRMED
-				orderInfo := map[string]interface{}{
-					"Status": ORDER_STATUS_CONFIRMED,
-				}
-				UpdateOrderInfo(orderId, orderInfo)
-
 				session := NewPOISession(order.Id,
 					QueryUserById(order.Creator.UserId),
 					QueryUserById(teacherId),
-					float64(timestamp), order.Date)
+					order.Date)
 				sessionPtr := InsertSession(&session)
 
 				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))
@@ -261,6 +268,10 @@ func POIWSOrderHandler(orderId int64) {
 					}
 				}
 
+				orderInfo := map[string]interface{}{
+					"Status": ORDER_STATUS_CONFIRMED,
+				}
+				UpdateOrderInfo(orderId, orderInfo)
 				WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 				WsManager.RemoveOrderChan(orderId)
 				close(orderChan)
@@ -325,8 +336,8 @@ func POIWSOrderHandler(orderId int64) {
 					if countdown < 0 {
 						break
 					}
-					teacher := QueryTeacher(msg.UserId)
-					teacher.LabelList = QueryTeacherLabelById(msg.UserId)
+					teacher := QueryTeacher(teacherId)
+					teacher.LabelList = QueryTeacherLabelById(teacherId)
 					teacherByte, _ := json.Marshal(teacher)
 
 					recoverPresMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_PRESENT)
