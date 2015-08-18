@@ -1,7 +1,7 @@
 package main
 
 import (
-     "github.com/astaxie/beego/orm"
+	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -13,16 +13,29 @@ type POIGrade struct {
 
 type POIGrades []POIGrade
 
-func init(){
+func init() {
 	orm.RegisterModel(new(POIGrade))
 }
 
-func QueryGradeList() POIGrades{
+func QueryGradeList() POIGrades {
 	grades := make(POIGrades, 0)
-	qb,_ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("id,name,pid").From("grade")
 	sql := qb.String()
 	o := orm.NewOrm()
 	o.Raw(sql).QueryRows(&grades)
 	return grades
+}
+
+func QueryGradeById(gradeId int64) *POIGrade {
+	grade := POIGrade{}
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("id,name,pid").From("grade").Where("id = ?")
+	sql := qb.String()
+	err := o.Raw(sql, gradeId).QueryRow(&grade)
+	if err != nil {
+		return nil
+	}
+	return &grade
 }

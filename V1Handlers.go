@@ -698,6 +698,39 @@ func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(NewPOIResponse(0, ""))
 }
 
+func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	pageNumStr := vars["pageNum"][0]
+	pageNum, _ := strconv.ParseInt(pageNumStr, 10, 64)
+
+	var pageCount int64
+	if len(vars["pageCount"]) == 0 {
+		pageCount = 10
+	} else {
+		pageCountStr := vars["pageCount"][0]
+		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
+	}
+	var typeStr string
+	if len(vars["type"]) == 0 {
+		typeStr = "student"
+	} else {
+		typeStr = vars["type"][0]
+	}
+	var content POIOrderInSessions
+	if typeStr == "student" {
+		content = QueryOrderInSession4Student(userId, int(pageNum), int(pageCount))
+	} else {
+		content = QueryOrderInSession4Teacher(userId, int(pageNum), int(pageCount))
+	}
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
 func V1Banner(w http.ResponseWriter, r *http.Request) {
 	//	content := DbManager.QueryBannerList()
 	content := QueryBannerList()
@@ -705,8 +738,6 @@ func V1Banner(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	sessionInfo := make(map[string]interface{})
-	sessionInfo["Status"] = "complete"
-	UpdateSessionInfo(1, sessionInfo)
-	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	content := QueryOrderInSession4Student(10011, 0, 10)
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }

@@ -444,6 +444,18 @@ var routes = Routes{
 		V1Banner,
 	},
 	Route{
+		"v1MyOrdersGET",
+		"GET",
+		"/v1/myorders",
+		V1OrderInSession,
+	},
+	Route{
+		"v1MyOrdersPost",
+		"POST",
+		"/v1/myorders",
+		V1OrderInSession,
+	},
+	Route{
 		"TestGET",
 		"GET",
 		"/test",
