@@ -1,9 +1,8 @@
 package main
 
 import (
-	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/astaxie/beego/orm"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type POISubject struct {
@@ -13,35 +12,33 @@ type POISubject struct {
 
 type POISubjects []POISubject
 
-func init(){
+func init() {
 	orm.RegisterModel(new(POISubject))
 }
 
-func QuerySubjectList() POISubjects{
+func QuerySubjectList() POISubjects {
 	subjects := make(POISubjects, 0)
-	qb,_ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("id,name").From("subject")
 	sql := qb.String()
 	o := orm.NewOrm()
-	_,err := o.Raw(sql).QueryRows(&subjects)
-	if err == orm.ErrNoRows{
+	_, err := o.Raw(sql).QueryRows(&subjects)
+	if err == orm.ErrNoRows {
 		return nil
 	}
 	return subjects
 }
 
-func QuerySubjectListByGrade(gradeId int64) POISubjects{
+func QuerySubjectListByGrade(gradeId int64) POISubjects {
 	subjects := make(POISubjects, 0)
-	qb,_ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("subject.id,subject.name").From("subject").InnerJoin("grade_to_subject").On("grade_to_subject.subject_id = subject.id").
-	Where("grade_to_subject.grade_id = ?")
+		Where("grade_to_subject.grade_id = ?")
 	sql := qb.String()
-	fmt.Println(sql)
 	o := orm.NewOrm()
-	_,err := o.Raw(sql,gradeId).QueryRows(&subjects)
-	if err == orm.ErrNoRows{
+	_, err := o.Raw(sql, gradeId).QueryRows(&subjects)
+	if err == orm.ErrNoRows {
 		return nil
 	}
 	return subjects
 }
-

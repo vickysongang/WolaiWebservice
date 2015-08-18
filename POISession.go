@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -131,7 +130,6 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 		Where("orders.creator = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
 	o.Raw(sql, userId).QueryRows(&orderInSessions)
-	fmt.Println(len(orderInSessions))
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
 		user := QueryUserById(orderInSession.Tutor)
@@ -165,7 +163,6 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 		Where("sessions.tutor = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
 	o.Raw(sql, userId).QueryRows(&orderInSessions)
-	fmt.Println(len(orderInSessions))
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
 		user := QueryUserById(orderInSession.Creator)
