@@ -30,22 +30,22 @@ type POISession struct {
 }
 
 type POIOrderInSession struct {
-	OrderId        int64       `json:"orderId" orm:"pk"`
-	Teacher        *POITeacher `json:"teacherInfo" orm:"-"`
-	GradeId        int64       `json:"gradeId"`
-	SubjectId      int64       `json:"subjectId"`
-	Status         string      `json:"sessionStatus"`
-	TimeFromStr    string      `json:"startTime" orm:"-"`
-	TimeToStr      string      `json:"endTime" orm:"-"`
-	PricePerHour   int64       `json:"pricePerHour"`
-	Length         int64       `json:"timeLength"`
-	TotalCoat      float64     `json:"totalCost"`
-	Tutor          int64       `json:"-"`
-	PlanTime       string      `json:"-"`
-	TimeFrom       time.Time   `json:"-"`
-	TimeTo         time.Time   `json:"-"`
-	RealLength     int64       `json:"-"`
-	EstimateLength int64       `json:"-"`
+	OrderId        int64     `json:"orderId" orm:"pk"`
+	User           *POIUser  `json:"userInfo" orm:"-"`
+	GradeId        int64     `json:"gradeId"`
+	SubjectId      int64     `json:"subjectId"`
+	Status         string    `json:"sessionStatus"`
+	TimeFromStr    string    `json:"startTime" orm:"-"`
+	TimeToStr      string    `json:"endTime" orm:"-"`
+	PricePerHour   int64     `json:"pricePerHour"`
+	Length         int64     `json:"timeLength"`
+	TotalCoat      float64   `json:"totalCost"`
+	Tutor          int64     `json:"-"`
+	PlanTime       string    `json:"-"`
+	TimeFrom       time.Time `json:"-"`
+	TimeTo         time.Time `json:"-"`
+	RealLength     int64     `json:"-"`
+	EstimateLength int64     `json:"-"`
 }
 
 type POIOrderInSessions []*POIOrderInSession
@@ -133,11 +133,8 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 	fmt.Println(len(orderInSessions))
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
-		teacher := QueryTeacher(orderInSession.Tutor)
-		if orderInSession.PricePerHour == 0 {
-			orderInSession.PricePerHour = teacher.PricePerHour
-		}
-		orderInSession.Teacher = teacher
+		user := QueryUserById(orderInSession.Tutor)
+		orderInSession.User = user
 		if orderInSession.Status == SESSION_STATUS_COMPLETE {
 			orderInSession.TimeFromStr = orderInSession.TimeFrom.Format(time.RFC3339)
 			orderInSession.TimeToStr = orderInSession.TimeTo.Format(time.RFC3339)
@@ -170,11 +167,8 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 	fmt.Println(len(orderInSessions))
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
-		teacher := QueryTeacher(orderInSession.Tutor)
-		if orderInSession.PricePerHour == 0 {
-			orderInSession.PricePerHour = teacher.PricePerHour
-		}
-		orderInSession.Teacher = teacher
+		user := QueryUserById(orderInSession.Tutor)
+		orderInSession.User = user
 		if orderInSession.Status == SESSION_STATUS_COMPLETE {
 			orderInSession.TimeFromStr = orderInSession.TimeFrom.Format(time.RFC3339)
 			orderInSession.TimeToStr = orderInSession.TimeTo.Format(time.RFC3339)
