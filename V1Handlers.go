@@ -711,7 +711,7 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 	}
 	var pageNum int64
 	if len(vars["page"]) == 0 {
-		pageNum = 1
+		pageNum = 0
 	} else {
 		pageNumStr := vars["page"][0]
 		pageNum, _ = strconv.ParseInt(pageNumStr, 10, 64)

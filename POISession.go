@@ -123,7 +123,7 @@ func UpdateSessionInfo(sessionId int64, sessionInfo map[string]interface{}) {
 func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderInSessions {
 	orderInSessions := make(POIOrderInSessions, 0)
 	o := orm.NewOrm()
-	start := (pageNum - 1) * pageCount
+	start := pageNum * pageCount
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("sessions.order_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
 		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour").
@@ -157,7 +157,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderInSessions {
 	orderInSessions := make(POIOrderInSessions, 0)
 	o := orm.NewOrm()
-	start := (pageNum - 1) * pageCount
+	start := pageNum * pageCount
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("sessions.order_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
 		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour").
