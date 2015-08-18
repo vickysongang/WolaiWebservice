@@ -11,8 +11,10 @@ func POIWSOrderHandler(orderId int64) {
 	order := QueryOrderById(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan := WsManager.GetOrderChan(orderId)
-	orderInfo := make(map[string]interface{})
-	orderInfo["Status"] = ORDER_STATUS_DISPATHCING
+
+	orderInfo := map[string]interface{}{
+		"Status": ORDER_STATUS_DISPATHCING,
+	}
 	UpdateOrderInfo(orderId, orderInfo)
 
 	dispatchTicker := time.NewTicker(time.Second * 3)
@@ -35,7 +37,6 @@ func POIWSOrderHandler(orderId int64) {
 				userChan := WsManager.GetUserChan(order.Creator.UserId)
 				userChan <- expireMsg
 			}
-
 			for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
 				if WsManager.HasUserChan(teacherId) {
 					expireMsg.UserId = teacherId
@@ -44,6 +45,10 @@ func POIWSOrderHandler(orderId int64) {
 				}
 			}
 
+			orderInfo := map[string]interface{}{
+				"Status": ORDER_STATUS_CANCELLED,
+			}
+			UpdateOrderInfo(orderId, orderInfo)
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
 			close(orderChan)
@@ -61,7 +66,6 @@ func POIWSOrderHandler(orderId int64) {
 				userChan := WsManager.GetUserChan(order.Creator.UserId)
 				userChan <- expireMsg
 			}
-
 			for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
 				if WsManager.HasUserChan(teacherId) {
 					expireMsg.UserId = teacherId
@@ -70,6 +74,10 @@ func POIWSOrderHandler(orderId int64) {
 				}
 			}
 
+			orderInfo := map[string]interface{}{
+				"Status": ORDER_STATUS_CANCELLED,
+			}
+			UpdateOrderInfo(orderId, orderInfo)
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
 			close(orderChan)
@@ -79,13 +87,16 @@ func POIWSOrderHandler(orderId int64) {
 			timestamp = time.Now().Unix()
 
 			orderByte, _ := json.Marshal(order)
+			var countdown int64
+			if order.Type == 1 {
+				countdown = 90
+			} else {
+				countdown = 300
+			}
+
 			dispatchMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_DISPATCH)
 			dispatchMsg.Attribute["orderInfo"] = string(orderByte)
-			if order.Type == 1 {
-				dispatchMsg.Attribute["countdown"] = "90"
-			} else {
-				dispatchMsg.Attribute["countdown"] = "300"
-			}
+			dispatchMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
 
 			for teacherId, _ := range WsManager.onlineTeacherMap {
 				if !WsManager.HasDispatchedUser(orderId, teacherId) && WsManager.HasUserChan(teacherId) {
@@ -93,8 +104,13 @@ func POIWSOrderHandler(orderId int64) {
 					teacherChan := WsManager.GetUserChan(teacherId)
 					teacherChan <- dispatchMsg
 
+					orderDispatch := POIOrderDispatch{
+						OrderId:   orderId,
+						TeacherId: teacherId,
+					}
+					InsertOrderDispatch(&orderDispatch)
 					WsManager.SetOrderDispatch(orderId, teacherId, timestamp)
-					RedisManager.SetOrderDispatch(orderId, teacherId, timestamp)
+
 					fmt.Println("OrderDispatched: ", orderId, " to Teacher: ", teacherId)
 				}
 			}
@@ -122,30 +138,35 @@ func POIWSOrderHandler(orderId int64) {
 					replied = true
 				}
 
-				RedisManager.SetOrderResponse(orderId, msg.UserId, timestamp)
-				RedisManager.SetOrderPlanTime(orderId, msg.UserId, timeReply)
+				orderDispatchInfo := map[string]interface{}{
+					"ReplyTime": time.Now(),
+					"PlanTime":  timeReply,
+				}
+				UpdateOrderDispatchInfo(orderId, msg.UserId, orderDispatchInfo)
 				WsManager.SetOrderReply(orderId, msg.UserId, timestamp)
+				fmt.Println("OrderPresented: ", orderId, " replied by teacher: ", msg.UserId)
 
 				if !WsManager.HasUserChan(order.Creator.UserId) {
 					break
 				}
 				creatorChan := WsManager.GetUserChan(order.Creator.UserId)
 
-				presentMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_PRESENT)
-				presentMsg.Attribute["orderId"] = orderIdStr
-				presentMsg.Attribute["time"] = timeReply
-				if order.Type == 1 {
-					presentMsg.Attribute["countdown"] = "90"
-				} else {
-					presentMsg.Attribute["countdown"] = "300"
-				}
 				teacher := QueryTeacher(msg.UserId)
 				teacher.LabelList = QueryTeacherLabelById(msg.UserId)
 				teacherByte, _ := json.Marshal(teacher)
-				presentMsg.Attribute["teacherInfo"] = string(teacherByte)
+				var countdown int64
+				if order.Type == 1 {
+					countdown = 90
+				} else {
+					countdown = 300
+				}
 
+				presentMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_PRESENT)
+				presentMsg.Attribute["orderId"] = orderIdStr
+				presentMsg.Attribute["time"] = timeReply
+				presentMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
+				presentMsg.Attribute["teacherInfo"] = string(teacherByte)
 				creatorChan <- presentMsg
-				fmt.Println("OrderPresented: ", orderId, " replied by teacher: ", msg.UserId)
 
 			case WS_ORDER_CANCEL:
 				cancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER_CANCEL_RESP)
@@ -154,7 +175,6 @@ func POIWSOrderHandler(orderId int64) {
 
 				cancelMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_CANCEL)
 				cancelMsg.Attribute["orderId"] = orderIdStr
-
 				for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
 					if WsManager.HasUserChan(teacherId) {
 						cancelMsg.UserId = teacherId
@@ -163,6 +183,10 @@ func POIWSOrderHandler(orderId int64) {
 					}
 				}
 
+				orderInfo := map[string]interface{}{
+					"Status": ORDER_STATUS_CANCELLED,
+				}
+				UpdateOrderInfo(orderId, orderInfo)
 				WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 				WsManager.RemoveOrderChan(orderId)
 				close(orderChan)
@@ -188,6 +212,9 @@ func POIWSOrderHandler(orderId int64) {
 				confirmResp.Attribute["errCode"] = "0"
 				userChan <- confirmResp
 
+				dispatchTicker.Stop()
+				selectTimer.Stop()
+
 				resultMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER_RESULT)
 				resultMsg.Attribute["orderId"] = orderIdStr
 
@@ -197,32 +224,37 @@ func POIWSOrderHandler(orderId int64) {
 					}
 					dispatchChan := WsManager.GetUserChan(dispatchId)
 
+					var status int64
+					var orderDispatchInfo map[string]interface{}
 					if dispatchId == teacherId {
-						resultMsg.Attribute["status"] = "0"
+						status = 0
+						orderDispatchInfo = map[string]interface{}{
+							"Result": "success",
+						}
 					} else {
-						resultMsg.Attribute["status"] = "-1"
+						status = -1
+						orderDispatchInfo = map[string]interface{}{
+							"Result": "fail",
+						}
 					}
+					UpdateOrderDispatchInfo(orderId, dispatchId, orderDispatchInfo)
+
 					resultMsg.UserId = dispatchId
+					resultMsg.Attribute["status"] = strconv.FormatInt(status, 10)
 					dispatchChan <- resultMsg
 				}
 				fmt.Println("OrderConfirmed: ", orderId, " to teacher: ", teacherId)
 
-				planTime := RedisManager.GetOrderPlanTime(orderId, teacherId)
+				dispatchInfo := QueryOrderDispatch(orderId, teacherId)
+				planTime := dispatchInfo.PlanTime
 				if planTime == "" {
 					break
 				}
 
-				//orderInfo := make(map[string]interface{})
-				//orderInfo["Status"] = ORDER_STATUS_CONFIRMED
-				orderInfo := map[string]interface{}{
-					"Status": ORDER_STATUS_CONFIRMED,
-				}
-				UpdateOrderInfo(orderId, orderInfo)
-
 				session := NewPOISession(order.Id,
 					QueryUserById(order.Creator.UserId),
 					QueryUserById(teacherId),
-					float64(timestamp), order.Date)
+					order.Date)
 				sessionPtr := InsertSession(&session)
 
 				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))
@@ -258,6 +290,10 @@ func POIWSOrderHandler(orderId int64) {
 					}
 				}
 
+				orderInfo := map[string]interface{}{
+					"Status": ORDER_STATUS_CONFIRMED,
+				}
+				UpdateOrderInfo(orderId, orderInfo)
 				WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 				WsManager.RemoveOrderChan(orderId)
 				close(orderChan)
@@ -273,28 +309,32 @@ func POIWSOrderHandler(orderId int64) {
 					break
 				}
 
-				recoverTeacherMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_RECOVER_TEACHER)
-				orderByte, _ := json.Marshal(order)
-				recoverTeacherMsg.Attribute["orderInfo"] = string(orderByte)
+				var countdown int64
+				var replied int64
 				if replyTs == 0 {
-					recoverTeacherMsg.Attribute["replied"] = "0"
+					replied = 0
 					if order.Type == 1 {
-						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
-							90+WsManager.orderDispatchMap[orderId][msg.UserId]-timestamp, 10)
+						countdown = 90 + WsManager.orderDispatchMap[orderId][msg.UserId] - timestamp
 					} else {
-						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
-							300+WsManager.orderDispatchMap[orderId][msg.UserId]-timestamp, 10)
+						countdown = 300 + WsManager.orderDispatchMap[orderId][msg.UserId] - timestamp
 					}
 				} else {
-					recoverTeacherMsg.Attribute["replied"] = "1"
+					replied = 1
 					if order.Type == 1 {
-						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
-							90+replyTs-timestamp, 10)
+						countdown = 90 + replyTs - timestamp
 					} else {
-						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
-							300+replyTs-timestamp, 10)
+						countdown = 300 + replyTs - timestamp
 					}
 				}
+				if countdown < 0 {
+					break
+				}
+				orderByte, _ := json.Marshal(order)
+
+				recoverTeacherMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_RECOVER_TEACHER)
+				recoverTeacherMsg.Attribute["orderInfo"] = string(orderByte)
+				recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
+				recoverTeacherMsg.Attribute["replied"] = strconv.FormatInt(replied, 10)
 				recoverChan := WsManager.GetUserChan(msg.UserId)
 				recoverChan <- recoverTeacherMsg
 
@@ -309,21 +349,24 @@ func POIWSOrderHandler(orderId int64) {
 				recoverChan <- msg
 
 				for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
+					var countdown int64
+					if order.Type == 1 {
+						countdown = 90 + WsManager.teacherOrderDispatchMap[teacherId][orderId] - timestamp
+					} else {
+						countdown = 300 + WsManager.teacherOrderDispatchMap[teacherId][orderId] - timestamp
+					}
+					if countdown < 0 {
+						break
+					}
+					teacher := QueryTeacher(teacherId)
+					teacher.LabelList = QueryTeacherLabelById(teacherId)
+					teacherByte, _ := json.Marshal(teacher)
+
 					recoverPresMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_PRESENT)
 					recoverPresMsg.Attribute["orderId"] = orderIdStr
 					recoverPresMsg.Attribute["time"] = RedisManager.GetOrderPlanTime(orderId, teacherId)
-					if order.Type == 1 {
-						recoverPresMsg.Attribute["countdown"] = strconv.FormatInt(
-							90+WsManager.teacherOrderDispatchMap[teacherId][orderId]-timestamp, 10)
-					} else {
-						recoverPresMsg.Attribute["countdown"] = strconv.FormatInt(
-							300+WsManager.teacherOrderDispatchMap[teacherId][orderId]-timestamp, 10)
-					}
-					teacher := QueryTeacher(msg.UserId)
-					teacher.LabelList = QueryTeacherLabelById(msg.UserId)
-					teacherByte, _ := json.Marshal(teacher)
 					recoverPresMsg.Attribute["teacherInfo"] = string(teacherByte)
-
+					recoverPresMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
 					recoverChan <- recoverPresMsg
 					fmt.Println("OrderRecover: ", orderId, " replied by teacher: ", msg.UserId)
 				}

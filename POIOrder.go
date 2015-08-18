@@ -8,21 +8,20 @@ import (
 )
 
 type POIOrder struct {
-	Id              int64     `json:"id" orm:"pk"`
-	Creator         *POIUser  `json:"creatorInfo" orm:"-"`
-	CreateTimestamp float64   `json:"createTimestamp"`
-	GradeId         int64     `json:"gradeId"`
-	SubjectId       int64     `json:"subjectId"`
-	Date            string    `json:"date"`
-	PeriodId        int64     `json:"periodId"`
-	Length          int64     `json:"length"`
-	Type            int64     `json:"orderType" orm:"-"`
-	Status          string    `json:"-"`
-	Created         int64     `json:"-" orm:"column(creator)"`
-	CreateTime      time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
-	LastUpdateTime  time.Time `json:"-" orm:"auto_now;type(datetime)"`
-	OrderType       string    `json:"-" orm:"column(type)"`
-	PricePerHour    int64     `json:"pricePerHour"`
+	Id             int64     `json:"id" orm:"pk"`
+	Creator        *POIUser  `json:"creatorInfo" orm:"-"`
+	GradeId        int64     `json:"gradeId"`
+	SubjectId      int64     `json:"subjectId"`
+	Date           string    `json:"date"`
+	PeriodId       int64     `json:"periodId"`
+	Length         int64     `json:"length"`
+	Type           int64     `json:"orderType" orm:"-"`
+	Status         string    `json:"-"`
+	Created        int64     `json:"-" orm:"column(creator)"`
+	CreateTime     time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+	LastUpdateTime time.Time `json:"-"`
+	OrderType      string    `json:"-" orm:"column(type)"`
+	PricePerHour   int64     `json:"pricePerHour"`
 }
 
 type POIOrderDispatch struct {
@@ -72,12 +71,18 @@ func init() {
 	orm.RegisterModel(new(POIOrder), new(POIOrderDispatch))
 }
 
-func NewPOIOrder(creator *POIUser, timestamp float64, gradeId int64, subjectId int64,
-	date string, periodId int64, length int64,
-	orderType int64, orderStatus string) POIOrder {
-	return POIOrder{Creator: creator, CreateTimestamp: timestamp, GradeId: gradeId,
-		SubjectId: subjectId, Date: date, PeriodId: periodId, Length: length,
-		Type: orderType, Status: orderStatus}
+func NewPOIOrder(creator *POIUser, gradeId int64, subjectId int64, date string, periodId int64,
+	length int64, orderType int64, orderStatus string) POIOrder {
+	return POIOrder{
+		Creator:   creator,
+		GradeId:   gradeId,
+		SubjectId: subjectId,
+		Date:      date,
+		PeriodId:  periodId,
+		Length:    length,
+		Type:      orderType,
+		Status:    orderStatus,
+	}
 }
 
 func InsertOrder(order *POIOrder) *POIOrder {
@@ -115,7 +120,7 @@ func QueryOrderById(orderId int64) *POIOrder {
 	order := POIOrder{}
 	o := orm.NewOrm()
 	db, _ := orm.NewQueryBuilder("mysql")
-	db.Select("id,creator,create_timestamp,grade_id,subject_id,date,period_id,length,type,status").
+	db.Select("id,creator,grade_id,subject_id,date,period_id,length,type,status").
 		From("orders").Where("id = ?")
 	sql := db.String()
 	err := o.Raw(sql, orderId).QueryRow(&order)
@@ -148,7 +153,7 @@ func UpdateOrderDispatchInfo(orderId int64, userId int64, dispatchInfo map[strin
 	return
 }
 
-func GetOrderDispatch(orderId, userId int64) *POIOrderDispatch {
+func QueryOrderDispatch(orderId, userId int64) *POIOrderDispatch {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("id,order_id,teacher_id,dispatch_time,reply_time,plan_time,result").From("order_dispatch").
