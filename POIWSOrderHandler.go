@@ -124,6 +124,7 @@ func POIWSOrderHandler(orderId int64) {
 
 				RedisManager.SetOrderResponse(orderId, msg.UserId, timestamp)
 				RedisManager.SetOrderPlanTime(orderId, msg.UserId, timeReply)
+				WsManager.SetOrderReply(orderId, msg.UserId, timestamp)
 
 				if !WsManager.HasUserChan(order.Creator.UserId) {
 					break
@@ -211,8 +212,11 @@ func POIWSOrderHandler(orderId int64) {
 					break
 				}
 
-				orderInfo := make(map[string]interface{})
-				orderInfo["Status"] = ORDER_STATUS_CONFIRMED
+				//orderInfo := make(map[string]interface{})
+				//orderInfo["Status"] = ORDER_STATUS_CONFIRMED
+				orderInfo := map[string]interface{}{
+					"Status": ORDER_STATUS_CONFIRMED,
+				}
 				UpdateOrderInfo(orderId, orderInfo)
 
 				session := NewPOISession(order.Id,
@@ -253,6 +257,72 @@ func POIWSOrderHandler(orderId int64) {
 						}
 					}
 				}
+
+			case WS_ORDER_RECOVER_TEACHER:
+				replyTs, ok := WsManager.teacherOrderDispatchMap[msg.UserId][orderId]
+				if !ok {
+					break
+				}
+
+				if !WsManager.HasUserChan(msg.UserId) {
+					break
+				}
+
+				recoverTeacherMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_RECOVER_TEACHER)
+				orderByte, _ := json.Marshal(order)
+				recoverTeacherMsg.Attribute["orderInfo"] = string(orderByte)
+				if replyTs == 0 {
+					recoverTeacherMsg.Attribute["replied"] = "0"
+					if order.Type == 1 {
+						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
+							90+WsManager.orderDispatchMap[orderId][msg.UserId]-timestamp, 10)
+					} else {
+						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
+							300+WsManager.orderDispatchMap[orderId][msg.UserId]-timestamp, 10)
+					}
+				} else {
+					recoverTeacherMsg.Attribute["replied"] = "1"
+					if order.Type == 1 {
+						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
+							90+replyTs-timestamp, 10)
+					} else {
+						recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(
+							300+replyTs, 10)
+					}
+				}
+				recoverChan := WsManager.GetUserChan(msg.UserId)
+				recoverChan <- recoverTeacherMsg
+
+			case WS_ORDER_RECOVER_STU:
+				if !WsManager.HasUserChan(msg.UserId) {
+					break
+				}
+
+				recoverStuMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER_RECOVER_STU)
+				recoverStuMsg.Attribute["orderId"] = orderIdStr
+				recoverChan := WsManager.GetUserChan(msg.UserId)
+				recoverChan <- msg
+
+				for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
+					recoverPresMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_PRESENT)
+					recoverPresMsg.Attribute["orderId"] = orderIdStr
+					recoverPresMsg.Attribute["time"] = RedisManager.GetOrderPlanTime(orderId, teacherId)
+					if order.Type == 1 {
+						recoverPresMsg.Attribute["countdown"] = strconv.FormatInt(
+							90+WsManager.teacherOrderDispatchMap[teacherId][orderId]-timestamp, 10)
+					} else {
+						recoverPresMsg.Attribute["countdown"] = strconv.FormatInt(
+							300+WsManager.teacherOrderDispatchMap[teacherId][orderId]-timestamp, 10)
+					}
+					teacher := QueryTeacher(msg.UserId)
+					teacher.LabelList = QueryTeacherLabelById(msg.UserId)
+					teacherByte, _ := json.Marshal(teacher)
+					recoverPresMsg.Attribute["teacherInfo"] = string(teacherByte)
+
+					recoverChan <- recoverPresMsg
+					fmt.Println("OrderRecover: ", orderId, " replied by teacher: ", msg.UserId)
+				}
+
 			}
 		}
 	}
@@ -287,4 +357,42 @@ func InitOrderDispatch(msg POIWSMessage, userId int64, timestamp int64) bool {
 	go POIWSOrderHandler(orderId)
 
 	return true
+}
+
+func RecoverTeacherOrder(userId int64) {
+	if !WsManager.HasUserChan(userId) {
+		return
+	}
+
+	if _, ok := WsManager.teacherOrderDispatchMap[userId]; !ok {
+		return
+	}
+
+	for orderId, _ := range WsManager.teacherOrderDispatchMap[userId] {
+		recoverMsg := NewPOIWSMessage("", userId, WS_ORDER_RECOVER_TEACHER)
+		if !WsManager.HasOrderChan(orderId) {
+			continue
+		}
+		orderChan := WsManager.GetOrderChan(orderId)
+		orderChan <- recoverMsg
+	}
+}
+
+func RecoverStudentOrder(userId int64) {
+	if !WsManager.HasUserChan(userId) {
+		return
+	}
+
+	if _, ok := WsManager.userOrderDispatchMap[userId]; !ok {
+		return
+	}
+
+	for orderId, _ := range WsManager.userOrderDispatchMap[userId] {
+		recoverMsg := NewPOIWSMessage("", userId, WS_ORDER_RECOVER_STU)
+		if !WsManager.HasOrderChan(orderId) {
+			continue
+		}
+		orderChan := WsManager.GetOrderChan(orderId)
+		orderChan <- recoverMsg
+	}
 }

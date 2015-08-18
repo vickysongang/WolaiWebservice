@@ -74,6 +74,8 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	user := QueryUserById(userId)
 	go WebSocketWriteHandler(conn, userId, userChan)
 
+	go RecoverStudentOrder(userId)
+
 	for {
 		_, p, err = conn.ReadMessage()
 		if err != nil {
@@ -121,6 +123,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_TEACHER_RESP)
 			if user.AccessRight == 2 {
 				WsManager.SetTeacherOnline(userId, timestamp)
+				go RecoverTeacherOrder(userId)
 				resp.Attribute["errCode"] = "0"
 			} else {
 				resp.Attribute["errCode"] = "2"

@@ -13,7 +13,7 @@ type POIWSManager struct {
 	onlineTeacherMap map[int64]int64 // teacher userId to online timestamp
 
 	orderDispatchMap        map[int64]map[int64]int64 // orderId to teacherId to timestamp
-	teacherOrderDispatchMap map[int64]map[int64]int64 // teacherId to orderId to timestamp
+	teacherOrderDispatchMap map[int64]map[int64]int64 // teacherId to orderId to reply_timestamp
 	userOrderDispatchMap    map[int64]map[int64]int64 // userId to orderId to timestamp
 
 	sessionLiveMap     map[int64]int64          // sessionId to timestamp
@@ -136,6 +136,13 @@ func (wsm *POIWSManager) SetOrderDispatch(orderId int64, userId int64, timestamp
 
 	if _, ok := wsm.teacherOrderDispatchMap[userId]; !ok {
 		wsm.teacherOrderDispatchMap[userId] = make(map[int64]int64)
+	}
+	wsm.teacherOrderDispatchMap[userId][orderId] = 0
+}
+
+func (wsm *POIWSManager) SetOrderReply(orderId int64, userId int64, timestamp int64) {
+	if _, ok := wsm.teacherOrderDispatchMap[userId][orderId]; !ok {
+		return
 	}
 	wsm.teacherOrderDispatchMap[userId][orderId] = timestamp
 }
