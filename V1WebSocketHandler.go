@@ -253,11 +253,9 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			if pingpong {
 				pingpong = false
 			} else {
-				WSUserLogout(userId)
-				fmt.Println("WebSocketWriteHandler: user timed out; UserId: ", userId)
 
-				WsManager.SetUserOffline(userId)
-				WsManager.SetTeacherOffline(userId)
+				fmt.Println("WebSocketWriteHandler: user timed out; UserId: ", userId)
+				WSUserLogout(userId)
 				close(userChan)
 				conn.Close()
 				return
@@ -278,7 +276,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					msg.OperationCode == WS_FORCE_LOGOUT ||
 					msg.OperationCode == WS_LOGOUT_RESP {
 
-					WSUserLogout(msg.UserId)
+					WSUserLogout(userId)
 					close(userChan)
 					conn.Close()
 					return
