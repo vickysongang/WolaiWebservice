@@ -15,6 +15,10 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 		return userChan, false
 	}
 
+	if user := QueryUserById(msg.UserId); user == nil {
+		return userChan, false
+	}
+
 	if WsManager.HasUserChan(msg.UserId) {
 		oldChan := WsManager.GetUserChan(msg.UserId)
 		WsManager.RemoveUserChan(msg.UserId)
