@@ -349,7 +349,7 @@ func POIWSOrderHandler(orderId int64) {
 				recoverStuMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER_RECOVER_STU)
 				recoverStuMsg.Attribute["orderId"] = orderIdStr
 				recoverChan := WsManager.GetUserChan(msg.UserId)
-				recoverChan <- msg
+				recoverChan <- recoverStuMsg
 
 				for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
 					var countdown int64
