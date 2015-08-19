@@ -278,7 +278,7 @@ func POIWSOrderHandler(orderId int64) {
 				session := NewPOISession(order.Id,
 					QueryUserById(order.Creator.UserId),
 					QueryUserById(teacherId),
-					order.Date)
+					planTime)
 				sessionPtr := InsertSession(&session)
 
 				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))
@@ -291,13 +291,6 @@ func POIWSOrderHandler(orderId int64) {
 				} else if order.Type == 2 {
 					planTime, _ := time.Parse(time.RFC3339, dispatchInfo.PlanTime)
 					planTimeTS := planTime.Unix()
-
-					sessionStart := make(map[string]int64)
-					sessionStart["type"] = 6
-					sessionStart["oprCode"] = 1
-					sessionStart["sessionId"] = sessionPtr.Id
-					jsonStart, _ := json.Marshal(sessionStart)
-					RedisManager.SetSessionTicker(planTimeTS, string(jsonStart))
 
 					sessionReminder := make(map[string]int64)
 					sessionReminder["type"] = 5
