@@ -36,6 +36,7 @@ type LCMessageLog struct {
 	FromIp     string    `json:"from-ip"`
 	To         string    `json:"to"`
 	Data       string    `json:"data"`
+	Timestamp  string    `json:"-"`
 }
 
 type LCMessageLogs []LCMessageLog
@@ -327,12 +328,28 @@ func InsertLCMessageLog(messageLog *LCMessageLog) *LCMessageLog {
 	return messageLog
 }
 
-func GetLeanCloundMessageLogs() string {
-	url := fmt.Sprintf("%s/%s?%s", LC_SEND_MSG, "logs", "limit=2")
+func HasLCMessageLog(msgId string) bool {
+	var hasFlag bool
+	o := orm.NewOrm()
+	count, err := o.QueryTable("message_logs").Filter("msg_id", msgId).Count()
+	if err != nil {
+		hasFlag = false
+	} else {
+		if count > 0 {
+			hasFlag = true
+		} else {
+			hasFlag = false
+		}
+	}
+	return hasFlag
+}
+
+func SaveLeanCloudMessageLogs(baseTime int64) string {
+	url := fmt.Sprintf("%s/%s?%s=%d&%s=%d", LC_SEND_MSG, "logs", "limit", 10, "max_ts", baseTime)
+	fmt.Println("url:", url)
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Application-Key", Config.LeanCloud.AppKey)
-	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -341,9 +358,10 @@ func GetLeanCloundMessageLogs() string {
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	content := string(body)
-	//	var messageLogs LCMessageLogs
 	var objs []interface{}
 	json.Unmarshal(body, &objs)
+	fmt.Println("length:", len(objs))
+	var count int64
 	for _, v := range objs {
 		messageMap, _ := v.(map[string]interface{})
 		messageLog := LCMessageLog{}
@@ -359,11 +377,15 @@ func GetLeanCloundMessageLogs() string {
 		messageLog.FromIp = fromIpStr
 		datasStr, _ := messageMap["data"].(string)
 		messageLog.Data = datasStr
-		fmt.Println(messageMap["timestamp"])
 		timestamp, _ := messageMap["timestamp"].(float64)
+		messageLog.Timestamp = strconv.FormatFloat(timestamp, 'f', 0, 64)
 		messageLog.CreateTime = time.Unix(int64(timestamp/1000), 0)
-		InsertLCMessageLog(&messageLog)
+		hasFlag := HasLCMessageLog(msgIdStr)
+		if !hasFlag {
+			InsertLCMessageLog(&messageLog)
+		}
+		count++
+
 	}
-	fmt.Println(content)
 	return content
 }

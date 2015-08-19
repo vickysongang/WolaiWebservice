@@ -118,7 +118,10 @@ func QueryUserByQQOpenId(qqOpenId string) int64 {
 	qb.Select("user_id").From("user_oauth").Where("open_id_qq = ?").Limit(1)
 	sql := qb.String()
 	o := orm.NewOrm()
-	o.Raw(sql, qqOpenId).QueryRow(&userOauth)
+	err := o.Raw(sql, qqOpenId).QueryRow(&userOauth)
+	if err != nil {
+		return -1
+	}
 	return userOauth.UserId
 }
 
