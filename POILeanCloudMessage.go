@@ -345,7 +345,7 @@ func HasLCMessageLog(msgId string) bool {
 }
 
 func SaveLeanCloudMessageLogs(baseTime int64) string {
-	url := fmt.Sprintf("%s/%s?%s=%d&%s=%d", LC_SEND_MSG, "logs", "limit", 10, "max_ts", baseTime)
+	url := fmt.Sprintf("%s/%s?%s=%d&%s=%d", LC_SEND_MSG, "logs", "limit", 1000, "max_ts", baseTime)
 	fmt.Println("url:", url)
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
@@ -381,11 +381,16 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 		messageLog.Timestamp = strconv.FormatFloat(timestamp, 'f', 0, 64)
 		messageLog.CreateTime = time.Unix(int64(timestamp/1000), 0)
 		hasFlag := HasLCMessageLog(msgIdStr)
+		count++
 		if !hasFlag {
 			InsertLCMessageLog(&messageLog)
+		} else {
+			fmt.Println("No newest LeanCloud message!")
+			break
 		}
-		count++
-
+		if count == 1000 {
+			SaveLeanCloudMessageLogs(int64(timestamp))
+		}
 	}
 	return content
 }
