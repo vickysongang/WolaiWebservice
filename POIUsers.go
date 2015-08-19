@@ -14,7 +14,7 @@ type POIUser struct {
 	Gender        int64     `json:"gender"`
 	AccessRight   int64     `json:"accessRight"`
 	LastLoginTime time.Time `json:"-"`
-	Phone         string    `json:"-"`
+	Phone         string    `json:"phone"`
 	Status        int64     `json:"-"`
 }
 
@@ -63,6 +63,15 @@ func InsertUser(phone string) int64 {
 	o := orm.NewOrm()
 	user := POIUser{Phone: phone}
 	id, err := o.Insert(&user)
+	if err != nil {
+		return 0
+	}
+	return id
+}
+
+func InsertPOIUser(user *POIUser) int64 {
+	o := orm.NewOrm()
+	id, err := o.Insert(user)
 	if err != nil {
 		return 0
 	}
