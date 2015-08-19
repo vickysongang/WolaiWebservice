@@ -18,7 +18,7 @@ type POITeacher struct {
 type POITeachers []POITeacher
 
 type POITeacherSubject struct {
-	SubjectName string `json:"subjectName"`
+	SubjectName string `json:"subjectName" orm:"column(name)"`
 	Description string `json:"description"`
 }
 type POITeacherSubjects []POITeacherSubject
@@ -43,6 +43,11 @@ type POITeacherProfile struct {
 	ServiceTime   int64              `json:"-"`
 }
 
+type POITeacherLabel struct {
+	Id   int64  `json:"id" orm:"pk"`
+	Name string `json:"name"`
+}
+
 func (r *POITeacherResume) TableName() string {
 	return "teacher_to_resume"
 }
@@ -52,7 +57,7 @@ func (p *POITeacherProfile) TableName() string {
 }
 
 func init() {
-	orm.RegisterModel(new(POITeacherResume), new(POITeacherProfile))
+	orm.RegisterModel(new(POITeacherResume), new(POITeacherProfile), new(POITeacherLabel))
 }
 
 func QueryTeacherList(pageNum, pageCount int) POITeachers {
@@ -199,4 +204,31 @@ func UpdateTeacherServiceTime(userId int64, length int64) {
 	if err != nil {
 		panic(err.Error())
 	}
+}
+
+func HasTeacherLabel(name string) bool {
+	o := orm.NewOrm()
+	count, err := o.QueryTable("teacher_label").Filter("name", name).Count()
+	if err != nil {
+		return false
+	}
+	if count > 0 {
+		return true
+	}
+	return false
+}
+
+func InsertTeacherLabel(name string) *POITeacherLabel {
+	teacherLabel := POITeacherLabel{Name: name}
+	o := orm.NewOrm()
+	id, err := o.Insert(&teacherLabel)
+	if err != nil {
+		return nil
+	}
+	teacherLabel.Id = id
+	return &teacherLabel
+}
+
+func InsertTeacher(teacherInfo string) {
+
 }
