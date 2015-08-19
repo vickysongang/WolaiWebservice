@@ -52,6 +52,7 @@ func POIWSOrderHandler(orderId int64) {
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
 			close(orderChan)
+			fmt.Println("OrderExpired: ", orderId)
 			return
 
 		case <-selectTimer.C:
@@ -81,6 +82,7 @@ func POIWSOrderHandler(orderId int64) {
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
 			close(orderChan)
+			fmt.Println("OrderExpired: ", orderId)
 			return
 
 		case <-dispatchTicker.C:
@@ -190,6 +192,7 @@ func POIWSOrderHandler(orderId int64) {
 				WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 				WsManager.RemoveOrderChan(orderId)
 				close(orderChan)
+				fmt.Println("OrderCancelled: ", orderId)
 				return
 
 			case WS_ORDER_CONFIRM:
@@ -361,10 +364,11 @@ func POIWSOrderHandler(orderId int64) {
 					teacher := QueryTeacher(teacherId)
 					teacher.LabelList = QueryTeacherLabelById(teacherId)
 					teacherByte, _ := json.Marshal(teacher)
+					dispatchInfo := QueryOrderDispatch(orderId, teacherId)
 
 					recoverPresMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_PRESENT)
 					recoverPresMsg.Attribute["orderId"] = orderIdStr
-					recoverPresMsg.Attribute["time"] = RedisManager.GetOrderPlanTime(orderId, teacherId)
+					recoverPresMsg.Attribute["time"] = dispatchInfo.PlanTime
 					recoverPresMsg.Attribute["teacherInfo"] = string(teacherByte)
 					recoverPresMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
 					recoverChan <- recoverPresMsg
