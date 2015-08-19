@@ -26,7 +26,7 @@ func POISessionTickerHandler() {
 			switch tickInfo["type"] {
 			case 6:
 				_ = InitSessionMonitor(sessionId)
-				go SendSessionNotification(sessionId, tickInfo["oprCode"])
+				//go SendSessionNotification(sessionId, tickInfo["oprCode"])
 			case 5:
 				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionReminderNotification(sessionId, tickInfo["hours"]))
 				go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionReminderNotification(sessionId, tickInfo["hours"]))

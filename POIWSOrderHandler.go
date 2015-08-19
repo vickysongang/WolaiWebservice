@@ -285,7 +285,7 @@ func POIWSOrderHandler(orderId int64) {
 				go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionCreatedNotification(sessionPtr.Id))
 
 				if order.Type == 1 {
-					go SendSessionNotification(sessionPtr.Id, 1)
+					//go SendSessionNotification(sessionPtr.Id, 1)
 					_ = InitSessionMonitor(sessionPtr.Id)
 
 				} else if order.Type == 2 {

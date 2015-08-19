@@ -50,8 +50,7 @@ func OrderPersonalConfirm(userId int64, orderId int64, accept int64, timestamp f
 
 		go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))
 		go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionCreatedNotification(sessionPtr.Id))
-
-		go SendSessionNotification(sessionPtr.Id, 1)
+		InitSessionMonitor(sessionPtr.Id)
 
 		return 0
 	}
