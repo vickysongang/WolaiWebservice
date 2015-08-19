@@ -102,11 +102,13 @@ func (wsm *POIWSManager) HasSessionChan(sessionId int64) bool {
 }
 
 func (wsm *POIWSManager) SetUserOnline(userId int64, timestamp int64) {
+	fmt.Println("SetUserOnline:", userId)
 	wsm.onlineUserMap[userId] = timestamp
 }
 
 func (wsm *POIWSManager) SetUserOffline(userId int64) {
 	if _, ok := wsm.onlineUserMap[userId]; ok {
+		fmt.Println("SetUserOffline:", userId)
 		delete(wsm.onlineUserMap, userId)
 	}
 }
