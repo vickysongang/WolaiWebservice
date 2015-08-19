@@ -137,8 +137,6 @@ func POIWSSessionHandler(sessionId int64) {
 					syncTicker = time.NewTicker(time.Second * 60)
 					waitingTimer.Stop()
 
-					//sessionInfo := make(map[string]interface{})
-					// sessionInfo["Status"] = SESSION_STATUS_SERVING
 					sessionInfo := map[string]interface{}{
 						"Status":   SESSION_STATUS_SERVING,
 						"TimeFrom": time.Now(),

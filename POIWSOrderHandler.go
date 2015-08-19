@@ -17,9 +17,9 @@ func POIWSOrderHandler(orderId int64) {
 	}
 	UpdateOrderInfo(orderId, orderInfo)
 
-	dispatchTicker := time.NewTicker(time.Second * 3)
-	waitingTimer := time.NewTimer(time.Second * 120)
-	selectTimer := time.NewTimer(time.Second * 180)
+	dispatchTicker := time.NewTicker(time.Second * 3) // 定时派单
+	waitingTimer := time.NewTimer(time.Second * 120)  // 学生等待无老师响应计时
+	selectTimer := time.NewTimer(time.Second * 180)   // 学生选则老师时长计时
 	replied := false
 
 	timestamp := time.Now().Unix()
@@ -29,8 +29,10 @@ func POIWSOrderHandler(orderId int64) {
 	for {
 		select {
 		case <-waitingTimer.C:
+			// 停止派单
 			dispatchTicker.Stop()
 
+			// 向学生和老师通知订单过时
 			expireMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_EXPIRE)
 			expireMsg.Attribute["orderId"] = orderIdStr
 			if WsManager.HasUserChan(order.Creator.UserId) {
@@ -45,6 +47,7 @@ func POIWSOrderHandler(orderId int64) {
 				}
 			}
 
+			// 结束订单派发，记录状态
 			orderInfo := map[string]interface{}{
 				"Status": ORDER_STATUS_CANCELLED,
 			}
@@ -56,11 +59,15 @@ func POIWSOrderHandler(orderId int64) {
 			return
 
 		case <-selectTimer.C:
+			// 如果没有老师回复，则无视此计时器(防止意外)
 			if !replied {
 				break
 			}
+
+			// 停止派单
 			dispatchTicker.Stop()
 
+			// 向学生和老师通知订单过时
 			expireMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_EXPIRE)
 			expireMsg.Attribute["orderId"] = orderIdStr
 			if WsManager.HasUserChan(order.Creator.UserId) {
@@ -75,6 +82,7 @@ func POIWSOrderHandler(orderId int64) {
 				}
 			}
 
+			// 结束订单派发，记录状态
 			orderInfo := map[string]interface{}{
 				"Status": ORDER_STATUS_CANCELLED,
 			}
@@ -86,8 +94,8 @@ func POIWSOrderHandler(orderId int64) {
 			return
 
 		case <-dispatchTicker.C:
+			// 组装派发信息
 			timestamp = time.Now().Unix()
-
 			orderByte, _ := json.Marshal(order)
 			var countdown int64
 			if order.Type == 1 {
@@ -100,6 +108,7 @@ func POIWSOrderHandler(orderId int64) {
 			dispatchMsg.Attribute["orderInfo"] = string(orderByte)
 			dispatchMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
 
+			// 遍历在线老师名单，如果未派发则直接派发
 			for teacherId, _ := range WsManager.onlineTeacherMap {
 				if !WsManager.HasDispatchedUser(orderId, teacherId) && WsManager.HasUserChan(teacherId) {
 					dispatchMsg.UserId = teacherId
@@ -123,8 +132,8 @@ func POIWSOrderHandler(orderId int64) {
 
 			switch msg.OperationCode {
 			case WS_ORDER_REPLY:
+				// 发送反馈消息
 				replyResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER_REPLY_RESP)
-
 				timeReply, ok := msg.Attribute["time"]
 				if !ok {
 					replyResp.Attribute["errCode"] = "2"
@@ -134,20 +143,24 @@ func POIWSOrderHandler(orderId int64) {
 				replyResp.Attribute["errCode"] = "0"
 				userChan <- replyResp
 
+				// 如果是第一个回复，启动学生选择计时
 				if !replied {
 					waitingTimer.Stop()
 					selectTimer = time.NewTimer(time.Second * 300)
 					replied = true
 				}
 
+				// 更新老师发单记录
 				orderDispatchInfo := map[string]interface{}{
 					"ReplyTime": time.Now(),
 					"PlanTime":  timeReply,
 				}
 				UpdateOrderDispatchInfo(orderId, msg.UserId, orderDispatchInfo)
 				WsManager.SetOrderReply(orderId, msg.UserId, timestamp)
+
 				fmt.Println("OrderPresented: ", orderId, " replied by teacher: ", msg.UserId)
 
+				// 向学生发送老师接单信息
 				if !WsManager.HasUserChan(order.Creator.UserId) {
 					break
 				}
@@ -171,10 +184,12 @@ func POIWSOrderHandler(orderId int64) {
 				creatorChan <- presentMsg
 
 			case WS_ORDER_CANCEL:
+				// 发送反馈消息
 				cancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER_CANCEL_RESP)
 				cancelResp.Attribute["errCode"] = "0"
 				userChan <- cancelResp
 
+				// 向已经派到的老师发送学生取消订单的信息
 				cancelMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_CANCEL)
 				cancelMsg.Attribute["orderId"] = orderIdStr
 				for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
@@ -185,6 +200,7 @@ func POIWSOrderHandler(orderId int64) {
 					}
 				}
 
+				// 结束订单派发，记录状态
 				orderInfo := map[string]interface{}{
 					"Status": ORDER_STATUS_CANCELLED,
 				}
@@ -196,6 +212,7 @@ func POIWSOrderHandler(orderId int64) {
 				return
 
 			case WS_ORDER_CONFIRM:
+				// 发送反馈信息
 				confirmResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER_CONFIRM_RESP)
 
 				teacherIdStr, ok := msg.Attribute["teacherId"]
@@ -215,9 +232,11 @@ func POIWSOrderHandler(orderId int64) {
 				confirmResp.Attribute["errCode"] = "0"
 				userChan <- confirmResp
 
+				// 停止所有计时器
 				dispatchTicker.Stop()
 				selectTimer.Stop()
 
+				// 向所有排到的老师发送抢单结果
 				resultMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER_RESULT)
 				resultMsg.Attribute["orderId"] = orderIdStr
 
@@ -246,8 +265,10 @@ func POIWSOrderHandler(orderId int64) {
 					resultMsg.Attribute["status"] = strconv.FormatInt(status, 10)
 					dispatchChan <- resultMsg
 				}
+
 				fmt.Println("OrderConfirmed: ", orderId, " to teacher: ", teacherId)
 
+				// 进入上课流程
 				dispatchInfo := QueryOrderDispatch(orderId, teacherId)
 				planTime := dispatchInfo.PlanTime
 				if planTime == "" {
@@ -268,7 +289,7 @@ func POIWSOrderHandler(orderId int64) {
 					_ = InitSessionMonitor(sessionPtr.Id)
 
 				} else if order.Type == 2 {
-					planTime, _ := time.Parse(time.RFC3339, order.Date)
+					planTime, _ := time.Parse(time.RFC3339, dispatchInfo.PlanTime)
 					planTimeTS := planTime.Unix()
 
 					sessionStart := make(map[string]int64)
@@ -293,6 +314,7 @@ func POIWSOrderHandler(orderId int64) {
 					}
 				}
 
+				// 结束派单流程，记录结果
 				orderInfo := map[string]interface{}{
 					"Status": ORDER_STATUS_CONFIRMED,
 				}
