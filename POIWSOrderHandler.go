@@ -52,6 +52,7 @@ func POIWSOrderHandler(orderId int64) {
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
 			close(orderChan)
+			fmt.Println("OrderExpired: ", orderId)
 			return
 
 		case <-selectTimer.C:
@@ -81,6 +82,7 @@ func POIWSOrderHandler(orderId int64) {
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
 			close(orderChan)
+			fmt.Println("OrderExpired: ", orderId)
 			return
 
 		case <-dispatchTicker.C:
@@ -190,6 +192,7 @@ func POIWSOrderHandler(orderId int64) {
 				WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 				WsManager.RemoveOrderChan(orderId)
 				close(orderChan)
+				fmt.Println("OrderCancelled: ", orderId)
 				return
 
 			case WS_ORDER_CONFIRM:
