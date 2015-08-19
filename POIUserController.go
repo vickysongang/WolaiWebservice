@@ -12,6 +12,12 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 	user := QueryUserByPhone(phone)
 
 	if user != nil {
+		//如果老师是第一次登陆，则修改老师的status字段为0，0代表不是第一次登陆，1代表从未登陆过
+		if user.AccessRight == 2 && user.Status == 1 {
+			userInfo := make(map[string]interface{})
+			userInfo["Status"] = 0
+			UpdateUserInfo(user.UserId, userInfo)
+		}
 		return 0, user
 	}
 

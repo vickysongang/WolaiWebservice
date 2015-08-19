@@ -15,6 +15,7 @@ type POIUser struct {
 	AccessRight   int64     `json:"accessRight"`
 	LastLoginTime time.Time `json:"-"`
 	Phone         string    `json:"-"`
+	Status        int64     `json:"-"`
 }
 
 type POIOAuth struct {
@@ -71,7 +72,7 @@ func InsertUser(phone string) int64 {
 func QueryUserById(userId int64) *POIUser {
 	var user *POIUser
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("id,nickname,avatar,gender,access_right").From("users").Where("id = ?")
+	qb.Select("id,nickname,avatar,gender,access_right,status").From("users").Where("id = ?")
 	sql := qb.String()
 	o := orm.NewOrm()
 	err := o.Raw(sql, userId).QueryRow(&user)
@@ -84,7 +85,7 @@ func QueryUserById(userId int64) *POIUser {
 func QueryUserByPhone(phone string) *POIUser {
 	var user *POIUser
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("id,nickname,avatar,gender,access_right").From("users").Where("phone = ?").Limit(1)
+	qb.Select("id,nickname,avatar,gender,access_right,status").From("users").Where("phone = ?").Limit(1)
 	sql := qb.String()
 	o := orm.NewOrm()
 	err := o.Raw(sql, phone).QueryRow(&user)
