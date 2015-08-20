@@ -21,6 +21,7 @@ func POIWSOrderHandler(orderId int64) {
 	waitingTimer := time.NewTimer(time.Second * 120)  // 学生等待无老师响应计时
 	selectTimer := time.NewTimer(time.Second * 180)   // 学生选则老师时长计时
 	replied := false
+	var firstReply int64
 
 	timestamp := time.Now().Unix()
 	dispatchStart := timestamp
@@ -149,6 +150,7 @@ func POIWSOrderHandler(orderId int64) {
 					waitingTimer.Stop()
 					selectTimer = time.NewTimer(time.Second * 300)
 					replied = true
+					firstReply = timestamp
 				}
 
 				// 更新老师发单记录
@@ -170,12 +172,7 @@ func POIWSOrderHandler(orderId int64) {
 				teacher := QueryTeacher(msg.UserId)
 				teacher.LabelList = QueryTeacherLabelById(msg.UserId)
 				teacherByte, _ := json.Marshal(teacher)
-				var countdown int64
-				if order.Type == 1 {
-					countdown = 90
-				} else {
-					countdown = 300
-				}
+				countdown := int64(300)
 
 				presentMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_PRESENT)
 				presentMsg.Attribute["orderId"] = orderIdStr
@@ -328,27 +325,15 @@ func POIWSOrderHandler(orderId int64) {
 					break
 				}
 
-				var countdown int64
 				var countstart int64
 				var replied int64
+				countdown := int64(300)
 				if replyTs == 0 {
 					replied = 0
-					if order.Type == 1 {
-						countdown = 90
-						countstart = timestamp - WsManager.orderDispatchMap[orderId][msg.UserId]
-					} else {
-						countdown = 300
-						countstart = timestamp - WsManager.orderDispatchMap[orderId][msg.UserId]
-					}
+					countstart = timestamp - WsManager.orderDispatchMap[orderId][msg.UserId]
 				} else {
 					replied = 1
-					if order.Type == 1 {
-						countdown = 90
-						countstart = timestamp - replyTs
-					} else {
-						countdown = 300
-						countstart = timestamp - replyTs
-					}
+					countstart = timestamp - replyTs
 				}
 				if countstart > countdown {
 					break
@@ -376,12 +361,7 @@ func POIWSOrderHandler(orderId int64) {
 				recoverChan <- recoverStuMsg
 
 				for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
-					var countdown int64
-					if order.Type == 1 {
-						countdown = 90 + WsManager.teacherOrderDispatchMap[teacherId][orderId] - timestamp
-					} else {
-						countdown = 300 + WsManager.teacherOrderDispatchMap[teacherId][orderId] - timestamp
-					}
+					countdown := 300 + firstReply - timestamp
 					if countdown < 0 {
 						break
 					}

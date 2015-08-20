@@ -95,7 +95,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 信息反序列化
 		err = json.Unmarshal([]byte(p), &msg)
 		if err != nil {
-			fmt.Println("V1WSHandler: recieved: ", string(p))
+			fmt.Println("V1WSHandler recieved: UserId", msg.UserId, "Msg: ", string(p))
 			fmt.Println("V1WSHandler: unstructed message")
 			continue
 		}
@@ -280,6 +280,8 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					conn.Close()
 					return
 				}
+				msgByte, _ := json.Marshal(msg)
+				fmt.Println("WebSocketWriter: UserId: ", msg.UserId, "Msg: ", string(msgByte))
 
 				if msg.OperationCode == WS_FORCE_QUIT ||
 					msg.OperationCode == WS_FORCE_LOGOUT ||
