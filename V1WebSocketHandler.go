@@ -71,7 +71,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("V1WSHandler: illegal websocket login; UserId: ", msg.UserId)
 		return
 	} else {
-		loginResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_LOGIN_RESP)
+		loginResp := NewPOIWSMessage(msg.MessageId, msg.UserId, msg.OperationCode+1)
 		err = conn.WriteJSON(loginResp)
 	}
 

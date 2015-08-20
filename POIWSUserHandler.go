@@ -1,16 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"time"
 )
 
 func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	userChan := make(chan POIWSMessage, 10)
 
-	fmt.Println("In WSUserLogin: ", msg.UserId)
-
-	if msg.OperationCode != WS_LOGIN {
+	if msg.OperationCode != WS_LOGIN && msg.OperationCode != WS_RECONNECT {
 		return userChan, false
 	}
 
@@ -23,15 +20,15 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	}
 
 	if WsManager.HasUserChan(msg.UserId) {
-		fmt.Println("FORCE_LOGOUT:", msg.UserId)
 		oldChan := WsManager.GetUserChan(msg.UserId)
-		msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
-		oldChan <- msgFL
 		WSUserLogout(msg.UserId)
+
+		if msg.OperationCode == WS_LOGIN {
+			msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
+			oldChan <- msgFL
+		}
 		close(oldChan)
 	}
-
-	fmt.Println("In WSUserLogin After ForceQuit: ", msg.UserId)
 
 	WsManager.SetUserChan(msg.UserId, userChan)
 	WsManager.SetUserOnline(msg.UserId, time.Now().Unix())
@@ -40,8 +37,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 }
 
 func WSUserLogout(userId int64) {
-	CheckSessionBreak(userId)
+	//CheckSessionBreak(userId)
 	WsManager.RemoveUserChan(userId)
 	WsManager.SetUserOffline(userId)
-	//WsManager.SetTeacherOffline(userId)
 }
