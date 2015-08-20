@@ -282,13 +282,13 @@ func POIWSOrderHandler(orderId int64) {
 					planTime)
 				sessionPtr := InsertSession(&session)
 
+				// 发送Leancloud订单成功通知
 				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))
 				go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionCreatedNotification(sessionPtr.Id))
 
+				// 发起上课请求或者设置计时器
 				if order.Type == 1 {
-					//go SendSessionNotification(sessionPtr.Id, 1)
 					_ = InitSessionMonitor(sessionPtr.Id)
-
 				} else if order.Type == 2 {
 					planTime, _ := time.Parse(time.RFC3339, dispatchInfo.PlanTime)
 					planTimeTS := planTime.Unix()
@@ -329,23 +329,28 @@ func POIWSOrderHandler(orderId int64) {
 				}
 
 				var countdown int64
+				var countstart int64
 				var replied int64
 				if replyTs == 0 {
 					replied = 0
 					if order.Type == 1 {
-						countdown = 90 + WsManager.orderDispatchMap[orderId][msg.UserId] - timestamp
+						countdown = 90
+						countstart = timestamp - WsManager.orderDispatchMap[orderId][msg.UserId]
 					} else {
-						countdown = 300 + WsManager.orderDispatchMap[orderId][msg.UserId] - timestamp
+						countdown = 300
+						countstart = timestamp - WsManager.orderDispatchMap[orderId][msg.UserId]
 					}
 				} else {
 					replied = 1
 					if order.Type == 1 {
-						countdown = 90 + replyTs - timestamp
+						countdown = 90
+						countstart = timestamp - replyTs
 					} else {
-						countdown = 300 + replyTs - timestamp
+						countdown = 300
+						countstart = timestamp - replyTs
 					}
 				}
-				if countdown < 0 {
+				if countstart > countdown {
 					break
 				}
 				orderByte, _ := json.Marshal(order)
@@ -353,6 +358,7 @@ func POIWSOrderHandler(orderId int64) {
 				recoverTeacherMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_RECOVER_TEACHER)
 				recoverTeacherMsg.Attribute["orderInfo"] = string(orderByte)
 				recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
+				recoverTeacherMsg.Attribute["countstart"] = strconv.FormatInt(countstart, 10)
 				recoverTeacherMsg.Attribute["replied"] = strconv.FormatInt(replied, 10)
 				recoverChan := WsManager.GetUserChan(msg.UserId)
 				recoverChan <- recoverTeacherMsg

@@ -88,9 +88,12 @@ func POIWSSessionHandler(sessionId int64) {
 
 			timestamp = cur.Unix()
 			length = length + (timestamp - lastSync)
+			lastSync = timestamp
 
 			syncMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_SYNC)
+			syncMsg.Attribute["sessionId"] = sessionIdStr
 			syncMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+
 			if WsManager.HasUserChan(session.Teacher.UserId) {
 				teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
 				teacherChan <- syncMsg
