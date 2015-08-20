@@ -12,18 +12,15 @@ func OrderCreate(creatorId int64, teacherId int64, timestamp float64, gradeId in
 	if orderType == 3 && teacherId == 0 {
 		return 2, nil
 	}
-	teacherProfile := QueryTeacherProfileByUserId(teacherId)
 
 	order := POIOrder{Creator: creator,
-		GradeId:          gradeId,
-		SubjectId:        subjectId,
-		Date:             date,
-		PeriodId:         periodId,
-		Length:           length,
-		Type:             orderType,
-		Status:           ORDER_STATUS_CREATED,
-		PricePerHour:     teacherProfile.PricePerHour,
-		RealPricePerHour: teacherProfile.RealPricePerHour}
+		GradeId:   gradeId,
+		SubjectId: subjectId,
+		Date:      date,
+		PeriodId:  periodId,
+		Length:    length,
+		Type:      orderType,
+		Status:    ORDER_STATUS_CREATED}
 	orderPtr := InsertOrder(&order)
 
 	if orderPtr == nil {
