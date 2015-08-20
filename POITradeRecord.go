@@ -2,6 +2,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -24,6 +25,21 @@ type POIOrderToTrade struct {
 	OrderId       int64 `json:"orderId"`
 	TradeRecordId int64 `json:"tradeRecordId"`
 }
+
+type POIOrderTradeRecord struct {
+	Id          int64     `json:"-"`
+	UserId      int64     `json:"-"`
+	User        *POIUser  `json:"userInfo"`
+	TradeType   string    `json:"tradeType"`
+	TradeAmount int64     `json:"tradeAmount"`
+	OrderType   int64     `json:"orderType"`
+	CreateTime  time.Time `json:"tradeTime"`
+	Result      string    `json:"tradeResult"`
+	Balance     int64     `json:"balance"`
+	Comment     string    `json:"comment"`
+}
+
+type POIOrderTradeRecords []POIOrderTradeRecord
 
 func (tr *POITradeRecord) TableName() string {
 	return "trade_record"
@@ -82,4 +98,26 @@ func InsertOrderToTrade(orderToTrade *POIOrderToTrade) int64 {
 		return 0
 	}
 	return id
+}
+
+func QueryOrderTradeRecords(userId int64) *POIOrderTradeRecords {
+	records := make(POIOrderTradeRecords, 0)
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("id,user_id,trade_type,trade_amount,order_type,create_time,result,balance,comment").
+		From("trade_record").Where("user_id = ?").OrderBy("create_time").Desc()
+	sql := qb.String()
+	_, err := o.Raw(sql, userId).QueryRows(&records)
+	returnRecords := make(POIOrderTradeRecords, 0)
+	for i := range records {
+		record := records[i]
+		user := QueryUserById(userId)
+		record.User = user
+		returnRecords = append(returnRecords, record)
+		fmt.Println(record.User.Nickname)
+	}
+	if err != nil {
+		return nil
+	}
+	return &returnRecords
 }
