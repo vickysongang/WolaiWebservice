@@ -6,7 +6,7 @@ import (
 )
 
 func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
-	userChan := make(chan POIWSMessage)
+	userChan := make(chan POIWSMessage, 10)
 
 	fmt.Println("In WSUserLogin: ", msg.UserId)
 
