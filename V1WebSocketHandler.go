@@ -245,8 +245,8 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			if err != nil {
 				fmt.Println("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 
-				WSUserLogout(userId)
-				close(userChan)
+				//WSUserLogout(userId)
+				//close(userChan)
 				conn.Close()
 				return
 			}
@@ -285,7 +285,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					msg.OperationCode == WS_LOGOUT_RESP {
 
 					WSUserLogout(userId)
-					close(userChan)
+					//close(userChan)
 					conn.Close()
 					return
 				}

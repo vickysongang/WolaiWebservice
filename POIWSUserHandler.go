@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -20,6 +21,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	}
 
 	if WsManager.HasUserChan(msg.UserId) {
+		fmt.Println("FORCE_LOGOUT:", msg.UserId)
 		oldChan := WsManager.GetUserChan(msg.UserId)
 		WSUserLogout(msg.UserId)
 		msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
