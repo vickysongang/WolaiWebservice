@@ -122,7 +122,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 	qb.Select("sessions.order_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
 		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour").
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
-		Where("orders.creator = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
+		Where("sessions.creator = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
 	o.Raw(sql, userId).QueryRows(&orderInSessions)
 	for i := range orderInSessions {

@@ -16,6 +16,7 @@ type POIUser struct {
 	LastLoginTime time.Time `json:"-" orm:auto_add;type(datetime)`
 	Phone         string    `json:"phone"`
 	Status        int64     `json:"-"`
+	Balance       int64     `json:"-"`
 }
 
 type POIOAuth struct {
@@ -23,20 +24,10 @@ type POIOAuth struct {
 	OpenIdQq string
 }
 
-type POITradeRecord struct {
-	Id          int64     `json:"id" orm:"pk"`
-	UserId      int64     `json:"userId"`
-	TradeType   string    `json:"tradeType"`
-	TradeAmount int64     `json:"tradeAmount"`
-	CreateTime  time.Time `json:"_" orm:"auto_now_add;type(datetime)"`
-	Result      string    `json:"result"`
-	Balance     int64     `json:"balance"`
-}
-
 type POIUsers []POIUser
 
 func init() {
-	orm.RegisterModel(new(POIUser), new(POIOAuth), new(POITradeRecord))
+	orm.RegisterModel(new(POIUser), new(POIOAuth))
 }
 
 /*
@@ -48,10 +39,6 @@ func (u *POIUser) TableName() string {
 
 func (a *POIOAuth) TableName() string {
 	return "user_oauth"
-}
-
-func (tr *POITradeRecord) TableName() string {
-	return "trade_record"
 }
 
 func NewPOIUser(userId int64, nickname string, avatar string, gender int64, accessRight int64) POIUser {
@@ -71,7 +58,7 @@ func InsertPOIUser(user *POIUser) int64 {
 func QueryUserById(userId int64) *POIUser {
 	var user *POIUser
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("id,nickname,avatar,gender,access_right,status").From("users").Where("id = ?")
+	qb.Select("id,nickname,avatar,gender,access_right,status,balance").From("users").Where("id = ?")
 	sql := qb.String()
 	o := orm.NewOrm()
 	err := o.Raw(sql, userId).QueryRow(&user)
@@ -84,7 +71,7 @@ func QueryUserById(userId int64) *POIUser {
 func QueryUserByPhone(phone string) *POIUser {
 	var user *POIUser
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("id,nickname,avatar,gender,access_right,status").From("users").Where("phone = ?").Limit(1)
+	qb.Select("id,nickname,avatar,gender,access_right,status,balance").From("users").Where("phone = ?").Limit(1)
 	sql := qb.String()
 	o := orm.NewOrm()
 	err := o.Raw(sql, phone).QueryRow(&user)
@@ -122,10 +109,4 @@ func QueryUserByQQOpenId(qqOpenId string) int64 {
 		return -1
 	}
 	return userOauth.UserId
-}
-
-func InsertTradeRecord(userId int64, tradeType string, tradeAmount int64, result string) {
-	o := orm.NewOrm()
-	tradeRecord := POITradeRecord{UserId: userId, TradeType: tradeType, TradeAmount: tradeAmount, Result: result}
-	o.Insert(&tradeRecord)
 }

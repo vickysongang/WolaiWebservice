@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -780,8 +779,10 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	content := InsertOrderDispatch(&od)
 	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 	//	io.WriteString(w, content)
-	//	content := InsertTeacher(GenerateTeacherJson())
+	//	content := UserWithdraw(10459, 500, "S")
 	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-	jsonStr := GenerateTeacherJson()
-	io.WriteString(w, jsonStr)
+	//	jsonStr := GenerateTeacherJson()
+	//	io.WriteString(w, jsonStr)
+	session := QuerySessionById(2)
+	HandleSessionTrade(session, "S")
 }

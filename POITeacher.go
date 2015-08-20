@@ -52,6 +52,7 @@ type POITeacherProfileModel struct {
 	Intro            string `json:"intro"`
 	PricePerHour     int64  `json:"pricePerHour"`
 	RealPricePerHour int64  `json:"realPricePerHour"`
+	ServiceTime      int64  `json:"-"`
 }
 
 type POITeacherLabel struct {
@@ -199,6 +200,20 @@ func QueryTeacherProfile(userId int64) POITeacherProfile {
 	teacherProfile := POITeacherProfile{POITeacher: POITeacher{POIUser: POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender},
 		ServiceTime: serviceTime, School: schoolName, Department: deptName, PricePerHour: pricePerHour}, Intro: intro}
 	return teacherProfile
+}
+
+func QueryTeacherProfileByUserId(userId int64) *POITeacherProfileModel {
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("user_id,school_id,department_id,service_time,intro,price_per_hour,real_price_per_hour").
+		From("teacher_profile").Where("user_id = ?")
+	sql := qb.String()
+	o := orm.NewOrm()
+	profile := POITeacherProfileModel{}
+	err := o.Raw(sql, userId).QueryRow(&profile)
+	if err != nil {
+		return nil
+	}
+	return &profile
 }
 
 func QueryTeacherLabelById(userId int64) []string {

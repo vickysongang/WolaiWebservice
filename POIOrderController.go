@@ -1,7 +1,5 @@
 package main
 
-import ()
-
 func OrderCreate(creatorId int64, teacherId int64, timestamp float64, gradeId int64, subjectId int64,
 	date string, periodId int64, length int64, orderType int64) (int64, *POIOrder) {
 
@@ -14,10 +12,18 @@ func OrderCreate(creatorId int64, teacherId int64, timestamp float64, gradeId in
 	if orderType == 3 && teacherId == 0 {
 		return 2, nil
 	}
+	teacherProfile := QueryTeacherProfileByUserId(teacherId)
 
-	order := NewPOIOrder(creator, gradeId, subjectId, date, periodId,
-		length, orderType, ORDER_STATUS_CREATED)
-
+	order := POIOrder{Creator: creator,
+		GradeId:          gradeId,
+		SubjectId:        subjectId,
+		Date:             date,
+		PeriodId:         periodId,
+		Length:           length,
+		Type:             orderType,
+		Status:           ORDER_STATUS_CREATED,
+		PricePerHour:     teacherProfile.PricePerHour,
+		RealPricePerHour: teacherProfile.RealPricePerHour}
 	orderPtr := InsertOrder(&order)
 
 	if orderPtr == nil {

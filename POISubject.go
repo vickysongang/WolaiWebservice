@@ -42,3 +42,16 @@ func QuerySubjectListByGrade(gradeId int64) POISubjects {
 	}
 	return subjects
 }
+
+func QuerySubjectById(subjectId int64) *POISubject {
+	subject := POISubject{}
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("id,name").From("subject").Where("id = ?")
+	sql := qb.String()
+	o := orm.NewOrm()
+	err := o.Raw(sql, subjectId).QueryRow(&subject)
+	if err == orm.ErrNoRows {
+		return nil
+	}
+	return &subject
+}

@@ -8,20 +8,21 @@ import (
 )
 
 type POIOrder struct {
-	Id             int64     `json:"id" orm:"pk"`
-	Creator        *POIUser  `json:"creatorInfo" orm:"-"`
-	GradeId        int64     `json:"gradeId"`
-	SubjectId      int64     `json:"subjectId"`
-	Date           string    `json:"date"`
-	PeriodId       int64     `json:"periodId"`
-	Length         int64     `json:"length"`
-	Type           int64     `json:"orderType" orm:"-"`
-	Status         string    `json:"-"`
-	Created        int64     `json:"-" orm:"column(creator)"`
-	CreateTime     time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
-	LastUpdateTime time.Time `json:"-"`
-	OrderType      string    `json:"-" orm:"column(type)"`
-	PricePerHour   int64     `json:"pricePerHour"`
+	Id               int64     `json:"id" orm:"pk"`
+	Creator          *POIUser  `json:"creatorInfo" orm:"-"`
+	GradeId          int64     `json:"gradeId"`
+	SubjectId        int64     `json:"subjectId"`
+	Date             string    `json:"date"`
+	PeriodId         int64     `json:"periodId"`
+	Length           int64     `json:"length"`
+	Type             int64     `json:"orderType" orm:"-"`
+	Status           string    `json:"-"`
+	Created          int64     `json:"-" orm:"column(creator)"`
+	CreateTime       time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+	LastUpdateTime   time.Time `json:"-"`
+	OrderType        string    `json:"-" orm:"column(type)"`
+	PricePerHour     int64     `json:"pricePerHour"`
+	RealPricePerHour int64     `json:"realPricePerHour"`
 }
 
 type POIOrderDispatch struct {
@@ -120,7 +121,7 @@ func QueryOrderById(orderId int64) *POIOrder {
 	order := POIOrder{}
 	o := orm.NewOrm()
 	db, _ := orm.NewQueryBuilder("mysql")
-	db.Select("id,creator,grade_id,subject_id,date,period_id,length,type,status").
+	db.Select("id,creator,grade_id,subject_id,date,period_id,length,type,status,price_per_hour,real_price_per_hour").
 		From("orders").Where("id = ?")
 	sql := db.String()
 	err := o.Raw(sql, orderId).QueryRow(&order)
