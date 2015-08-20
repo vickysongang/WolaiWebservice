@@ -250,6 +250,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 
 		// 检验用户是否连接超时
 		case <-pongTicker.C:
+			fmt.Println("HEARTBEAT: UserId: ", userId, "pingpong bool: ", pingpong)
 			if pingpong {
 				pingpong = false
 			} else {
