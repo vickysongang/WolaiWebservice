@@ -71,7 +71,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("V1WSHandler: illegal websocket login; UserId: ", msg.UserId)
 		return
 	} else {
-		loginResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_LOGIN_RESP)
+		loginResp := NewPOIWSMessage(msg.MessageId, msg.UserId, msg.OperationCode+1)
 		err = conn.WriteJSON(loginResp)
 	}
 
@@ -88,14 +88,14 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 读取Websocket信息
 		_, p, err = conn.ReadMessage()
 		if err != nil {
-			fmt.Println(err.Error())
+			conn.Close()
 			return
 		}
 
 		// 信息反序列化
 		err = json.Unmarshal([]byte(p), &msg)
 		if err != nil {
-			fmt.Println("V1WSHandler: recieved: ", string(p))
+			fmt.Println("V1WSHandler recieved: UserId", msg.UserId, "Msg: ", string(p))
 			fmt.Println("V1WSHandler: unstructed message")
 			continue
 		}
@@ -109,12 +109,11 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		timestamp = time.Now().Unix()
 		if math.Abs(msg.Timestamp-float64(timestamp)) > 12*3600 {
 			// Force quit the user if timestamp difference is too significant
+			fmt.Println("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
+
 			resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
 			resp.Attribute["errMsg"] = "local time not accepted"
-			err = conn.WriteJSON(resp)
-			conn.Close()
-
-			fmt.Println("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
+			userChan <- resp
 			return
 		}
 
@@ -134,6 +133,8 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		case WS_LOGOUT:
 			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
 			userChan <- resp
+			WSUserLogout(userId)
+			close(userChan)
 
 		// 订单中心老师上线信息
 		case WS_ORDER_TEACHER_ONLINE:
@@ -148,7 +149,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			userChan <- resp
 
-		// 订单中心老师下限信息
+		// 订单中心老师下线信息
 		case WS_ORDER_TEACHER_OFFLINE:
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_TEACHER_OFFLINE_RESP)
 			if user.AccessRight == 2 {
@@ -165,6 +166,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_CREATE_RESP)
 			if InitOrderDispatch(msg, userId, timestamp) {
 				resp.Attribute["errCode"] = "0"
+				resp.Attribute["countdown"] = "120"
 			} else {
 				resp.Attribute["errCode"] = "2"
 				resp.Attribute["errMsg"] = "Error on order creation"
@@ -234,7 +236,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 
 	// 初始化心跳计时器
 	pingTicker := time.NewTicker(time.Second * 15)
-	pongTicker := time.NewTicker(time.Second * 20)
+	pongTicker := time.NewTicker(time.Second * 15)
 	pingpong := true
 
 	for {
@@ -245,19 +247,21 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			pingMsg := NewPOIWSMessage("", userId, WS_PING)
 			err := conn.WriteJSON(pingMsg)
 			if err != nil {
-				fmt.Println(err.Error())
+				fmt.Println("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
+
+				//close(userChan)
+				conn.Close()
+				return
 			}
 
 		// 检验用户是否连接超时
 		case <-pongTicker.C:
-			fmt.Println("HEARTBEAT: UserId: ", userId, "pingpong bool: ", pingpong)
 			if pingpong {
 				pingpong = false
 			} else {
-
 				fmt.Println("WebSocketWriteHandler: user timed out; UserId: ", userId)
-				WSUserLogout(userId)
-				close(userChan)
+
+				//close(userChan)
 				conn.Close()
 				return
 			}
@@ -270,15 +274,20 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			} else {
 				err := conn.WriteJSON(msg)
 				if err != nil {
-					fmt.Println(err.Error())
+					fmt.Println("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
+
+					//close(userChan)
+					conn.Close()
+					return
 				}
+				msgByte, _ := json.Marshal(msg)
+				fmt.Println("WebSocketWriter: UserId: ", msg.UserId, "Msg: ", string(msgByte))
 
 				if msg.OperationCode == WS_FORCE_QUIT ||
 					msg.OperationCode == WS_FORCE_LOGOUT ||
 					msg.OperationCode == WS_LOGOUT_RESP {
 
-					WSUserLogout(userId)
-					close(userChan)
+					//close(userChan)
 					conn.Close()
 					return
 				}

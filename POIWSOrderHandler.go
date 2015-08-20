@@ -21,8 +21,10 @@ func POIWSOrderHandler(orderId int64) {
 	waitingTimer := time.NewTimer(time.Second * 120)  // 学生等待无老师响应计时
 	selectTimer := time.NewTimer(time.Second * 180)   // 学生选则老师时长计时
 	replied := false
+	var firstReply int64
 
 	timestamp := time.Now().Unix()
+	dispatchStart := timestamp
 
 	fmt.Println("OrderCreated: ", orderId)
 
@@ -148,6 +150,7 @@ func POIWSOrderHandler(orderId int64) {
 					waitingTimer.Stop()
 					selectTimer = time.NewTimer(time.Second * 300)
 					replied = true
+					firstReply = timestamp
 				}
 
 				// 更新老师发单记录
@@ -169,12 +172,7 @@ func POIWSOrderHandler(orderId int64) {
 				teacher := QueryTeacher(msg.UserId)
 				teacher.LabelList = QueryTeacherLabelById(msg.UserId)
 				teacherByte, _ := json.Marshal(teacher)
-				var countdown int64
-				if order.Type == 1 {
-					countdown = 90
-				} else {
-					countdown = 300
-				}
+				countdown := int64(300)
 
 				presentMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_PRESENT)
 				presentMsg.Attribute["orderId"] = orderIdStr
@@ -281,16 +279,23 @@ func POIWSOrderHandler(orderId int64) {
 					planTime)
 				sessionPtr := InsertSession(&session)
 
+				// 发送Leancloud订单成功通知
 				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))
 				go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionCreatedNotification(sessionPtr.Id))
 
+				// 发起上课请求或者设置计时器
 				if order.Type == 1 {
-					//go SendSessionNotification(sessionPtr.Id, 1)
 					_ = InitSessionMonitor(sessionPtr.Id)
-
 				} else if order.Type == 2 {
 					planTime, _ := time.Parse(time.RFC3339, dispatchInfo.PlanTime)
 					planTimeTS := planTime.Unix()
+
+					sessionStart := make(map[string]int64)
+					sessionStart["type"] = 6
+					sessionStart["oprCode"] = 1
+					sessionStart["sessionId"] = sessionPtr.Id
+					jsonStart, _ := json.Marshal(sessionStart)
+					RedisManager.SetSessionTicker(planTimeTS, string(jsonStart))
 
 					sessionReminder := make(map[string]int64)
 					sessionReminder["type"] = 5
@@ -327,24 +332,17 @@ func POIWSOrderHandler(orderId int64) {
 					break
 				}
 
-				var countdown int64
+				var countstart int64
 				var replied int64
+				countdown := int64(300)
 				if replyTs == 0 {
 					replied = 0
-					if order.Type == 1 {
-						countdown = 90 + WsManager.orderDispatchMap[orderId][msg.UserId] - timestamp
-					} else {
-						countdown = 300 + WsManager.orderDispatchMap[orderId][msg.UserId] - timestamp
-					}
+					countstart = timestamp - WsManager.orderDispatchMap[orderId][msg.UserId]
 				} else {
 					replied = 1
-					if order.Type == 1 {
-						countdown = 90 + replyTs - timestamp
-					} else {
-						countdown = 300 + replyTs - timestamp
-					}
+					countstart = timestamp - replyTs
 				}
-				if countdown < 0 {
+				if countstart > countdown {
 					break
 				}
 				orderByte, _ := json.Marshal(order)
@@ -352,6 +350,7 @@ func POIWSOrderHandler(orderId int64) {
 				recoverTeacherMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER_RECOVER_TEACHER)
 				recoverTeacherMsg.Attribute["orderInfo"] = string(orderByte)
 				recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
+				recoverTeacherMsg.Attribute["countstart"] = strconv.FormatInt(countstart, 10)
 				recoverTeacherMsg.Attribute["replied"] = strconv.FormatInt(replied, 10)
 				recoverChan := WsManager.GetUserChan(msg.UserId)
 				recoverChan <- recoverTeacherMsg
@@ -363,16 +362,13 @@ func POIWSOrderHandler(orderId int64) {
 
 				recoverStuMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER_RECOVER_STU)
 				recoverStuMsg.Attribute["orderId"] = orderIdStr
+				recoverStuMsg.Attribute["countdown"] = "120"
+				recoverStuMsg.Attribute["countstart"] = strconv.FormatInt(120-dispatchStart, 10)
 				recoverChan := WsManager.GetUserChan(msg.UserId)
 				recoverChan <- recoverStuMsg
 
 				for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
-					var countdown int64
-					if order.Type == 1 {
-						countdown = 90 + WsManager.teacherOrderDispatchMap[teacherId][orderId] - timestamp
-					} else {
-						countdown = 300 + WsManager.teacherOrderDispatchMap[teacherId][orderId] - timestamp
-					}
+					countdown := 300 + firstReply - timestamp
 					if countdown < 0 {
 						break
 					}
