@@ -36,5 +36,5 @@ func WSUserLogout(userId int64) {
 	CheckSessionBreak(userId)
 	WsManager.RemoveUserChan(userId)
 	WsManager.SetUserOffline(userId)
-	WsManager.SetTeacherOffline(userId)
+	//WsManager.SetTeacherOffline(userId)
 }
