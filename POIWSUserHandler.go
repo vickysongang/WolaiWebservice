@@ -8,6 +8,8 @@ import (
 func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	userChan := make(chan POIWSMessage)
 
+	fmt.Println("In WSUserLogin: ", msg.UserId)
+
 	if msg.OperationCode != WS_LOGIN {
 		return userChan, false
 	}
@@ -28,6 +30,8 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 		WSUserLogout(msg.UserId)
 		close(oldChan)
 	}
+
+	fmt.Println("In WSUserLogin After ForceQuit: ", msg.UserId)
 
 	WsManager.SetUserChan(msg.UserId, userChan)
 	WsManager.SetUserOnline(msg.UserId, time.Now().Unix())
