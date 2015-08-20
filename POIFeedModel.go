@@ -124,7 +124,7 @@ func GetFeedComment(feedCommentId string) *POIFeedComment {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("comment_id,feed_id,creator,create_time,text,image_info,reply_to").From("feed_comment").
-		Where("comment_id = ?")
+		Where("comment_id = ?").OrderBy("create_time").Desc()
 	sql := qb.String()
 	err := o.Raw(sql, feedCommentId).QueryRow(&feedComment)
 	if err != nil {
@@ -191,14 +191,13 @@ func GetFeedFlowUserFeed(userId int64, start, pageNum int) POIFeeds {
 	return feeds
 }
 
-
 func GetFeedFlowUserFeedLike(userId int64, start, pageNum int) POIFeeds {
 	var feedIds []string
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("feed_id").From("feed_like").Where("user_id = ?").OrderBy("create_time").Desc().Limit(pageNum).Offset(start)
-    sql := qb.String()
-	o.Raw(sql,userId).QueryRows(&feedIds)
+	sql := qb.String()
+	o.Raw(sql, userId).QueryRows(&feedIds)
 	feeds := make(POIFeeds, len(feedIds))
 	for i := range feedIds {
 		feedId := feedIds[i]
