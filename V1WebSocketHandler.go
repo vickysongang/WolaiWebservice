@@ -88,6 +88,9 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 读取Websocket信息
 		_, p, err = conn.ReadMessage()
 		if err != nil {
+			WSUserLogout(userId)
+			close(userChan)
+			conn.Close()
 			fmt.Println(err.Error())
 			return
 		}
@@ -109,12 +112,11 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		timestamp = time.Now().Unix()
 		if math.Abs(msg.Timestamp-float64(timestamp)) > 12*3600 {
 			// Force quit the user if timestamp difference is too significant
+			fmt.Println("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
+
 			resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
 			resp.Attribute["errMsg"] = "local time not accepted"
-			err = conn.WriteJSON(resp)
-			conn.Close()
-
-			fmt.Println("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
+			userCHan <- resp
 			return
 		}
 
@@ -234,7 +236,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 
 	// 初始化心跳计时器
 	pingTicker := time.NewTicker(time.Second * 15)
-	pongTicker := time.NewTicker(time.Second * 20)
+	pongTicker := time.NewTicker(time.Second * 15)
 	pingpong := true
 
 	for {
@@ -245,7 +247,12 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			pingMsg := NewPOIWSMessage("", userId, WS_PING)
 			err := conn.WriteJSON(pingMsg)
 			if err != nil {
-				fmt.Println(err.Error())
+				fmt.Println("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
+
+				WSUserLogout(userId)
+				close(userChan)
+				conn.Close()
+				return
 			}
 
 		// 检验用户是否连接超时
