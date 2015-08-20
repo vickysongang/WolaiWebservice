@@ -166,6 +166,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_CREATE_RESP)
 			if InitOrderDispatch(msg, userId, timestamp) {
 				resp.Attribute["errCode"] = "0"
+				resp.Attribute["countdown"] = "120"
 			} else {
 				resp.Attribute["errCode"] = "2"
 				resp.Attribute["errMsg"] = "Error on order creation"
@@ -255,7 +256,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 
 		// 检验用户是否连接超时
 		case <-pongTicker.C:
-			fmt.Println("HEARTBEAT: UserId: ", userId, "pingpong bool: ", pingpong)
 			if pingpong {
 				pingpong = false
 			} else {

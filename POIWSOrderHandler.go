@@ -23,6 +23,7 @@ func POIWSOrderHandler(orderId int64) {
 	replied := false
 
 	timestamp := time.Now().Unix()
+	dispatchStart := timestamp
 
 	fmt.Println("OrderCreated: ", orderId)
 
@@ -363,6 +364,8 @@ func POIWSOrderHandler(orderId int64) {
 
 				recoverStuMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER_RECOVER_STU)
 				recoverStuMsg.Attribute["orderId"] = orderIdStr
+				recoverStuMsg.Attribute["countdown"] = "120"
+				recoverStuMsg.Attribute["countstart"] = strconv.FormatInt(120-dispatchStart, 10)
 				recoverChan := WsManager.GetUserChan(msg.UserId)
 				recoverChan <- recoverStuMsg
 
