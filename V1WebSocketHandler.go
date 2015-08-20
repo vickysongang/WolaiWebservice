@@ -116,7 +116,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 			resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
 			resp.Attribute["errMsg"] = "local time not accepted"
-			userCHan <- resp
+			userChan <- resp
 			return
 		}
 
