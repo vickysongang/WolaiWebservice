@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/astaxie/beego/orm"
@@ -24,7 +26,7 @@ type POITeacherSubject struct {
 type POITeacherSubjects []POITeacherSubject
 
 type POITeacherResume struct {
-	Id     int64  `json:"-"`
+	Id     int64  `json:"-" orm:"pk"`
 	UserId int64  `json:"-"`
 	Start  int64  `json:"start"`
 	Stop   int64  `json:"stop"`
@@ -43,21 +45,65 @@ type POITeacherProfile struct {
 	ServiceTime   int64              `json:"-"`
 }
 
+type POITeacherProfileModel struct {
+	UserId           int64  `json:"-" orm:"pk"`
+	SchoolId         int64  `json:"schoolId"`
+	DepartmentId     int64  `json:"departmentId"`
+	Intro            string `json:"intro"`
+	PricePerHour     int64  `json:"pricePerHour"`
+	RealPricePerHour int64  `json:"realPricePerHour"`
+}
+
 type POITeacherLabel struct {
 	Id   int64  `json:"id" orm:"pk"`
 	Name string `json:"name"`
 }
 
+type POITeacherToLabel struct {
+	Id      int64 `json:"id" orm:"pk"`
+	UserId  int64 `json:"userId"`
+	LabelId int64 `json:"labelId"`
+}
+
+type POITeacherToSubject struct {
+	Id          int64  `json:"-" orm:"pk"`
+	UserId      int64  `json:"-"`
+	SubjectId   int64  `json:"subjectId"`
+	Description string `json:"description"`
+}
+
+type POITeacherInfo struct {
+	POIUser                `json:"teacherInfo"`
+	LabelList              []string `json:"labelList,omitempty"`
+	POITeacherResume       `json:"resumeInfo"`
+	POITeacherToSubject    `json:"subjectInfo"`
+	POITeacherProfileModel `json:"profileInfo"`
+}
+
+type POITeacherInfos []POITeacherInfo
+
 func (r *POITeacherResume) TableName() string {
 	return "teacher_to_resume"
 }
 
-func (p *POITeacherProfile) TableName() string {
+func (p *POITeacherProfileModel) TableName() string {
 	return "teacher_profile"
 }
 
+func (ttl *POITeacherLabel) TableName() string {
+	return "teacher_label"
+}
+
+func (ttl *POITeacherToLabel) TableName() string {
+	return "teacher_to_label"
+}
+
+func (tts *POITeacherToSubject) TableName() string {
+	return "teacher_to_subject"
+}
+
 func init() {
-	orm.RegisterModel(new(POITeacherResume), new(POITeacherProfile), new(POITeacherLabel))
+	orm.RegisterModel(new(POITeacherResume), new(POITeacherLabel), new(POITeacherToLabel), new(POITeacherToSubject), new(POITeacherProfileModel))
 }
 
 func QueryTeacherList(pageNum, pageCount int) POITeachers {
@@ -206,29 +252,176 @@ func UpdateTeacherServiceTime(userId int64, length int64) {
 	}
 }
 
-func HasTeacherLabel(name string) bool {
+func QueryTeacherLabelByName(name string) *POITeacherLabel {
 	o := orm.NewOrm()
-	count, err := o.QueryTable("teacher_label").Filter("name", name).Count()
+	teacherLabel := POITeacherLabel{}
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("id,name").From("teacher_label").Where("name = ?")
+	sql := qb.String()
+	err := o.Raw(sql, name).QueryRow(&teacherLabel)
 	if err != nil {
-		return false
+		return nil
 	}
-	if count > 0 {
-		return true
-	}
-	return false
+	return &teacherLabel
 }
 
-func InsertTeacherLabel(name string) *POITeacherLabel {
+func InsertTeacherLabel(name string) int64 {
+	label := QueryTeacherLabelByName(name)
+	if label != nil {
+		return label.Id
+	}
 	teacherLabel := POITeacherLabel{Name: name}
 	o := orm.NewOrm()
 	id, err := o.Insert(&teacherLabel)
 	if err != nil {
-		return nil
+		return 0
 	}
-	teacherLabel.Id = id
-	return &teacherLabel
+	return id
 }
 
-func InsertTeacher(teacherInfo string) {
+func QueryTeacherToLabel(userId, labelId int64) *POITeacherToLabel {
+	o := orm.NewOrm()
+	ttl := POITeacherToLabel{}
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("id,user_id,label_id").From("teacher_to_lable").Where("user_id = ? and label_id = ?")
+	sql := qb.String()
+	err := o.Raw(sql, userId, labelId).QueryRow(&ttl)
+	if err != nil {
+		return nil
+	}
+	return &ttl
+}
 
+func InsertTeacherToLabel(teacherLabel *POITeacherToLabel) int64 {
+	o := orm.NewOrm()
+	id, err := o.Insert(teacherLabel)
+	if err != nil {
+		return 0
+	}
+	return id
+}
+
+func QueryTeacherToSubject(userId, subjectId int64) *POITeacherToSubject {
+	o := orm.NewOrm()
+	tts := POITeacherToSubject{}
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("id,user_id,subject_id,description").From("teacher_to_subject").Where("user_id = ? and subject_id = ?")
+	sql := qb.String()
+	err := o.Raw(sql, userId, subjectId).QueryRow(&tts)
+	if err != nil {
+		return nil
+	}
+	return &tts
+}
+
+func InsertTeacherToSubject(teacherSubject *POITeacherToSubject) int64 {
+	o := orm.NewOrm()
+	id, err := o.Insert(teacherSubject)
+	if err != nil {
+		return 0
+	}
+	return id
+}
+
+func InsertTeacherToResume(resume *POITeacherResume) int64 {
+	o := orm.NewOrm()
+	id, err := o.Insert(resume)
+	if err != nil {
+		return 0
+	}
+	return id
+}
+
+func InsertTeacherProfile(profile *POITeacherProfileModel) int64 {
+	o := orm.NewOrm()
+	id, err := o.Insert(profile)
+	if err != nil {
+		return 0
+	}
+	return id
+}
+
+func GenerateTeacherJson() string {
+	teacher := POITeacherInfo{}
+	//user
+	teacher.Phone = "17090889054"
+	teacher.Avatar = "avataraaaaa"
+	teacher.Nickname = "vicky"
+	teacher.Gender = 0
+	teacher.AccessRight = 2
+	teacher.Status = 1
+
+	//profile
+	teacher.SchoolId = 1
+	teacher.DepartmentId = 1001
+	teacher.Intro = "我们都是好孩子"
+	teacher.PricePerHour = 1000
+	teacher.RealPricePerHour = 10000
+
+	//label
+	labelList := []string{"1", "2", "3"}
+	teacher.LabelList = labelList
+
+	//resume
+	teacher.Start = 2005
+	teacher.Stop = 2009
+	teacher.Name = "不知道这个是啥"
+
+	//subject
+	teacher.SubjectId = 11
+	teacher.Description = "科目描述"
+
+	teachers := make(POITeacherInfos, 0)
+	teachers = append(teachers, teacher)
+	teacherInfo, _ := json.Marshal(&teachers)
+	return string(teacherInfo)
+}
+
+//teacherInfo为json格式
+func InsertTeacher(teacherInfo string) POITeacherInfos {
+	var teachers POITeacherInfos
+	json.Unmarshal([]byte(teacherInfo), &teachers)
+	for i := range teachers {
+		teacher := teachers[i]
+		//插入用户基本信息
+		user := POIUser{}
+		user.AccessRight = 2
+		user.Status = 0
+		user.Avatar = teacher.Avatar
+		user.Gender = teacher.Gender
+		user.Nickname = teacher.Nickname
+		user.Phone = teacher.Phone
+		userId := InsertPOIUser(&user)
+		if userId == 0 {
+			return nil
+		}
+		teacher.POIUser.UserId = userId
+		fmt.Println("userId:", userId)
+		//处理Label信息
+		fmt.Println("labelList:", teacher.LabelList)
+		labelList := teacher.LabelList
+		for _, label := range labelList {
+			teacherLabel := QueryTeacherLabelByName(label)
+			var labelId int64
+			//如果Label已经存在则直接使用，否则先将Label插入数据库后再使用
+			if teacherLabel == nil {
+				labelId = InsertTeacherLabel(label)
+			} else {
+				labelId = teacherLabel.Id
+			}
+			teacherToLabel := POITeacherToLabel{UserId: userId, LabelId: labelId}
+			InsertTeacherToLabel(&teacherToLabel)
+		}
+		//处理科目信息
+		teacherSubject := POITeacherToSubject{UserId: userId, SubjectId: teacher.SubjectId, Description: teacher.Description}
+		InsertTeacherToSubject(&teacherSubject)
+		//处理简历信息
+		teacherResume := POITeacherResume{UserId: userId, Start: teacher.Start, Stop: teacher.Stop, Name: teacher.Name}
+		InsertTeacherToResume(&teacherResume)
+		//处理Profile信息
+		teacherProfile := POITeacherProfileModel{UserId: userId, SchoolId: teacher.SchoolId, DepartmentId: teacher.DepartmentId,
+			Intro: teacher.Intro, PricePerHour: teacher.PricePerHour, RealPricePerHour: teacher.RealPricePerHour}
+		InsertTeacherProfile(&teacherProfile)
+	}
+	return teachers
 }

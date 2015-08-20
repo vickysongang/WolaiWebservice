@@ -192,6 +192,24 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
+* 1.8 Teacher Post
+ */
+func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err)
+	}
+	vars := r.Form
+	if len(vars["teacherInfo"]) > 0 {
+		teacherInfo := vars["teacherInfo"][0]
+		content := InsertTeacher(teacherInfo)
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, "teacherInfo is needed."))
+	}
+}
+
+/*
  * 2.1 Atrium
  */
 func V1Atrium(w http.ResponseWriter, r *http.Request) {
@@ -703,6 +721,9 @@ func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(NewPOIResponse(0, ""))
 }
 
+/*
+* My Orders
+ */
 func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -747,7 +768,6 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1Banner(w http.ResponseWriter, r *http.Request) {
-	//	content := DbManager.QueryBannerList()
 	content := QueryBannerList()
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
@@ -755,9 +775,13 @@ func V1Banner(w http.ResponseWriter, r *http.Request) {
 func Test(w http.ResponseWriter, r *http.Request) {
 	//	content := QueryOrderInSession4Student(10011, 0, 5)
 	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-	content := SaveLeanCloudMessageLogs(1439958840351)
+	//	content := SaveLeanCloudMessageLogs(1439958840351)
 	//	od := POIOrderDispatch{OrderId: 1, TeacherId: 10010}
 	//	content := InsertOrderDispatch(&od)
 	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-	io.WriteString(w, content)
+	//	io.WriteString(w, content)
+	//	content := InsertTeacher(GenerateTeacherJson())
+	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	jsonStr := GenerateTeacherJson()
+	io.WriteString(w, jsonStr)
 }
