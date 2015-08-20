@@ -25,6 +25,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 		oldChan := WsManager.GetUserChan(msg.UserId)
 		msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
 		oldChan <- msgFL
+		WSUserLogout(msg.UserId)
 		close(oldChan)
 	}
 

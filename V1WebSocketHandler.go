@@ -88,6 +88,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 读取Websocket信息
 		_, p, err = conn.ReadMessage()
 		if err != nil {
+			conn.Close()
 			return
 		}
 
@@ -132,6 +133,8 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		case WS_LOGOUT:
 			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
 			userChan <- resp
+			WSUserLogout(userId)
+			close(userChan)
 
 		// 订单中心老师上线信息
 		case WS_ORDER_TEACHER_ONLINE:
@@ -245,7 +248,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			if err != nil {
 				fmt.Println("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 
-				//WSUserLogout(userId)
 				//close(userChan)
 				conn.Close()
 				return
@@ -258,7 +260,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 				pingpong = false
 			} else {
 				fmt.Println("WebSocketWriteHandler: user timed out; UserId: ", userId)
-				//WSUserLogout(userId)
+
 				//close(userChan)
 				conn.Close()
 				return
@@ -274,7 +276,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 				if err != nil {
 					fmt.Println("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 
-					//WSUserLogout(userId)
 					//close(userChan)
 					conn.Close()
 					return
@@ -284,7 +285,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					msg.OperationCode == WS_FORCE_LOGOUT ||
 					msg.OperationCode == WS_LOGOUT_RESP {
 
-					WSUserLogout(userId)
 					//close(userChan)
 					conn.Close()
 					return
