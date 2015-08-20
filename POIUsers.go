@@ -13,7 +13,7 @@ type POIUser struct {
 	Avatar        string    `json:"avatar"`
 	Gender        int64     `json:"gender"`
 	AccessRight   int64     `json:"accessRight"`
-	LastLoginTime time.Time `json:"-"`
+	LastLoginTime time.Time `json:"-" orm:auto_add;type(datetime)`
 	Phone         string    `json:"phone"`
 	Status        int64     `json:"-"`
 }
@@ -59,16 +59,6 @@ func NewPOIUser(userId int64, nickname string, avatar string, gender int64, acce
 	return user
 }
 
-func InsertUser(phone string) int64 {
-	o := orm.NewOrm()
-	user := POIUser{Phone: phone}
-	id, err := o.Insert(&user)
-	if err != nil {
-		return 0
-	}
-	return id
-}
-
 func InsertPOIUser(user *POIUser) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(user)
@@ -112,7 +102,6 @@ func UpdateUserInfo(userId int64, userInfo map[string]interface{}) *POIUser {
 	}
 	o.QueryTable("users").Filter("id", userId).Update(params)
 	user := QueryUserById(userId)
-	user.AccessRight = 3
 	return user
 }
 

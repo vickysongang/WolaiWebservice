@@ -147,6 +147,13 @@ var routes = Routes{
 		"/v1/teacher/profile",
 		V1TeacherProfile,
 	},
+	//1.8 Teacher post
+	Route{
+		"v1InsertTeacherPost",
+		"POST",
+		"/v1/teacher/insert",
+		V1TeacherPost,
+	},
 
 	// 2.1 Atrium
 	Route{
@@ -290,6 +297,18 @@ var routes = Routes{
 		"GET",
 		"/v1/user/myfeed",
 		V1UserMyFeed,
+	},
+	Route{
+		"v1MyOrdersGET",
+		"GET",
+		"/v1/user/myorders",
+		V1OrderInSession,
+	},
+	Route{
+		"v1MyOrdersPost",
+		"POST",
+		"/v1/user/myorders",
+		V1OrderInSession,
 	},
 
 	// 3.4 User MyFollowing
@@ -442,18 +461,6 @@ var routes = Routes{
 		"GET",
 		"/v1/banner",
 		V1Banner,
-	},
-	Route{
-		"v1MyOrdersGET",
-		"GET",
-		"/v1/user/myorders",
-		V1OrderInSession,
-	},
-	Route{
-		"v1MyOrdersPost",
-		"POST",
-		"/v1/user/myorders",
-		V1OrderInSession,
 	},
 	Route{
 		"TestGET",

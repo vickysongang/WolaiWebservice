@@ -20,8 +20,10 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 		}
 		return 0, user
 	}
-
-	id := InsertUser(phone)
+	u := POIUser{}
+	u.Phone = phone
+	u.AccessRight = 3
+	id := InsertPOIUser(&u)
 
 	newUser := QueryUserById(id)
 
@@ -55,12 +57,7 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 		return 0, user
 	}
 
-	userId := InsertUser(phone)
-	userInfo := make(map[string]interface{})
-	userInfo["Nickname"] = nickname
-	userInfo["Avatar"] = avatar
-	userInfo["Gender"] = gender
-	UpdateUserInfo(userId, userInfo)
+	userId := InsertPOIUser(&POIUser{Phone: phone, Nickname: nickname, Avatar: avatar, Gender: gender, AccessRight: 3})
 	user = LoadPOIUser(userId)
 	InsertUserOauth(userId, openId)
 	return 1003, user

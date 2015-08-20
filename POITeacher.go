@@ -80,6 +80,8 @@ type POITeacherInfo struct {
 	POITeacherProfileModel `json:"profileInfo"`
 }
 
+type POITeacherInfos []POITeacherInfo
+
 func (r *POITeacherResume) TableName() string {
 	return "teacher_to_resume"
 }
@@ -346,6 +348,8 @@ func GenerateTeacherJson() string {
 	teacher.Avatar = "avataraaaaa"
 	teacher.Nickname = "vicky"
 	teacher.Gender = 0
+	teacher.AccessRight = 2
+	teacher.Status = 1
 
 	//profile
 	teacher.SchoolId = 1
@@ -367,51 +371,57 @@ func GenerateTeacherJson() string {
 	teacher.SubjectId = 11
 	teacher.Description = "科目描述"
 
-	teacherInfo, _ := json.Marshal(&teacher)
+	teachers := make(POITeacherInfos, 0)
+	teachers = append(teachers, teacher)
+	teacherInfo, _ := json.Marshal(&teachers)
 	return string(teacherInfo)
 }
 
-func InsertTeacher(teacherInfo string) *POITeacherInfo {
-	teacher := POITeacherInfo{}
-	json.Unmarshal([]byte(teacherInfo), &teacher)
-	//插入用户基本信息
-	user := POIUser{}
-	user.AccessRight = 2
-	user.Status = 0
-	user.Avatar = teacher.Avatar
-	user.Gender = teacher.Gender
-	user.Nickname = teacher.Nickname
-	user.Phone = teacher.Phone
-	userId := InsertPOIUser(&user)
-	if userId == 0 {
-		return nil
-	}
-	fmt.Println("userId:", userId)
-	//处理Label信息
-	fmt.Println("labelList:", teacher.LabelList)
-	labelList := teacher.LabelList
-	for _, label := range labelList {
-		teacherLabel := QueryTeacherLabelByName(label)
-		var labelId int64
-		//如果Label已经存在则直接使用，否则先将Label插入数据库后再使用
-		if teacherLabel == nil {
-			labelId = InsertTeacherLabel(label)
-		} else {
-			labelId = teacherLabel.Id
+//teacherInfo为json格式
+func InsertTeacher(teacherInfo string) POITeacherInfos {
+	var teachers POITeacherInfos
+	json.Unmarshal([]byte(teacherInfo), &teachers)
+	for i := range teachers {
+		teacher := teachers[i]
+		//插入用户基本信息
+		user := POIUser{}
+		user.AccessRight = 2
+		user.Status = 0
+		user.Avatar = teacher.Avatar
+		user.Gender = teacher.Gender
+		user.Nickname = teacher.Nickname
+		user.Phone = teacher.Phone
+		userId := InsertPOIUser(&user)
+		if userId == 0 {
+			return nil
 		}
-		teacherToLabel := POITeacherToLabel{UserId: userId, LabelId: labelId}
-		InsertTeacherToLabel(&teacherToLabel)
+		teacher.POIUser.UserId = userId
+		fmt.Println("userId:", userId)
+		//处理Label信息
+		fmt.Println("labelList:", teacher.LabelList)
+		labelList := teacher.LabelList
+		for _, label := range labelList {
+			teacherLabel := QueryTeacherLabelByName(label)
+			var labelId int64
+			//如果Label已经存在则直接使用，否则先将Label插入数据库后再使用
+			if teacherLabel == nil {
+				labelId = InsertTeacherLabel(label)
+			} else {
+				labelId = teacherLabel.Id
+			}
+			teacherToLabel := POITeacherToLabel{UserId: userId, LabelId: labelId}
+			InsertTeacherToLabel(&teacherToLabel)
+		}
+		//处理科目信息
+		teacherSubject := POITeacherToSubject{UserId: userId, SubjectId: teacher.SubjectId, Description: teacher.Description}
+		InsertTeacherToSubject(&teacherSubject)
+		//处理简历信息
+		teacherResume := POITeacherResume{UserId: userId, Start: teacher.Start, Stop: teacher.Stop, Name: teacher.Name}
+		InsertTeacherToResume(&teacherResume)
+		//处理Profile信息
+		teacherProfile := POITeacherProfileModel{UserId: userId, SchoolId: teacher.SchoolId, DepartmentId: teacher.DepartmentId,
+			Intro: teacher.Intro, PricePerHour: teacher.PricePerHour, RealPricePerHour: teacher.RealPricePerHour}
+		InsertTeacherProfile(&teacherProfile)
 	}
-	//处理科目信息
-	teacherSubject := POITeacherToSubject{UserId: userId, SubjectId: teacher.SubjectId, Description: teacher.Description}
-	InsertTeacherToSubject(&teacherSubject)
-	//处理简历信息
-	teacherResume := POITeacherResume{UserId: userId, Start: teacher.Start, Stop: teacher.Stop, Name: teacher.Name}
-	InsertTeacherToResume(&teacherResume)
-	//处理Profile信息
-	teacherProfile := POITeacherProfileModel{UserId: userId, SchoolId: teacher.SchoolId, DepartmentId: teacher.DepartmentId,
-		Intro: teacher.Intro, PricePerHour: teacher.PricePerHour, RealPricePerHour: teacher.RealPricePerHour}
-	InsertTeacherProfile(&teacherProfile)
-	fmt.Println(teacher.Phone)
-	return &teacher
+	return teachers
 }
