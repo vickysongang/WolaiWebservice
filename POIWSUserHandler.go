@@ -21,7 +21,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 
 	if WsManager.HasUserChan(msg.UserId) {
 		oldChan := WsManager.GetUserChan(msg.UserId)
-		WsManager.RemoveUserChan(msg.UserId)
+		WSUserLogout(msg.UserId)
 		msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
 		oldChan <- msgFL
 	}
@@ -32,15 +32,9 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	return userChan, true
 }
 
-func WSUserLogout(userId int64) (chan POIWSMessage, bool) {
-	var userChan chan POIWSMessage
-
-	if !WsManager.HasUserChan(userId) {
-		return userChan, false
-	}
-
-	userChan = WsManager.GetUserChan(userId)
+func WSUserLogout(userId int64) {
+	CheckSessionBreak(userId)
 	WsManager.RemoveUserChan(userId)
 	WsManager.SetUserOffline(userId)
-	return userChan, true
+	WsManager.SetTeacherOffline(userId)
 }

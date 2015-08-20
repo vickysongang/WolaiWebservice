@@ -132,7 +132,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 用户登出信息
 		case WS_LOGOUT:
-			_, _ = WSUserLogout(msg.UserId)
 			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
 			userChan <- resp
 
@@ -251,14 +250,13 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 
 		// 检验用户是否连接超时
 		case <-pongTicker.C:
+			fmt.Println("HEARTBEAT: UserId: ", userId, "pingpong bool: ", pingpong)
 			if pingpong {
 				pingpong = false
 			} else {
-				_, _ = WSUserLogout(userId)
-				fmt.Println("WebSocketWriteHandler: user timed out; UserId: ", userId)
 
-				WsManager.SetUserOffline(userId)
-				WsManager.SetTeacherOffline(userId)
+				fmt.Println("WebSocketWriteHandler: user timed out; UserId: ", userId)
+				WSUserLogout(userId)
 				close(userChan)
 				conn.Close()
 				return
@@ -275,7 +273,11 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					fmt.Println(err.Error())
 				}
 
-				if msg.OperationCode == WS_FORCE_QUIT || msg.OperationCode == WS_FORCE_LOGOUT {
+				if msg.OperationCode == WS_FORCE_QUIT ||
+					msg.OperationCode == WS_FORCE_LOGOUT ||
+					msg.OperationCode == WS_LOGOUT_RESP {
+
+					WSUserLogout(userId)
 					close(userChan)
 					conn.Close()
 					return

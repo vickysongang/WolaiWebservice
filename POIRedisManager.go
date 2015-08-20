@@ -50,8 +50,8 @@ func NewPOIRedisManager() POIRedisManager {
 		DB:       Config.Redis.Db,
 	})
 	pong, err := client.Ping().Result()
-	fmt.Println("Connect redis:",pong, err)
-	return POIRedisManager{redisClient: client,redisError:err}
+	fmt.Println("Connect redis:", pong, err)
+	return POIRedisManager{redisClient: client, redisError: err}
 }
 
 func (rm *POIRedisManager) GetFeed(feedId string) *POIFeed {
@@ -408,41 +408,6 @@ func (rm *POIRedisManager) GetConversation(userId1, userId2 int64) string {
 	}
 
 	return convId
-}
-
-func (rm *POIRedisManager) SetOrderDispatch(orderId int64, userId int64, timestamp int64) {
-	orderIdStr := strconv.FormatInt(orderId, 10)
-	userIdStr := strconv.FormatInt(userId, 10)
-	timestampStr := strconv.FormatInt(timestamp, 10)
-
-	_ = rm.redisClient.HSet(ORDER_DISPATCH+orderIdStr, userIdStr, timestampStr)
-}
-
-func (rm *POIRedisManager) SetOrderResponse(orderId int64, userId int64, timestamp int64) {
-	orderIdStr := strconv.FormatInt(orderId, 10)
-	userIdStr := strconv.FormatInt(userId, 10)
-	timestampStr := strconv.FormatInt(timestamp, 10)
-
-	_ = rm.redisClient.HSet(ORDER_RESPONSE+orderIdStr, userIdStr, timestampStr)
-}
-
-func (rm *POIRedisManager) SetOrderPlanTime(orderId int64, userId int64, planTime string) {
-	orderIdStr := strconv.FormatInt(orderId, 10)
-	userIdStr := strconv.FormatInt(userId, 10)
-
-	_ = rm.redisClient.HSet(ORDER_PLANTIME+orderIdStr, userIdStr, planTime)
-}
-
-func (rm *POIRedisManager) GetOrderPlanTime(orderId int64, userId int64) string {
-	orderIdStr := strconv.FormatInt(orderId, 10)
-	userIdStr := strconv.FormatInt(userId, 10)
-
-	planTime, err := rm.redisClient.HGet(ORDER_PLANTIME+orderIdStr, userIdStr).Result()
-	if err == redis.Nil {
-		return ""
-	}
-
-	return planTime
 }
 
 func (rm *POIRedisManager) SetSessionTicker(timestamp int64, tickerInfo string) {
