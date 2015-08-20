@@ -113,6 +113,13 @@ func (wsm *POIWSManager) SetUserOffline(userId int64) {
 	}
 }
 
+func (wsm *POIWSManager) GetUserOnlineStatus(userId int64) int64 {
+	if timestamp, ok := wsm.onlineUserMap[userId]; ok {
+		return timestamp
+	}
+	return -1
+}
+
 func (wsm *POIWSManager) SetTeacherOnline(userId int64, timestamp int64) {
 	fmt.Println("SetTeacherOnline:", userId)
 	wsm.onlineTeacherMap[userId] = timestamp

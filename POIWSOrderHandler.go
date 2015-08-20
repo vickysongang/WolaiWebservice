@@ -360,6 +360,11 @@ func POIWSOrderHandler(orderId int64) {
 					break
 				}
 
+				countdown := 300 + firstReply - timestamp
+				if countdown < 0 {
+					break
+				}
+
 				recoverStuMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER_RECOVER_STU)
 				recoverStuMsg.Attribute["orderId"] = orderIdStr
 				recoverStuMsg.Attribute["countdown"] = "120"
@@ -368,10 +373,10 @@ func POIWSOrderHandler(orderId int64) {
 				recoverChan <- recoverStuMsg
 
 				for teacherId, _ := range WsManager.orderDispatchMap[orderId] {
-					countdown := 300 + firstReply - timestamp
-					if countdown < 0 {
-						break
+					if WsManager.teacherOrderDispatchMap[teacherId][orderId] == 0 {
+						continue
 					}
+
 					teacher := QueryTeacher(teacherId)
 					teacher.LabelList = QueryTeacherLabelById(teacherId)
 					teacherByte, _ := json.Marshal(teacher)
