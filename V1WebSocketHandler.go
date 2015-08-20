@@ -259,7 +259,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			} else {
 				fmt.Println("WebSocketWriteHandler: user timed out; UserId: ", userId)
 				//WSUserLogout(userId)
-				close(userChan)
+				//close(userChan)
 				conn.Close()
 				return
 			}
