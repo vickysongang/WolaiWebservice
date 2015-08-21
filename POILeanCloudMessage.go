@@ -13,7 +13,10 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-const LC_SEND_MSG = "https://leancloud.cn/1.1/rtm/messages"
+const (
+	LC_SEND_MSG     = "https://leancloud.cn/1.1/rtm/messages"
+	SUPPORT_USER_ID = 1001
+)
 
 type LCMessage struct {
 	SendId         string `json:"from_peer"`
@@ -39,14 +42,29 @@ type LCMessageLog struct {
 	Timestamp  string    `json:"-"`
 }
 
+type LCSupportMessageLog struct {
+	MsgId      string    `json:"msg-id" orm:"pk"`
+	ConvId     string    `json:"conv-id"`
+	From       string    `json:"from"`
+	CreateTime time.Time `json:"createTime" orm:"type(datetime)"`
+	FromIp     string    `json:"from-ip"`
+	To         string    `json:"to"`
+	Data       string    `json:"data"`
+	Timestamp  string    `json:"-"`
+}
+
 type LCMessageLogs []LCMessageLog
 
 func (ml *LCMessageLog) TableName() string {
 	return "message_logs"
 }
 
+func (ml *LCSupportMessageLog) TableName() string {
+	return "support_message_logs"
+}
+
 func init() {
-	orm.RegisterModel(new(LCMessageLog))
+	orm.RegisterModel(new(LCMessageLog), new(LCSupportMessageLog))
 }
 
 func NewLCCommentNotification(feedCommentId string) *LCTypedMessage {
@@ -328,6 +346,15 @@ func InsertLCMessageLog(messageLog *LCMessageLog) *LCMessageLog {
 	return messageLog
 }
 
+func InsertLCSupportMessageLog(messageLog *LCSupportMessageLog) *LCSupportMessageLog {
+	o := orm.NewOrm()
+	_, err := o.Insert(messageLog)
+	if err != nil {
+		panic(err.Error())
+	}
+	return messageLog
+}
+
 func HasLCMessageLog(msgId string) bool {
 	var hasFlag bool
 	o := orm.NewOrm()
@@ -383,6 +410,21 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 		count++
 		if !hasFlag {
 			InsertLCMessageLog(&messageLog)
+			if RedisManager.redisError == nil {
+				//如果是客服消息，则将该消息存入客服消息表
+				if RedisManager.IsSupportMessage(SUPPORT_USER_ID, convIdStr) {
+					supportMessageLog := LCSupportMessageLog{}
+					supportMessageLog.MsgId = messageLog.MsgId
+					supportMessageLog.ConvId = messageLog.ConvId
+					supportMessageLog.From = messageLog.From
+					supportMessageLog.To = messageLog.To
+					supportMessageLog.FromIp = messageLog.FromIp
+					supportMessageLog.Data = messageLog.Data
+					supportMessageLog.Timestamp = messageLog.Timestamp
+					supportMessageLog.CreateTime = messageLog.CreateTime
+					InsertLCSupportMessageLog(&supportMessageLog)
+				}
+			}
 		} else {
 			fmt.Println("No newest LeanCloud message!")
 			break

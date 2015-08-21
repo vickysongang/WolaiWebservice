@@ -94,6 +94,20 @@ func (rm *POIRedisManager) GetFeed(feedId string) *POIFeed {
 	return &feed
 }
 
+/*
+ * 判断消息是否为客服消息
+ */
+func (rm *POIRedisManager) IsSupportMessage(userId int64, convId string) bool {
+	userIdStr := strconv.FormatInt(userId, 10)
+	hashMap := rm.redisClient.HGetAllMap(USER_CONVERSATION + userIdStr).Val()
+	for _, v := range hashMap {
+		if v == convId {
+			return true
+		}
+	}
+	return false
+}
+
 func (rm *POIRedisManager) GetFeedComment(feedCommentId string) *POIFeedComment {
 	if !rm.redisClient.HExists(CACHE_FEEDCOMMENT+feedCommentId, "id").Val() {
 		return nil

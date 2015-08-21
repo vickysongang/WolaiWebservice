@@ -25,7 +25,7 @@ func init() {
 	RedisManager = NewPOIRedisManager()
 	WsManager = NewPOIWSManager()
 	Ticker = time.NewTicker(time.Millisecond * 5000)
-	LCMessageTicker = time.NewTicker(time.Minute * 30)
+	LCMessageTicker = time.NewTicker(time.Minute * 1)
 	orm.RegisterDataBase("default", "mysql", Config.Database.Username+":"+
 		Config.Database.Password+"@"+
 		Config.Database.Method+"("+
