@@ -36,15 +36,28 @@ func OrderCreate(creatorId int64, teacherId int64, timestamp float64, gradeId in
 
 func OrderPersonalConfirm(userId int64, orderId int64, accept int64, timestamp float64) int64 {
 	order := QueryOrderById(orderId)
-	teacher := QueryUserById(userId)
+	teacher := QueryTeacher(userId)
 	if order == nil || teacher == nil {
 		return 2
 	}
 
 	if accept == -1 {
+		orderInfo := map[string]interface{}{
+			"Status": ORDER_STATUS_CANCELLED,
+		}
+		UpdateOrderInfo(orderId, orderInfo)
+
 		go LCSendTypedMessage(userId, order.Creator.UserId, NewPersonalOrderRejectNotification(orderId))
+
 		return 0
 	} else if accept == 1 {
+		orderInfo := map[string]interface{}{
+			"Status":           ORDER_STATUS_CONFIRMED,
+			"PricePerHour":     teacher.PricePerHour,
+			"RealPricePerHour": teacher.RealPricePerHour,
+		}
+		UpdateOrderInfo(orderId, orderInfo)
+
 		session := NewPOISession(order.Id,
 			QueryUserById(order.Creator.UserId),
 			QueryUserById(userId),
