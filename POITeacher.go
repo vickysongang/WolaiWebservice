@@ -163,7 +163,7 @@ func QueryTeacherList(pageNum, pageCount int) POITeachers {
 
 func QueryTeacher(userId int64) *POITeacher {
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("users.id,users.nickname,users.avatar, users.gender,teacher_profile.service_time, teacher_profile.price_per_hour,school.name school_name,department.name dept_name").
+	qb.Select("users.id,users.nickname,users.avatar, users.gender,teacher_profile.service_time, teacher_profile.price_per_hour,teacher_profile.real_price_per_hour,school.name school_name,department.name dept_name").
 		From("users").InnerJoin("teacher_profile").On("users.id = teacher_profile.user_id").
 		InnerJoin("school").On("teacher_profile.school_id = school.id").
 		InnerJoin("department").On("teacher_profile.department_id = department.id").
