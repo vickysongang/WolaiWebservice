@@ -233,9 +233,6 @@ func POIWSSessionHandler(sessionId int64) {
 				session = QuerySessionById(sessionId)
 				HandleSessionTrade(session, "S")
 
-				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionReportNotification(session.Id))
-				go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionReportNotification(session.Id))
-
 				fmt.Println("POIWSSessionHandler: session end: " + sessionIdStr)
 
 				WsManager.RemoveSessionLive(sessionId)

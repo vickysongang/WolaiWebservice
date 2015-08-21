@@ -90,22 +90,31 @@ func HandleSessionTrade(session *POISession, result string) {
 	}
 
 	//学生付款
-	var studenAmount int64
-	studenAmount = int64(math.Floor(float64(order.PricePerHour * session.Length / 3600)))
-	MinusUserBalance(student.UserId, studenAmount)
-	studentTradeRecord := POITradeRecord{UserId: student.UserId, TradeType: TRADE_PAYMENT, TradeAmount: studenAmount, OrderType: STUDENT_ORDER, Result: result, Comment: comment}
-	studentTradeRecord.Balance = student.Balance - studenAmount
+	var studentAmout int64
+	studentAmout = (int64(math.Floor(float64(order.PricePerHour*session.Length/3600))) + 50) / 100 * 100
+	if studentAmout < 100 {
+		studentAmout = 100
+	}
+	MinusUserBalance(student.UserId, studentAmout)
+	studentTradeRecord := POITradeRecord{UserId: student.UserId, TradeType: TRADE_PAYMENT, TradeAmount: studentAmout, OrderType: STUDENT_ORDER, Result: result, Comment: comment}
+	studentTradeRecord.Balance = student.Balance - studentAmout
 	studentTradeRecordId := InsertTradeRecord(&studentTradeRecord)
 	studentTradeToSession := POITradeToSession{SessionId: session.Id, TradeRecordId: studentTradeRecordId}
 	InsertTradeToSession(&studentTradeToSession)
 
 	//老师收款
 	var teacherAmount int64
-	teacherAmount = int64(math.Floor(float64(order.RealPricePerHour * session.Length / 3600)))
+	teacherAmount = (int64(math.Floor(float64(order.RealPricePerHour*session.Length/3600))) + 50) / 100 * 100
+	if teacherAmount < 100 {
+		teacherAmount = 100
+	}
 	AddUserBalance(teacher.UserId, teacherAmount)
 	teacherTradeRecord := POITradeRecord{UserId: teacher.UserId, TradeType: TRADE_RECEIVEMENT, TradeAmount: teacherAmount, OrderType: TEACHER_ORDER, Result: result, Comment: comment}
 	teacherTradeRecord.Balance = teacher.Balance + teacherAmount
 	teacherTradeRecordId := InsertTradeRecord(&teacherTradeRecord)
 	teacherTradeToSession := POITradeToSession{SessionId: session.Id, TradeRecordId: teacherTradeRecordId}
 	InsertTradeToSession(&teacherTradeToSession)
+
+	go LCSendTypedMessage(student.UserId, teacher.UserId, NewSessionReportNotification(session.Id, studentAmout))
+	go LCSendTypedMessage(teacher.UserId, student.UserId, NewSessionReportNotification(session.Id, teacherAmount))
 }
