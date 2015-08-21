@@ -880,3 +880,14 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	session := QuerySessionById(2)
 	//	HandleSessionTrade(session, "S")
 }
+
+func V1StatusLive(w http.ResponseWriter, r *http.Request) {
+	liveUser := len(WsManager.onlineUserMap)
+	liveTeacher := len(WsManager.onlineTeacherMap)
+	content := map[string]interface{}{
+		"liveUser":    liveUser,
+		"liveTeacher": liveTeacher,
+	}
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}

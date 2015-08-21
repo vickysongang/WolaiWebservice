@@ -298,18 +298,6 @@ var routes = Routes{
 		"/v1/user/myfeed",
 		V1UserMyFeed,
 	},
-	Route{
-		"v1MyOrdersGET",
-		"GET",
-		"/v1/user/myorders",
-		V1OrderInSession,
-	},
-	Route{
-		"v1MyOrdersPost",
-		"POST",
-		"/v1/user/myorders",
-		V1OrderInSession,
-	},
 
 	// 3.4 User MyFollowing
 	Route{
@@ -365,6 +353,20 @@ var routes = Routes{
 		"GET",
 		"/v1/user/unfollow",
 		V1UserUnfollow,
+	},
+
+	// 3.8 User Order
+	Route{
+		"v1MyOrdersGET",
+		"GET",
+		"/v1/user/myorders",
+		V1OrderInSession,
+	},
+	Route{
+		"v1MyOrdersPost",
+		"POST",
+		"/v1/user/myorders",
+		V1OrderInSession,
 	},
 
 	// 4.1 Get Conversation ID
@@ -513,6 +515,20 @@ var routes = Routes{
 		"/v1/banner",
 		V1Banner,
 	},
+
+	Route{
+		"V1StatusLivePOST",
+		"POST",
+		"/v1/status/live",
+		V1StatusLive,
+	},
+	Route{
+		"V1StatusLiveGET",
+		"GET",
+		"/v1/status/live",
+		V1StatusLive,
+	},
+
 	Route{
 		"TestGET",
 		"GET",
