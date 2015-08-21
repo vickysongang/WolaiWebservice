@@ -245,7 +245,7 @@ func POIWSSessionHandler(sessionId int64) {
 				return
 
 			case WS_SESSION_BREAK:
-				if isPaused {
+				if isPaused || !isServing {
 					break
 				}
 
@@ -290,8 +290,18 @@ func POIWSSessionHandler(sessionId int64) {
 				studentChan <- recoverStuMsg
 
 			case WS_SESSION_PAUSE:
+				pauseResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_PAUSE_RESP)
+				if isPaused || !isServing {
+					pauseResp.Attribute["errCode"] = "2"
+					userChan <- pauseResp
+					break
+				}
+				pauseResp.Attribute["errCode"] = "0"
+				userChan <- pauseResp
+
 				pauseMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_PAUSE)
 				pauseMsg.Attribute["sessionId"] = sessionIdStr
+				pauseMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 				pauseMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 
 				if !WsManager.HasUserChan(session.Creator.UserId) {
@@ -305,7 +315,83 @@ func POIWSSessionHandler(sessionId int64) {
 				isPaused = true
 
 			case WS_SESSION_RESUME:
+				resumeResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_PAUSE_RESP)
+				if !isPaused || !isServing {
+					resumeResp.Attribute["errCode"] = "2"
+					userChan <- resumeResp
+					break
+				}
+				resumeResp.Attribute["errCode"] = "0"
+				userChan <- resumeResp
+
+				resumeMsg := NewPOIWSMessage("", msg.UserId, WS_SESSION_RESUME)
+				resumeMsg.Attribute["sessionId"] = sessionIdStr
+				resumeMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+				if !WsManager.HasUserChan(session.Creator.UserId) {
+					break
+				}
+				studentChan := WsManager.GetUserChan(session.Creator.UserId)
+				studentChan <- resumeMsg
+				isCalling = true
+
 			case WS_SESSION_RESUME_CANCEL:
+				resCancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_CANCEL_RESP)
+				if !isCalling {
+					resCancelResp.Attribute["errCode"] = "2"
+					resCancelResp.Attribute["errMsg"] = "nobody is calling"
+					userChan <- resCancelResp
+					break
+				}
+				resCancelResp.Attribute["errCode"] = "0"
+				userChan <- resCancelResp
+
+				resCancelMsg := NewPOIWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
+				resCancelMsg.Attribute["sessionId"] = sessionIdStr
+				resCancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+				if !WsManager.HasUserChan(session.Creator.UserId) {
+					break
+				}
+				studentChan := WsManager.GetUserChan(session.Creator.UserId)
+				studentChan <- resCancelMsg
+				isCalling = false
+
+			case WS_SESSION_RESUME_ACCEPT:
+				resAcceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_ACCEPT_RESP)
+				acceptStr, ok := msg.Attribute["accept"]
+				if !ok {
+					resAcceptResp.Attribute["errCode"] = "2"
+					resAcceptResp.Attribute["errMsg"] = "Insufficient argument"
+					userChan <- resAcceptResp
+					break
+				}
+				if !isCalling {
+					resAcceptResp.Attribute["errCode"] = "2"
+					resAcceptResp.Attribute["errMsg"] = "nobody is calling"
+					userChan <- resAcceptResp
+					break
+				}
+				resAcceptResp.Attribute["errCode"] = "0"
+				userChan <- resAcceptResp
+
+				isCalling = false
+				resAcceptMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_RESUME_ACCEPT)
+				resAcceptMsg.Attribute["sessionId"] = sessionIdStr
+				resAcceptMsg.Attribute["accept"] = acceptStr
+				if WsManager.HasUserChan(session.Teacher.UserId) {
+					teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+					teacherChan <- resAcceptMsg
+				}
+
+				if acceptStr == "-1" {
+					break
+				} else if acceptStr == "1" {
+					lastSync = timestamp
+					isServing = true
+					syncTicker = time.NewTicker(time.Second * 60)
+					waitingTimer.Stop()
+
+					fmt.Println("POIWSSessionHandler: session resumed: " + sessionIdStr)
+				}
 			}
 		}
 	}
@@ -359,5 +445,16 @@ func InitSessionMonitor(sessionId int64) bool {
 }
 
 func CheckSessionBreak(userId int64) {
+	if _, ok := WsManager.userSessionLiveMap[userId]; !ok {
+		return
+	}
 
+	for sessionId, _ := range WsManager.userSessionLiveMap[userId] {
+		if !WsManager.HasSessionChan(sessionId) {
+			continue
+		}
+		sessionChan := WsManager.GetSessionChan(sessionId)
+		breakMsg := NewPOIWSMessage("", userId, WS_SESSION_BREAK)
+		sessionChan <- breakMsg
+	}
 }

@@ -37,7 +37,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 }
 
 func WSUserLogout(userId int64) {
-	//CheckSessionBreak(userId)
+	CheckSessionBreak(userId)
 	WsManager.RemoveUserChan(userId)
 	WsManager.SetUserOffline(userId)
 }

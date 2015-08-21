@@ -243,6 +243,8 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 	pongTicker := time.NewTicker(time.Second * 15)
 	pingpong := true
 
+	loginTS := WsManager.GetUserOnlineStatus(userId)
+
 	for {
 		select {
 
@@ -253,7 +255,10 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			if err != nil {
 				fmt.Println("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 
-				//close(userChan)
+				if WsManager.GetUserOnlineStatus(userId) == loginTS {
+					WSUserLogout(userId)
+					close(userChan)
+				}
 				conn.Close()
 				return
 			}
@@ -265,7 +270,10 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			} else {
 				fmt.Println("WebSocketWriteHandler: user timed out; UserId: ", userId)
 
-				//close(userChan)
+				if WsManager.GetUserOnlineStatus(userId) == loginTS {
+					WSUserLogout(userId)
+					close(userChan)
+				}
 				conn.Close()
 				return
 			}
@@ -280,7 +288,10 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 				if err != nil {
 					fmt.Println("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 
-					//close(userChan)
+					if WsManager.GetUserOnlineStatus(userId) == loginTS {
+						WSUserLogout(userId)
+						close(userChan)
+					}
 					conn.Close()
 					return
 				}
@@ -291,7 +302,10 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					msg.OperationCode == WS_FORCE_LOGOUT ||
 					msg.OperationCode == WS_LOGOUT_RESP {
 
-					//close(userChan)
+					if WsManager.GetUserOnlineStatus(userId) == loginTS {
+						WSUserLogout(userId)
+						close(userChan)
+					}
 					conn.Close()
 					return
 				}
