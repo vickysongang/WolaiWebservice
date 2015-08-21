@@ -178,9 +178,8 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 
 	vars := r.Form
 
-	//	userIdStr := vars["userId"][0]
-	//	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-	//	_ = QueryUserById(userId)
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
 	var page int64
 	if len(vars["page"]) > 0 {
@@ -194,7 +193,7 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 	} else {
 		count = 10
 	}
-	content := GetTeacherRecommendationList(int(page), int(count))
+	content := GetTeacherRecommendationList(userId, page, count)
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
