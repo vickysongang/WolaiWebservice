@@ -230,6 +230,8 @@ func POIWSSessionHandler(sessionId int64) {
 					"Length": length,
 				}
 				UpdateSessionInfo(sessionId, sessionInfo)
+				//修改老师的辅导时长
+				UpdateTeacherServiceTime(session.Teacher.UserId, length)
 				session = QuerySessionById(sessionId)
 				HandleSessionTrade(session, "S")
 
