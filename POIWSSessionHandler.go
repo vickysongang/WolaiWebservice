@@ -14,7 +14,6 @@ func POIWSSessionHandler(sessionId int64) {
 
 	var length int64
 	var lastSync int64
-	//var pauseAt int64
 
 	isCalling := false
 	isServing := false
@@ -231,8 +230,9 @@ func POIWSSessionHandler(sessionId int64) {
 					"Length": length,
 				}
 				UpdateSessionInfo(sessionId, sessionInfo)
+				session = QuerySessionById(sessionId)
+				HandleSessionTrade(session, "S")
 
-				//go SendSessionNotification(sessionId, 3)
 				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionReportNotification(session.Id))
 				go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionReportNotification(session.Id))
 
@@ -243,6 +243,69 @@ func POIWSSessionHandler(sessionId int64) {
 				WsManager.RemoveSessionChan(sessionId)
 				close(sessionChan)
 				return
+
+			case WS_SESSION_BREAK:
+				if isPaused {
+					break
+				}
+
+				breakMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK)
+				if msg.UserId == session.Creator.UserId {
+					breakMsg.UserId = session.Teacher.UserId
+				}
+				breakMsg.Attribute["sessionId"] = sessionIdStr
+				breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
+				breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+				if WsManager.HasUserChan(breakMsg.UserId) {
+					breakChan := WsManager.GetUserChan(breakMsg.UserId)
+					breakChan <- breakMsg
+				}
+
+				length = length + (timestamp - lastSync)
+				lastSync = timestamp
+				isPaused = true
+
+			case WS_SESSION_RECOVER_TEACHER:
+				recoverTeacherMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_RECOVER_TEACHER)
+				recoverTeacherMsg.Attribute["sessionId"] = sessionIdStr
+				recoverTeacherMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
+				recoverTeacherMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+
+				if !WsManager.HasUserChan(session.Teacher.UserId) {
+					break
+				}
+				teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+				teacherChan <- recoverTeacherMsg
+
+			case WS_SESSION_RECOVER_STU:
+				recoverStuMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_RECOVER_STU)
+				recoverStuMsg.Attribute["sessionId"] = sessionIdStr
+				recoverStuMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+				recoverStuMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+
+				if !WsManager.HasUserChan(session.Creator.UserId) {
+					break
+				}
+				studentChan := WsManager.GetUserChan(session.Creator.UserId)
+				studentChan <- recoverStuMsg
+
+			case WS_SESSION_PAUSE:
+				pauseMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_PAUSE)
+				pauseMsg.Attribute["sessionId"] = sessionIdStr
+				pauseMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+
+				if !WsManager.HasUserChan(session.Creator.UserId) {
+					break
+				}
+				studentChan := WsManager.GetUserChan(session.Creator.UserId)
+				studentChan <- pauseMsg
+
+				length = length + (timestamp - lastSync)
+				lastSync = timestamp
+				isPaused = true
+
+			case WS_SESSION_RESUME:
+			case WS_SESSION_RESUME_CANCEL:
 			}
 		}
 	}

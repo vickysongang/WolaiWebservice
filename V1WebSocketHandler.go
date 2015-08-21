@@ -38,6 +38,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// Force quit the user if msg is unstructed
 		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
+		resp.Attribute["errCode"] = "2"
 		resp.Attribute["errMsg"] = "unstructed message"
 		err = conn.WriteJSON(resp)
 		conn.Close()
@@ -51,6 +52,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	if math.Abs(msg.Timestamp-float64(timestamp)) > 12*3600 {
 		// Force quit the user if timestamp difference is too significant
 		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
+		resp.Attribute["errCode"] = "3"
 		resp.Attribute["errMsg"] = "local time not accepted"
 		err = conn.WriteJSON(resp)
 		conn.Close()
@@ -64,6 +66,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		// Force quit illegal login
 		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
+		resp.Attribute["errCode"] = "4"
 		resp.Attribute["errMsg"] = "illegal websocket login"
 		err = conn.WriteJSON(resp)
 		conn.Close()
@@ -112,6 +115,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
 
 			resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
+			resp.Attribute["errCode"] = "3"
 			resp.Attribute["errMsg"] = "local time not accepted"
 			userChan <- resp
 			return
