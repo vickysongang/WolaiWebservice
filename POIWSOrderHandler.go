@@ -338,6 +338,9 @@ func POIWSOrderHandler(orderId int64) {
 				if replyTs == 0 {
 					replied = 0
 					countstart = timestamp - WsManager.orderDispatchMap[orderId][msg.UserId]
+					if order.Type == 1 {
+						countdown = 90
+					}
 				} else {
 					replied = 1
 					countstart = timestamp - replyTs

@@ -879,3 +879,14 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	content := RedisManager.IsSupportMessage(1001, "55d4670b40ac87cf58cd5c63")
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
+
+func V1StatusLive(w http.ResponseWriter, r *http.Request) {
+	liveUser := len(WsManager.onlineUserMap)
+	liveTeacher := len(WsManager.onlineTeacherMap)
+	content := map[string]interface{}{
+		"liveUser":    liveUser,
+		"liveTeacher": liveTeacher,
+	}
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
