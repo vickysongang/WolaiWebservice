@@ -458,3 +458,31 @@ func CheckSessionBreak(userId int64) {
 		sessionChan <- breakMsg
 	}
 }
+
+func RecoverUserSession(userId int64) {
+	if !WsManager.HasUserChan(userId) {
+		return
+	}
+
+	if _, ok := WsManager.userSessionLiveMap[userId]; !ok {
+		return
+	}
+
+	for sessionId, _ := range WsManager.userSessionLiveMap[userId] {
+		session := QuerySessionById(sessionId)
+		if session == nil {
+			continue
+		}
+
+		if !WsManager.HasSessionChan(sessionId) {
+			continue
+		}
+
+		recoverMsg := NewPOIWSMessage("", userId, WS_SESSION_RECOVER_STU)
+		if session.Teacher.UserId == userId {
+			recoverMsg.OperationCode = WS_SESSION_RECOVER_TEACHER
+		}
+		sessionChan := WsManager.GetSessionChan(sessionId)
+		sessionChan <- recoverMsg
+	}
+}

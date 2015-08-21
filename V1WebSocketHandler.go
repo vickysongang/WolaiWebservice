@@ -85,6 +85,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 恢复可能存在的用户被中断的发单请求
 	go RecoverStudentOrder(userId)
+	go RecoverUserSession(userId)
 
 	for {
 
