@@ -436,3 +436,27 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 	}
 	return content
 }
+
+func SendWelcomeMessageTeacher(userId int64) {
+	attr := map[string]string{
+		"mediaId": "teacher_welcome_1.jpg",
+	}
+	msg := LCTypedMessage{
+		Type:      2,
+		Text:      "[图片消息]",
+		Attribute: attr,
+	}
+	LCSendTypedMessage(1001, userId, &msg)
+}
+
+func SendWelcomeMessageStudent(userId int64) {
+	attr := map[string]string{
+		"mediaId": "student_welcome_1.jpg",
+	}
+	msg := LCTypedMessage{
+		Type:      2,
+		Text:      "[图片消息]",
+		Attribute: attr,
+	}
+	LCSendTypedMessage(1001, userId, &msg)
+}

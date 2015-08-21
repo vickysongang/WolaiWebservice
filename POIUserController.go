@@ -17,6 +17,7 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 			userInfo := make(map[string]interface{})
 			userInfo["Status"] = 0
 			UpdateUserInfo(user.UserId, userInfo)
+			SendWelcomeMessageTeacher(user.UserId)
 		}
 		return 0, user
 	}
@@ -27,7 +28,7 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 	id := InsertPOIUser(&u)
 
 	newUser := QueryUserById(id)
-
+	SendWelcomeMessageStudent(newUser.UserId)
 	return 1001, newUser
 }
 
