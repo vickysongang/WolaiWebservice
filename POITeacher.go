@@ -415,14 +415,13 @@ func InsertTeacher(teacherInfo string) POITeacherInfos {
 		user.Nickname = teacher.Nickname
 		user.Phone = teacher.Phone
 		userId := InsertPOIUser(&user)
-		fmt.Println("user:", userId)
 		if userId == 0 {
+			comment := "Teacher " + teacher.Nickname + "allready exist when InsertTeacher!"
+			fmt.Println(comment)
 			return nil
 		}
 		teacher.POIUser.UserId = userId
-		fmt.Println("userId:", userId)
 		//处理Label信息
-		fmt.Println("labelList:", teacher.LabelList)
 		labelList := teacher.LabelList
 		for _, label := range labelList {
 			teacherLabel := QueryTeacherLabelByName(label)
