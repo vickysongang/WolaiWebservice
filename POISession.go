@@ -27,24 +27,25 @@ type POISession struct {
 }
 
 type POIOrderInSession struct {
-	OrderId        int64     `json:"orderId" orm:"pk"`
-	SessionId      int64     `json:"sessionId"`
-	User           *POIUser  `json:"userInfo" orm:"-"`
-	GradeId        int64     `json:"gradeId"`
-	SubjectId      int64     `json:"subjectId"`
-	Status         string    `json:"sessionStatus"`
-	TimeFromStr    string    `json:"startTime" orm:"-"`
-	TimeToStr      string    `json:"endTime" orm:"-"`
-	PricePerHour   int64     `json:"pricePerHour"`
-	Length         int64     `json:"timeLength"`
-	TotalCoat      int64     `json:"totalCost"`
-	Tutor          int64     `json:"-"`
-	Creator        int64     `json:"-"`
-	PlanTime       string    `json:"-"`
-	TimeFrom       time.Time `json:"-"`
-	TimeTo         time.Time `json:"-"`
-	RealLength     int64     `json:"-"`
-	EstimateLength int64     `json:"-"`
+	OrderId          int64     `json:"orderId" orm:"pk"`
+	SessionId        int64     `json:"sessionId"`
+	User             *POIUser  `json:"userInfo" orm:"-"`
+	GradeId          int64     `json:"gradeId"`
+	SubjectId        int64     `json:"subjectId"`
+	Status           string    `json:"sessionStatus"`
+	TimeFromStr      string    `json:"startTime" orm:"-"`
+	TimeToStr        string    `json:"endTime" orm:"-"`
+	PricePerHour     int64     `json:"pricePerHour"`
+	RealPricePerHour int64     `json:"realPricePerHour"`
+	Length           int64     `json:"timeLength"`
+	TotalCoat        int64     `json:"totalCost"`
+	Tutor            int64     `json:"-"`
+	Creator          int64     `json:"-"`
+	PlanTime         string    `json:"-"`
+	TimeFrom         time.Time `json:"-"`
+	TimeTo           time.Time `json:"-"`
+	RealLength       int64     `json:"-"`
+	EstimateLength   int64     `json:"-"`
 }
 
 type POIOrderInSessions []*POIOrderInSession
@@ -122,7 +123,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 	start := pageNum * pageCount
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
-		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour").
+		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour").
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
 		Where("sessions.creator = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
@@ -136,6 +137,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 			orderInSession.TimeFromStr = orderInSession.TimeFrom.Format(time.RFC3339)
 			orderInSession.TimeToStr = orderInSession.TimeTo.Format(time.RFC3339)
 			orderInSession.Length = orderInSession.RealLength
+			orderInSession.TotalCoat = QueryTradeAmount(orderInSession.SessionId, userId)
 		} else {
 			orderInSession.TimeFromStr = orderInSession.PlanTime
 			orderInSession.Length = orderInSession.EstimateLength
@@ -143,8 +145,8 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 			planTime, _ := time.Parse(time.RFC3339, orderInSession.PlanTime)
 			timeTo := planTime.Add(d)
 			orderInSession.TimeToStr = timeTo.Format(time.RFC3339)
+			orderInSession.TotalCoat = orderInSession.PricePerHour * orderInSession.EstimateLength / 60
 		}
-		orderInSession.TotalCoat = QueryTradeAmount(orderInSession.SessionId, userId)
 	}
 	return orderInSessions
 }
@@ -155,7 +157,7 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 	start := pageNum * pageCount
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
-		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour").
+		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour").
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
 		Where("sessions.tutor = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
@@ -168,6 +170,7 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 			orderInSession.TimeFromStr = orderInSession.TimeFrom.Format(time.RFC3339)
 			orderInSession.TimeToStr = orderInSession.TimeTo.Format(time.RFC3339)
 			orderInSession.Length = orderInSession.RealLength
+			orderInSession.TotalCoat = QueryTradeAmount(orderInSession.SessionId, userId)
 		} else {
 			orderInSession.TimeFromStr = orderInSession.PlanTime
 			orderInSession.Length = orderInSession.EstimateLength
@@ -175,8 +178,9 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 			planTime, _ := time.Parse(time.RFC3339, orderInSession.PlanTime)
 			timeTo := planTime.Add(d)
 			orderInSession.TimeToStr = timeTo.Format(time.RFC3339)
+			orderInSession.TotalCoat = orderInSession.RealPricePerHour * orderInSession.EstimateLength / 60
 		}
-		orderInSession.TotalCoat = QueryTradeAmount(orderInSession.SessionId, userId)
+
 	}
 	return orderInSessions
 }
