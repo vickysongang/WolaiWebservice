@@ -11,7 +11,10 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 		return userChan, false
 	}
 
-	if _, ok := msg.Attribute["installationId"]; !ok {
+	_, oki := msg.Attribute["installationId"]
+	_, oko := msg.Attribute["objectId"]
+
+	if !oki && !oko {
 		return userChan, false
 	}
 
