@@ -115,6 +115,6 @@ func HandleSessionTrade(session *POISession, result string) {
 	teacherTradeToSession := POITradeToSession{SessionId: session.Id, TradeRecordId: teacherTradeRecordId}
 	InsertTradeToSession(&teacherTradeToSession)
 
-	go LCSendTypedMessage(student.UserId, teacher.UserId, NewSessionReportNotification(session.Id, studentAmout))
-	go LCSendTypedMessage(teacher.UserId, student.UserId, NewSessionReportNotification(session.Id, teacherAmount))
+	go LCSendTypedMessage(student.UserId, teacher.UserId, NewSessionReportNotification(session.Id, teacherAmount))
+	go LCSendTypedMessage(teacher.UserId, student.UserId, NewSessionReportNotification(session.Id, studentAmout))
 }
