@@ -5,10 +5,11 @@ import (
 	"math"
 )
 
-func GetTeacherRecommendationList(pageNum, pageCount int) POITeachers {
+func GetTeacherRecommendationList(userId, pageNum, pageCount int64) POITeachers {
 	teachers := QueryTeacherList(pageNum, pageCount)
 	for i := range teachers {
 		teachers[i].LabelList = QueryTeacherLabelByUserId(teachers[i].UserId)
+		teachers[i].HasFollowed = RedisManager.HasFollowedUser(userId, teachers[i].UserId)
 	}
 	return teachers
 }

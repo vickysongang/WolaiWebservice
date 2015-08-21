@@ -136,7 +136,7 @@ func init() {
 /*
  * 分页查询老师列表
  */
-func QueryTeacherList(pageNum, pageCount int) POITeachers {
+func QueryTeacherList(pageNum, pageCount int64) POITeachers {
 	start := pageNum * pageCount
 	teachers := make(POITeachers, 0)
 	qb, _ := orm.NewQueryBuilder("mysql")
@@ -144,7 +144,7 @@ func QueryTeacherList(pageNum, pageCount int) POITeachers {
 		"teacher_profile.real_price_per_hour,school.name school_name, department.name dept_name").
 		From("users").InnerJoin("teacher_profile").On("users.id = teacher_profile.user_id").InnerJoin("school").
 		On("teacher_profile.school_id = school.id").InnerJoin("department").On("teacher_profile.department_id = department.id").
-		Where("users.access_right = 2 and users.status = 0").Limit(pageCount).Offset(start)
+		Where("users.access_right = 2 and users.status = 0").Limit(int(pageCount)).Offset(int(start))
 	sql := qb.String()
 	o := orm.NewOrm()
 	var teacherModels POITeacherModels
