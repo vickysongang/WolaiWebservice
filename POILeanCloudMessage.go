@@ -239,6 +239,7 @@ func NewSessionReminderNotification(sessionId int64, hours int64) *LCTypedMessag
 
 	attr["oprCode"] = "3"
 	attr["orderInfo"] = string(orderStr)
+	attr["planTime"] = session.PlanTime
 	attr["remaining"] = remaining.String()
 
 	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
@@ -262,6 +263,7 @@ func NewSessionCancelNotification(sessionId int64) *LCTypedMessage {
 
 	attr["oprCode"] = "4"
 	attr["orderInfo"] = string(orderStr)
+	attr["planTime"] = session.PlanTime
 
 	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
 
