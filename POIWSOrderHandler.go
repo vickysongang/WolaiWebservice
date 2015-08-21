@@ -170,7 +170,7 @@ func POIWSOrderHandler(orderId int64) {
 				creatorChan := WsManager.GetUserChan(order.Creator.UserId)
 
 				teacher := QueryTeacher(msg.UserId)
-				teacher.LabelList = QueryTeacherLabelById(msg.UserId)
+				teacher.LabelList = QueryTeacherLabelByUserId(msg.UserId)
 				teacherByte, _ := json.Marshal(teacher)
 				countdown := int64(300)
 
@@ -378,7 +378,7 @@ func POIWSOrderHandler(orderId int64) {
 					}
 
 					teacher := QueryTeacher(teacherId)
-					teacher.LabelList = QueryTeacherLabelById(teacherId)
+					teacher.LabelList = QueryTeacherLabelByUserId(teacherId)
 					teacherByte, _ := json.Marshal(teacher)
 					dispatchInfo := QueryOrderDispatch(orderId, teacherId)
 

@@ -870,10 +870,7 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 	//	io.WriteString(w, content)
 	//	content := QuerySessionTradeRecords(10019)
-	od := POIOrderDispatch{}
-	od.OrderId = 1
-	od.TeacherId = 10001
-	content := InsertOrderDispatch(&od)
+	content := QueryTeacherProfile(10234)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 	//	jsonStr := GenerateTeacherJson()
 	//	io.WriteString(w, jsonStr)

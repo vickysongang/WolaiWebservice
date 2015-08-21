@@ -360,7 +360,6 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 	content := string(body)
 	var objs []interface{}
 	json.Unmarshal(body, &objs)
-	fmt.Println("length:", len(objs))
 	var count int64
 	for _, v := range objs {
 		messageMap, _ := v.(map[string]interface{})

@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/astaxie/beego/orm"
 	_ "github.com/go-sql-driver/mysql"
@@ -11,20 +10,24 @@ import (
 
 type POITeacher struct {
 	POIUser
-	School       string   `json:"school"`
-	Department   string   `json:"department"`
-	ServiceTime  int64    `json:"serviceTime"`
-	LabelList    []string `json:"labelList,omitempty"`
-	PricePerHour int64    `json:"pricePerHour"`
+	School           string   `json:"school"`
+	Department       string   `json:"department"`
+	ServiceTime      int64    `json:"serviceTime"`
+	LabelList        []string `json:"labelList,omitempty"`
+	PricePerHour     int64    `json:"pricePerHour"`
+	RealPricePerHour int64    `json:"realPricePerHour"`
+	HasFollowed      bool     `json:"hasFollowed"`
 }
 type POITeachers []POITeacher
 
+//老师科目信息结构体
 type POITeacherSubject struct {
 	SubjectName string `json:"subjectName" orm:"column(name)"`
 	Description string `json:"description"`
 }
 type POITeacherSubjects []POITeacherSubject
 
+//老师简历结构体
 type POITeacherResume struct {
 	Id     int64  `json:"-" orm:"pk"`
 	UserId int64  `json:"-"`
@@ -34,6 +37,7 @@ type POITeacherResume struct {
 }
 type POITeacherResumes []POITeacherResume
 
+//老师详细信息结构体
 type POITeacherProfile struct {
 	UserId        int64 `json:"-" orm:"pk"`
 	POITeacher    `orm:"-"`
@@ -41,31 +45,35 @@ type POITeacherProfile struct {
 	SubjectList   POITeacherSubjects `json:"subjectList" orm:"-"`
 	EducationList POITeacherResumes  `json:"eduList" orm:"-"`
 	Intro         string             `json:"intro"`
-	HasFollowed   bool               `json:"hasFollowed"`
 	ServiceTime   int64              `json:"-"`
 }
 
+//老师详细信息结构体，字段完全与数据库对应
 type POITeacherProfileModel struct {
-	UserId           int64  `json:"-" orm:"pk"`
-	SchoolId         int64  `json:"schoolId"`
-	DepartmentId     int64  `json:"departmentId"`
-	Intro            string `json:"intro"`
-	PricePerHour     int64  `json:"pricePerHour"`
-	RealPricePerHour int64  `json:"realPricePerHour"`
-	ServiceTime      int64  `json:"-"`
+	UserId           int64   `json:"-" orm:"pk"`
+	SchoolId         int64   `json:"schoolId"`
+	DepartmentId     int64   `json:"departmentId"`
+	Intro            string  `json:"intro"`
+	PricePerHour     int64   `json:"pricePerHour"`
+	RealPricePerHour int64   `json:"realPricePerHour"`
+	ServiceTime      int64   `json:"-"`
+	Rating           float64 `json:"-"`
 }
 
+//老师标签结构体，用户读取和维护老师标签信息
 type POITeacherLabel struct {
 	Id   int64  `json:"id" orm:"pk"`
 	Name string `json:"name"`
 }
 
+//老师与标签对应关系的结构体，用于读取和维护老师与标签的对应关系
 type POITeacherToLabel struct {
 	Id      int64 `json:"id" orm:"pk"`
 	UserId  int64 `json:"userId"`
 	LabelId int64 `json:"labelId"`
 }
 
+//老师与科目对应关系的结构体，用户读取和维护老师与科目的对应关系
 type POITeacherToSubject struct {
 	Id          int64  `json:"-" orm:"pk"`
 	UserId      int64  `json:"-"`
@@ -73,6 +81,7 @@ type POITeacherToSubject struct {
 	Description string `json:"description"`
 }
 
+//老师的完整信息结构体，用于解析维护老师信息时从客户端传过来的json字符串
 type POITeacherInfo struct {
 	POIUser                `json:"teacherInfo"`
 	LabelList              []string `json:"labelList,omitempty"`
@@ -80,6 +89,23 @@ type POITeacherInfo struct {
 	POITeacherToSubject    `json:"subjectInfo"`
 	POITeacherProfileModel `json:"profileInfo"`
 }
+
+//老师信息结构体，用于多表关联查询时接受各字段的值
+type POITeacherModel struct {
+	Id               int64
+	Nickname         string
+	Avatar           string
+	Gender           int64
+	ServiceTime      int64
+	PricePerHour     int64
+	RealPricePerHour int64
+	SchoolName       string
+	DeptName         string
+	Intro            string
+	Rating           float64
+}
+
+type POITeacherModels []POITeacherModel
 
 type POITeacherInfos []POITeacherInfo
 
@@ -107,104 +133,82 @@ func init() {
 	orm.RegisterModel(new(POITeacherResume), new(POITeacherLabel), new(POITeacherToLabel), new(POITeacherToSubject), new(POITeacherProfileModel))
 }
 
+/*
+ * 分页查询老师列表
+ */
 func QueryTeacherList(pageNum, pageCount int) POITeachers {
 	start := pageNum * pageCount
 	teachers := make(POITeachers, 0)
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("users.id, users.nickname, users.avatar, users.gender,teacher_profile.service_time, school.name school_name, department.name dept_name").
+	qb.Select("users.id, users.nickname, users.avatar, users.gender,teacher_profile.service_time,teacher_profile.price_per_hour," +
+		"teacher_profile.real_price_per_hour,school.name school_name, department.name dept_name").
 		From("users").InnerJoin("teacher_profile").On("users.id = teacher_profile.user_id").InnerJoin("school").
 		On("teacher_profile.school_id = school.id").InnerJoin("department").On("teacher_profile.department_id = department.id").
 		Where("users.access_right = 2 and users.status = 0").Limit(pageCount).Offset(start)
 	sql := qb.String()
 	o := orm.NewOrm()
-	var maps []orm.Params
-	_, err := o.Raw(sql).Values(&maps)
-	if err == orm.ErrNoRows {
+	var teacherModels POITeacherModels
+	_, err := o.Raw(sql).QueryRows(&teacherModels)
+	if err != nil {
 		return nil
 	}
-	for i := range maps {
-		teacher := maps[i]
-		userIdStr, _ := teacher["id"].(string)
-		nickname, _ := teacher["nickname"].(string)
-		avatar, _ := teacher["avatar"].(string)
-		genderStr, _ := teacher["gender"].(string)
-		serviceTimeStr, _ := teacher["service_time"].(string)
-		schoolName, _ := teacher["school_name"].(string)
-		deptName, _ := teacher["dept_name"].(string)
-		userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-		gender, _ := strconv.ParseInt(genderStr, 10, 64)
-		serviceTime, _ := strconv.ParseInt(serviceTimeStr, 10, 64)
-		teachers = append(teachers, POITeacher{POIUser: POIUser{UserId: userId, Nickname: nickname,
-			Avatar: avatar, Gender: gender}, ServiceTime: serviceTime, School: schoolName,
-			Department: deptName})
+	for i := range teacherModels {
+		teacher := teacherModels[i]
+		teachers = append(teachers, POITeacher{POIUser: POIUser{UserId: teacher.Id, Nickname: teacher.Nickname,
+			Avatar: teacher.Avatar, Gender: teacher.Gender}, ServiceTime: teacher.ServiceTime, School: teacher.SchoolName,
+			Department: teacher.DeptName, PricePerHour: teacher.PricePerHour, RealPricePerHour: teacher.RealPricePerHour})
 	}
 	return teachers
 }
 
 func QueryTeacher(userId int64) *POITeacher {
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("users.nickname, users.avatar, users.gender,teacher_profile.service_time, teacher_profile.price_per_hour,school.name school_name,department.name dept_name").
+	qb.Select("users.id,users.nickname,users.avatar, users.gender,teacher_profile.service_time, teacher_profile.price_per_hour,school.name school_name,department.name dept_name").
 		From("users").InnerJoin("teacher_profile").On("users.id = teacher_profile.user_id").
 		InnerJoin("school").On("teacher_profile.school_id = school.id").
 		InnerJoin("department").On("teacher_profile.department_id = department.id").
 		Where("users.id = ?")
 	sql := qb.String()
 	o := orm.NewOrm()
-	var maps []orm.Params
-	_, err := o.Raw(sql, userId).Values(&maps)
-	if err == orm.ErrNoRows {
+	var teacherModel POITeacherModel
+	err := o.Raw(sql, userId).QueryRow(&teacherModel)
+	if err != nil {
 		return nil
 	}
-	teacherInfo := maps[0]
-	nickname, _ := teacherInfo["nickname"].(string)
-	avatar, _ := teacherInfo["avatar"].(string)
-	genderStr, _ := teacherInfo["gender"].(string)
-	serviceTimeStr, _ := teacherInfo["service_time"].(string)
-	schoolName, _ := teacherInfo["school_name"].(string)
-	deptName, _ := teacherInfo["dept_name"].(string)
-	gender, _ := strconv.ParseInt(genderStr, 10, 64)
-	serviceTime, _ := strconv.ParseInt(serviceTimeStr, 10, 64)
-	pricePerHourStr, _ := teacherInfo["price_per_hour"].(string)
-	pricePerHour, _ := strconv.ParseInt(pricePerHourStr, 10, 64)
-	teacher := POITeacher{POIUser: POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender},
-		ServiceTime: serviceTime, School: schoolName, Department: deptName, PricePerHour: pricePerHour}
+	teacher := POITeacher{POIUser: POIUser{UserId: teacherModel.Id, Nickname: teacherModel.Nickname, Avatar: teacherModel.Avatar, Gender: teacherModel.Gender},
+		ServiceTime: teacherModel.ServiceTime, School: teacherModel.SchoolName, Department: teacherModel.DeptName, PricePerHour: teacherModel.PricePerHour, RealPricePerHour: teacherModel.RealPricePerHour}
 	return &teacher
 }
 
-func QueryTeacherProfile(userId int64) POITeacherProfile {
+func QueryTeacherProfile(userId int64) *POITeacherProfile {
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("users.nickname, users.avatar, users.gender,teacher_profile.service_time, teacher_profile.intro, teacher_profile.price_per_hour,school.name school_name, department.name dept_name").
+	qb.Select("users.id,users.nickname, users.avatar, users.gender,teacher_profile.service_time," +
+		"teacher_profile.intro, teacher_profile.price_per_hour,teacher_profile.real_price_per_hour," +
+		"school.name school_name, department.name dept_name,teacher_profile.rating").
 		From("users").InnerJoin("teacher_profile").On("users.id = teacher_profile.user_id").
 		InnerJoin("school").On("teacher_profile.school_id = school.id").
 		InnerJoin("department").On("teacher_profile.department_id = department.id").
 		Where("users.id = ?")
 	sql := qb.String()
 	o := orm.NewOrm()
-	var maps []orm.Params
-	_, err := o.Raw(sql, userId).Values(&maps)
-	if err == orm.ErrNoRows {
-		panic(err.Error())
+	var teacherModel POITeacherModel
+	err := o.Raw(sql, userId).QueryRow(&teacherModel)
+	if err != nil {
+		return nil
 	}
-	profile := maps[0]
-	nickname, _ := profile["nickname"].(string)
-	avatar, _ := profile["avatar"].(string)
-	genderStr, _ := profile["gender"].(string)
-	serviceTimeStr, _ := profile["service_time"].(string)
-	schoolName, _ := profile["school_name"].(string)
-	intro, _ := profile["intro"].(string)
-	deptName, _ := profile["dept_name"].(string)
-	gender, _ := strconv.ParseInt(genderStr, 10, 64)
-	serviceTime, _ := strconv.ParseInt(serviceTimeStr, 10, 64)
-	pricePerHourStr, _ := profile["price_per_hour"].(string)
-	pricePerHour, _ := strconv.ParseInt(pricePerHourStr, 10, 64)
-	teacherProfile := POITeacherProfile{POITeacher: POITeacher{POIUser: POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender},
-		ServiceTime: serviceTime, School: schoolName, Department: deptName, PricePerHour: pricePerHour}, Intro: intro}
-	return teacherProfile
+	teacherProfile := POITeacherProfile{POITeacher: POITeacher{POIUser: POIUser{UserId: teacherModel.Id, Nickname: teacherModel.Nickname,
+		Avatar: teacherModel.Avatar, Gender: teacherModel.Gender}, ServiceTime: teacherModel.ServiceTime, School: teacherModel.SchoolName,
+		Department: teacherModel.DeptName, PricePerHour: teacherModel.PricePerHour, RealPricePerHour: teacherModel.RealPricePerHour},
+		Intro: teacherModel.Intro, Rating: teacherModel.Rating}
+	teacherProfile.LabelList = QueryTeacherLabelByUserId(teacherModel.Id)
+	teacherProfile.SubjectList = QueryTeacherSubjectByUserId(teacherModel.Id)
+	teacherProfile.EducationList = QueryTeacherResumeByUserId(teacherModel.Id)
+	return &teacherProfile
 }
 
 func QueryTeacherProfileByUserId(userId int64) *POITeacherProfileModel {
 	qb, _ := orm.NewQueryBuilder("mysql")
-	qb.Select("user_id,school_id,department_id,service_time,intro,price_per_hour,real_price_per_hour").
+	qb.Select("user_id,school_id,department_id,service_time,rating,intro,price_per_hour,real_price_per_hour").
 		From("teacher_profile").Where("user_id = ?")
 	sql := qb.String()
 	o := orm.NewOrm()
@@ -216,7 +220,7 @@ func QueryTeacherProfileByUserId(userId int64) *POITeacherProfileModel {
 	return &profile
 }
 
-func QueryTeacherLabelById(userId int64) []string {
+func QueryTeacherLabelByUserId(userId int64) []string {
 	labels := make([]string, 0)
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("teacher_label.name").From("teacher_label").InnerJoin("teacher_to_label").
@@ -230,7 +234,7 @@ func QueryTeacherLabelById(userId int64) []string {
 	return labels
 }
 
-func QueryTeacherSubjectById(userId int64) POITeacherSubjects {
+func QueryTeacherSubjectByUserId(userId int64) POITeacherSubjects {
 	subjects := make(POITeacherSubjects, 0)
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("subject.name,teacher_to_subject.description").From("teacher_to_subject").
@@ -244,7 +248,7 @@ func QueryTeacherSubjectById(userId int64) POITeacherSubjects {
 	return subjects
 }
 
-func QueryTeacherResumeById(userId int64) POITeacherResumes {
+func QueryTeacherResumeByUserId(userId int64) POITeacherResumes {
 	resumes := make(POITeacherResumes, 0)
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("id,user_id,start,stop,name").From("teacher_to_resume").Where("user_id = ?")
