@@ -272,6 +272,7 @@ func POIWSOrderHandler(orderId int64) {
 				if planTime == "" {
 					break
 				}
+				teacher := QueryTeacher(teacherId)
 
 				session := NewPOISession(order.Id,
 					QueryUserById(order.Creator.UserId),
@@ -314,7 +315,9 @@ func POIWSOrderHandler(orderId int64) {
 
 				// 结束派单流程，记录结果
 				orderInfo := map[string]interface{}{
-					"Status": ORDER_STATUS_CONFIRMED,
+					"Status":           ORDER_STATUS_CONFIRMED,
+					"PricePerHour":     teacher.PricePerHour,
+					"RealPricePerHour": teacher.RealPricePerHour,
 				}
 				UpdateOrderInfo(orderId, orderInfo)
 				WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
