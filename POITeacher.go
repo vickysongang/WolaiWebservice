@@ -398,8 +398,12 @@ func GenerateTeacherJson() string {
 
 //teacherInfo为json格式
 func InsertTeacher(teacherInfo string) POITeacherInfos {
+	fmt.Println(teacherInfo)
 	var teachers POITeacherInfos
-	json.Unmarshal([]byte(teacherInfo), &teachers)
+	err := json.Unmarshal([]byte(teacherInfo), &teachers)
+	if err != nil {
+		panic(err.Error())
+	}
 	for i := range teachers {
 		teacher := teachers[i]
 		//插入用户基本信息
@@ -411,6 +415,7 @@ func InsertTeacher(teacherInfo string) POITeacherInfos {
 		user.Nickname = teacher.Nickname
 		user.Phone = teacher.Phone
 		userId := InsertPOIUser(&user)
+		fmt.Println("user:", userId)
 		if userId == 0 {
 			return nil
 		}

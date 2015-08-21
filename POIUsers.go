@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -50,6 +51,7 @@ func InsertPOIUser(user *POIUser) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(user)
 	if err != nil {
+		fmt.Println(err.Error())
 		return 0
 	}
 	return id

@@ -121,3 +121,18 @@ func QuerySessionTradeRecords(userId int64) *POISessionTradeRecords {
 	}
 	return &returnRecords
 }
+
+func QueryTradeAmount(sessionId, userId int64) int64 {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("trade_record.trade_amount").From("trade_record").
+		InnerJoin("trade_to_session").On("trade_record.id = trade_to_session.trade_record_id").
+		Where("trade_record.user_id = ? and trade_to_session.session_id = ?")
+	sql := qb.String()
+	var tradeAmount int64
+	err := o.Raw(sql, userId, sessionId).QueryRow(&tradeAmount)
+	if err != nil {
+		return 0
+	}
+	return tradeAmount
+}

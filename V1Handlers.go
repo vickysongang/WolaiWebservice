@@ -169,8 +169,6 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 		content = QueryOrderInSession4Student(userId, int(pageNum), int(pageCount))
 	} else if typeStr == "teacher" {
 		content = QueryOrderInSession4Teacher(userId, int(pageNum), int(pageCount))
-	} else {
-		content = nil
 	}
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
@@ -876,7 +874,7 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	io.WriteString(w, jsonStr)
 	//	session := QuerySessionById(2)
 	//	HandleSessionTrade(session, "S")
-	content := RedisManager.IsSupportMessage(1001, "55d4670b40ac87cf58cd5c631")
+	content := QueryTradeAmount(797, 10116)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
