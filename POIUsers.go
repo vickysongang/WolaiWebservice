@@ -8,6 +8,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+const WOLAI_GIVE_AMOUNT = 10000
+
 type POIUser struct {
 	UserId        int64     `json:"userId" orm:"pk;column(id)"`
 	Nickname      string    `json:"nickname"`

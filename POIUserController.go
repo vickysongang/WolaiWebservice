@@ -23,6 +23,7 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 	u := POIUser{}
 	u.Phone = phone
 	u.AccessRight = 3
+	u.Balance = WOLAI_GIVE_AMOUNT
 	id := InsertPOIUser(&u)
 
 	newUser := QueryUserById(id)
@@ -57,7 +58,7 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 		return 0, user
 	}
 
-	userId := InsertPOIUser(&POIUser{Phone: phone, Nickname: nickname, Avatar: avatar, Gender: gender, AccessRight: 3})
+	userId := InsertPOIUser(&POIUser{Phone: phone, Nickname: nickname, Avatar: avatar, Gender: gender, AccessRight: 3, Balance: WOLAI_GIVE_AMOUNT})
 	user = LoadPOIUser(userId)
 	InsertUserOauth(userId, openId)
 	return 1003, user
