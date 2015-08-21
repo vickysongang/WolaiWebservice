@@ -436,7 +436,58 @@ var routes = Routes{
 		"/v1/order/personal/confirm",
 		V1OrderPersonalConfirm,
 	},
-
+	//6.1 Trade Charge
+	Route{
+		"V1TradeChargePOST",
+		"POST",
+		"/v1/trade/charge",
+		V1TradeCharge,
+	},
+	Route{
+		"V1TradeChargeGET",
+		"GET",
+		"/v1/trade/charge",
+		V1TradeCharge,
+	},
+	//6.2 Trade Withdraw
+	Route{
+		"V1TradeWithdrawPOST",
+		"POST",
+		"/v1/trade/withdraw",
+		V1TradeWithdraw,
+	},
+	Route{
+		"V1TradeWithdrawGET",
+		"GET",
+		"/v1/trade/withdraw",
+		V1TradeWithdraw,
+	},
+	//6.3 Trade Award
+	Route{
+		"V1TradeAwardPOST",
+		"POST",
+		"/v1/trade/award",
+		V1TradeAward,
+	},
+	Route{
+		"V1TradeAwardGET",
+		"GET",
+		"/v1/trade/award",
+		V1TradeAward,
+	},
+	//6.4 Trade Promotion
+	Route{
+		"V1TradePromotionPOST",
+		"POST",
+		"/v1/trade/promotion",
+		V1TradePromotion,
+	},
+	Route{
+		"V1TradePromotionGET",
+		"GET",
+		"/v1/trade/promotion",
+		V1TradePromotion,
+	},
 	Route{
 		"V1SessionRatingPOST",
 		"POST",

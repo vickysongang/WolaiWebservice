@@ -130,6 +130,52 @@ func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
+ * 1.5 My Orders
+ */
+func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		panic(err.Error())
+	}
+	var pageNum int64
+	if len(vars["page"]) == 0 {
+		pageNum = 0
+	} else {
+		pageNumStr := vars["page"][0]
+		pageNum, _ = strconv.ParseInt(pageNumStr, 10, 64)
+	}
+
+	var pageCount int64
+	if len(vars["count"]) == 0 {
+		pageCount = 10
+	} else {
+		pageCountStr := vars["count"][0]
+		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
+	}
+	var typeStr string
+	if len(vars["type"]) == 0 {
+		typeStr = "student"
+	} else {
+		typeStr = vars["type"][0]
+	}
+	var content POIOrderInSessions
+	if typeStr == "student" {
+		content = QueryOrderInSession4Student(userId, int(pageNum), int(pageCount))
+	} else if typeStr == "teacher" {
+		content = QueryOrderInSession4Teacher(userId, int(pageNum), int(pageCount))
+	} else {
+		content = nil
+	}
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
+/*
  * 1.6 Teacher Recommendation
  */
 func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
@@ -762,7 +808,7 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 	if len(vars["comment"]) > 0 {
 		comment = vars["comment"][0]
 	} else {
-		comment = "老师奖励"
+		comment = "导师奖励"
 	}
 	HandleSystemTrade(userId, amount, TRADE_AWARD, "S", comment)
 }
@@ -810,52 +856,6 @@ func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(NewPOIResponse(0, ""))
 }
 
-/*
- * My Orders
- */
-func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		panic(err.Error())
-	}
-	vars := r.Form
-	userIdStr := vars["userId"][0]
-	userId, err := strconv.ParseInt(userIdStr, 10, 64)
-	if err != nil {
-		panic(err.Error())
-	}
-	var pageNum int64
-	if len(vars["page"]) == 0 {
-		pageNum = 0
-	} else {
-		pageNumStr := vars["page"][0]
-		pageNum, _ = strconv.ParseInt(pageNumStr, 10, 64)
-	}
-
-	var pageCount int64
-	if len(vars["count"]) == 0 {
-		pageCount = 10
-	} else {
-		pageCountStr := vars["count"][0]
-		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
-	}
-	var typeStr string
-	if len(vars["type"]) == 0 {
-		typeStr = "student"
-	} else {
-		typeStr = vars["type"][0]
-	}
-	var content POIOrderInSessions
-	if typeStr == "student" {
-		content = QueryOrderInSession4Student(userId, int(pageNum), int(pageCount))
-	} else if typeStr == "teacher" {
-		content = QueryOrderInSession4Teacher(userId, int(pageNum), int(pageCount))
-	} else {
-		content = nil
-	}
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-}
-
 func V1Banner(w http.ResponseWriter, r *http.Request) {
 	content := QueryBannerList()
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
@@ -870,7 +870,10 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 	//	io.WriteString(w, content)
 	//	content := QuerySessionTradeRecords(10019)
-	content := RedisManager.GetFeedComments("ac1ffa7d-8e5f-43e9-90fa-b8dffa9fe31e")
+	od := POIOrderDispatch{}
+	od.OrderId = 1
+	od.TeacherId = 10001
+	content := InsertOrderDispatch(&od)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 	//	jsonStr := GenerateTeacherJson()
 	//	io.WriteString(w, jsonStr)
