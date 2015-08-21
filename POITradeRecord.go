@@ -20,13 +20,13 @@ type POITradeRecord struct {
 	Comment     string    `json:"comment"`
 }
 
-type POIOrderToTrade struct {
+type POITradeToSession struct {
 	Id            int64 `json:"id" orm:"pk"`
-	OrderId       int64 `json:"orderId"`
+	SessionId     int64 `json:"sessionId"`
 	TradeRecordId int64 `json:"tradeRecordId"`
 }
 
-type POIOrderTradeRecord struct {
+type POISessionTradeRecord struct {
 	Id          int64     `json:"-"`
 	UserId      int64     `json:"-"`
 	User        *POIUser  `json:"userInfo"`
@@ -39,18 +39,18 @@ type POIOrderTradeRecord struct {
 	Comment     string    `json:"comment"`
 }
 
-type POIOrderTradeRecords []POIOrderTradeRecord
+type POISessionTradeRecords []POISessionTradeRecord
 
 func (tr *POITradeRecord) TableName() string {
 	return "trade_record"
 }
 
-func (ott *POIOrderToTrade) TableName() string {
-	return "order_to_trade"
+func (ott *POITradeToSession) TableName() string {
+	return "trade_to_session"
 }
 
 func init() {
-	orm.RegisterModel(new(POITradeRecord), new(POIOrderToTrade))
+	orm.RegisterModel(new(POITradeRecord), new(POITradeToSession))
 }
 
 /*
@@ -91,24 +91,24 @@ func MinusUserBalance(userId int64, amount int64) {
 	}
 }
 
-func InsertOrderToTrade(orderToTrade *POIOrderToTrade) int64 {
+func InsertTradeToSession(tradeToSession *POITradeToSession) int64 {
 	o := orm.NewOrm()
-	id, err := o.Insert(orderToTrade)
+	id, err := o.Insert(tradeToSession)
 	if err != nil {
 		return 0
 	}
 	return id
 }
 
-func QueryOrderTradeRecords(userId int64) *POIOrderTradeRecords {
-	records := make(POIOrderTradeRecords, 0)
+func QuerySessionTradeRecords(userId int64) *POISessionTradeRecords {
+	records := make(POISessionTradeRecords, 0)
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("id,user_id,trade_type,trade_amount,order_type,create_time,result,balance,comment").
 		From("trade_record").Where("user_id = ?").OrderBy("create_time").Desc()
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&records)
-	returnRecords := make(POIOrderTradeRecords, 0)
+	returnRecords := make(POISessionTradeRecords, 0)
 	for i := range records {
 		record := records[i]
 		user := QueryUserById(userId)

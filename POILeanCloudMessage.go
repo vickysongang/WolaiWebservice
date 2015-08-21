@@ -353,7 +353,7 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err.Error())
+		return ""
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)

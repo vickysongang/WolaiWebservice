@@ -195,7 +195,7 @@ func GetFeedDetail(feedId string, userId int64) *POIFeedDetail {
 		return nil
 	}
 	var comments POIFeedComments
-	if RedisManager.redisError != nil {
+	if RedisManager.redisError == nil {
 		comments = RedisManager.GetFeedComments(feedId)
 		for i := range comments {
 			comment := comments[i]

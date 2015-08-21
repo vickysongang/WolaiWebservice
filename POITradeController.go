@@ -96,8 +96,8 @@ func HandleSessionTrade(session *POISession, result string) {
 	studentTradeRecord := POITradeRecord{UserId: student.UserId, TradeType: TRADE_PAYMENT, TradeAmount: studenAmount, OrderType: STUDENT_ORDER, Result: result, Comment: comment}
 	studentTradeRecord.Balance = student.Balance - studenAmount
 	studentTradeRecordId := InsertTradeRecord(&studentTradeRecord)
-	studentOrderToTrade := POIOrderToTrade{OrderId: session.OrderId, TradeRecordId: studentTradeRecordId}
-	InsertOrderToTrade(&studentOrderToTrade)
+	studentTradeToSession := POITradeToSession{SessionId: session.Id, TradeRecordId: studentTradeRecordId}
+	InsertTradeToSession(&studentTradeToSession)
 
 	//老师收款
 	var teacherAmount int64
@@ -106,6 +106,6 @@ func HandleSessionTrade(session *POISession, result string) {
 	teacherTradeRecord := POITradeRecord{UserId: teacher.UserId, TradeType: TRADE_RECEIVEMENT, TradeAmount: teacherAmount, OrderType: TEACHER_ORDER, Result: result, Comment: comment}
 	teacherTradeRecord.Balance = teacher.Balance + teacherAmount
 	teacherTradeRecordId := InsertTradeRecord(&teacherTradeRecord)
-	teacherOrderToTrade := POIOrderToTrade{OrderId: session.OrderId, TradeRecordId: teacherTradeRecordId}
-	InsertOrderToTrade(&teacherOrderToTrade)
+	teacherTradeToSession := POITradeToSession{SessionId: session.Id, TradeRecordId: teacherTradeRecordId}
+	InsertTradeToSession(&teacherTradeToSession)
 }

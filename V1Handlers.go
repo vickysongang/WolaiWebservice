@@ -450,9 +450,11 @@ func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
 
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-
-	content := (userId - 8888) * 10
-
+	user := QueryUserById(userId)
+	if user == nil {
+		panic("user" + userIdStr + " doesn't exist!")
+	}
+	content := user.Balance
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
@@ -699,6 +701,94 @@ func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(NewPOIResponse(status, ""))
 }
 
+/*
+ * 6.1 Trade Charge
+ */
+func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	amountStr := vars["amount"][0]
+	amount, _ := strconv.ParseInt(amountStr, 10, 64)
+	var comment string
+	if len(vars["comment"]) > 0 {
+		comment = vars["comment"][0]
+	} else {
+		comment = "用户充值"
+	}
+	HandleSystemTrade(userId, amount, TRADE_CHARGE, "S", comment)
+}
+
+/*
+ * 6.2 Trade Withdraw
+ */
+func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	amountStr := vars["amount"][0]
+	amount, _ := strconv.ParseInt(amountStr, 10, 64)
+	var comment string
+	if len(vars["comment"]) > 0 {
+		comment = vars["comment"][0]
+	} else {
+		comment = "用户提现"
+	}
+	HandleSystemTrade(userId, amount, TRADE_WITHDRAW, "S", comment)
+}
+
+/*
+ * 6.3 Trade Award
+ */
+func V1TradeAward(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	amountStr := vars["amount"][0]
+	amount, _ := strconv.ParseInt(amountStr, 10, 64)
+	var comment string
+	if len(vars["comment"]) > 0 {
+		comment = vars["comment"][0]
+	} else {
+		comment = "老师奖励"
+	}
+	HandleSystemTrade(userId, amount, TRADE_AWARD, "S", comment)
+}
+
+/*
+ * 6.4 Trade Promotion
+ */
+func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	amountStr := vars["amount"][0]
+	amount, _ := strconv.ParseInt(amountStr, 10, 64)
+	var comment string
+	if len(vars["comment"]) > 0 {
+		comment = vars["comment"][0]
+	} else {
+		comment = "活动赠送"
+	}
+	HandleSystemTrade(userId, amount, TRADE_PROMOTION, "S", comment)
+}
+
 func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -721,7 +811,7 @@ func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
-* My Orders
+ * My Orders
  */
 func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -779,7 +869,8 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	content := InsertOrderDispatch(&od)
 	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 	//	io.WriteString(w, content)
-	content := QueryOrderTradeRecords(10019)
+	//	content := QuerySessionTradeRecords(10019)
+	content := RedisManager.GetFeedComments("ac1ffa7d-8e5f-43e9-90fa-b8dffa9fe31e")
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 	//	jsonStr := GenerateTeacherJson()
 	//	io.WriteString(w, jsonStr)
