@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -127,7 +126,6 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
 		Where("sessions.creator = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
-	fmt.Println(sql)
 	o.Raw(sql, userId).QueryRows(&orderInSessions)
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
