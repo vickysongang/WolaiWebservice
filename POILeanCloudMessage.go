@@ -412,7 +412,7 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 			InsertLCMessageLog(&messageLog)
 			if RedisManager.redisError == nil {
 				//如果是客服消息，则将该消息存入客服消息表
-				if RedisManager.IsSupportMessage(SUPPORT_USER_ID, convIdStr) {
+				if RedisManager.IsSupportMessage(SUPPORT_USER_ID, toStr) {
 					supportMessageLog := LCSupportMessageLog{}
 					supportMessageLog.MsgId = messageLog.MsgId
 					supportMessageLog.ConvId = messageLog.ConvId

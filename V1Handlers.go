@@ -876,7 +876,7 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	io.WriteString(w, jsonStr)
 	//	session := QuerySessionById(2)
 	//	HandleSessionTrade(session, "S")
-	content := RedisManager.IsSupportMessage(1001, "55d4670b40ac87cf58cd5c63")
+	content := RedisManager.IsSupportMessage(1001, "55d4670b40ac87cf58cd5c631")
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
