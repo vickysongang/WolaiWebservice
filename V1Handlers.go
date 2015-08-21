@@ -14,12 +14,6 @@ func Dummy(w http.ResponseWriter, r *http.Request) {
 }
 
 func Dummy2(w http.ResponseWriter, r *http.Request) {
-	go LCSendTypedMessage(10019, 10020, NewSessionReminderNotification(2, 24))
-	go LCSendTypedMessage(10020, 10019, NewSessionReminderNotification(2, 24))
-	go LCSendTypedMessage(10019, 10020, NewSessionReminderNotification(2, 2))
-	go LCSendTypedMessage(10020, 10019, NewSessionReminderNotification(2, 2))
-	go LCSendTypedMessage(10019, 10020, NewSessionReportNotification(2))
-	go LCSendTypedMessage(10020, 10019, NewSessionReportNotification(2))
 }
 
 /*

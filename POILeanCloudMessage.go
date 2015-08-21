@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -268,7 +267,7 @@ func NewSessionCancelNotification(sessionId int64) *LCTypedMessage {
 	return &lcTMsg
 }
 
-func NewSessionReportNotification(sessionId int64) *LCTypedMessage {
+func NewSessionReportNotification(sessionId int64, price int64) *LCTypedMessage {
 	session := QuerySessionById(sessionId)
 	if session == nil {
 		return nil
@@ -282,14 +281,13 @@ func NewSessionReportNotification(sessionId int64) *LCTypedMessage {
 	attr := make(map[string]string)
 	teacherStr, _ := json.Marshal(teacher)
 
-	sum := int64(math.Floor(float64(session.Length*teacher.PricePerHour)/100.0/3600.0)) * 100
 	attr["oprCode"] = "5"
 	attr["sessionId"] = strconv.FormatInt(sessionId, 10)
 	attr["length"] = strconv.FormatInt(session.Length, 10)
-	attr["price"] = strconv.FormatInt(sum, 10)
+	attr["price"] = strconv.FormatInt(price, 10)
 	attr["teacherInfo"] = string(teacherStr)
 
-	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
+	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条结算提醒", Attribute: attr}
 
 	return &lcTMsg
 }
