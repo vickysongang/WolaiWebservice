@@ -212,6 +212,7 @@ func NewSessionCreatedNotification(sessionId int64) *LCTypedMessage {
 
 	attr["oprCode"] = "2"
 	attr["orderInfo"] = string(orderStr)
+	attr["planTime"] = session.PlanTime
 
 	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
 
