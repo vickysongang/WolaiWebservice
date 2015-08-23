@@ -242,8 +242,8 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POIWSMessage) {
 
 	// 初始化心跳计时器
-	pingTicker := time.NewTicker(time.Second * 15)
-	pongTicker := time.NewTicker(time.Second * 15)
+	pingTicker := time.NewTicker(time.Second * 5)
+	pongTicker := time.NewTicker(time.Second * 5)
 	pingpong := true
 
 	loginTS := WsManager.GetUserOnlineStatus(userId)

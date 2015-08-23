@@ -269,6 +269,11 @@ func POIWSSessionHandler(sessionId int64) {
 					break
 				}
 
+				length = length + (timestamp - lastSync)
+				lastSync = timestamp
+				isPaused = true
+				waitingTimer = time.NewTimer(time.Minute * 20)
+
 				breakMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK)
 				if msg.UserId == session.Creator.UserId {
 					breakMsg.UserId = session.Teacher.UserId
@@ -281,11 +286,6 @@ func POIWSSessionHandler(sessionId int64) {
 					breakChan := WsManager.GetUserChan(breakMsg.UserId)
 					breakChan <- breakMsg
 				}
-
-				length = length + (timestamp - lastSync)
-				lastSync = timestamp
-				isPaused = true
-				waitingTimer = time.NewTimer(time.Minute * 20)
 
 			case WS_SESSION_RECOVER_TEACHER:
 				recoverTeacherMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_RECOVER_TEACHER)
@@ -321,6 +321,10 @@ func POIWSSessionHandler(sessionId int64) {
 				pauseResp.Attribute["errCode"] = "0"
 				userChan <- pauseResp
 
+				length = length + (timestamp - lastSync)
+				lastSync = timestamp
+				isPaused = true
+
 				pauseMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_PAUSE)
 				pauseMsg.Attribute["sessionId"] = sessionIdStr
 				pauseMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
@@ -331,10 +335,6 @@ func POIWSSessionHandler(sessionId int64) {
 				}
 				studentChan := WsManager.GetUserChan(session.Creator.UserId)
 				studentChan <- pauseMsg
-
-				length = length + (timestamp - lastSync)
-				lastSync = timestamp
-				isPaused = true
 
 			case WS_SESSION_RESUME:
 				resumeResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_RESP)
