@@ -336,7 +336,7 @@ func POIWSSessionHandler(sessionId int64) {
 				isPaused = true
 
 			case WS_SESSION_RESUME:
-				resumeResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_PAUSE_RESP)
+				resumeResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_RESP)
 				if !isPaused || !isServing {
 					resumeResp.Attribute["errCode"] = "2"
 					userChan <- resumeResp

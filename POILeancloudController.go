@@ -15,7 +15,7 @@ func SendWelcomeMessageTeacher(userId int64) {
 		"mediaId": "teacher_welcome_1.jpg",
 	}
 	msg := LCTypedMessage{
-		Type:      2,
+		Type:      LC_MSG_IMAGE,
 		Text:      "[图片消息]",
 		Attribute: attr,
 	}
@@ -27,7 +27,7 @@ func SendWelcomeMessageStudent(userId int64) {
 		"mediaId": "student_welcome_1.jpg",
 	}
 	msg := LCTypedMessage{
-		Type:      2,
+		Type:      LC_MSG_IMAGE,
 		Text:      "[图片消息]",
 		Attribute: attr,
 	}
@@ -56,7 +56,7 @@ func SendCommentNotification(feedCommentId string) {
 
 	// if someone comments himself...
 	if feedComment.Creator.UserId != feed.Creator.UserId {
-		LCSendTypedMessage(1000, feed.Creator.UserId, lcTMsg)
+		LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.UserId, lcTMsg)
 	}
 
 	if feedComment.ReplyTo != nil {

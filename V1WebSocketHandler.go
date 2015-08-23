@@ -210,7 +210,9 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			WS_SESSION_PAUSE,
 			WS_SESSION_RESUME,
 			WS_SESSION_FINISH,
-			WS_SESSION_CANCEL:
+			WS_SESSION_CANCEL,
+			WS_SESSION_RESUME_ACCEPT,
+			WS_SESSION_RESUME_CANCEL:
 			resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
 
 			sessionIdStr, ok := msg.Attribute["sessionId"]
