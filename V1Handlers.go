@@ -10,7 +10,6 @@ import (
 )
 
 func Dummy(w http.ResponseWriter, r *http.Request) {
-	SendSessionNotification(1, 1)
 }
 
 func Dummy2(w http.ResponseWriter, r *http.Request) {

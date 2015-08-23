@@ -24,11 +24,14 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 	u := POIUser{}
 	u.Phone = phone
 	u.AccessRight = 3
-	u.Balance = WOLAI_GIVE_AMOUNT
 	id := InsertPOIUser(&u)
 
 	newUser := QueryUserById(id)
-	SendWelcomeMessageStudent(newUser.UserId)
+	HandleSystemTrade(newUser.UserId, WOLAI_GIVE_AMOUNT, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, "新用户注册奖励")
+	go SendWelcomeMessageStudent(newUser.UserId)
+	go SendTradeNotificationSystem(newUser.UserId, WOLAI_GIVE_AMOUNT, LC_TRADE_STATUS_INCOME,
+		"红包充值成功", "注册“我来”赠送的100元红包已经成功充入你的账户",
+		"邀请更多同学一起来“我来”，每邀请一位同学你们俩都将多获得20元红包哦！")
 	return 1001, newUser
 }
 

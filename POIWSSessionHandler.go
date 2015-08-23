@@ -46,6 +46,26 @@ func POIWSSessionHandler(sessionId int64) {
 				userChan <- expireMsg
 			}
 
+			fmt.Println("POIWSSessionHandler: session expired: " + sessionIdStr)
+
+			if !isServing {
+				sessionInfo := map[string]interface{}{
+					"Status": SESSION_STATUS_CANCELLED,
+				}
+				UpdateSessionInfo(sessionId, sessionInfo)
+			} else {
+				sessionInfo := map[string]interface{}{
+					"Status": SESSION_STATUS_COMPLETE,
+					"TimeTo": time.Now(),
+					"Length": length,
+				}
+				UpdateSessionInfo(sessionId, sessionInfo)
+
+				//修改老师的辅导时长
+				UpdateTeacherServiceTime(session.Teacher.UserId, length)
+				session = QuerySessionById(sessionId)
+				HandleSessionTrade(session, TRADE_RESULT_SUCCESS)
+			}
 			WsManager.RemoveSessionLive(sessionId)
 			WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
 			WsManager.RemoveSessionChan(sessionId)
@@ -230,10 +250,11 @@ func POIWSSessionHandler(sessionId int64) {
 					"Length": length,
 				}
 				UpdateSessionInfo(sessionId, sessionInfo)
+
 				//修改老师的辅导时长
 				UpdateTeacherServiceTime(session.Teacher.UserId, length)
 				session = QuerySessionById(sessionId)
-				HandleSessionTrade(session, "S")
+				HandleSessionTrade(session, TRADE_RESULT_SUCCESS)
 
 				fmt.Println("POIWSSessionHandler: session end: " + sessionIdStr)
 
@@ -263,6 +284,7 @@ func POIWSSessionHandler(sessionId int64) {
 				length = length + (timestamp - lastSync)
 				lastSync = timestamp
 				isPaused = true
+				waitingTimer = time.NewTimer(time.Minute * 20)
 
 			case WS_SESSION_RECOVER_TEACHER:
 				recoverTeacherMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_RECOVER_TEACHER)
@@ -386,6 +408,7 @@ func POIWSSessionHandler(sessionId int64) {
 				} else if acceptStr == "1" {
 					lastSync = timestamp
 					isServing = true
+					isPaused = false
 					syncTicker = time.NewTicker(time.Second * 60)
 					waitingTimer.Stop()
 

@@ -14,6 +14,9 @@ const (
 	TRADE_AWARD       = "award"       //老师奖励
 	TRADE_PROMOTION   = "promotion"   //活动
 
+	TRADE_RESULT_SUCCESS = "S"
+	TRADE_RESULT_FAIL    = "F"
+
 	SYSTEM_ORDER  = 0
 	TEACHER_ORDER = 1
 	STUDENT_ORDER = 2
@@ -61,7 +64,7 @@ func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) 
 			//减少用户的余额
 			MinusUserBalance(userId, amount)
 			//插入提现记录
-			tradeRecord := POITradeRecord{UserId: userId, TradeType: TRADE_WITHDRAW, TradeAmount: amount, OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
+			tradeRecord := POITradeRecord{UserId: userId, TradeType: TRADE_WITHDRAW, TradeAmount: (0 - amount), OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance - amount
 			tradeRecordId = InsertTradeRecord(&tradeRecord)
 		}
@@ -90,14 +93,14 @@ func HandleSessionTrade(session *POISession, result string) {
 	}
 
 	//学生付款
-	var studentAmout int64
-	studentAmout = (int64(math.Floor(float64(order.PricePerHour*session.Length/3600))) + 50) / 100 * 100
-	if studentAmout < 100 {
-		studentAmout = 100
+	var studentAmount int64
+	studentAmount = (int64(math.Floor(float64(order.PricePerHour*session.Length/3600))) + 50) / 100 * 100
+	if studentAmount < 100 {
+		studentAmount = 100
 	}
-	MinusUserBalance(student.UserId, studentAmout)
-	studentTradeRecord := POITradeRecord{UserId: student.UserId, TradeType: TRADE_PAYMENT, TradeAmount: studentAmout, OrderType: STUDENT_ORDER, Result: result, Comment: comment}
-	studentTradeRecord.Balance = student.Balance - studentAmout
+	MinusUserBalance(student.UserId, studentAmount)
+	studentTradeRecord := POITradeRecord{UserId: student.UserId, TradeType: TRADE_PAYMENT, TradeAmount: (0 - studentAmount), OrderType: STUDENT_ORDER, Result: result, Comment: comment}
+	studentTradeRecord.Balance = student.Balance - studentAmount
 	studentTradeRecordId := InsertTradeRecord(&studentTradeRecord)
 	studentTradeToSession := POITradeToSession{SessionId: session.Id, TradeRecordId: studentTradeRecordId}
 	InsertTradeToSession(&studentTradeToSession)
@@ -116,5 +119,8 @@ func HandleSessionTrade(session *POISession, result string) {
 	InsertTradeToSession(&teacherTradeToSession)
 
 	go LCSendTypedMessage(student.UserId, teacher.UserId, NewSessionReportNotification(session.Id, teacherAmount))
-	go LCSendTypedMessage(teacher.UserId, student.UserId, NewSessionReportNotification(session.Id, studentAmout))
+	go LCSendTypedMessage(teacher.UserId, student.UserId, NewSessionReportNotification(session.Id, studentAmount))
+	go SendTradeNotificationSession(teacher.UserId, student.UserId,
+		parentGrade.Name+grade.Name+subject.Name, studentAmount, teacherAmount,
+		session.TimeFrom.String(), session.TimeTo.String())
 }

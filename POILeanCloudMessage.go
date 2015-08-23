@@ -52,6 +52,33 @@ type LCSupportMessageLog struct {
 	Timestamp  string    `json:"-"`
 }
 
+const (
+	LC_MSG_TEXT        = -1
+	LC_MSG_IMAGE       = 2
+	LC_MSG_VOICE       = 3
+	LC_MSG_DISCOVER    = 4
+	LC_MSG_SESSION     = 5
+	LC_MSG_SESSION_SYS = 6
+	LC_MSG_WHITEBOARD  = 7
+	LC_MSG_TRADE       = 8
+
+	LC_DISCOVER_TYPE_COMMENT = "0"
+	LC_DISCOVER_TYPE_LIKE    = "1"
+
+	LC_SESSION_REJECT   = "-1"
+	LC_SESSION_PERSONAL = "1"
+	LC_SESSION_CONFIRM  = "2"
+	LC_SESSION_REMINDER = "3"
+	LC_SESSION_CANCEL   = "4"
+	LC_SESSION_REPORT   = "5"
+
+	LC_TRADE_TYPE_SYSTEM    = "0"
+	LC_TRADE_TYPE_TEACHER   = "1"
+	LC_TRADE_TYPE_STUDENT   = "2"
+	LC_TRADE_STATUS_INCOME  = "1"
+	LC_TRADE_STATUS_EXPENSE = "2"
+)
+
 type LCMessageLogs []LCMessageLog
 
 func (ml *LCMessageLog) TableName() string {
@@ -85,7 +112,7 @@ func NewLCCommentNotification(feedCommentId string) *LCTypedMessage {
 	tmpStr, _ := json.Marshal(*feedComment.Creator)
 	attr["creatorInfo"] = string(tmpStr)
 	attr["timestamp"] = strconv.FormatFloat(feedComment.CreateTimestamp, 'f', 6, 64)
-	attr["type"] = "0"
+	attr["type"] = LC_DISCOVER_TYPE_COMMENT
 	attr["text"] = feedComment.Text
 	attr["feedId"] = feed.Id
 	attr["feedText"] = feed.Text
@@ -93,7 +120,11 @@ func NewLCCommentNotification(feedCommentId string) *LCTypedMessage {
 		attr["feedImage"] = feed.ImageList[0]
 	}
 
-	lcTMsg := LCTypedMessage{Type: 4, Text: "您有一条新的消息", Attribute: attr}
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_DISCOVER,
+		Text:      "您有一条新的消息",
+		Attribute: attr,
+	}
 
 	return &lcTMsg
 }
@@ -114,7 +145,7 @@ func NewLCLikeNotification(userId int64, timestamp float64, feedId string) *LCTy
 	tmpStr, _ := json.Marshal(*user)
 	attr["creatorInfo"] = string(tmpStr)
 	attr["timestamp"] = strconv.FormatFloat(timestamp, 'f', 6, 64)
-	attr["type"] = "1"
+	attr["type"] = LC_DISCOVER_TYPE_LIKE
 	attr["text"] = "喜欢"
 	attr["feedId"] = feed.Id
 	attr["feedText"] = feed.Text
@@ -122,42 +153,46 @@ func NewLCLikeNotification(userId int64, timestamp float64, feedId string) *LCTy
 		attr["feedImage"] = feed.ImageList[0]
 	}
 
-	lcTMsg := LCTypedMessage{Type: 4, Text: "您有一条新的消息", Attribute: attr}
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_DISCOVER,
+		Text:      "您有一条新的消息",
+		Attribute: attr,
+	}
 
 	return &lcTMsg
 }
 
-func NewSessionNotification(sessionId int64, oprCode int64) *LCTypedMessage {
-	session := QuerySessionById(sessionId)
-	if session == nil {
-		return nil
-	}
+// func NewSessionNotification(sessionId int64, oprCode int64) *LCTypedMessage {
+// 	session := QuerySessionById(sessionId)
+// 	if session == nil {
+// 		return nil
+// 	}
 
-	attr := make(map[string]string)
-	sessionIdStr := strconv.FormatInt(sessionId, 10)
-	switch oprCode {
-	case -1:
-		attr["oprCode"] = "-1"
-		attr["sessionId"] = sessionIdStr
-	case 1:
-		attr["oprCode"] = "1"
-		attr["sessionId"] = sessionIdStr
-		attr["countdown"] = "10"
-		attr["planTime"] = session.PlanTime
-	case 2:
-		attr["oprCode"] = "2"
-		attr["sessionId"] = sessionIdStr
-		tmpStr, _ := json.Marshal(session.Teacher)
-		attr["teacherInfo"] = string(tmpStr)
-	case 3:
-		attr["oprCode"] = "3"
-		attr["sessionId"] = sessionIdStr
-	}
+// 	attr := make(map[string]string)
+// 	sessionIdStr := strconv.FormatInt(sessionId, 10)
+// 	switch oprCode {
+// 	case -1:
+// 		attr["oprCode"] = "-1"
+// 		attr["sessionId"] = sessionIdStr
+// 	case 1:
+// 		attr["oprCode"] = "1"
+// 		attr["sessionId"] = sessionIdStr
+// 		attr["countdown"] = "10"
+// 		attr["planTime"] = session.PlanTime
+// 	case 2:
+// 		attr["oprCode"] = "2"
+// 		attr["sessionId"] = sessionIdStr
+// 		tmpStr, _ := json.Marshal(session.Teacher)
+// 		attr["teacherInfo"] = string(tmpStr)
+// 	case 3:
+// 		attr["oprCode"] = "3"
+// 		attr["sessionId"] = sessionIdStr
+// 	}
 
-	lcTMsg := LCTypedMessage{Type: 6, Text: "您有一条上课提醒", Attribute: attr}
+// 	lcTMsg := LCTypedMessage{Type: 6, Text: "您有一条上课提醒", Attribute: attr}
 
-	return &lcTMsg
-}
+// 	return &lcTMsg
+// }
 
 func NewPersonalOrderNotification(orderId int64, teacherId int64) *LCTypedMessage {
 	order := QueryOrderById(orderId)
@@ -170,11 +205,15 @@ func NewPersonalOrderNotification(orderId int64, teacherId int64) *LCTypedMessag
 	teacherStr, _ := json.Marshal(teacher)
 	orderStr, _ := json.Marshal(order)
 
-	attr["oprCode"] = "1"
+	attr["oprCode"] = LC_SESSION_PERSONAL
 	attr["teacherInfo"] = string(teacherStr)
 	attr["orderInfo"] = string(orderStr)
 
-	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条约课提醒",
+		Attribute: attr,
+	}
 
 	return &lcTMsg
 }
@@ -188,10 +227,14 @@ func NewPersonalOrderRejectNotification(orderId int64) *LCTypedMessage {
 	attr := make(map[string]string)
 	orderStr, _ := json.Marshal(order)
 
-	attr["oprCode"] = "-1"
+	attr["oprCode"] = LC_SESSION_REJECT
 	attr["orderInfo"] = string(orderStr)
 
-	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条约课提醒",
+		Attribute: attr,
+	}
 
 	return &lcTMsg
 }
@@ -210,11 +253,15 @@ func NewSessionCreatedNotification(sessionId int64) *LCTypedMessage {
 	attr := make(map[string]string)
 	orderStr, _ := json.Marshal(order)
 
-	attr["oprCode"] = "2"
+	attr["oprCode"] = LC_SESSION_CONFIRM
 	attr["orderInfo"] = string(orderStr)
 	attr["planTime"] = session.PlanTime
 
-	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条约课提醒",
+		Attribute: attr,
+	}
 
 	return &lcTMsg
 }
@@ -237,12 +284,16 @@ func NewSessionReminderNotification(sessionId int64, hours int64) *LCTypedMessag
 	hourDur = time.Duration(hours)
 	remaining := hourDur * time.Hour
 
-	attr["oprCode"] = "3"
+	attr["oprCode"] = LC_SESSION_REMINDER
 	attr["orderInfo"] = string(orderStr)
 	attr["planTime"] = session.PlanTime
 	attr["remaining"] = remaining.String()
 
-	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条约课提醒",
+		Attribute: attr,
+	}
 
 	return &lcTMsg
 }
@@ -261,11 +312,15 @@ func NewSessionCancelNotification(sessionId int64) *LCTypedMessage {
 	attr := make(map[string]string)
 	orderStr, _ := json.Marshal(order)
 
-	attr["oprCode"] = "4"
+	attr["oprCode"] = LC_SESSION_CANCEL
 	attr["orderInfo"] = string(orderStr)
 	attr["planTime"] = session.PlanTime
 
-	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条约课提醒", Attribute: attr}
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条约课提醒",
+		Attribute: attr,
+	}
 
 	return &lcTMsg
 }
@@ -284,13 +339,17 @@ func NewSessionReportNotification(sessionId int64, price int64) *LCTypedMessage 
 	attr := make(map[string]string)
 	teacherStr, _ := json.Marshal(teacher)
 
-	attr["oprCode"] = "5"
+	attr["oprCode"] = LC_SESSION_REPORT
 	attr["sessionId"] = strconv.FormatInt(sessionId, 10)
 	attr["length"] = strconv.FormatInt(session.Length, 10)
 	attr["price"] = strconv.FormatInt(price, 10)
 	attr["teacherInfo"] = string(teacherStr)
 
-	lcTMsg := LCTypedMessage{Type: 5, Text: "您有一条结算提醒", Attribute: attr}
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条结算提醒",
+		Attribute: attr,
+	}
 
 	return &lcTMsg
 }
@@ -435,28 +494,4 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 		}
 	}
 	return content
-}
-
-func SendWelcomeMessageTeacher(userId int64) {
-	attr := map[string]string{
-		"mediaId": "teacher_welcome_1.jpg",
-	}
-	msg := LCTypedMessage{
-		Type:      2,
-		Text:      "[图片消息]",
-		Attribute: attr,
-	}
-	LCSendTypedMessage(1001, userId, &msg)
-}
-
-func SendWelcomeMessageStudent(userId int64) {
-	attr := map[string]string{
-		"mediaId": "student_welcome_1.jpg",
-	}
-	msg := LCTypedMessage{
-		Type:      2,
-		Text:      "[图片消息]",
-		Attribute: attr,
-	}
-	LCSendTypedMessage(1001, userId, &msg)
 }
