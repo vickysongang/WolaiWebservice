@@ -6,7 +6,7 @@ import (
 )
 
 func POISessionTickerHandler() {
-	for t := range Ticker.C {
+	for t := range SessionTicker.C {
 		//fmt.Println("Tick at", t.Unix())
 
 		ticks := RedisManager.GetSessionTicks(t.Unix())

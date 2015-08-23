@@ -13,7 +13,7 @@ import (
 var (
 	RedisManager    POIRedisManager
 	WsManager       POIWSManager
-	Ticker          *time.Ticker
+	SessionTicker   *time.Ticker
 	LCMessageTicker *time.Ticker
 	Config          POIConfig
 )
@@ -22,9 +22,10 @@ func init() {
 	if _, err := toml.DecodeFile("/var/lib/poi/POIWolaiWebService.toml", &Config); err != nil {
 		fmt.Println(err.Error())
 	}
+
 	RedisManager = NewPOIRedisManager()
 	WsManager = NewPOIWSManager()
-	Ticker = time.NewTicker(time.Millisecond * 5000)
+	SessionTicker = time.NewTicker(time.Millisecond * 5000)
 	LCMessageTicker = time.NewTicker(time.Minute * 1)
 	orm.RegisterDataBase("default", "mysql", Config.Database.Username+":"+
 		Config.Database.Password+"@"+
@@ -36,8 +37,10 @@ func init() {
 
 func main() {
 	orm.Debug = false
+
 	go POISessionTickerHandler()
 	go POILeanCloudTickerHandler()
+
 	router := NewRouter()
 	log.Fatal(http.ListenAndServe(Config.Server.Port, router))
 }

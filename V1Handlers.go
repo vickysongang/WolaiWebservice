@@ -212,7 +212,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
 
 	teacher := QueryUserById(teacherId)
-	if teacher.AccessRight != 2 {
+	if teacher.AccessRight != USER_ACCESSRIGHT_TEACHER {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, ""))
 		return
 	}

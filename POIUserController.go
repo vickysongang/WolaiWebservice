@@ -13,7 +13,8 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 
 	if user != nil {
 		//如果老师是第一次登陆，则修改老师的status字段为0，0代表不是第一次登陆，1代表从未登陆过
-		if user.AccessRight == 2 && user.Status == 1 {
+		if user.AccessRight == USER_ACCESSRIGHT_TEACHER &&
+			user.Status == USER_STATUS_INACTIVE {
 			userInfo := make(map[string]interface{})
 			userInfo["Status"] = 0
 			UpdateUserInfo(user.UserId, userInfo)
@@ -23,7 +24,7 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 	}
 	u := POIUser{}
 	u.Phone = phone
-	u.AccessRight = 3
+	u.AccessRight = USER_ACCESSRIGHT_STUDENT
 	id := InsertPOIUser(&u)
 
 	newUser := QueryUserById(id)
@@ -75,7 +76,7 @@ func POIUserFollow(userId, followId int64) (int64, bool) {
 		return 2, false
 	}
 
-	if follow.AccessRight != 2 {
+	if follow.AccessRight != USER_ACCESSRIGHT_TEACHER {
 		return 2, false
 	}
 	if RedisManager.redisError == nil {

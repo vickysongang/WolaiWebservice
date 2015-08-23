@@ -9,7 +9,7 @@ func OrderCreate(creatorId int64, teacherId int64, timestamp float64, gradeId in
 		return 2, nil
 	}
 
-	if orderType == 3 && teacherId == 0 {
+	if orderType == ORDER_TYPE_PERSONAL_INSTANT && teacherId == 0 {
 		return 2, nil
 	}
 
@@ -27,7 +27,7 @@ func OrderCreate(creatorId int64, teacherId int64, timestamp float64, gradeId in
 		return 2, nil
 	}
 
-	if orderPtr.Type == 3 {
+	if orderPtr.Type == ORDER_TYPE_PERSONAL_INSTANT {
 		go SendPersonalOrderNotification(orderPtr.Id, teacherId)
 	}
 

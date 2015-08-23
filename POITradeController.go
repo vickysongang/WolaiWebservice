@@ -6,22 +6,6 @@ import (
 	"math"
 )
 
-const (
-	TRADE_CHARGE      = "charge"      //充值
-	TRADE_WITHDRAW    = "withdraw"    //提现
-	TRADE_PAYMENT     = "payment"     //学生支付
-	TRADE_RECEIVEMENT = "receivement" //老师收款
-	TRADE_AWARD       = "award"       //老师奖励
-	TRADE_PROMOTION   = "promotion"   //活动
-
-	TRADE_RESULT_SUCCESS = "S"
-	TRADE_RESULT_FAIL    = "F"
-
-	SYSTEM_ORDER  = 0
-	TEACHER_ORDER = 1
-	STUDENT_ORDER = 2
-)
-
 /*
 *  用户交易，amount代表交易金额，result是交易结果，S代表交易成功，F代表交易失败
 *  tradeType代表交易类型

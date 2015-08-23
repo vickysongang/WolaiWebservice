@@ -144,7 +144,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 订单中心老师上线信息
 		case WS_ORDER_TEACHER_ONLINE:
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_TEACHER_RESP)
-			if user.AccessRight == 2 {
+			if user.AccessRight == USER_ACCESSRIGHT_TEACHER {
 				WsManager.SetTeacherOnline(userId, timestamp)
 				go RecoverTeacherOrder(userId)
 				resp.Attribute["errCode"] = "0"
@@ -157,7 +157,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 订单中心老师下线信息
 		case WS_ORDER_TEACHER_OFFLINE:
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_TEACHER_OFFLINE_RESP)
-			if user.AccessRight == 2 {
+			if user.AccessRight == USER_ACCESSRIGHT_TEACHER {
 				WsManager.SetTeacherOffline(userId)
 				resp.Attribute["errCode"] = "0"
 			} else {

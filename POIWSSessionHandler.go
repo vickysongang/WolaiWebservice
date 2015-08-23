@@ -24,7 +24,7 @@ func POIWSSessionHandler(sessionId int64) {
 	waitingTimer := time.NewTimer(time.Minute * 20)
 	countdownTimer := time.NewTimer(time.Second * 10)
 
-	if order.Type == 2 {
+	if order.Type == ORDER_TYPE_GENERAL_APPOINTMENT {
 		countdownTimer.Stop()
 	} else {
 		waitingTimer.Stop()
@@ -434,7 +434,7 @@ func InitSessionMonitor(sessionId int64) bool {
 	}
 
 	alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_ALERT)
-	if order.Type == 2 {
+	if order.Type == ORDER_TYPE_GENERAL_APPOINTMENT {
 		alertMsg.OperationCode = WS_SESSION_ALERT
 	}
 	alertMsg.Attribute["sessionId"] = sessionIdStr
@@ -447,7 +447,7 @@ func InitSessionMonitor(sessionId int64) bool {
 		teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
 		teacherChan <- alertMsg
 	}
-	if order.Type != 2 {
+	if order.Type != ORDER_TYPE_GENERAL_APPOINTMENT {
 		if WsManager.HasUserChan(session.Creator.UserId) {
 			alertMsg.UserId = session.Creator.UserId
 			studentChan := WsManager.GetUserChan(session.Creator.UserId)

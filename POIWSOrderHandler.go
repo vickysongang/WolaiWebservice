@@ -100,7 +100,7 @@ func POIWSOrderHandler(orderId int64) {
 			timestamp = time.Now().Unix()
 			orderByte, _ := json.Marshal(order)
 			var countdown int64
-			if order.Type == 1 {
+			if order.Type == ORDER_TYPE_GENERAL_INSTANT {
 				countdown = 90
 			} else {
 				countdown = 300
@@ -284,22 +284,20 @@ func POIWSOrderHandler(orderId int64) {
 				go SendSessionCreatedNotification(sessionPtr.Id)
 
 				// 发起上课请求或者设置计时器
-				if order.Type == 1 {
+				if order.Type == ORDER_TYPE_GENERAL_INSTANT {
 					_ = InitSessionMonitor(sessionPtr.Id)
-				} else if order.Type == 2 {
+				} else if order.Type == ORDER_TYPE_GENERAL_APPOINTMENT {
 					planTime, _ := time.Parse(time.RFC3339, dispatchInfo.PlanTime)
 					planTimeTS := planTime.Unix()
 
 					sessionStart := make(map[string]int64)
-					sessionStart["type"] = 6
-					sessionStart["oprCode"] = 1
+					sessionStart["type"] = LC_MSG_SESSION_SYS
 					sessionStart["sessionId"] = sessionPtr.Id
 					jsonStart, _ := json.Marshal(sessionStart)
 					RedisManager.SetSessionTicker(planTimeTS, string(jsonStart))
 
 					sessionReminder := make(map[string]int64)
-					sessionReminder["type"] = 5
-					sessionReminder["oprCode"] = 3
+					sessionReminder["type"] = LC_MSG_SESSION
 					sessionReminder["sessionId"] = sessionPtr.Id
 
 					for d := range Config.Reminder.Durations {
@@ -336,16 +334,16 @@ func POIWSOrderHandler(orderId int64) {
 				}
 
 				var countstart int64
-				var replied int64
+				var hasReply int64
 				countdown := int64(300)
 				if replyTs == 0 {
-					replied = 0
+					hasReply = 0
 					countstart = timestamp - WsManager.orderDispatchMap[orderId][msg.UserId]
-					if order.Type == 1 {
+					if order.Type == ORDER_TYPE_GENERAL_INSTANT {
 						countdown = 90
 					}
 				} else {
-					replied = 1
+					hasReply = 1
 					countstart = timestamp - replyTs
 				}
 				if countstart > countdown {
@@ -357,7 +355,7 @@ func POIWSOrderHandler(orderId int64) {
 				recoverTeacherMsg.Attribute["orderInfo"] = string(orderByte)
 				recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
 				recoverTeacherMsg.Attribute["countstart"] = strconv.FormatInt(countstart, 10)
-				recoverTeacherMsg.Attribute["replied"] = strconv.FormatInt(replied, 10)
+				recoverTeacherMsg.Attribute["replied"] = strconv.FormatInt(hasReply, 10)
 				recoverChan := WsManager.GetUserChan(msg.UserId)
 				recoverChan <- recoverTeacherMsg
 
@@ -419,7 +417,7 @@ func InitOrderDispatch(msg POIWSMessage, userId int64, timestamp int64) bool {
 		return false
 	}
 
-	if order.Type != 1 && order.Type != 2 {
+	if order.Type != ORDER_TYPE_GENERAL_INSTANT && order.Type != ORDER_TYPE_GENERAL_APPOINTMENT {
 		return false
 	}
 

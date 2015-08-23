@@ -39,6 +39,22 @@ type POISessionTradeRecord struct {
 	Comment     string    `json:"comment"`
 }
 
+const (
+	TRADE_CHARGE      = "charge"      //充值
+	TRADE_WITHDRAW    = "withdraw"    //提现
+	TRADE_PAYMENT     = "payment"     //学生支付
+	TRADE_RECEIVEMENT = "receivement" //老师收款
+	TRADE_AWARD       = "award"       //老师奖励
+	TRADE_PROMOTION   = "promotion"   //活动
+
+	TRADE_RESULT_SUCCESS = "S"
+	TRADE_RESULT_FAIL    = "F"
+
+	SYSTEM_ORDER  = 0
+	TEACHER_ORDER = 1
+	STUDENT_ORDER = 2
+)
+
 type POISessionTradeRecords []POISessionTradeRecord
 
 func (tr *POITradeRecord) TableName() string {
