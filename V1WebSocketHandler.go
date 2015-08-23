@@ -124,7 +124,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 输出
 		if msg.OperationCode != WS_PONG {
-			fmt.Println("V1WSHandler: recieved: ", string(p))
+			fmt.Println("V1WSHandler recieved: UserId", userId, " Msg: ", string(p))
 		}
 
 		// 根据信息中的操作码进行对应处理

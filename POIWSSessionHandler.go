@@ -276,6 +276,7 @@ func POIWSSessionHandler(sessionId int64) {
 				breakMsg.Attribute["sessionId"] = sessionIdStr
 				breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
 				breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+				breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 				if WsManager.HasUserChan(breakMsg.UserId) {
 					breakChan := WsManager.GetUserChan(breakMsg.UserId)
 					breakChan <- breakMsg
@@ -345,7 +346,7 @@ func POIWSSessionHandler(sessionId int64) {
 				resumeResp.Attribute["errCode"] = "0"
 				userChan <- resumeResp
 
-				resumeMsg := NewPOIWSMessage("", msg.UserId, WS_SESSION_RESUME)
+				resumeMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_RESUME)
 				resumeMsg.Attribute["sessionId"] = sessionIdStr
 				resumeMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 				if !WsManager.HasUserChan(session.Creator.UserId) {
