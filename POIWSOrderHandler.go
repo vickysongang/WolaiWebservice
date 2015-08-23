@@ -281,8 +281,7 @@ func POIWSOrderHandler(orderId int64) {
 				sessionPtr := InsertSession(&session)
 
 				// 发送Leancloud订单成功通知
-				go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))
-				go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionCreatedNotification(sessionPtr.Id))
+				go SendSessionCreatedNotification(sessionPtr.Id)
 
 				// 发起上课请求或者设置计时器
 				if order.Type == 1 {
@@ -304,11 +303,12 @@ func POIWSOrderHandler(orderId int64) {
 					sessionReminder["sessionId"] = sessionPtr.Id
 
 					for d := range Config.Reminder.Durations {
-						hours := int64(Config.Reminder.Durations[d].Hours())
-						sessionReminder["hours"] = hours
+						duration := Config.Reminder.Durations[d]
+						seconds := int64(duration.Seconds())
+						sessionReminder["seconds"] = seconds
 						jsonReminder, _ := json.Marshal(sessionReminder)
-						if timestamp < planTimeTS-3600*hours {
-							RedisManager.SetSessionTicker(planTimeTS-3600*hours, string(jsonReminder))
+						if timestamp < planTimeTS-seconds {
+							RedisManager.SetSessionTicker(planTimeTS-seconds, string(jsonReminder))
 						}
 					}
 				}

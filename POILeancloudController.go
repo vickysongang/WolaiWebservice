@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"strconv"
+	"time"
 )
 
 const (
@@ -49,20 +51,33 @@ func SendCommentNotification(feedCommentId string) {
 		return
 	}
 
-	lcTMsg := NewLCCommentNotification(feedCommentId)
-	if lcTMsg == nil {
-		return
+	attr := make(map[string]string)
+	tmpStr, _ := json.Marshal(*feedComment.Creator)
+	attr["creatorInfo"] = string(tmpStr)
+	attr["timestamp"] = strconv.FormatFloat(feedComment.CreateTimestamp, 'f', 6, 64)
+	attr["type"] = LC_DISCOVER_TYPE_COMMENT
+	attr["text"] = feedComment.Text
+	attr["feedId"] = feed.Id
+	attr["feedText"] = feed.Text
+	if len(feed.ImageList) > 0 {
+		attr["feedImage"] = feed.ImageList[0]
+	}
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_DISCOVER,
+		Text:      "您有一条新的消息",
+		Attribute: attr,
 	}
 
 	// if someone comments himself...
 	if feedComment.Creator.UserId != feed.Creator.UserId {
-		LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.UserId, lcTMsg)
+		LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.UserId, &lcTMsg)
 	}
 
 	if feedComment.ReplyTo != nil {
 		// if someone replies the author... the poor man should not be notified twice
 		if feedComment.ReplyTo.UserId != feed.Creator.UserId {
-			LCSendTypedMessage(USER_SYSTEM_MESSAGE, feedComment.ReplyTo.UserId, lcTMsg)
+			LCSendTypedMessage(USER_SYSTEM_MESSAGE, feedComment.ReplyTo.UserId, &lcTMsg)
 		}
 	}
 
@@ -86,12 +101,25 @@ func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 		return
 	}
 
-	lcTMsg := NewLCLikeNotification(userId, timestamp, feedId)
-	if lcTMsg == nil {
-		return
+	attr := make(map[string]string)
+	tmpStr, _ := json.Marshal(*user)
+	attr["creatorInfo"] = string(tmpStr)
+	attr["timestamp"] = strconv.FormatFloat(timestamp, 'f', 6, 64)
+	attr["type"] = LC_DISCOVER_TYPE_LIKE
+	attr["text"] = "喜欢"
+	attr["feedId"] = feed.Id
+	attr["feedText"] = feed.Text
+	if len(feed.ImageList) > 0 {
+		attr["feedImage"] = feed.ImageList[0]
 	}
 
-	LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.UserId, lcTMsg)
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_DISCOVER,
+		Text:      "您有一条新的消息",
+		Attribute: attr,
+	}
+
+	LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.UserId, &lcTMsg)
 
 	return
 }
@@ -193,3 +221,172 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 // 		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg)
 // 	}
 // }
+
+func SendPersonalOrderNotification(orderId int64, teacherId int64) {
+	order := QueryOrderById(orderId)
+	teacher := QueryUserById(teacherId)
+	if order == nil || teacher == nil {
+		return
+	}
+
+	attr := make(map[string]string)
+	teacherStr, _ := json.Marshal(teacher)
+	orderStr, _ := json.Marshal(order)
+
+	attr["oprCode"] = LC_SESSION_PERSONAL
+	attr["teacherInfo"] = string(teacherStr)
+	attr["orderInfo"] = string(orderStr)
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条约课提醒",
+		Attribute: attr,
+	}
+
+	LCSendTypedMessage(order.Creator.UserId, teacherId, &lcTMsg)
+}
+
+func SendPersonalOrderRejectNotification(orderId int64, teacherId int64) {
+	order := QueryOrderById(orderId)
+	teacher := QueryUserById(teacherId)
+	if order == nil || teacher == nil {
+		return
+	}
+
+	attr := make(map[string]string)
+	orderStr, _ := json.Marshal(order)
+
+	attr["oprCode"] = LC_SESSION_REJECT
+	attr["orderInfo"] = string(orderStr)
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条约课提醒",
+		Attribute: attr,
+	}
+
+	LCSendTypedMessage(teacherId, order.Creator.UserId, &lcTMsg)
+}
+
+func SendSessionCreatedNotification(sessionId int64) {
+	session := QuerySessionById(sessionId)
+	if session == nil {
+		return
+	}
+
+	order := QueryOrderById(session.OrderId)
+	if order == nil {
+		return
+	}
+
+	attr := make(map[string]string)
+	orderStr, _ := json.Marshal(order)
+
+	attr["oprCode"] = LC_SESSION_CONFIRM
+	attr["orderInfo"] = string(orderStr)
+	attr["planTime"] = session.PlanTime
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条约课提醒",
+		Attribute: attr,
+	}
+
+	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg)
+	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &lcTMsg)
+}
+
+func SendSessionReminderNotification(sessionId int64, seconds int64) {
+	session := QuerySessionById(sessionId)
+	if session == nil {
+		return
+	}
+
+	order := QueryOrderById(session.OrderId)
+	if order == nil {
+		return
+	}
+
+	attr := make(map[string]string)
+	orderStr, _ := json.Marshal(order)
+
+	remaining := time.Duration(seconds) * time.Second
+
+	attr["oprCode"] = LC_SESSION_REMINDER
+	attr["orderInfo"] = string(orderStr)
+	attr["planTime"] = session.PlanTime
+	attr["remaining"] = remaining.String()
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条约课提醒",
+		Attribute: attr,
+	}
+
+	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg)
+	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &lcTMsg)
+}
+
+func SendSessionCancelNotification(sessionId int64) {
+	session := QuerySessionById(sessionId)
+	if session == nil {
+		return
+	}
+
+	order := QueryOrderById(session.OrderId)
+	if order == nil {
+		return
+	}
+
+	attr := make(map[string]string)
+	orderStr, _ := json.Marshal(order)
+
+	attr["oprCode"] = LC_SESSION_CANCEL
+	attr["orderInfo"] = string(orderStr)
+	attr["planTime"] = session.PlanTime
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条约课提醒",
+		Attribute: attr,
+	}
+
+	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg)
+	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &lcTMsg)
+}
+
+func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice int64) {
+	session := QuerySessionById(sessionId)
+	if session == nil {
+		return
+	}
+
+	teacher := QueryTeacher(session.Teacher.UserId)
+	if teacher == nil {
+		return
+	}
+
+	attr := make(map[string]string)
+	teacherStr, _ := json.Marshal(teacher)
+
+	attr["oprCode"] = LC_SESSION_REPORT
+	attr["sessionId"] = strconv.FormatInt(sessionId, 10)
+	attr["length"] = strconv.FormatInt(session.Length, 10)
+	attr["price"] = strconv.FormatInt(teacherPrice, 10)
+	attr["teacherInfo"] = string(teacherStr)
+
+	teacherTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条结算提醒",
+		Attribute: attr,
+	}
+	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &teacherTMsg)
+
+	attr["price"] = strconv.FormatInt(studentPrice, 10)
+	studentTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条结算提醒",
+		Attribute: attr,
+	}
+	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &studentTMsg)
+}

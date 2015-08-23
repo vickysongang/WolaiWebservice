@@ -28,7 +28,7 @@ func OrderCreate(creatorId int64, teacherId int64, timestamp float64, gradeId in
 	}
 
 	if orderPtr.Type == 3 {
-		go LCSendTypedMessage(creatorId, teacherId, NewPersonalOrderNotification(orderPtr.Id, teacherId))
+		go SendPersonalOrderNotification(orderPtr.Id, teacherId)
 	}
 
 	return 0, orderPtr
@@ -47,7 +47,7 @@ func OrderPersonalConfirm(userId int64, orderId int64, accept int64, timestamp f
 		}
 		UpdateOrderInfo(orderId, orderInfo)
 
-		go LCSendTypedMessage(userId, order.Creator.UserId, NewPersonalOrderRejectNotification(orderId))
+		go SendPersonalOrderRejectNotification(orderId, userId)
 
 		return 0
 	} else if accept == 1 {
@@ -64,8 +64,7 @@ func OrderPersonalConfirm(userId int64, orderId int64, accept int64, timestamp f
 			order.Date)
 		sessionPtr := InsertSession(&session)
 
-		go LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, NewSessionCreatedNotification(sessionPtr.Id))
-		go LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, NewSessionCreatedNotification(sessionPtr.Id))
+		go SendSessionCreatedNotification(sessionPtr.Id)
 		InitSessionMonitor(sessionPtr.Id)
 
 		return 0

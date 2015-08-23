@@ -118,8 +118,7 @@ func HandleSessionTrade(session *POISession, result string) {
 	teacherTradeToSession := POITradeToSession{SessionId: session.Id, TradeRecordId: teacherTradeRecordId}
 	InsertTradeToSession(&teacherTradeToSession)
 
-	go LCSendTypedMessage(student.UserId, teacher.UserId, NewSessionReportNotification(session.Id, teacherAmount))
-	go LCSendTypedMessage(teacher.UserId, student.UserId, NewSessionReportNotification(session.Id, studentAmount))
+	go SendSessionReportNotification(session.Id, teacherAmount, studentAmount)
 	go SendTradeNotificationSession(teacher.UserId, student.UserId,
 		parentGrade.Name+grade.Name+subject.Name, studentAmount, teacherAmount,
 		session.TimeFrom.String(), session.TimeTo.String())
