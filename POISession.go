@@ -85,7 +85,7 @@ func InsertSession(session *POISession) *POISession {
 	}
 	sessionId, err := o.Insert(session)
 	if err != nil {
-		seelog.Error("InsertSession:", err.Error())
+		seelog.Error(session, " ", err.Error())
 		return nil
 	}
 	session.Id = sessionId
@@ -101,7 +101,7 @@ func QuerySessionById(sessionId int64) *POISession {
 	session := POISession{}
 	err := o.Raw(sql, sessionId).QueryRow(&session)
 	if err != nil {
-		seelog.Error("QuerySessionById:", err.Error())
+		seelog.Error(sessionId, " ", err.Error())
 		return nil
 	}
 	session.Creator = QueryUserById(session.Created)
@@ -117,7 +117,7 @@ func UpdateSessionInfo(sessionId int64, sessionInfo map[string]interface{}) {
 	}
 	_, err := o.QueryTable("sessions").Filter("id", sessionId).Update(params)
 	if err != nil {
-		seelog.Error("UpdateSessionInfo:", err.Error())
+		seelog.Error("sessionId:", sessionId, " sessionInfo:", sessionInfo, " ", err.Error())
 	}
 	return
 }
@@ -134,7 +134,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&orderInSessions)
 	if err != nil {
-		seelog.Error("QueryOrderInSession4Student:", err.Error())
+		seelog.Error(userId, " ", err.Error())
 	}
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
@@ -173,7 +173,7 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&orderInSessions)
 	if err != nil {
-		seelog.Error("QueryOrderInSession4Teacher:", err.Error())
+		seelog.Error(userId, " ", err.Error())
 	}
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]

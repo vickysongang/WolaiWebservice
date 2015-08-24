@@ -76,7 +76,7 @@ func InsertTradeRecord(tradeRecord *POITradeRecord) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(tradeRecord)
 	if err != nil {
-		seelog.Error("InsertTradeRecord:", err.Error())
+		seelog.Error(tradeRecord, " ", err.Error())
 		return 0
 	}
 	return id
@@ -91,7 +91,7 @@ func AddUserBalance(userId int64, amount int64) {
 		"balance": orm.ColValue(orm.Col_Add, amount),
 	})
 	if err != nil {
-		seelog.Error("AddUserBalance:", err.Error())
+		seelog.Error("userId:", userId, " amount:", amount, " ", err.Error())
 	}
 }
 
@@ -104,7 +104,7 @@ func MinusUserBalance(userId int64, amount int64) {
 		"balance": orm.ColValue(orm.Col_Minus, amount),
 	})
 	if err != nil {
-		seelog.Error("MinusUserBalance:", err.Error())
+		seelog.Error("userId:", userId, " amount:", amount, " ", err.Error())
 	}
 }
 
@@ -112,7 +112,7 @@ func InsertTradeToSession(tradeToSession *POITradeToSession) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(tradeToSession)
 	if err != nil {
-		seelog.Error("InsertTradeToSession:", err.Error())
+		seelog.Error(tradeToSession, " ", err.Error())
 		return 0
 	}
 	return id
@@ -127,7 +127,7 @@ func QuerySessionTradeRecords(userId int64) *POISessionTradeRecords {
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&records)
 	if err != nil {
-		seelog.Error("QuerySessionTradeRecords:", err.Error())
+		seelog.Error(userId, " ", err.Error())
 		return nil
 	}
 	returnRecords := make(POISessionTradeRecords, 0)
@@ -150,7 +150,7 @@ func QueryTradeAmount(sessionId, userId int64) int64 {
 	var tradeAmount int64
 	err := o.Raw(sql, userId, sessionId).QueryRow(&tradeAmount)
 	if err != nil {
-		seelog.Error("QueryTradeAmount:", err.Error())
+		seelog.Error("sessionId:", sessionId, " userId:", userId, " ", err.Error())
 		return 0
 	}
 	return tradeAmount

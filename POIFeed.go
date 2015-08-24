@@ -89,7 +89,7 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 
 	user := QueryUserById(userId)
 	if user == nil {
-		seelog.Warn("PostPOIFeed:user ", userId, "doesn't exsit.")
+		seelog.Warn(userId, " doesn't exsit.")
 		return nil
 	}
 
@@ -102,7 +102,7 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 	tmpList := make([]string, 0)
 	err := json.Unmarshal([]byte(imageStr), &tmpList)
 	if err != nil {
-		seelog.Error("PostPOIFeed unmarshal imageStr:", err.Error())
+		seelog.Error("unmarshal imageStr:", imageStr, " ", err.Error())
 	}
 	feed.ImageList = tmpList
 
@@ -115,7 +115,7 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 	tmpMap := make(map[string]string)
 	err = json.Unmarshal([]byte(attributeStr), &tmpMap)
 	if err != nil {
-		seelog.Error("PostPOIFeed unmarshal attributeStr:", err.Error())
+		seelog.Error("unmarshal attributeStr:", attributeStr, " ", err.Error())
 	}
 	feed.Attribute = tmpMap
 	if RedisManager.redisError == nil {
@@ -136,7 +136,7 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 	}
 	user := QueryUserById(userId)
 	if feed == nil || user == nil {
-		seelog.Warn("LikePOIFeed:user ", userId, "doesn't exsit.")
+		seelog.Warn("user ", userId, " doesn't exsit.")
 		return nil
 	}
 	var likeFeedFlag bool
@@ -178,7 +178,7 @@ func GetFeedDetail(feedId string, userId int64) *POIFeedDetail {
 	}
 	user := QueryUserById(userId)
 	if feed == nil || user == nil {
-		seelog.Warn("GetFeedDetail:user ", userId, "doesn't exsit.")
+		seelog.Warn("user ", userId, " doesn't exsit.")
 		return nil
 	}
 	var comments POIFeedComments
@@ -202,7 +202,7 @@ func GetAtrium(userId int64, page int64) POIFeeds {
 	user := QueryUserById(userId)
 
 	if user == nil {
-		seelog.Warn("GetAtrium:user ", userId, "doesn't exsit.")
+		seelog.Warn("user ", userId, " doesn't exsit.")
 		return nil
 	}
 
@@ -229,7 +229,7 @@ func GetAtrium(userId int64, page int64) POIFeeds {
 func GetUserFeed(userId int64, page int64) POIFeeds {
 	user := QueryUserById(userId)
 	if user == nil {
-		seelog.Warn("GetUserFeed:user ", userId, "doesn't exsit.")
+		seelog.Warn("user ", userId, " doesn't exsit.")
 		return nil
 	}
 
@@ -256,7 +256,7 @@ func GetUserFeed(userId int64, page int64) POIFeeds {
 func GetUserLike(userId int64, page int64) POIFeeds {
 	user := QueryUserById(userId)
 	if user == nil {
-		seelog.Warn("GetUserLike:user ", userId, "doesn't exsit.")
+		seelog.Warn("user ", userId, " doesn't exsit.")
 		return nil
 	}
 

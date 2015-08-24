@@ -106,7 +106,7 @@ func InsertOrder(order *POIOrder) *POIOrder {
 	}
 	orderId, err := o.Insert(order)
 	if err != nil {
-		seelog.Error("InsertOrder:", err.Error())
+		seelog.Error(order, " ", err.Error())
 		return nil
 	}
 	order.Id = orderId
@@ -123,7 +123,7 @@ func InsertOrderDispatch(orderDispatch *POIOrderDispatch) *POIOrderDispatch {
 	}
 	orderDispatchId, err := o.Insert(orderDispatch)
 	if err != nil {
-		seelog.Error("InsertOrderDispatch:", err.Error())
+		seelog.Error(orderDispatch, " ", err.Error())
 		return nil
 	}
 	orderDispatch.Id = orderDispatchId
@@ -139,7 +139,7 @@ func QueryOrderById(orderId int64) *POIOrder {
 	sql := db.String()
 	err := o.Raw(sql, orderId).QueryRow(&order)
 	if err != nil {
-		seelog.Error("QueryOrderById:", err.Error())
+		seelog.Error(orderId, " ", err.Error())
 		return nil
 	}
 	order.Type = OrderTypeRevDict[order.OrderType]
@@ -156,7 +156,7 @@ func UpdateOrderInfo(orderId int64, orderInfo map[string]interface{}) {
 	}
 	_, err := o.QueryTable("orders").Filter("id", orderId).Update(params)
 	if err != nil {
-		seelog.Error("UpdateOrderInfo:", err.Error())
+		seelog.Error("orderId:", orderId, " orderInfo:", orderInfo, " ", err.Error())
 	}
 	return
 }
@@ -169,7 +169,7 @@ func UpdateOrderDispatchInfo(orderId int64, userId int64, dispatchInfo map[strin
 	}
 	_, err := o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("teacher_id", userId).Update(params)
 	if err != nil {
-		seelog.Error("UpdateOrderDispatchInfo:", err.Error())
+		seelog.Error("orderId:", orderId, " userId:", userId, " dispatchInfo:", dispatchInfo, " ", err.Error())
 	}
 	return
 }
@@ -183,7 +183,7 @@ func QueryOrderDispatch(orderId, userId int64) *POIOrderDispatch {
 	orderDispatch := POIOrderDispatch{}
 	err := o.Raw(sql, orderId, userId).QueryRow(&orderDispatch)
 	if err != nil {
-		seelog.Error("QueryOrderDispatch:", err.Error())
+		seelog.Error("orderId:", orderId, " userId:", userId, " ", err.Error())
 		return nil
 	}
 	return &orderDispatch

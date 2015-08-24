@@ -64,7 +64,7 @@ func InsertPOIUser(user *POIUser) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(user)
 	if err != nil {
-		seelog.Error("InsertPOIUser:", err.Error())
+		seelog.Error(user, " ", err.Error())
 		return 0
 	}
 	return id
@@ -78,7 +78,7 @@ func QueryUserById(userId int64) *POIUser {
 	o := orm.NewOrm()
 	err := o.Raw(sql, userId).QueryRow(&user)
 	if err != nil {
-		seelog.Error("QueryUserById:", err.Error())
+		seelog.Error(userId, " ", err.Error())
 		return nil
 	}
 	return user
@@ -92,7 +92,7 @@ func QueryUserByPhone(phone string) *POIUser {
 	o := orm.NewOrm()
 	err := o.Raw(sql, phone).QueryRow(&user)
 	if err != nil {
-		seelog.Error("QueryUserByPhone:", err.Error())
+		seelog.Error(phone, " ", err.Error())
 		return nil
 	}
 	return user
@@ -106,7 +106,7 @@ func UpdateUserInfo(userId int64, userInfo map[string]interface{}) *POIUser {
 	}
 	_, err := o.QueryTable("users").Filter("id", userId).Update(params)
 	if err != nil {
-		seelog.Error("UpdateUserInfo:", err.Error())
+		seelog.Error("userId:", userId, " userInfo:", userInfo, " ", err.Error())
 	}
 	user := QueryUserById(userId)
 	return user
@@ -117,7 +117,7 @@ func InsertUserOauth(userId int64, qqOpenId string) {
 	userOauth := POIOAuth{UserId: userId, OpenIdQq: qqOpenId}
 	_, err := o.Insert(&userOauth)
 	if err != nil {
-		seelog.Error("InsertUserOauth:", err.Error())
+		seelog.Error("userId:", userId, " qqOpenId:", qqOpenId, " ", err.Error())
 	}
 }
 
@@ -129,7 +129,7 @@ func QueryUserByQQOpenId(qqOpenId string) int64 {
 	o := orm.NewOrm()
 	err := o.Raw(sql, qqOpenId).QueryRow(&userOauth)
 	if err != nil {
-		seelog.Error("QueryUserByQQOpenId:", err.Error())
+		seelog.Error(qqOpenId, " ", err.Error())
 		return -1
 	}
 	return userOauth.UserId
@@ -143,7 +143,7 @@ func HasPhoneBindWithQQ(phone string) bool {
 	var maps []orm.Params
 	count, err := o.Raw(sql, phone).Values(&maps)
 	if err != nil {
-		seelog.Error("HasPhoneBindWithQQ:", err.Error())
+		seelog.Error(phone, " ", err.Error())
 		return false
 	}
 	if count > 0 {

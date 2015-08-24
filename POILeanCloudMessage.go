@@ -144,13 +144,13 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 	}
 
 	url := LC_SEND_MSG
-	seelog.Info("LCSendTypedMessage URL:>", url)
+	seelog.Info("URL:>", url)
 
 	query, _ := json.Marshal(lcMsg)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
 	if err != nil {
-		seelog.Error("LCSendTypedMessage:", err.Error())
+		seelog.Error(err.Error())
 	}
 	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Master-Key", Config.LeanCloud.MasterKey)
@@ -158,7 +158,7 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		seelog.Error("LCSendTypedMessage:", err.Error())
+		seelog.Error(err.Error())
 	}
 	defer resp.Body.Close()
 	return
@@ -168,7 +168,7 @@ func InsertLCMessageLog(messageLog *LCMessageLog) *LCMessageLog {
 	o := orm.NewOrm()
 	_, err := o.Insert(messageLog)
 	if err != nil {
-		seelog.Error("InsertLCMessageLog:", err.Error())
+		seelog.Error(err.Error())
 		return nil
 	}
 	return messageLog
@@ -178,7 +178,7 @@ func InsertLCSupportMessageLog(messageLog *LCSupportMessageLog) *LCSupportMessag
 	o := orm.NewOrm()
 	_, err := o.Insert(messageLog)
 	if err != nil {
-		seelog.Error("InsertLCSupportMessageLog:", err.Error())
+		seelog.Error(err.Error())
 	}
 	return messageLog
 }
@@ -188,7 +188,7 @@ func HasLCMessageLog(msgId string) bool {
 	o := orm.NewOrm()
 	count, err := o.QueryTable("message_logs").Filter("msg_id", msgId).Count()
 	if err != nil {
-		seelog.Error("HasLCMessageLog:", err.Error())
+		seelog.Error(msgId, " ", err.Error())
 		hasFlag = false
 	} else {
 		if count > 0 {
@@ -202,14 +202,13 @@ func HasLCMessageLog(msgId string) bool {
 
 func SaveLeanCloudMessageLogs(baseTime int64) string {
 	url := fmt.Sprintf("%s/%s?%s=%d&%s=%d", LC_SEND_MSG, "logs", "limit", 1000, "max_ts", baseTime)
-	seelog.Info("GetLeanCloudMessage URL:", url)
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Application-Key", Config.LeanCloud.AppKey)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		seelog.Error("SaveLeanCloudMessageLogs:", err.Error())
+		seelog.Error(err.Error())
 		return ""
 	}
 	defer resp.Body.Close()

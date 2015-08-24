@@ -34,12 +34,15 @@ func init() {
 	WsManager = NewPOIWSManager()
 	SessionTicker = time.NewTicker(time.Millisecond * 5000)
 	LCMessageTicker = time.NewTicker(time.Minute * 1)
-	orm.RegisterDataBase("default", "mysql", Config.Database.Username+":"+
+	err = orm.RegisterDataBase("default", "mysql", Config.Database.Username+":"+
 		Config.Database.Password+"@"+
 		Config.Database.Method+"("+
 		Config.Database.Address+":"+
 		Config.Database.Port+")/"+
 		Config.Database.Database+"?charset=utf8&loc=Asia%2FShanghai", 30)
+	if err != nil {
+		seelog.Critical(err.Error())
+	}
 }
 
 func main() {

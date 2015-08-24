@@ -2,12 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"math"
 	"net/http"
 	"strconv"
 	"time"
 
+	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/websocket"
 )
 
@@ -20,17 +20,17 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	// 将HTTP请求升级为Websocket连接
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println(err.Error())
+		seelog.Error("V1WebSocketHandler:", err.Error())
 		return
 	}
 
 	// 读取Websocket初始化消息
 	_, p, err := conn.ReadMessage()
 	if err != nil {
-		fmt.Println(err.Error())
+		seelog.Error("V1WebSocketHandler:", err.Error())
 		return
 	}
-	fmt.Println("V1WSHandler: recieved: ", string(p))
+	seelog.Info("V1WSHandler: recieved: ", string(p))
 
 	// 消息反序列化
 	var msg POIWSMessage
@@ -42,8 +42,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp.Attribute["errMsg"] = "unstructed message"
 		err = conn.WriteJSON(resp)
 		conn.Close()
-
-		fmt.Println("V1WSHandler: unstructed message")
+		seelog.Info("V1WSHandler: unstructed message")
 		return
 	}
 
@@ -56,8 +55,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp.Attribute["errMsg"] = "local time not accepted"
 		err = conn.WriteJSON(resp)
 		conn.Close()
-
-		fmt.Println("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
+		seelog.Info("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
 		return
 	}
 
@@ -70,8 +68,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp.Attribute["errMsg"] = "illegal websocket login"
 		err = conn.WriteJSON(resp)
 		conn.Close()
-
-		fmt.Println("V1WSHandler: illegal websocket login; UserId: ", msg.UserId)
+		seelog.Info("V1WSHandler: illegal websocket login; UserId: ", msg.UserId)
 		return
 	} else {
 		loginResp := NewPOIWSMessage(msg.MessageId, msg.UserId, msg.OperationCode+1)
@@ -99,8 +96,9 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 信息反序列化
 		err = json.Unmarshal([]byte(p), &msg)
 		if err != nil {
-			fmt.Println("V1WSHandler recieved: UserId", msg.UserId, "Msg: ", string(p))
-			fmt.Println("V1WSHandler: unstructed message")
+			seelog.Error("V1WSHandler:", err.Error())
+			seelog.Info("V1WSHandler recieved: UserId", msg.UserId, "Msg: ", string(p))
+			seelog.Info("V1WSHandler: unstructed message")
 			continue
 		}
 
@@ -113,8 +111,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		timestamp = time.Now().Unix()
 		if math.Abs(msg.Timestamp-float64(timestamp)) > 12*3600 {
 			// Force quit the user if timestamp difference is too significant
-			fmt.Println("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
-
+			seelog.Info("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
 			resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
 			resp.Attribute["errCode"] = "3"
 			resp.Attribute["errMsg"] = "local time not accepted"
@@ -124,7 +121,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 输出
 		if msg.OperationCode != WS_PONG {
-			fmt.Println("V1WSHandler recieved: UserId", userId, " Msg: ", string(p))
+			seelog.Info("V1WSHandler recieved: UserId", userId, " Msg: ", string(p))
 		}
 
 		// 根据信息中的操作码进行对应处理
@@ -256,8 +253,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			pingMsg := NewPOIWSMessage("", userId, WS_PING)
 			err := conn.WriteJSON(pingMsg)
 			if err != nil {
-				fmt.Println("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
-
+				seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 				if WsManager.GetUserOnlineStatus(userId) == loginTS {
 					WSUserLogout(userId)
 					close(userChan)
@@ -271,8 +267,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			if pingpong {
 				pingpong = false
 			} else {
-				fmt.Println("WebSocketWriteHandler: user timed out; UserId: ", userId)
-
+				seelog.Info("WebSocketWriteHandler: user timed out; UserId: ", userId)
 				if WsManager.GetUserOnlineStatus(userId) == loginTS {
 					WSUserLogout(userId)
 					close(userChan)
@@ -289,8 +284,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			} else {
 				err := conn.WriteJSON(msg)
 				if err != nil {
-					fmt.Println("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
-
+					seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 					if WsManager.GetUserOnlineStatus(userId) == loginTS {
 						WSUserLogout(userId)
 						close(userChan)
@@ -299,8 +293,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					return
 				}
 				msgByte, _ := json.Marshal(msg)
-				fmt.Println("WebSocketWriter: UserId: ", msg.UserId, "Msg: ", string(msgByte))
-
+				seelog.Info("WebSocketWriter: UserId: ", msg.UserId, "Msg: ", string(msgByte))
 				if msg.OperationCode == WS_FORCE_QUIT ||
 					msg.OperationCode == WS_FORCE_LOGOUT ||
 					msg.OperationCode == WS_LOGOUT_RESP {

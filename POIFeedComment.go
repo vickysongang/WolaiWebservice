@@ -48,7 +48,7 @@ func InsertPOIFeedComment(userId int64, commentId string, feedId string, text st
 	feedComment := POIFeedComment{Created: userId, Id: commentId, FeedId: feedId, Text: text, ImageInfo: imageStr, ReplyToId: replyToId}
 	_, err := o.Insert(&feedComment)
 	if err != nil {
-		seelog.Error("InsertPOIFeedComment:", err.Error())
+		seelog.Error(feedComment, " ", err.Error())
 		return nil
 	}
 	return &feedComment
@@ -60,7 +60,7 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 
 	user := QueryUserById(userId)
 	if user == nil {
-		seelog.Warn("PostPOIFeedComment:user ", userId, "doesn't exsit.")
+		seelog.Warn("user ", userId, " doesn't exsit.")
 		return nil
 	}
 	var feed *POIFeed
@@ -71,7 +71,7 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	}
 
 	if feed == nil {
-		seelog.Warn("PostPOIFeedComment:feed ", feedId, "doesn't exsit.")
+		seelog.Warn("feed ", feedId, " doesn't exsit.")
 		return nil
 	}
 
@@ -110,11 +110,11 @@ func LikePOIFeedComment(userId int64, feedCommentId string, timestamp float64) *
 
 	user := QueryUserById(userId)
 	if user == nil {
-		seelog.Warn("PostPOIFeedComment:user ", userId, "doesn't exsit.")
+		seelog.Warn("user ", userId, "doesn't exsit.")
 		return nil
 	}
 	if feedComment == nil {
-		seelog.Warn("PostPOIFeedComment:feedComment ", feedCommentId, "doesn't exsit.")
+		seelog.Warn("feedComment ", feedCommentId, " doesn't exsit.")
 		return nil
 	}
 	if RedisManager.redisError == nil {

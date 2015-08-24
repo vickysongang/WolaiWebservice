@@ -1,6 +1,9 @@
 package main
 
-import "github.com/astaxie/beego/orm"
+import (
+	"github.com/astaxie/beego/orm"
+	seelog "github.com/cihub/seelog"
+)
 
 type POIBanner struct {
 	Id      int64  `json:"-"`
@@ -20,6 +23,9 @@ func QueryBannerList() POIBanners {
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("id,media_id,url,rank").From("banners").Where("active = 1").OrderBy("rank").Asc()
 	sql := qb.String()
-	o.Raw(sql).QueryRows(&banners)
+	_, err := o.Raw(sql).QueryRows(&banners)
+	if err != nil {
+		seelog.Error(err.Error())
+	}
 	return banners
 }

@@ -26,7 +26,7 @@ func QueryGradeList() POIGrades {
 	o := orm.NewOrm()
 	_, err := o.Raw(sql).QueryRows(&grades)
 	if err != nil {
-		seelog.Error("QueryGradeList:", err.Error())
+		seelog.Error(err.Error())
 	}
 	return grades
 }
@@ -39,7 +39,7 @@ func QueryGradeById(gradeId int64) *POIGrade {
 	sql := qb.String()
 	err := o.Raw(sql, gradeId).QueryRow(&grade)
 	if err != nil {
-		seelog.Error("QueryGradeById:", err.Error())
+		seelog.Error(gradeId, " ", err.Error())
 		return nil
 	}
 	return &grade

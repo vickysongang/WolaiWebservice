@@ -15,7 +15,7 @@ func InsertPOIFeed(userId int64, feedId string, feedType int64, text string, ima
 	o := orm.NewOrm()
 	_, err := o.Insert(&feed)
 	if err != nil {
-		seelog.Error("InsertPOIFeed:", err.Error())
+		seelog.Error(feed, " ", err.Error())
 		return nil
 	}
 	return &feed
@@ -30,7 +30,7 @@ func GetFeed(feedId string) *POIFeed {
 	o := orm.NewOrm()
 	err := o.Raw(sql, feedId).QueryRow(&feed)
 	if err != nil {
-		seelog.Error("GetFeed:", feedId, err.Error())
+		seelog.Error(feedId, " ", err.Error())
 		return nil
 	}
 	timestampNano := feed.CreateTime.UnixNano()
@@ -43,14 +43,14 @@ func GetFeed(feedId string) *POIFeed {
 	if err == nil {
 		feed.ImageList = imageList
 	} else {
-		seelog.Error("GetFeed unmarshal ImageInfo:", err.Error())
+		seelog.Error("unmarshal ImageInfo:", feed.ImageInfo, " ", err.Error())
 	}
 	var attributeMap map[string]string
 	err = json.Unmarshal([]byte(feed.AttributeInfo), &attributeMap)
 	if err == nil {
 		feed.Attribute = attributeMap
 	} else {
-		seelog.Error("GetFeed unmarshal AttributeInfo:", err.Error())
+		seelog.Error("unmarshal AttributeInfo:", feed.AttributeInfo, " ", err.Error())
 	}
 	if feed.OriginFeedId != "" && len(feed.OriginFeedId) > 0 {
 		feed.OriginFeed = GetFeed(feed.OriginFeedId)
@@ -65,7 +65,7 @@ func InsertPOIFeedLike(userId int64, feedId string) *POIFeedLike {
 	feedLike := POIFeedLike{UserId: userId, FeedId: feedId}
 	_, err := o.Insert(&feedLike)
 	if err != nil {
-		seelog.Error("InsertPOIFeedLike:", err.Error())
+		seelog.Error(feedLike, " ", err.Error())
 		return nil
 	}
 	return &feedLike
@@ -76,7 +76,7 @@ func DeletePOIFeedLike(userId int64, feedId string) *POIFeedLike {
 	o := orm.NewOrm()
 	_, err := o.QueryTable("feed_like").Filter("user_id", userId).Filter("feed_id", feedId).Delete()
 	if err != nil {
-		seelog.Error("DeletePOIFeedLike:", err.Error())
+		seelog.Error(feedLike, " ", err.Error())
 		return nil
 	}
 	return &feedLike
@@ -86,7 +86,7 @@ func GetPOIFeedLikeCount(feedId string) int64 {
 	o := orm.NewOrm()
 	count, err := o.QueryTable("feed_like").Filter("feed_id", feedId).Count()
 	if err != nil {
-		seelog.Error("GetPOIFeedLikeCount:", err.Error())
+		seelog.Error(feedId, " ", err.Error())
 		return 0
 	}
 	return count
@@ -96,7 +96,7 @@ func GETPOIFeedCommentCount(feedId string) int64 {
 	o := orm.NewOrm()
 	count, err := o.QueryTable("feed_comment").Filter("feed_id", feedId).Count()
 	if err != nil {
-		seelog.Error("GETPOIFeedCommentCount:", err.Error())
+		seelog.Error(feedId, " ", err.Error())
 		return 0
 	}
 	return count
@@ -110,7 +110,7 @@ func GetFeedLikeList(feedId string) POIUsers {
 	var userIds []int64
 	_, err := o.Raw(sql, feedId).QueryRows(&userIds)
 	if err != nil {
-		seelog.Error("GetFeedLikeList:", err.Error())
+		seelog.Error(feedId, " ", err.Error())
 	}
 	users := make(POIUsers, len(userIds))
 	for i := range userIds {
@@ -123,7 +123,7 @@ func HasLikedFeed(feed *POIFeed, user *POIUser) bool {
 	o := orm.NewOrm()
 	count, err := o.QueryTable("feed_like").Filter("feed_id", feed.Id).Filter("user_id", user.UserId).Count()
 	if err != nil {
-		seelog.Error("HasLikedFeed:", err.Error())
+		seelog.Error("feed:", feed, " user:", user, " ", err.Error())
 		return false
 	}
 	if count > 0 {
@@ -141,7 +141,7 @@ func GetFeedComment(feedCommentId string) *POIFeedComment {
 	sql := qb.String()
 	err := o.Raw(sql, feedCommentId).QueryRow(&feedComment)
 	if err != nil {
-		seelog.Error("GetFeedComment:", err.Error())
+		seelog.Error(feedCommentId, " ", err.Error())
 		return nil
 	}
 	timestampNano := feedComment.CreateTime.UnixNano()
@@ -155,12 +155,10 @@ func GetFeedComment(feedCommentId string) *POIFeedComment {
 	if err == nil {
 		feedComment.ImageList = imageList
 	} else {
-		seelog.Error("GetFeedComment unmarshal ImageInfo:", err.Error())
+		seelog.Error("unmarshal ImageInfo:", feedComment.ImageInfo, " ", err.Error())
 	}
 	if feedComment.ReplyToId != 0 {
 		feedComment.ReplyTo = QueryUserById(feedComment.ReplyToId)
-	} else {
-		seelog.Error("GetFeedComment unmarshal AttributeInfo:", err.Error())
 	}
 	return &feedComment
 }
@@ -173,7 +171,7 @@ func GetFeedComments(feedId string) POIFeedComments {
 	var commentIds []string
 	_, err := o.Raw(sql, feedId).QueryRows(&commentIds)
 	if err != nil {
-		seelog.Error("GetFeedComments:", err.Error())
+		seelog.Error(feedId, " ", err.Error())
 	}
 	feedComments := make(POIFeedComments, len(commentIds))
 	for i := range commentIds {
@@ -190,7 +188,7 @@ func GetFeedFlowAtrium(start, pageNum int) POIFeeds {
 	sql := qb.String()
 	_, err := o.Raw(sql).QueryRows(&feedIds)
 	if err != nil {
-		seelog.Error("GetFeedComments:", err.Error())
+		seelog.Error(err.Error())
 	}
 	feeds := make(POIFeeds, len(feedIds))
 	for i := range feedIds {
@@ -207,7 +205,7 @@ func GetFeedFlowUserFeed(userId int64, start, pageNum int) POIFeeds {
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&feedIds)
 	if err != nil {
-		seelog.Error("GetFeedFlowUserFeed:", err.Error())
+		seelog.Error(userId, " ", err.Error())
 	}
 	feeds := make(POIFeeds, len(feedIds))
 	for i := range feedIds {
@@ -225,7 +223,7 @@ func GetFeedFlowUserFeedLike(userId int64, start, pageNum int) POIFeeds {
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&feedIds)
 	if err != nil {
-		seelog.Error("GetFeedFlowUserFeedLike:", err.Error())
+		seelog.Error(userId, " ", err.Error())
 	}
 	feeds := make(POIFeeds, len(feedIds))
 	for i := range feedIds {

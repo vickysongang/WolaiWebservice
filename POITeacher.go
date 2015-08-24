@@ -151,7 +151,7 @@ func QueryTeacherList(pageNum, pageCount int64) POITeachers {
 	var teacherModels POITeacherModels
 	_, err := o.Raw(sql).QueryRows(&teacherModels)
 	if err != nil {
-		seelog.Error("QueryTeacherList:", err.Error())
+		seelog.Error(err.Error())
 		return nil
 	}
 	for i := range teacherModels {
@@ -175,7 +175,7 @@ func QueryTeacher(userId int64) *POITeacher {
 	var teacherModel POITeacherModel
 	err := o.Raw(sql, userId).QueryRow(&teacherModel)
 	if err != nil {
-		seelog.Error("QueryTeacher:", err.Error())
+		seelog.Error(userId, " ", err.Error())
 		return nil
 	}
 	teacher := POITeacher{POIUser: POIUser{UserId: teacherModel.Id, Nickname: teacherModel.Nickname, Avatar: teacherModel.Avatar, Gender: teacherModel.Gender},
@@ -197,7 +197,7 @@ func QueryTeacherProfile(userId int64) *POITeacherProfile {
 	var teacherModel POITeacherModel
 	err := o.Raw(sql, userId).QueryRow(&teacherModel)
 	if err != nil {
-		seelog.Error("QueryTeacherProfile:", err.Error())
+		seelog.Error(userId, " ", err.Error())
 		return nil
 	}
 	teacherProfile := POITeacherProfile{POITeacher: POITeacher{POIUser: POIUser{UserId: teacherModel.Id, Nickname: teacherModel.Nickname,
@@ -219,7 +219,7 @@ func QueryTeacherProfileByUserId(userId int64) *POITeacherProfileModel {
 	profile := POITeacherProfileModel{}
 	err := o.Raw(sql, userId).QueryRow(&profile)
 	if err != nil {
-		seelog.Error("QueryTeacherProfileByUserId:", err.Error())
+		seelog.Error(userId, " ", err.Error())
 		return nil
 	}
 	return &profile
@@ -234,7 +234,7 @@ func QueryTeacherLabelByUserId(userId int64) []string {
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&labels)
 	if err != nil {
-		seelog.Error("QueryTeacherLabelByUserId:", err.Error())
+		seelog.Error(userId, " ", err.Error())
 		return nil
 	}
 	return labels
@@ -249,7 +249,7 @@ func QueryTeacherSubjectByUserId(userId int64) POITeacherSubjects {
 	o := orm.NewOrm()
 	_, err := o.Raw(sql, userId).QueryRows(&subjects)
 	if err != nil {
-		seelog.Error("QueryTeacherSubjectByUserId:", err.Error())
+		seelog.Error(userId, " ", err.Error())
 		return nil
 	}
 	return subjects
@@ -263,7 +263,7 @@ func QueryTeacherResumeByUserId(userId int64) POITeacherResumes {
 	o := orm.NewOrm()
 	_, err := o.Raw(sql, userId).QueryRows(&resumes)
 	if err != nil {
-		seelog.Error("QueryTeacherResumeByUserId:", err.Error())
+		seelog.Error(userId, " ", err.Error())
 		return nil
 	}
 	return resumes
@@ -275,7 +275,7 @@ func UpdateTeacherServiceTime(userId int64, length int64) {
 		"service_time": orm.ColValue(orm.Col_Add, length),
 	})
 	if err != nil {
-		seelog.Error("UpdateTeacherServiceTime:", err.Error())
+		seelog.Error("userId:", userId, " length:", length, " ", err.Error())
 	}
 }
 
@@ -287,7 +287,7 @@ func QueryTeacherLabelByName(name string) *POITeacherLabel {
 	sql := qb.String()
 	err := o.Raw(sql, name).QueryRow(&teacherLabel)
 	if err != nil {
-		seelog.Error("QueryTeacherLabelByName:", err.Error())
+		seelog.Error(name, " ", err.Error())
 		return nil
 	}
 	return &teacherLabel
@@ -302,7 +302,7 @@ func InsertTeacherLabel(name string) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(&teacherLabel)
 	if err != nil {
-		seelog.Error("InsertTeacherLabel:", err.Error())
+		seelog.Error(name, " ", err.Error())
 		return 0
 	}
 	return id
@@ -316,7 +316,7 @@ func QueryTeacherToLabel(userId, labelId int64) *POITeacherToLabel {
 	sql := qb.String()
 	err := o.Raw(sql, userId, labelId).QueryRow(&ttl)
 	if err != nil {
-		seelog.Error("QueryTeacherToLabel:", err.Error())
+		seelog.Error("userId:", userId, " labelId:", labelId, " ", err.Error())
 		return nil
 	}
 	return &ttl
@@ -326,7 +326,7 @@ func InsertTeacherToLabel(teacherLabel *POITeacherToLabel) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(teacherLabel)
 	if err != nil {
-		seelog.Error("InsertTeacherToLabel:", err.Error())
+		seelog.Error(teacherLabel, " ", err.Error())
 		return 0
 	}
 	return id
@@ -340,7 +340,7 @@ func QueryTeacherToSubject(userId, subjectId int64) *POITeacherToSubject {
 	sql := qb.String()
 	err := o.Raw(sql, userId, subjectId).QueryRow(&tts)
 	if err != nil {
-		seelog.Error("QueryTeacherToSubject:", err.Error())
+		seelog.Error("userId:", userId, " subjectId:", subjectId, " ", err.Error())
 		return nil
 	}
 	return &tts
@@ -350,7 +350,7 @@ func InsertTeacherToSubject(teacherSubject *POITeacherToSubject) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(teacherSubject)
 	if err != nil {
-		seelog.Error("InsertTeacherToSubject:", err.Error())
+		seelog.Error(teacherSubject, " ", err.Error())
 		return 0
 	}
 	return id
@@ -360,7 +360,7 @@ func InsertTeacherToResume(resume *POITeacherResume) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(resume)
 	if err != nil {
-		seelog.Error("InsertTeacherToResume:", err.Error())
+		seelog.Error(resume, " ", err.Error())
 		return 0
 	}
 	return id
@@ -370,7 +370,7 @@ func InsertTeacherProfile(profile *POITeacherProfileModel) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(profile)
 	if err != nil {
-		seelog.Error("InsertTeacherProfile:", err.Error())
+		seelog.Error(profile, " ", err.Error())
 		return 0
 	}
 	return id
@@ -382,7 +382,7 @@ func InsertTeacher(teacherInfo string) POITeacherInfos {
 	var teachers POITeacherInfos
 	err := json.Unmarshal([]byte(teacherInfo), &teachers)
 	if err != nil {
-		seelog.Error("InsertTeacher:", err.Error())
+		seelog.Error(teacherInfo, " ", err.Error())
 	}
 	for i := range teachers {
 		teacher := teachers[i]
