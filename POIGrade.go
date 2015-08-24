@@ -39,7 +39,7 @@ func QueryGradeById(gradeId int64) *POIGrade {
 	sql := qb.String()
 	err := o.Raw(sql, gradeId).QueryRow(&grade)
 	if err != nil {
-		seelog.Error(gradeId, " ", err.Error())
+		seelog.Error("gradeId:", gradeId, " ", err.Error())
 		return nil
 	}
 	return &grade

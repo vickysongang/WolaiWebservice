@@ -64,7 +64,7 @@ func InsertPOIUser(user *POIUser) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(user)
 	if err != nil {
-		seelog.Error(user, " ", err.Error())
+		seelog.Error("user:", user, " ", err.Error())
 		return 0
 	}
 	return id
@@ -78,7 +78,7 @@ func QueryUserById(userId int64) *POIUser {
 	o := orm.NewOrm()
 	err := o.Raw(sql, userId).QueryRow(&user)
 	if err != nil {
-		seelog.Error(userId, " ", err.Error())
+		seelog.Error("userId:", userId, " ", err.Error())
 		return nil
 	}
 	return user
@@ -92,7 +92,7 @@ func QueryUserByPhone(phone string) *POIUser {
 	o := orm.NewOrm()
 	err := o.Raw(sql, phone).QueryRow(&user)
 	if err != nil {
-		seelog.Error(phone, " ", err.Error())
+		seelog.Error("phone:", phone, " ", err.Error())
 		return nil
 	}
 	return user
@@ -143,7 +143,7 @@ func HasPhoneBindWithQQ(phone string) bool {
 	var maps []orm.Params
 	count, err := o.Raw(sql, phone).Values(&maps)
 	if err != nil {
-		seelog.Error(phone, " ", err.Error())
+		seelog.Error("phone:", phone, " ", err.Error())
 		return false
 	}
 	if count > 0 {

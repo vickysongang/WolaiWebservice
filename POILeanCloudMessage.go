@@ -188,7 +188,7 @@ func HasLCMessageLog(msgId string) bool {
 	o := orm.NewOrm()
 	count, err := o.QueryTable("message_logs").Filter("msg_id", msgId).Count()
 	if err != nil {
-		seelog.Error(msgId, " ", err.Error())
+		seelog.Error("msgId:", msgId, " ", err.Error())
 		hasFlag = false
 	} else {
 		if count > 0 {
@@ -255,7 +255,7 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 				}
 			}
 		} else {
-			seelog.Info("No newest LeanCloud message!")
+			seelog.Debug("No newest LeanCloud message!")
 			break
 		}
 		if count == 1000 {

@@ -175,7 +175,7 @@ func QueryTeacher(userId int64) *POITeacher {
 	var teacherModel POITeacherModel
 	err := o.Raw(sql, userId).QueryRow(&teacherModel)
 	if err != nil {
-		seelog.Error(userId, " ", err.Error())
+		seelog.Error("userId:", userId, " ", err.Error())
 		return nil
 	}
 	teacher := POITeacher{POIUser: POIUser{UserId: teacherModel.Id, Nickname: teacherModel.Nickname, Avatar: teacherModel.Avatar, Gender: teacherModel.Gender},
@@ -197,7 +197,7 @@ func QueryTeacherProfile(userId int64) *POITeacherProfile {
 	var teacherModel POITeacherModel
 	err := o.Raw(sql, userId).QueryRow(&teacherModel)
 	if err != nil {
-		seelog.Error(userId, " ", err.Error())
+		seelog.Error("userId:", userId, " ", err.Error())
 		return nil
 	}
 	teacherProfile := POITeacherProfile{POITeacher: POITeacher{POIUser: POIUser{UserId: teacherModel.Id, Nickname: teacherModel.Nickname,
@@ -219,7 +219,7 @@ func QueryTeacherProfileByUserId(userId int64) *POITeacherProfileModel {
 	profile := POITeacherProfileModel{}
 	err := o.Raw(sql, userId).QueryRow(&profile)
 	if err != nil {
-		seelog.Error(userId, " ", err.Error())
+		seelog.Error("userId:", userId, " ", err.Error())
 		return nil
 	}
 	return &profile
@@ -234,7 +234,7 @@ func QueryTeacherLabelByUserId(userId int64) []string {
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&labels)
 	if err != nil {
-		seelog.Error(userId, " ", err.Error())
+		seelog.Error("userId:", userId, " ", err.Error())
 		return nil
 	}
 	return labels
@@ -249,7 +249,7 @@ func QueryTeacherSubjectByUserId(userId int64) POITeacherSubjects {
 	o := orm.NewOrm()
 	_, err := o.Raw(sql, userId).QueryRows(&subjects)
 	if err != nil {
-		seelog.Error(userId, " ", err.Error())
+		seelog.Error("userId:", userId, " ", err.Error())
 		return nil
 	}
 	return subjects
@@ -263,7 +263,7 @@ func QueryTeacherResumeByUserId(userId int64) POITeacherResumes {
 	o := orm.NewOrm()
 	_, err := o.Raw(sql, userId).QueryRows(&resumes)
 	if err != nil {
-		seelog.Error(userId, " ", err.Error())
+		seelog.Error("userId:", userId, " ", err.Error())
 		return nil
 	}
 	return resumes
@@ -287,7 +287,7 @@ func QueryTeacherLabelByName(name string) *POITeacherLabel {
 	sql := qb.String()
 	err := o.Raw(sql, name).QueryRow(&teacherLabel)
 	if err != nil {
-		seelog.Error(name, " ", err.Error())
+		seelog.Error("name:", name, " ", err.Error())
 		return nil
 	}
 	return &teacherLabel
@@ -302,7 +302,7 @@ func InsertTeacherLabel(name string) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(&teacherLabel)
 	if err != nil {
-		seelog.Error(name, " ", err.Error())
+		seelog.Error("name:", name, " ", err.Error())
 		return 0
 	}
 	return id
@@ -326,7 +326,7 @@ func InsertTeacherToLabel(teacherLabel *POITeacherToLabel) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(teacherLabel)
 	if err != nil {
-		seelog.Error(teacherLabel, " ", err.Error())
+		seelog.Error("teacherLabel:", teacherLabel, " ", err.Error())
 		return 0
 	}
 	return id
@@ -350,7 +350,7 @@ func InsertTeacherToSubject(teacherSubject *POITeacherToSubject) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(teacherSubject)
 	if err != nil {
-		seelog.Error(teacherSubject, " ", err.Error())
+		seelog.Error("teacherSubject:", teacherSubject, " ", err.Error())
 		return 0
 	}
 	return id
@@ -360,7 +360,7 @@ func InsertTeacherToResume(resume *POITeacherResume) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(resume)
 	if err != nil {
-		seelog.Error(resume, " ", err.Error())
+		seelog.Error("resume:", resume, " ", err.Error())
 		return 0
 	}
 	return id
@@ -370,7 +370,7 @@ func InsertTeacherProfile(profile *POITeacherProfileModel) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(profile)
 	if err != nil {
-		seelog.Error(profile, " ", err.Error())
+		seelog.Error("profile:", profile, " ", err.Error())
 		return 0
 	}
 	return id
@@ -382,7 +382,7 @@ func InsertTeacher(teacherInfo string) POITeacherInfos {
 	var teachers POITeacherInfos
 	err := json.Unmarshal([]byte(teacherInfo), &teachers)
 	if err != nil {
-		seelog.Error(teacherInfo, " ", err.Error())
+		seelog.Error("teacherInfo:", teacherInfo, " ", err.Error())
 	}
 	for i := range teachers {
 		teacher := teachers[i]

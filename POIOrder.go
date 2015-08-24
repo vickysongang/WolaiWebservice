@@ -106,7 +106,7 @@ func InsertOrder(order *POIOrder) *POIOrder {
 	}
 	orderId, err := o.Insert(order)
 	if err != nil {
-		seelog.Error(order, " ", err.Error())
+		seelog.Error("order:", order, " ", err.Error())
 		return nil
 	}
 	order.Id = orderId
@@ -123,7 +123,7 @@ func InsertOrderDispatch(orderDispatch *POIOrderDispatch) *POIOrderDispatch {
 	}
 	orderDispatchId, err := o.Insert(orderDispatch)
 	if err != nil {
-		seelog.Error(orderDispatch, " ", err.Error())
+		seelog.Error("orderDispatch:", orderDispatch, " ", err.Error())
 		return nil
 	}
 	orderDispatch.Id = orderDispatchId
@@ -139,7 +139,7 @@ func QueryOrderById(orderId int64) *POIOrder {
 	sql := db.String()
 	err := o.Raw(sql, orderId).QueryRow(&order)
 	if err != nil {
-		seelog.Error(orderId, " ", err.Error())
+		seelog.Error("orderId:", orderId, " ", err.Error())
 		return nil
 	}
 	order.Type = OrderTypeRevDict[order.OrderType]

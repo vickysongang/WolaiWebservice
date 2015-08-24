@@ -89,7 +89,7 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 
 	user := QueryUserById(userId)
 	if user == nil {
-		seelog.Warn(userId, " doesn't exsit.")
+		seelog.Warn("userId:", userId, " doesn't exsit.")
 		return nil
 	}
 

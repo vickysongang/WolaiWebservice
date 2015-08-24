@@ -76,7 +76,7 @@ func InsertTradeRecord(tradeRecord *POITradeRecord) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(tradeRecord)
 	if err != nil {
-		seelog.Error(tradeRecord, " ", err.Error())
+		seelog.Error("tradeRecord:", tradeRecord, " ", err.Error())
 		return 0
 	}
 	return id
@@ -112,7 +112,7 @@ func InsertTradeToSession(tradeToSession *POITradeToSession) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(tradeToSession)
 	if err != nil {
-		seelog.Error(tradeToSession, " ", err.Error())
+		seelog.Error("tradeToSession:", tradeToSession, " ", err.Error())
 		return 0
 	}
 	return id
@@ -127,7 +127,7 @@ func QuerySessionTradeRecords(userId int64) *POISessionTradeRecords {
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&records)
 	if err != nil {
-		seelog.Error(userId, " ", err.Error())
+		seelog.Error("userId:", userId, " ", err.Error())
 		return nil
 	}
 	returnRecords := make(POISessionTradeRecords, 0)

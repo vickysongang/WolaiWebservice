@@ -40,7 +40,7 @@ func QuerySubjectListByGrade(gradeId int64) POISubjects {
 	o := orm.NewOrm()
 	_, err := o.Raw(sql, gradeId).QueryRows(&subjects)
 	if err != nil {
-		seelog.Error(gradeId, " ", err.Error())
+		seelog.Error("gradeId:", gradeId, " ", err.Error())
 		return nil
 	}
 	return subjects
@@ -54,7 +54,7 @@ func QuerySubjectById(subjectId int64) *POISubject {
 	o := orm.NewOrm()
 	err := o.Raw(sql, subjectId).QueryRow(&subject)
 	if err != nil {
-		seelog.Error(subjectId, " ", err.Error())
+		seelog.Error("subjectId:", subjectId, " ", err.Error())
 		return nil
 	}
 	return &subject
