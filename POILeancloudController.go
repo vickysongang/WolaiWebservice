@@ -160,8 +160,8 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 	attrTeacher := map[string]string{
 		"type":      LC_TRADE_TYPE_TEACHER,
 		"title":     "交易提醒",
-		"studentId": strconv.FormatInt(studentId, 10),
-		"teacherId": strconv.FormatInt(teacherId, 10),
+		"student":   student.Nickname,
+		"teacher":   teacher.Nickname,
 		"status":    LC_TRADE_STATUS_INCOME,
 		"amount":    strconv.FormatInt(teacherAmount, 10),
 		"balance":   strconv.FormatInt(teacher.Balance, 10),
@@ -180,8 +180,8 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 	attrStudent := map[string]string{
 		"type":      LC_TRADE_TYPE_STUDENT,
 		"title":     "交易提醒",
-		"studentId": strconv.FormatInt(studentId, 10),
-		"teacherId": strconv.FormatInt(teacherId, 10),
+		"student":   student.Nickname,
+		"teacher":   teacher.Nickname,
 		"status":    LC_TRADE_STATUS_EXPENSE,
 		"amount":    strconv.FormatInt(studentAmount, 10),
 		"balance":   strconv.FormatInt(student.Balance, 10),
