@@ -125,3 +125,19 @@ func QueryUserByQQOpenId(qqOpenId string) int64 {
 	}
 	return userOauth.UserId
 }
+
+func HasPhoneBindWithQQ(phone string) bool {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder("mysql")
+	qb.Select("users.id").From("users").InnerJoin("user_oauth").On("users.id = user_oauth.user_id").Where("users.phone = ?")
+	sql := qb.String()
+	var maps []orm.Params
+	count, err := o.Raw(sql, phone).Values(&maps)
+	if err != nil {
+		return false
+	}
+	if count > 0 {
+		return true
+	}
+	return false
+}
