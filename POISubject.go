@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/astaxie/beego/orm"
+	seelog "github.com/cihub/seelog"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -23,7 +24,8 @@ func QuerySubjectList() POISubjects {
 	sql := qb.String()
 	o := orm.NewOrm()
 	_, err := o.Raw(sql).QueryRows(&subjects)
-	if err == orm.ErrNoRows {
+	if err != nil {
+		seelog.Error("QuerySubjectList:", err.Error())
 		return nil
 	}
 	return subjects
@@ -37,7 +39,8 @@ func QuerySubjectListByGrade(gradeId int64) POISubjects {
 	sql := qb.String()
 	o := orm.NewOrm()
 	_, err := o.Raw(sql, gradeId).QueryRows(&subjects)
-	if err == orm.ErrNoRows {
+	if err != nil {
+		seelog.Error("QuerySubjectListByGrade:", err.Error())
 		return nil
 	}
 	return subjects
@@ -50,7 +53,8 @@ func QuerySubjectById(subjectId int64) *POISubject {
 	sql := qb.String()
 	o := orm.NewOrm()
 	err := o.Raw(sql, subjectId).QueryRow(&subject)
-	if err == orm.ErrNoRows {
+	if err != nil {
+		seelog.Error("QuerySubjectById:", err.Error())
 		return nil
 	}
 	return &subject

@@ -3,9 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	seelog "github.com/cihub/seelog"
 )
 
 const LC_CONV_ID = "https://api.leancloud.cn/1.1/classes/_Conversation"
@@ -24,31 +25,30 @@ func NewLeanCloudConvReq(name, member1, member2 string) LeanCloudConvReq {
 
 func LCGetConversationId(member1, member2 string) string {
 	url := LC_CONV_ID
-	fmt.Println("URL:>", url)
-
+	seelog.Info("LCGetConversationId URL:>", url)
 	lcReq := NewLeanCloudConvReq("conversation", member1, member2)
 
 	query, _ := json.Marshal(lcReq)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
+	if err != nil {
+		seelog.Error("LCGetConversationId:", err.Error())
+	}
 	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Application-Key", Config.LeanCloud.AppKey)
 	req.Header.Set("Content-Type", "application/json")
-	fmt.Println("Request: ", string(query))
-
+	seelog.Info("LCGetConversationId Request:", string(query))
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		seelog.Error("LCGetConversationId:", err.Error())
 	}
 	defer resp.Body.Close()
 
-	//fmt.Println("response Status:", resp.Status)
-	//fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
-
 	var respMap map[string]string
-	_ = json.Unmarshal(body, &respMap)
-
+	err = json.Unmarshal(body, &respMap)
+	if err != nil {
+		seelog.Error("LCGetConversationId:", err.Error())
+	}
 	return respMap["objectId"]
 }

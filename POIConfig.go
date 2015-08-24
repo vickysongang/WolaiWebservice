@@ -2,6 +2,8 @@ package main
 
 import (
 	"time"
+
+	seelog "github.com/cihub/seelog"
 )
 
 type POIConfig struct {
@@ -51,5 +53,8 @@ type duration struct {
 func (d *duration) UnmarshalText(text []byte) error {
 	var err error
 	d.Duration, err = time.ParseDuration(string(text))
+	if err != nil {
+		seelog.Error("UnmarshalText:", err.Error())
+	}
 	return err
 }

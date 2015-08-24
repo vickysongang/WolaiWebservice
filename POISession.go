@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	seelog "github.com/cihub/seelog"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -84,6 +85,7 @@ func InsertSession(session *POISession) *POISession {
 	}
 	sessionId, err := o.Insert(session)
 	if err != nil {
+		seelog.Error("InsertSession:", err.Error())
 		return nil
 	}
 	session.Id = sessionId
@@ -99,6 +101,7 @@ func QuerySessionById(sessionId int64) *POISession {
 	session := POISession{}
 	err := o.Raw(sql, sessionId).QueryRow(&session)
 	if err != nil {
+		seelog.Error("QuerySessionById:", err.Error())
 		return nil
 	}
 	session.Creator = QueryUserById(session.Created)
@@ -112,7 +115,10 @@ func UpdateSessionInfo(sessionId int64, sessionInfo map[string]interface{}) {
 	for k, v := range sessionInfo {
 		params[k] = v
 	}
-	o.QueryTable("sessions").Filter("id", sessionId).Update(params)
+	_, err := o.QueryTable("sessions").Filter("id", sessionId).Update(params)
+	if err != nil {
+		seelog.Error("UpdateSessionInfo:", err.Error())
+	}
 	return
 }
 
@@ -126,7 +132,10 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
 		Where("sessions.creator = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
-	o.Raw(sql, userId).QueryRows(&orderInSessions)
+	_, err := o.Raw(sql, userId).QueryRows(&orderInSessions)
+	if err != nil {
+		seelog.Error("QueryOrderInSession4Student:", err.Error())
+	}
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
 		user := QueryUserById(orderInSession.Tutor)
@@ -159,7 +168,10 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
 		Where("sessions.tutor = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
-	o.Raw(sql, userId).QueryRows(&orderInSessions)
+	_, err := o.Raw(sql, userId).QueryRows(&orderInSessions)
+	if err != nil {
+		seelog.Error("QueryOrderInSession4Teacher:", err.Error())
+	}
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
 		user := QueryUserById(orderInSession.Creator)

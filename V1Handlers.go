@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/mux"
 )
 
@@ -21,11 +22,10 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 func V1Login(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1Login:", err.Error())
 	}
 	vars := r.Form
 	phone := vars["phone"][0]
-	//fmt.Println("[GET]/v1/login phone: %s", phone)
 	status, content := POIUserLogin(phone)
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 
@@ -34,7 +34,6 @@ func V1Login(w http.ResponseWriter, r *http.Request) {
 func V1LoginGETURL(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	phone := vars["phone"]
-	//fmt.Println("[GET URL]/v1/login phone: %s", phone)
 	status, content := POIUserLogin(phone)
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
 }
@@ -45,14 +44,13 @@ func V1LoginGETURL(w http.ResponseWriter, r *http.Request) {
 func V1UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1UpdateProfile:", err.Error())
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
 	nickname := vars["nickname"][0]
 	avatar := vars["avatar"][0]
 	genderStr := vars["gender"][0]
-	//fmt.Fprintf(w, "[POST]/v1/update_profile user_id: %s, nickname: %s, avatar: %s, gender: %s", userId, nickname, avatar, gender)
 
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
@@ -69,8 +67,6 @@ func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
 	avatar := vars["avatar"]
 	genderStr := vars["gender"]
 
-	//fmt.Fprintf(w, "[POST]/v1/update_profile user_id: %s, nickname: %s, avatar: %s, gender: %s", int(userId), nickname, avatar, int(gender))
-
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
@@ -84,7 +80,7 @@ func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
 func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1OauthLogin:", err.Error())
 	}
 
 	vars := r.Form
@@ -105,7 +101,7 @@ func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
 func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1OauthRegister:", err.Error())
 	}
 
 	vars := r.Form
@@ -114,7 +110,6 @@ func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
 	nickname := vars["nickname"][0]
 	avatar := vars["avatar"][0]
 	genderStr := vars["gender"][0]
-	//fmt.Fprintf(w, "[POST]/v1/update_profile user_id: %s, nickname: %s, avatar: %s, gender: %s", userId, nickname, avatar, gender)
 
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
@@ -128,13 +123,13 @@ func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
 func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1OrderInSession:", err.Error())
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
 	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1OrderInSession:", err.Error())
 	}
 	var pageNum int64
 	if len(vars["page"]) == 0 {
@@ -172,7 +167,7 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1TeacherRecommendation:", err.Error())
 	}
 
 	vars := r.Form
@@ -203,7 +198,7 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1TeacherProfile:", err.Error())
 	}
 
 	vars := r.Form
@@ -232,7 +227,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1TeacherPost:", err.Error())
 	}
 	vars := r.Form
 	if len(vars["teacherInfo"]) > 0 {
@@ -250,7 +245,7 @@ func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
 func V1Atrium(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1Atrium:", err.Error())
 	}
 
 	vars := r.Form
@@ -275,7 +270,7 @@ func V1Atrium(w http.ResponseWriter, r *http.Request) {
 func V1FeedPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1FeedPost:", err.Error())
 	}
 
 	vars := r.Form
@@ -299,7 +294,6 @@ func V1FeedPost(w http.ResponseWriter, r *http.Request) {
 
 	originFeedId := ""
 	if len(vars["originFeedId"]) > 0 {
-		//originFeedId = vars["originFeedId"][0]
 		originFeedId = ""
 	}
 
@@ -319,7 +313,7 @@ func V1FeedPost(w http.ResponseWriter, r *http.Request) {
 func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1FeedDetail:", err.Error())
 	}
 
 	vars := r.Form
@@ -340,7 +334,7 @@ func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
 func V1FeedLike(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1FeedLike:", err.Error())
 	}
 
 	vars := r.Form
@@ -362,36 +356,12 @@ func V1FeedLike(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
- * 2.5 Feed Favorite
- */
-func V1FeedFav(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		panic(err)
-	}
-
-	vars := r.Form
-
-	userIdStr := vars["userId"][0]
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-
-	timestampNano := time.Now().UnixNano()
-	timestamp := float64(timestampNano) / 1000000000.0
-
-	feedId := vars["feedId"][0]
-
-	content := FavPOIFeed(userId, feedId, timestamp)
-
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-}
-
-/*
  * 2.6 Feed Comment
  */
 func V1FeedComment(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1FeedComment:", err.Error())
 	}
 
 	vars := r.Form
@@ -430,7 +400,7 @@ func V1FeedComment(w http.ResponseWriter, r *http.Request) {
 func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1FeedCommentLike:", err.Error())
 	}
 
 	vars := r.Form
@@ -455,7 +425,7 @@ func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 func V1UserInfo(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1UserInfo:", err.Error())
 	}
 
 	vars := r.Form
@@ -479,7 +449,7 @@ func V1UserInfo(w http.ResponseWriter, r *http.Request) {
 func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1UserMyWallet:", err.Error())
 	}
 
 	vars := r.Form
@@ -500,7 +470,7 @@ func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
 func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1UserMyFeed:", err.Error())
 	}
 
 	vars := r.Form
@@ -525,7 +495,7 @@ func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
 func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1UserMyFollowing:", err.Error())
 	}
 
 	vars := r.Form
@@ -548,7 +518,7 @@ func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
 func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1UserMyLike:", err.Error())
 	}
 
 	vars := r.Form
@@ -573,7 +543,7 @@ func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
 func V1UserFollow(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err)
+		seelog.Error("V1UserFollow:", err.Error())
 	}
 
 	vars := r.Form
@@ -595,7 +565,7 @@ func V1UserFollow(w http.ResponseWriter, r *http.Request) {
 func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1UserUnfollow:", err.Error())
 	}
 
 	vars := r.Form
@@ -617,7 +587,7 @@ func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
 func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1GetConversationID:", err.Error())
 	}
 
 	vars := r.Form
@@ -647,7 +617,7 @@ func V1GradeList(w http.ResponseWriter, r *http.Request) {
 func V1SubjectList(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1SubjectList:", err.Error())
 	}
 
 	vars := r.Form
@@ -670,7 +640,7 @@ func V1SubjectList(w http.ResponseWriter, r *http.Request) {
 func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1OrderCreate:", err.Error())
 	}
 
 	vars := r.Form
@@ -716,7 +686,7 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1OrderPersonalConfirm:", err.Error())
 	}
 
 	vars := r.Form
@@ -743,7 +713,7 @@ func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
 func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1TradeCharge:", err.Error())
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
@@ -765,7 +735,7 @@ func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
 func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1TradeWithdraw:", err.Error())
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
@@ -787,7 +757,7 @@ func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1TradeAward:", err.Error())
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
@@ -809,7 +779,7 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1TradePromotion:", err.Error())
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
@@ -828,7 +798,7 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1SessionRating:", err.Error())
 	}
 
 	vars := r.Form
@@ -884,7 +854,7 @@ func V1StatusLive(w http.ResponseWriter, r *http.Request) {
 func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("V1CheckPhoneBindWithQQ:", err.Error())
 	}
 
 	vars := r.Form

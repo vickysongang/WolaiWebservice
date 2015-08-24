@@ -2,10 +2,10 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	seelog "github.com/cihub/seelog"
 )
 
 type POITradeRecord struct {
@@ -76,6 +76,7 @@ func InsertTradeRecord(tradeRecord *POITradeRecord) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(tradeRecord)
 	if err != nil {
+		seelog.Error("InsertTradeRecord:", err.Error())
 		return 0
 	}
 	return id
@@ -90,7 +91,7 @@ func AddUserBalance(userId int64, amount int64) {
 		"balance": orm.ColValue(orm.Col_Add, amount),
 	})
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("AddUserBalance:", err.Error())
 	}
 }
 
@@ -103,7 +104,7 @@ func MinusUserBalance(userId int64, amount int64) {
 		"balance": orm.ColValue(orm.Col_Minus, amount),
 	})
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("MinusUserBalance:", err.Error())
 	}
 }
 
@@ -111,6 +112,7 @@ func InsertTradeToSession(tradeToSession *POITradeToSession) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(tradeToSession)
 	if err != nil {
+		seelog.Error("InsertTradeToSession:", err.Error())
 		return 0
 	}
 	return id
@@ -124,16 +126,16 @@ func QuerySessionTradeRecords(userId int64) *POISessionTradeRecords {
 		From("trade_record").Where("user_id = ?").OrderBy("create_time").Desc()
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&records)
+	if err != nil {
+		seelog.Error("QuerySessionTradeRecords:", err.Error())
+		return nil
+	}
 	returnRecords := make(POISessionTradeRecords, 0)
 	for i := range records {
 		record := records[i]
 		user := QueryUserById(userId)
 		record.User = user
 		returnRecords = append(returnRecords, record)
-		fmt.Println(record.User.Nickname)
-	}
-	if err != nil {
-		return nil
 	}
 	return &returnRecords
 }
@@ -148,6 +150,7 @@ func QueryTradeAmount(sessionId, userId int64) int64 {
 	var tradeAmount int64
 	err := o.Raw(sql, userId, sessionId).QueryRow(&tradeAmount)
 	if err != nil {
+		seelog.Error("QueryTradeAmount:", err.Error())
 		return 0
 	}
 	return tradeAmount

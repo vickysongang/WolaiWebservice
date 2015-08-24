@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	seelog "github.com/cihub/seelog"
 	"github.com/satori/go.uuid"
 )
 
@@ -89,6 +89,7 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 
 	user := QueryUserById(userId)
 	if user == nil {
+		seelog.Warn("PostPOIFeed:user ", userId, "doesn't exsit.")
 		return nil
 	}
 
@@ -101,7 +102,7 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 	tmpList := make([]string, 0)
 	err := json.Unmarshal([]byte(imageStr), &tmpList)
 	if err != nil {
-		fmt.Println(err.Error())
+		seelog.Error("PostPOIFeed unmarshal imageStr:", err.Error())
 	}
 	feed.ImageList = tmpList
 
@@ -114,7 +115,7 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 	tmpMap := make(map[string]string)
 	err = json.Unmarshal([]byte(attributeStr), &tmpMap)
 	if err != nil {
-		fmt.Println(err.Error())
+		seelog.Error("PostPOIFeed unmarshal attributeStr:", err.Error())
 	}
 	feed.Attribute = tmpMap
 	if RedisManager.redisError == nil {
@@ -135,6 +136,7 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 	}
 	user := QueryUserById(userId)
 	if feed == nil || user == nil {
+		seelog.Warn("LikePOIFeed:user ", userId, "doesn't exsit.")
 		return nil
 	}
 	var likeFeedFlag bool
@@ -164,22 +166,6 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
 	return feed
 }
 
-//useless
-func FavPOIFeed(userId int64, feedId string, timestamp float64) *POIFeed {
-	feed := RedisManager.GetFeed(feedId)
-	user := QueryUserById(userId)
-
-	if feed == nil || user == nil {
-		return nil
-	}
-
-	if !RedisManager.HasFavedFeed(feed, user) {
-		RedisManager.FavoriteFeed(feed, user, timestamp)
-	}
-
-	return feed
-}
-
 func GetFeedDetail(feedId string, userId int64) *POIFeedDetail {
 	var feed *POIFeed
 	var likedUserList POIUsers
@@ -192,6 +178,7 @@ func GetFeedDetail(feedId string, userId int64) *POIFeedDetail {
 	}
 	user := QueryUserById(userId)
 	if feed == nil || user == nil {
+		seelog.Warn("GetFeedDetail:user ", userId, "doesn't exsit.")
 		return nil
 	}
 	var comments POIFeedComments
@@ -215,6 +202,7 @@ func GetAtrium(userId int64, page int64) POIFeeds {
 	user := QueryUserById(userId)
 
 	if user == nil {
+		seelog.Warn("GetAtrium:user ", userId, "doesn't exsit.")
 		return nil
 	}
 
@@ -241,6 +229,7 @@ func GetAtrium(userId int64, page int64) POIFeeds {
 func GetUserFeed(userId int64, page int64) POIFeeds {
 	user := QueryUserById(userId)
 	if user == nil {
+		seelog.Warn("GetUserFeed:user ", userId, "doesn't exsit.")
 		return nil
 	}
 
@@ -267,6 +256,7 @@ func GetUserFeed(userId int64, page int64) POIFeeds {
 func GetUserLike(userId int64, page int64) POIFeeds {
 	user := QueryUserById(userId)
 	if user == nil {
+		seelog.Warn("GetUserLike:user ", userId, "doesn't exsit.")
 		return nil
 	}
 

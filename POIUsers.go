@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	seelog "github.com/cihub/seelog"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -64,7 +64,7 @@ func InsertPOIUser(user *POIUser) int64 {
 	o := orm.NewOrm()
 	id, err := o.Insert(user)
 	if err != nil {
-		fmt.Println(err.Error())
+		seelog.Error("InsertPOIUser:", err.Error())
 		return 0
 	}
 	return id
@@ -77,7 +77,8 @@ func QueryUserById(userId int64) *POIUser {
 	sql := qb.String()
 	o := orm.NewOrm()
 	err := o.Raw(sql, userId).QueryRow(&user)
-	if err == orm.ErrNoRows {
+	if err != nil {
+		seelog.Error("QueryUserById:", err.Error())
 		return nil
 	}
 	return user
@@ -90,7 +91,8 @@ func QueryUserByPhone(phone string) *POIUser {
 	sql := qb.String()
 	o := orm.NewOrm()
 	err := o.Raw(sql, phone).QueryRow(&user)
-	if err == orm.ErrNoRows {
+	if err != nil {
+		seelog.Error("QueryUserByPhone:", err.Error())
 		return nil
 	}
 	return user
@@ -102,7 +104,10 @@ func UpdateUserInfo(userId int64, userInfo map[string]interface{}) *POIUser {
 	for k, v := range userInfo {
 		params[k] = v
 	}
-	o.QueryTable("users").Filter("id", userId).Update(params)
+	_, err := o.QueryTable("users").Filter("id", userId).Update(params)
+	if err != nil {
+		seelog.Error("UpdateUserInfo:", err.Error())
+	}
 	user := QueryUserById(userId)
 	return user
 }
@@ -110,7 +115,10 @@ func UpdateUserInfo(userId int64, userInfo map[string]interface{}) *POIUser {
 func InsertUserOauth(userId int64, qqOpenId string) {
 	o := orm.NewOrm()
 	userOauth := POIOAuth{UserId: userId, OpenIdQq: qqOpenId}
-	o.Insert(&userOauth)
+	_, err := o.Insert(&userOauth)
+	if err != nil {
+		seelog.Error("InsertUserOauth:", err.Error())
+	}
 }
 
 func QueryUserByQQOpenId(qqOpenId string) int64 {
@@ -121,6 +129,7 @@ func QueryUserByQQOpenId(qqOpenId string) int64 {
 	o := orm.NewOrm()
 	err := o.Raw(sql, qqOpenId).QueryRow(&userOauth)
 	if err != nil {
+		seelog.Error("QueryUserByQQOpenId:", err.Error())
 		return -1
 	}
 	return userOauth.UserId
@@ -134,6 +143,7 @@ func HasPhoneBindWithQQ(phone string) bool {
 	var maps []orm.Params
 	count, err := o.Raw(sql, phone).Values(&maps)
 	if err != nil {
+		seelog.Error("HasPhoneBindWithQQ:", err.Error())
 		return false
 	}
 	if count > 0 {

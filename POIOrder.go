@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	seelog "github.com/cihub/seelog"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -105,6 +106,7 @@ func InsertOrder(order *POIOrder) *POIOrder {
 	}
 	orderId, err := o.Insert(order)
 	if err != nil {
+		seelog.Error("InsertOrder:", err.Error())
 		return nil
 	}
 	order.Id = orderId
@@ -121,6 +123,7 @@ func InsertOrderDispatch(orderDispatch *POIOrderDispatch) *POIOrderDispatch {
 	}
 	orderDispatchId, err := o.Insert(orderDispatch)
 	if err != nil {
+		seelog.Error("InsertOrderDispatch:", err.Error())
 		return nil
 	}
 	orderDispatch.Id = orderDispatchId
@@ -136,6 +139,7 @@ func QueryOrderById(orderId int64) *POIOrder {
 	sql := db.String()
 	err := o.Raw(sql, orderId).QueryRow(&order)
 	if err != nil {
+		seelog.Error("QueryOrderById:", err.Error())
 		return nil
 	}
 	order.Type = OrderTypeRevDict[order.OrderType]
@@ -150,7 +154,10 @@ func UpdateOrderInfo(orderId int64, orderInfo map[string]interface{}) {
 	for k, v := range orderInfo {
 		params[k] = v
 	}
-	o.QueryTable("orders").Filter("id", orderId).Update(params)
+	_, err := o.QueryTable("orders").Filter("id", orderId).Update(params)
+	if err != nil {
+		seelog.Error("UpdateOrderInfo:", err.Error())
+	}
 	return
 }
 
@@ -160,7 +167,10 @@ func UpdateOrderDispatchInfo(orderId int64, userId int64, dispatchInfo map[strin
 	for k, v := range dispatchInfo {
 		params[k] = v
 	}
-	o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("teacher_id", userId).Update(params)
+	_, err := o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("teacher_id", userId).Update(params)
+	if err != nil {
+		seelog.Error("UpdateOrderDispatchInfo:", err.Error())
+	}
 	return
 }
 
@@ -173,6 +183,7 @@ func QueryOrderDispatch(orderId, userId int64) *POIOrderDispatch {
 	orderDispatch := POIOrderDispatch{}
 	err := o.Raw(sql, orderId, userId).QueryRow(&orderDispatch)
 	if err != nil {
+		seelog.Error("QueryOrderDispatch:", err.Error())
 		return nil
 	}
 	return &orderDispatch

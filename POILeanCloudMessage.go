@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	seelog "github.com/cihub/seelog"
 )
 
 const (
@@ -143,28 +144,23 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 	}
 
 	url := LC_SEND_MSG
-	fmt.Println("URL:>", url)
+	seelog.Info("LCSendTypedMessage URL:>", url)
 
 	query, _ := json.Marshal(lcMsg)
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
+	if err != nil {
+		seelog.Error("LCSendTypedMessage:", err.Error())
+	}
 	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Master-Key", Config.LeanCloud.MasterKey)
 	req.Header.Set("Content-Type", "application/json")
-	fmt.Println("Request: ", string(query))
-
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		seelog.Error("LCSendTypedMessage:", err.Error())
 	}
 	defer resp.Body.Close()
-
-	//fmt.Println("response Status:", resp.Status)
-	//fmt.Println("response Headers:", resp.Header)
-	//body, _ := ioutil.ReadAll(resp.Body)
-	//fmt.Println("response Body:", string(body))
-
 	return
 }
 
@@ -172,7 +168,8 @@ func InsertLCMessageLog(messageLog *LCMessageLog) *LCMessageLog {
 	o := orm.NewOrm()
 	_, err := o.Insert(messageLog)
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("InsertLCMessageLog:", err.Error())
+		return nil
 	}
 	return messageLog
 }
@@ -181,7 +178,7 @@ func InsertLCSupportMessageLog(messageLog *LCSupportMessageLog) *LCSupportMessag
 	o := orm.NewOrm()
 	_, err := o.Insert(messageLog)
 	if err != nil {
-		panic(err.Error())
+		seelog.Error("InsertLCSupportMessageLog:", err.Error())
 	}
 	return messageLog
 }
@@ -191,6 +188,7 @@ func HasLCMessageLog(msgId string) bool {
 	o := orm.NewOrm()
 	count, err := o.QueryTable("message_logs").Filter("msg_id", msgId).Count()
 	if err != nil {
+		seelog.Error("HasLCMessageLog:", err.Error())
 		hasFlag = false
 	} else {
 		if count > 0 {
@@ -204,13 +202,14 @@ func HasLCMessageLog(msgId string) bool {
 
 func SaveLeanCloudMessageLogs(baseTime int64) string {
 	url := fmt.Sprintf("%s/%s?%s=%d&%s=%d", LC_SEND_MSG, "logs", "limit", 1000, "max_ts", baseTime)
-	fmt.Println("url:", url)
+	seelog.Info("GetLeanCloudMessage URL:", url)
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Application-Key", Config.LeanCloud.AppKey)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		seelog.Error("SaveLeanCloudMessageLogs:", err.Error())
 		return ""
 	}
 	defer resp.Body.Close()
@@ -257,7 +256,7 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 				}
 			}
 		} else {
-			fmt.Println("No newest LeanCloud message!")
+			seelog.Info("No newest LeanCloud message!")
 			break
 		}
 		if count == 1000 {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/astaxie/beego/orm"
+	seelog "github.com/cihub/seelog"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -23,7 +24,10 @@ func QueryGradeList() POIGrades {
 	qb.Select("id,name,pid").From("grade")
 	sql := qb.String()
 	o := orm.NewOrm()
-	o.Raw(sql).QueryRows(&grades)
+	_, err := o.Raw(sql).QueryRows(&grades)
+	if err != nil {
+		seelog.Error("QueryGradeList:", err.Error())
+	}
 	return grades
 }
 
@@ -35,6 +39,7 @@ func QueryGradeById(gradeId int64) *POIGrade {
 	sql := qb.String()
 	err := o.Raw(sql, gradeId).QueryRow(&grade)
 	if err != nil {
+		seelog.Error("QueryGradeById:", err.Error())
 		return nil
 	}
 	return &grade

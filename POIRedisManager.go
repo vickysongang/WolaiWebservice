@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 
+	seelog "github.com/cihub/seelog"
 	"gopkg.in/redis.v3"
 )
 
@@ -50,7 +50,7 @@ func NewPOIRedisManager() POIRedisManager {
 		DB:       Config.Redis.Db,
 	})
 	pong, err := client.Ping().Result()
-	fmt.Println("Connect redis:", pong, err)
+	seelog.Info("Connect redis:", pong, err)
 	return POIRedisManager{redisClient: client, redisError: err}
 }
 
