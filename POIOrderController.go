@@ -13,14 +13,16 @@ func OrderCreate(creatorId int64, teacherId int64, timestamp float64, gradeId in
 		return 2, nil
 	}
 
-	order := POIOrder{Creator: creator,
+	order := POIOrder{
+		Creator:   creator,
 		GradeId:   gradeId,
 		SubjectId: subjectId,
 		Date:      date,
 		PeriodId:  periodId,
 		Length:    length,
 		Type:      orderType,
-		Status:    ORDER_STATUS_CREATED}
+		Status:    ORDER_STATUS_CREATED,
+		TeacherId: teacherId}
 	orderPtr := InsertOrder(&order)
 
 	if orderPtr == nil {
