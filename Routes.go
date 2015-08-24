@@ -154,6 +154,19 @@ var routes = Routes{
 		"/v1/teacher/insert",
 		V1TeacherPost,
 	},
+	//1.9 Check Phone
+	Route{
+		"V1CheckPhoneGET",
+		"GET",
+		"/v1/oauth/qq/checkphone",
+		V1CheckPhoneBindWithQQ,
+	},
+	Route{
+		"v1CheckPhonePost",
+		"POST",
+		"/v1/oauth/qq/checkphone",
+		V1CheckPhoneBindWithQQ,
+	},
 
 	// 2.1 Atrium
 	Route{

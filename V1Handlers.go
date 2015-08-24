@@ -866,7 +866,7 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	io.WriteString(w, jsonStr)
 	//	session := QuerySessionById(2)
 	//	HandleSessionTrade(session, "S")
-	content := QueryTradeAmount(797, 10116)
+	content := HasPhoneBindWithQQ("15886462035")
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
@@ -878,5 +878,18 @@ func V1StatusLive(w http.ResponseWriter, r *http.Request) {
 		"liveTeacher": liveTeacher,
 	}
 
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
+func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	vars := r.Form
+
+	phone := vars["phone"][0]
+	content := HasPhoneBindWithQQ(phone)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
