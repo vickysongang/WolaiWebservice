@@ -4,6 +4,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"time"
 )
 
 /*
@@ -105,5 +106,5 @@ func HandleSessionTrade(session *POISession, result string) {
 	go SendSessionReportNotification(session.Id, teacherAmount, studentAmount)
 	go SendTradeNotificationSession(teacher.UserId, student.UserId,
 		parentGrade.Name+grade.Name+subject.Name, studentAmount, teacherAmount,
-		session.TimeFrom.String(), session.TimeTo.String())
+		session.TimeFrom.Format(time.RFC3339), session.TimeTo.Format(time.RFC3339))
 }
