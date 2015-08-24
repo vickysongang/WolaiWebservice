@@ -136,6 +136,9 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 			orderInSession.TimeToStr = orderInSession.TimeTo.Format(time.RFC3339)
 			orderInSession.Length = orderInSession.RealLength
 			orderInSession.TotalCoat = QueryTradeAmount(orderInSession.SessionId, userId)
+			if orderInSession.TotalCoat < 0 {
+				orderInSession.TotalCoat = 0 - orderInSession.TotalCoat
+			}
 		} else {
 			orderInSession.TimeFromStr = orderInSession.PlanTime
 			orderInSession.Length = orderInSession.EstimateLength
@@ -169,6 +172,9 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 			orderInSession.TimeToStr = orderInSession.TimeTo.Format(time.RFC3339)
 			orderInSession.Length = orderInSession.RealLength
 			orderInSession.TotalCoat = QueryTradeAmount(orderInSession.SessionId, userId)
+			if orderInSession.TotalCoat < 0 {
+				orderInSession.TotalCoat = 0 - orderInSession.TotalCoat
+			}
 		} else {
 			orderInSession.TimeFromStr = orderInSession.PlanTime
 			orderInSession.Length = orderInSession.EstimateLength
