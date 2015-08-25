@@ -21,6 +21,7 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
  * 1.1 Login
  */
 func V1Login(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -33,6 +34,7 @@ func V1Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1LoginGETURL(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	vars := mux.Vars(r)
 	phone := vars["phone"]
 	status, content := POIUserLogin(phone)
@@ -43,6 +45,7 @@ func V1LoginGETURL(w http.ResponseWriter, r *http.Request) {
  * 1.2 Update Profile
  */
 func V1UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -58,10 +61,10 @@ func V1UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	status, content := POIUserUpdateProfile(userId, nickname, avatar, gender)
 	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
-
 }
 
 func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	vars := mux.Vars(r)
 	userIdStr := vars["userId"]
 	nickname := vars["nickname"]
@@ -79,6 +82,7 @@ func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
  * 1.3 Oauth Login
  */
 func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -100,6 +104,7 @@ func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
  * 1.4 Oauth Register
  */
 func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -122,6 +127,7 @@ func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
  * 1.5 My Orders
  */
 func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -170,6 +176,7 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
  * 1.6 Teacher Recommendation
  */
 func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -204,6 +211,7 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
  * 1.7 Teacher Profile
  */
 func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -235,6 +243,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 * 1.8 Teacher Post
  */
 func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -257,6 +266,7 @@ func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
  * 2.1 Atrium
  */
 func V1Atrium(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -282,6 +292,7 @@ func V1Atrium(w http.ResponseWriter, r *http.Request) {
  * 2.2 Feed Post
  */
 func V1FeedPost(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -325,6 +336,7 @@ func V1FeedPost(w http.ResponseWriter, r *http.Request) {
  * 2.3 Feed Detail
  */
 func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -346,6 +358,7 @@ func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
  * 2.4 Feed Like
  */
 func V1FeedLike(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -373,6 +386,7 @@ func V1FeedLike(w http.ResponseWriter, r *http.Request) {
  * 2.6 Feed Comment
  */
 func V1FeedComment(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -412,6 +426,7 @@ func V1FeedComment(w http.ResponseWriter, r *http.Request) {
  * 2.7 Feed Comment Like
  */
 func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -437,6 +452,7 @@ func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
  * 3.1 User MyProfile
  */
 func V1UserInfo(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -461,6 +477,7 @@ func V1UserInfo(w http.ResponseWriter, r *http.Request) {
  */
 
 func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -483,6 +500,7 @@ func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
  * 3.3 User MyFeed
  */
 func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -508,6 +526,7 @@ func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
  * 3.4 User MyFollowing
  */
 func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -531,6 +550,7 @@ func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
  * 3.5 User MyLike
  */
 func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -556,6 +576,7 @@ func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
  * 3.6 User Follow
  */
 func V1UserFollow(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -578,6 +599,7 @@ func V1UserFollow(w http.ResponseWriter, r *http.Request) {
  * 3.7 User UnFollow
  */
 func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -600,6 +622,7 @@ func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
  * 4.1 Get Conversation ID
  */
 func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -622,6 +645,7 @@ func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
  * 5.1 Grade List
  */
 func V1GradeList(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	content := QueryGradeList()
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
@@ -630,6 +654,7 @@ func V1GradeList(w http.ResponseWriter, r *http.Request) {
  *
  */
 func V1SubjectList(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -653,6 +678,7 @@ func V1SubjectList(w http.ResponseWriter, r *http.Request) {
  * 5.3 Order Create
  */
 func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -699,6 +725,7 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
  * 5.4 Personal Order Confirm
  */
 func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -726,6 +753,7 @@ func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
  * 6.1 Trade Charge
  */
 func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -753,6 +781,7 @@ func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
  * 6.2 Trade Withdraw
  */
 func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -780,6 +809,7 @@ func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
  * 6.3 Trade Award
  */
 func V1TradeAward(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -807,6 +837,7 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
  * 6.4 Trade Promotion
  */
 func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -834,6 +865,7 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
  * 6.5 Get User TradeRecord
  */
 func V1TradeRecord(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -867,6 +899,7 @@ func V1TradeRecord(w http.ResponseWriter, r *http.Request) {
  * 7.1 Student Complain
  */
 func V1Complain(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -897,6 +930,7 @@ func V1Complain(w http.ResponseWriter, r *http.Request) {
  * 7.2 Handle Complaint
  */
 func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -921,6 +955,7 @@ func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
  *  8.1 SearchTeacher
  */
 func V1SearchTeacher(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -956,6 +991,7 @@ func V1SearchTeacher(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1SessionRating(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -977,11 +1013,13 @@ func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1Banner(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	content := QueryBannerList()
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
 func V1StatusLive(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	liveUser := len(WsManager.onlineUserMap)
 	liveTeacher := len(WsManager.onlineTeacherMap)
 	content := map[string]interface{}{
@@ -993,6 +1031,7 @@ func V1StatusLive(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1004,24 +1043,21 @@ func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
 	}
 	vars := r.Form
 	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
-
-	if len(vars["userId"]) == 0 {
-		panic("userid is null")
-	}
 	userIdStr := vars["userId"][0]
 	fmt.Println(userIdStr)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-	defer func() {
-		fmt.Println("sddddddddd")
-		if x := recover(); x != nil {
-			fmt.Println("sssssss:", x)
-			json.NewEncoder(w).Encode(NewPOIResponse(0, x))
-		}
-	}()
+}
+
+func ThrowsPanic(w http.ResponseWriter) {
+	if x := recover(); x != nil {
+		seelog.Error(x)
+		json.NewEncoder(w).Encode(NewPOIResponse(2, x))
+	}
 }
