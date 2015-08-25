@@ -14,7 +14,7 @@ type POITradeRecord struct {
 	TradeType   string    `json:"tradeType"`
 	TradeAmount int64     `json:"tradeAmount"`
 	OrderType   int64     `json:"orderType"`
-	CreateTime  time.Time `json:"_" orm:"auto_now_add;type(datetime)"`
+	CreateTime  time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
 	Result      string    `json:"result"`
 	Balance     int64     `json:"balance"`
 	Comment     string    `json:"comment"`
@@ -72,14 +72,14 @@ func init() {
 /*
 * 插入交易记录
  */
-func InsertTradeRecord(tradeRecord *POITradeRecord) int64 {
+func InsertTradeRecord(tradeRecord *POITradeRecord) (int64, error) {
 	o := orm.NewOrm()
 	id, err := o.Insert(tradeRecord)
 	if err != nil {
 		seelog.Error("tradeRecord:", tradeRecord, " ", err.Error())
-		return 0
+		return 0, err
 	}
-	return id
+	return id, nil
 }
 
 /*

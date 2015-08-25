@@ -13,8 +13,9 @@ import (
 *  comment为交易的备注
 *  返回交易记录的id，如果id为0，代表插入交易记录失败
  */
-func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) int64 {
+func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) (int64, error) {
 	var tradeRecordId int64
+	var err error
 	user := QueryUserById(userId)
 	switch tradeType {
 	case TRADE_CHARGE:
@@ -24,7 +25,7 @@ func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) 
 			//插入充值记录
 			tradeRecord := POITradeRecord{UserId: userId, TradeType: TRADE_CHARGE, TradeAmount: amount, OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance + amount
-			tradeRecordId = InsertTradeRecord(&tradeRecord)
+			tradeRecordId, err = InsertTradeRecord(&tradeRecord)
 		}
 
 	case TRADE_AWARD:
@@ -34,7 +35,7 @@ func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) 
 			//插入充值记录
 			tradeRecord := POITradeRecord{UserId: userId, TradeType: TRADE_PROMOTION, TradeAmount: amount, OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance + amount
-			tradeRecordId = InsertTradeRecord(&tradeRecord)
+			tradeRecordId, err = InsertTradeRecord(&tradeRecord)
 		}
 	case TRADE_PROMOTION:
 		{
@@ -42,7 +43,7 @@ func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) 
 			//插入充值记录
 			tradeRecord := POITradeRecord{UserId: userId, TradeType: TRADE_PROMOTION, TradeAmount: amount, OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance + amount
-			tradeRecordId = InsertTradeRecord(&tradeRecord)
+			tradeRecordId, err = InsertTradeRecord(&tradeRecord)
 		}
 	case TRADE_WITHDRAW:
 		{
@@ -51,10 +52,10 @@ func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) 
 			//插入提现记录
 			tradeRecord := POITradeRecord{UserId: userId, TradeType: TRADE_WITHDRAW, TradeAmount: (0 - amount), OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance - amount
-			tradeRecordId = InsertTradeRecord(&tradeRecord)
+			tradeRecordId, err = InsertTradeRecord(&tradeRecord)
 		}
 	}
-	return tradeRecordId
+	return tradeRecordId, err
 }
 
 func HandleSessionTrade(session *POISession, result string) {
@@ -86,7 +87,7 @@ func HandleSessionTrade(session *POISession, result string) {
 	MinusUserBalance(student.UserId, studentAmount)
 	studentTradeRecord := POITradeRecord{UserId: student.UserId, TradeType: TRADE_PAYMENT, TradeAmount: (0 - studentAmount), OrderType: STUDENT_ORDER, Result: result, Comment: comment}
 	studentTradeRecord.Balance = student.Balance - studentAmount
-	studentTradeRecordId := InsertTradeRecord(&studentTradeRecord)
+	studentTradeRecordId, _ := InsertTradeRecord(&studentTradeRecord)
 	studentTradeToSession := POITradeToSession{SessionId: session.Id, TradeRecordId: studentTradeRecordId}
 	InsertTradeToSession(&studentTradeToSession)
 
@@ -99,7 +100,7 @@ func HandleSessionTrade(session *POISession, result string) {
 	AddUserBalance(teacher.UserId, teacherAmount)
 	teacherTradeRecord := POITradeRecord{UserId: teacher.UserId, TradeType: TRADE_RECEIVEMENT, TradeAmount: teacherAmount, OrderType: TEACHER_ORDER, Result: result, Comment: comment}
 	teacherTradeRecord.Balance = teacher.Balance + teacherAmount
-	teacherTradeRecordId := InsertTradeRecord(&teacherTradeRecord)
+	teacherTradeRecordId, _ := InsertTradeRecord(&teacherTradeRecord)
 	teacherTradeToSession := POITradeToSession{SessionId: session.Id, TradeRecordId: teacherTradeRecordId}
 	InsertTradeToSession(&teacherTradeToSession)
 

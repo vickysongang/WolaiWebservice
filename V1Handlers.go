@@ -739,7 +739,12 @@ func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
 	} else {
 		comment = "用户充值"
 	}
-	HandleSystemTrade(userId, amount, TRADE_CHARGE, "S", comment)
+	content, err := HandleSystemTrade(userId, amount, TRADE_CHARGE, "S", comment)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -761,7 +766,12 @@ func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 	} else {
 		comment = "用户提现"
 	}
-	HandleSystemTrade(userId, amount, TRADE_WITHDRAW, "S", comment)
+	content, err := HandleSystemTrade(userId, amount, TRADE_WITHDRAW, "S", comment)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -783,7 +793,12 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 	} else {
 		comment = "导师奖励"
 	}
-	HandleSystemTrade(userId, amount, TRADE_AWARD, "S", comment)
+	content, err := HandleSystemTrade(userId, amount, TRADE_AWARD, "S", comment)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -805,7 +820,66 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 	} else {
 		comment = "活动赠送"
 	}
-	HandleSystemTrade(userId, amount, TRADE_PROMOTION, "S", comment)
+	content, err := HandleSystemTrade(userId, amount, TRADE_PROMOTION, "S", comment)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
+}
+
+/*
+ * 7.1 Student Complain
+ */
+func V1Complain(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	sessionIdStr := vars["sessionId"][0]
+	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 60)
+	var reasons string
+	if len(vars["reasons"]) > 0 {
+		reasons = vars["reasons"][0]
+	}
+	var comment string
+	if len(vars["comment"]) > 0 {
+		comment = vars["comment"][0]
+	}
+	complaint := POIComplaint{UserId: userId, SessionId: sessionId, Reasons: reasons, Comment: comment, Status: "pending"}
+	content, err := InsertPOIComplaint(&complaint)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
+}
+
+/*
+ * 7.2 Handle Complaint
+ */
+func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	complaintIdStr := vars["complaintId"][0]
+	complaintId, _ := strconv.ParseInt(complaintIdStr, 10, 64)
+	var suggestion string
+	if len(vars["suggestion"]) > 0 {
+		suggestion = vars["suggestion"][0]
+	}
+	complaintMap := map[string]interface{}{"Status": "processed", "Suggestion": suggestion}
+	err = UpdateComplaintInfo(complaintId, complaintMap)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, nil))
+	}
 }
 
 func V1SessionRating(w http.ResponseWriter, r *http.Request) {
@@ -854,54 +928,6 @@ func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
 	phone := vars["phone"][0]
 	content := HasPhoneBindWithQQ(phone)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-}
-
-func V1Complain(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-	vars := r.Form
-	userIdStr := vars["userId"][0]
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-	sessionIdStr := vars["sessionId"][0]
-	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 60)
-	var reasons string
-	if len(vars["reasons"]) > 0 {
-		reasons = vars["reasons"][0]
-	}
-	var comment string
-	if len(vars["comment"]) > 0 {
-		comment = vars["comment"][0]
-	}
-	complaint := POIComplaint{UserId: userId, SessionId: sessionId, Reasons: reasons, Comment: comment, Status: "pending"}
-	content, err := InsertPOIComplaint(&complaint)
-	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
-	} else {
-		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-	}
-}
-
-func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-	vars := r.Form
-	complaintIdStr := vars["complaintId"][0]
-	complaintId, _ := strconv.ParseInt(complaintIdStr, 10, 64)
-	var suggestion string
-	if len(vars["suggestion"]) > 0 {
-		suggestion = vars["suggestion"][0]
-	}
-	complaintMap := map[string]interface{}{"Status": "processed", "Suggestion": suggestion}
-	err = UpdateComplaintInfo(complaintId, complaintMap)
-	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
-	} else {
-		json.NewEncoder(w).Encode(NewPOIResponse(0, nil))
-	}
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {

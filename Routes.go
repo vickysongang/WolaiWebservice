@@ -503,6 +503,33 @@ var routes = Routes{
 		"/v1/trade/promotion",
 		V1TradePromotion,
 	},
+
+	// 7.1 Complain
+	Route{
+		"V1ComplainPOST",
+		"POST",
+		"/v1/complaint/complain",
+		V1Complain,
+	},
+	Route{
+		"V1ComplainGET",
+		"GET",
+		"/v1/complaint/complain",
+		V1Complain,
+	},
+	// 7.2 Handle Complaint
+	Route{
+		"V1HandleComplaintPOST",
+		"POST",
+		"/v1/complaint/handle",
+		V1HandleComplaint,
+	},
+	Route{
+		"V1HandleComplaintGET",
+		"GET",
+		"/v1/complaint/handle",
+		V1HandleComplaint,
+	},
 	Route{
 		"V1SessionRatingPOST",
 		"POST",
@@ -541,32 +568,7 @@ var routes = Routes{
 		"/v1/status/live",
 		V1StatusLive,
 	},
-	// Complain
-	Route{
-		"V1ComplainPOST",
-		"POST",
-		"/v1/complaint/complain",
-		V1Complain,
-	},
-	Route{
-		"V1ComplainGET",
-		"GET",
-		"/v1/complaint/complain",
-		V1Complain,
-	},
-	//Handle Complaint
-	Route{
-		"V1HandleComplaintPOST",
-		"POST",
-		"/v1/complaint/handle",
-		V1HandleComplaint,
-	},
-	Route{
-		"V1HandleComplaintGET",
-		"GET",
-		"/v1/complaint/handle",
-		V1HandleComplaint,
-	},
+
 	Route{
 		"TestGET",
 		"GET",
