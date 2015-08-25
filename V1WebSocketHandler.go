@@ -300,7 +300,9 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 
 					if WsManager.GetUserOnlineStatus(userId) == loginTS {
 						WSUserLogout(userId)
-						close(userChan)
+						if _, ok := <-userChan; ok {
+							close(userChan)
+						}
 					}
 					conn.Close()
 					return
