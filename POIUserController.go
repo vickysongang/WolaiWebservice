@@ -25,7 +25,7 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 	u := POIUser{}
 	u.Phone = phone
 	u.AccessRight = USER_ACCESSRIGHT_STUDENT
-	id := InsertPOIUser(&u)
+	id, _ := InsertPOIUser(&u)
 
 	newUser := QueryUserById(id)
 	HandleSystemTrade(newUser.UserId, WOLAI_GIVE_AMOUNT, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, "新用户注册奖励")
@@ -63,7 +63,7 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 		return 0, user
 	}
 
-	userId := InsertPOIUser(&POIUser{Phone: phone, Nickname: nickname, Avatar: avatar, Gender: gender, AccessRight: 3, Balance: WOLAI_GIVE_AMOUNT})
+	userId, _ := InsertPOIUser(&POIUser{Phone: phone, Nickname: nickname, Avatar: avatar, Gender: gender, AccessRight: 3, Balance: WOLAI_GIVE_AMOUNT})
 	user = LoadPOIUser(userId)
 	InsertUserOauth(userId, openId)
 	return 1003, user

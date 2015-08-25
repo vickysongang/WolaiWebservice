@@ -60,14 +60,14 @@ func NewPOIUser(userId int64, nickname string, avatar string, gender int64, acce
 	return user
 }
 
-func InsertPOIUser(user *POIUser) int64 {
+func InsertPOIUser(user *POIUser) (int64, error) {
 	o := orm.NewOrm()
 	id, err := o.Insert(user)
 	if err != nil {
 		seelog.Error("user:", user, " ", err.Error())
-		return 0
+		return 0, err
 	}
-	return id
+	return id, nil
 }
 
 func QueryUserById(userId int64) *POIUser {

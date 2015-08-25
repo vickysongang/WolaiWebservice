@@ -137,7 +137,7 @@ func init() {
 /*
  * 分页查询老师列表
  */
-func QueryTeacherList(pageNum, pageCount int64) POITeachers {
+func QueryTeacherList(pageNum, pageCount int64) (POITeachers, error) {
 	start := pageNum * pageCount
 	teachers := make(POITeachers, 0)
 	qb, _ := orm.NewQueryBuilder("mysql")
@@ -152,7 +152,7 @@ func QueryTeacherList(pageNum, pageCount int64) POITeachers {
 	_, err := o.Raw(sql).QueryRows(&teacherModels)
 	if err != nil {
 		seelog.Error(err.Error())
-		return nil
+		return nil, err
 	}
 	for i := range teacherModels {
 		teacher := teacherModels[i]
@@ -160,7 +160,7 @@ func QueryTeacherList(pageNum, pageCount int64) POITeachers {
 			Avatar: teacher.Avatar, Gender: teacher.Gender}, ServiceTime: teacher.ServiceTime, School: teacher.SchoolName,
 			Department: teacher.DeptName, PricePerHour: teacher.PricePerHour, RealPricePerHour: teacher.RealPricePerHour})
 	}
-	return teachers
+	return teachers, nil
 }
 
 func QueryTeacher(userId int64) *POITeacher {
@@ -183,7 +183,7 @@ func QueryTeacher(userId int64) *POITeacher {
 	return &teacher
 }
 
-func QueryTeacherProfile(userId int64) *POITeacherProfile {
+func QueryTeacherProfile(userId int64) (*POITeacherProfile, error) {
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("users.id,users.nickname, users.avatar, users.gender,teacher_profile.service_time," +
 		"teacher_profile.intro, teacher_profile.price_per_hour,teacher_profile.real_price_per_hour," +
@@ -198,7 +198,7 @@ func QueryTeacherProfile(userId int64) *POITeacherProfile {
 	err := o.Raw(sql, userId).QueryRow(&teacherModel)
 	if err != nil {
 		seelog.Error("userId:", userId, " ", err.Error())
-		return nil
+		return nil, err
 	}
 	teacherProfile := POITeacherProfile{POITeacher: POITeacher{POIUser: POIUser{UserId: teacherModel.Id, Nickname: teacherModel.Nickname,
 		Avatar: teacherModel.Avatar, Gender: teacherModel.Gender}, ServiceTime: teacherModel.ServiceTime, School: teacherModel.SchoolName,
@@ -207,7 +207,7 @@ func QueryTeacherProfile(userId int64) *POITeacherProfile {
 	teacherProfile.LabelList = QueryTeacherLabelByUserId(teacherModel.Id)
 	teacherProfile.SubjectList = QueryTeacherSubjectByUserId(teacherModel.Id)
 	teacherProfile.EducationList = QueryTeacherResumeByUserId(teacherModel.Id)
-	return &teacherProfile
+	return &teacherProfile, nil
 }
 
 func QueryTeacherProfileByUserId(userId int64) *POITeacherProfileModel {
@@ -377,12 +377,13 @@ func InsertTeacherProfile(profile *POITeacherProfileModel) int64 {
 }
 
 //teacherInfo为json格式
-func InsertTeacher(teacherInfo string) POITeacherInfos {
+func InsertTeacher(teacherInfo string) (POITeacherInfos, error) {
 	fmt.Println(teacherInfo)
 	var teachers POITeacherInfos
 	err := json.Unmarshal([]byte(teacherInfo), &teachers)
 	if err != nil {
 		seelog.Error("teacherInfo:", teacherInfo, " ", err.Error())
+		return teachers, err
 	}
 	for i := range teachers {
 		teacher := teachers[i]
@@ -394,11 +395,9 @@ func InsertTeacher(teacherInfo string) POITeacherInfos {
 		user.Gender = teacher.Gender
 		user.Nickname = teacher.Nickname
 		user.Phone = teacher.Phone
-		userId := InsertPOIUser(&user)
-		if userId == 0 {
-			comment := "Teacher " + teacher.Nickname + "allready exist when InsertTeacher!"
-			fmt.Println(comment)
-			return nil
+		userId, err := InsertPOIUser(&user)
+		if err != nil {
+			return nil, err
 		}
 		teacher.POIUser.UserId = userId
 		//处理Label信息
@@ -426,5 +425,5 @@ func InsertTeacher(teacherInfo string) POITeacherInfos {
 			Intro: teacher.Intro, PricePerHour: teacher.PricePerHour, RealPricePerHour: teacher.RealPricePerHour}
 		InsertTeacherProfile(&teacherProfile)
 	}
-	return teachers
+	return teachers, nil
 }

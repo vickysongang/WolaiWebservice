@@ -86,7 +86,8 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	feedComment.ImageList = tmpList
 
 	if replyToId != 0 {
-		feedComment.ReplyTo = QueryUserById(replyToId)
+		user := QueryUserById(replyToId)
+		feedComment.ReplyTo = user
 	}
 
 	feed.IncreaseComment()

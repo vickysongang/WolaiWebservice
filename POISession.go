@@ -122,7 +122,7 @@ func UpdateSessionInfo(sessionId int64, sessionInfo map[string]interface{}) {
 	return
 }
 
-func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderInSessions {
+func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) (POIOrderInSessions, error) {
 	orderInSessions := make(POIOrderInSessions, 0)
 	o := orm.NewOrm()
 	start := pageNum * pageCount
@@ -135,6 +135,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 	_, err := o.Raw(sql, userId).QueryRows(&orderInSessions)
 	if err != nil {
 		seelog.Error("userId:", userId, " ", err.Error())
+		return orderInSessions, err
 	}
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
@@ -158,10 +159,10 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) POIOrderI
 			orderInSession.TotalCoat = orderInSession.PricePerHour * orderInSession.EstimateLength / 60
 		}
 	}
-	return orderInSessions
+	return orderInSessions, nil
 }
 
-func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderInSessions {
+func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) (POIOrderInSessions, error) {
 	orderInSessions := make(POIOrderInSessions, 0)
 	o := orm.NewOrm()
 	start := pageNum * pageCount
@@ -174,6 +175,7 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 	_, err := o.Raw(sql, userId).QueryRows(&orderInSessions)
 	if err != nil {
 		seelog.Error("userId:", userId, " ", err.Error())
+		return orderInSessions, err
 	}
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
@@ -198,5 +200,5 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) POIOrderI
 		}
 
 	}
-	return orderInSessions
+	return orderInSessions, nil
 }

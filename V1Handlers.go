@@ -22,7 +22,7 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 func V1Login(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1Login:", err.Error())
+		seelog.Error(err.Error())
 	}
 	vars := r.Form
 	phone := vars["phone"][0]
@@ -44,7 +44,7 @@ func V1LoginGETURL(w http.ResponseWriter, r *http.Request) {
 func V1UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1UpdateProfile:", err.Error())
+		seelog.Error(err.Error())
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
@@ -80,7 +80,7 @@ func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
 func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1OauthLogin:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -101,7 +101,7 @@ func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
 func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1OauthRegister:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -123,13 +123,13 @@ func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
 func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1OrderInSession:", err.Error())
+		seelog.Error(err.Error())
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
 	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
-		seelog.Error("V1OrderInSession:", err.Error())
+		seelog.Error(err.Error())
 	}
 	var pageNum int64
 	if len(vars["page"]) == 0 {
@@ -154,11 +154,15 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 	}
 	var content POIOrderInSessions
 	if typeStr == "student" {
-		content = QueryOrderInSession4Student(userId, int(pageNum), int(pageCount))
+		content, err = QueryOrderInSession4Student(userId, int(pageNum), int(pageCount))
 	} else if typeStr == "teacher" {
-		content = QueryOrderInSession4Teacher(userId, int(pageNum), int(pageCount))
+		content, err = QueryOrderInSession4Teacher(userId, int(pageNum), int(pageCount))
 	}
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -167,7 +171,7 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1TeacherRecommendation:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -187,9 +191,12 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 	} else {
 		count = 10
 	}
-	content := GetTeacherRecommendationList(userId, page, count)
-
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	content, err := GetTeacherRecommendationList(userId, page, count)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -198,11 +205,10 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1TeacherProfile:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
-
 	teacherIdStr := vars["teacherId"][0]
 	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
 
@@ -216,9 +222,12 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	_ = QueryUserById(userId)
 
-	content := GetTeacherProfile(userId, teacherId)
-
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	content, err := GetTeacherProfile(userId, teacherId)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -227,13 +236,17 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1TeacherPost:", err.Error())
+		seelog.Error(err.Error())
 	}
 	vars := r.Form
 	if len(vars["teacherInfo"]) > 0 {
 		teacherInfo := vars["teacherInfo"][0]
-		content := InsertTeacher(teacherInfo)
-		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+		content, err := InsertTeacher(teacherInfo)
+		if err != nil {
+			json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+		} else {
+			json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+		}
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, "teacherInfo is needed."))
 	}
@@ -245,7 +258,7 @@ func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
 func V1Atrium(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1Atrium:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -270,7 +283,7 @@ func V1Atrium(w http.ResponseWriter, r *http.Request) {
 func V1FeedPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1FeedPost:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -313,7 +326,7 @@ func V1FeedPost(w http.ResponseWriter, r *http.Request) {
 func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1FeedDetail:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -334,7 +347,7 @@ func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
 func V1FeedLike(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1FeedLike:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -361,7 +374,7 @@ func V1FeedLike(w http.ResponseWriter, r *http.Request) {
 func V1FeedComment(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1FeedComment:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -400,7 +413,7 @@ func V1FeedComment(w http.ResponseWriter, r *http.Request) {
 func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1FeedCommentLike:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -425,7 +438,7 @@ func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 func V1UserInfo(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1UserInfo:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -449,7 +462,7 @@ func V1UserInfo(w http.ResponseWriter, r *http.Request) {
 func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1UserMyWallet:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -470,7 +483,7 @@ func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
 func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1UserMyFeed:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -495,7 +508,7 @@ func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
 func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1UserMyFollowing:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -518,7 +531,7 @@ func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
 func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1UserMyLike:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -543,7 +556,7 @@ func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
 func V1UserFollow(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1UserFollow:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -565,7 +578,7 @@ func V1UserFollow(w http.ResponseWriter, r *http.Request) {
 func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1UserUnfollow:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -587,7 +600,7 @@ func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
 func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1GetConversationID:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -617,7 +630,7 @@ func V1GradeList(w http.ResponseWriter, r *http.Request) {
 func V1SubjectList(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1SubjectList:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -640,7 +653,7 @@ func V1SubjectList(w http.ResponseWriter, r *http.Request) {
 func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1OrderCreate:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -686,7 +699,7 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1OrderPersonalConfirm:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -713,7 +726,7 @@ func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
 func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1TradeCharge:", err.Error())
+		seelog.Error(err.Error())
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
@@ -735,7 +748,7 @@ func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
 func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1TradeWithdraw:", err.Error())
+		seelog.Error(err.Error())
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
@@ -757,7 +770,7 @@ func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1TradeAward:", err.Error())
+		seelog.Error(err.Error())
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
@@ -779,7 +792,7 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1TradePromotion:", err.Error())
+		seelog.Error(err.Error())
 	}
 	vars := r.Form
 	userIdStr := vars["userId"][0]
@@ -798,7 +811,7 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1SessionRating:", err.Error())
+		seelog.Error(err.Error())
 	}
 
 	vars := r.Form
@@ -821,25 +834,6 @@ func V1Banner(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
-func Test(w http.ResponseWriter, r *http.Request) {
-	//	content := QueryOrderInSession4Student(10011, 0, 5)
-	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-	//	content := SaveLeanCloudMessageLogs(1439958840351)
-	//	od := POIOrderDispatch{OrderId: 1, TeacherId: 10010}
-	//	content := InsertOrderDispatch(&od)
-	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-	//	io.WriteString(w, content)
-	//	content := QuerySessionTradeRecords(10019)
-	//	content := QueryTeacherProfile(10234)
-	//	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-	//	jsonStr := GenerateTeacherJson()
-	//	io.WriteString(w, jsonStr)
-	//	session := QuerySessionById(2)
-	//	HandleSessionTrade(session, "S")
-	content := HasPhoneBindWithQQ("15886462035")
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-}
-
 func V1StatusLive(w http.ResponseWriter, r *http.Request) {
 	liveUser := len(WsManager.onlineUserMap)
 	liveTeacher := len(WsManager.onlineTeacherMap)
@@ -854,12 +848,63 @@ func V1StatusLive(w http.ResponseWriter, r *http.Request) {
 func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		seelog.Error("V1CheckPhoneBindWithQQ:", err.Error())
+		seelog.Error(err.Error())
 	}
-
 	vars := r.Form
-
 	phone := vars["phone"][0]
 	content := HasPhoneBindWithQQ(phone)
+	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+}
+
+func V1Complain(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	sessionIdStr := vars["sessionId"][0]
+	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 60)
+	var reasons string
+	if len(vars["reasons"]) > 0 {
+		reasons = vars["reasons"][0]
+	}
+	var comment string
+	if len(vars["comment"]) > 0 {
+		comment = vars["comment"][0]
+	}
+	complaint := POIComplaint{UserId: userId, SessionId: sessionId, Reasons: reasons, Comment: comment, Status: "pending"}
+	content, err := InsertPOIComplaint(&complaint)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
+}
+
+func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	complaintIdStr := vars["complaintId"][0]
+	complaintId, _ := strconv.ParseInt(complaintIdStr, 10, 64)
+	var suggestion string
+	if len(vars["suggestion"]) > 0 {
+		suggestion = vars["suggestion"][0]
+	}
+	complaintMap := map[string]interface{}{"Status": "processed", "Suggestion": suggestion}
+	err = UpdateComplaintInfo(complaintId, complaintMap)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, nil))
+	}
+}
+
+func Test(w http.ResponseWriter, r *http.Request) {
+	content := HasPhoneBindWithQQ("15886462035")
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }

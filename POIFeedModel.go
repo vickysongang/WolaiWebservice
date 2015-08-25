@@ -37,7 +37,8 @@ func GetFeed(feedId string) *POIFeed {
 	timestampMillis := timestampNano / 1000
 	timestamp := float64(timestampMillis) / 1000000.0
 	feed.CreateTimestamp = timestamp
-	feed.Creator = QueryUserById(feed.Created)
+	creator := QueryUserById(feed.Created)
+	feed.Creator = creator
 	var imageList []string
 	err = json.Unmarshal([]byte(feed.ImageInfo), &imageList)
 	if err == nil {
