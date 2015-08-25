@@ -882,6 +882,44 @@ func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+ *  8.1 SearchTeacher
+ */
+func V1SearchTeacher(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	var keyword string
+	if len(vars["keyword"]) > 0 {
+		keyword = vars["keyword"][0]
+	}
+	var pageNum int64
+	if len(vars["page"]) == 0 {
+		pageNum = 0
+	} else {
+		pageNumStr := vars["page"][0]
+		pageNum, _ = strconv.ParseInt(pageNumStr, 10, 64)
+	}
+
+	var pageCount int64
+	if len(vars["count"]) == 0 {
+		pageCount = 10
+	} else {
+		pageCountStr := vars["count"][0]
+		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
+	}
+	content, err := SearchTeacher(userId, keyword, pageNum, pageCount)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
+}
+
 func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -931,6 +969,6 @@ func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	content := HasPhoneBindWithQQ("15886462035")
+	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }

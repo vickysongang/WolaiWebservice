@@ -530,6 +530,19 @@ var routes = Routes{
 		"/v1/complaint/handle",
 		V1HandleComplaint,
 	},
+	// 8.1 Search Teachers
+	Route{
+		"V1SearchTeacherPOST",
+		"POST",
+		"/v1/search/teacher",
+		V1SearchTeacher,
+	},
+	Route{
+		"V1SearchTeacherGET",
+		"GET",
+		"/v1/search/teacher",
+		V1SearchTeacher,
+	},
 	Route{
 		"V1SessionRatingPOST",
 		"POST",

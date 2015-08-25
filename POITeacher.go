@@ -104,6 +104,7 @@ type POITeacherModel struct {
 	DeptName         string
 	Intro            string
 	Rating           float64
+	Phone            string
 }
 
 type POITeacherModels []POITeacherModel
