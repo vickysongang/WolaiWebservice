@@ -118,17 +118,18 @@ func InsertTradeToSession(tradeToSession *POITradeToSession) int64 {
 	return id
 }
 
-func QuerySessionTradeRecords(userId int64) *POISessionTradeRecords {
+func QuerySessionTradeRecords(userId int64, pageNum, pageCount int) (*POISessionTradeRecords, error) {
+	start := pageNum * pageCount
 	records := make(POISessionTradeRecords, 0)
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder("mysql")
 	qb.Select("id,user_id,trade_type,trade_amount,order_type,create_time,result,balance,comment").
-		From("trade_record").Where("user_id = ?").OrderBy("create_time").Desc()
+		From("trade_record").Where("user_id = ?").OrderBy("create_time").Desc().Limit(int(pageCount)).Offset(int(start))
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&records)
 	if err != nil {
 		seelog.Error("userId:", userId, " ", err.Error())
-		return nil
+		return nil, err
 	}
 	returnRecords := make(POISessionTradeRecords, 0)
 	for i := range records {
@@ -137,7 +138,7 @@ func QuerySessionTradeRecords(userId int64) *POISessionTradeRecords {
 		record.User = user
 		returnRecords = append(returnRecords, record)
 	}
-	return &returnRecords
+	return &returnRecords, nil
 }
 
 func QueryTradeAmount(sessionId, userId int64) int64 {

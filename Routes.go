@@ -504,6 +504,20 @@ var routes = Routes{
 		V1TradePromotion,
 	},
 
+	// 6.5 User Trade Record
+	Route{
+		"v1MyTradeRecordGET",
+		"GET",
+		"/v1/trade/traderecord",
+		V1TradeRecord,
+	},
+	Route{
+		"v1MyTradeRecordPOST",
+		"POST",
+		"/v1/trade/traderecord",
+		V1TradeRecord,
+	},
+
 	// 7.1 Complain
 	Route{
 		"V1ComplainPOST",

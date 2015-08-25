@@ -472,10 +472,11 @@ func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	user := QueryUserById(userId)
 	if user == nil {
-		panic("user" + userIdStr + " doesn't exist!")
+		json.NewEncoder(w).Encode(NewPOIResponse(0, "user"+userIdStr+" doesn't exist!"))
+	} else {
+		content := user.Balance
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 	}
-	content := user.Balance
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
 }
 
 /*
@@ -822,6 +823,39 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 		comment = "活动赠送"
 	}
 	content, err := HandleSystemTrade(userId, amount, TRADE_PROMOTION, "S", comment)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
+}
+
+/*
+ * 6.5 Get User TradeRecord
+ */
+func V1TradeRecord(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+	content, err := QuerySessionTradeRecords(userId, int(page), int(count))
 	if err != nil {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
 	} else {
