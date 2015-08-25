@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -969,6 +970,24 @@ func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
 	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
+
+	if len(vars["userId"]) == 0 {
+		panic("userid is null")
+	}
+	userIdStr := vars["userId"][0]
+	fmt.Println(userIdStr)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	defer func() {
+		fmt.Println("sddddddddd")
+		if x := recover(); x != nil {
+			fmt.Println("sssssss:", x)
+			json.NewEncoder(w).Encode(NewPOIResponse(0, x))
+		}
+	}()
 }
