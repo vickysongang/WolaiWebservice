@@ -9,6 +9,8 @@ import (
 	seelog "github.com/cihub/seelog"
 )
 
+const DB_TYPE = "mysql"
+
 var (
 	RedisManager    POIRedisManager
 	WsManager       POIWSManager
@@ -34,7 +36,8 @@ func init() {
 	WsManager = NewPOIWSManager()
 	SessionTicker = time.NewTicker(time.Millisecond * 5000)
 	LCMessageTicker = time.NewTicker(time.Minute * 1)
-	err = orm.RegisterDataBase("default", "mysql", Config.Database.Username+":"+
+	//注册数据库
+	err = orm.RegisterDataBase("default", DB_TYPE, Config.Database.Username+":"+
 		Config.Database.Password+"@"+
 		Config.Database.Method+"("+
 		Config.Database.Address+":"+

@@ -16,7 +16,6 @@ type Route struct {
 type Routes []Route
 
 func NewRouter() *mux.Router {
-
 	router := mux.NewRouter().StrictSlash(true)
 	for _, route := range routes {
 		router.
@@ -24,8 +23,8 @@ func NewRouter() *mux.Router {
 			Path(route.Pattern).
 			Name(route.Name).
 			Handler(route.HandlerFunc)
+		//		seelog.Debug("Method:", route.Method, " Pattern:", route.Pattern, " Name:", route.Name, " Handler:", route.HandlerFunc)
 	}
-
 	return router
 }
 

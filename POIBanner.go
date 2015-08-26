@@ -17,15 +17,16 @@ func init() {
 	orm.RegisterModel(new(POIBanner))
 }
 
-func QueryBannerList() POIBanners {
+func QueryBannerList() (POIBanners, error) {
 	banners := make(POIBanners, 0)
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,media_id,url,rank").From("banners").Where("active = 1").OrderBy("rank").Asc()
 	sql := qb.String()
 	_, err := o.Raw(sql).QueryRows(&banners)
 	if err != nil {
 		seelog.Error(err.Error())
+		return banners, err
 	}
-	return banners
+	return banners, nil
 }

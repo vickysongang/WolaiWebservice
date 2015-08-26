@@ -87,11 +87,8 @@ func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		seelog.Error(err.Error())
 	}
-
 	vars := r.Form
-
 	openId := vars["openId"][0]
-
 	status, content := POIUserOauthLogin(openId)
 	if content == nil {
 		json.NewEncoder(w).Encode(NewPOIResponse(status, ""))
@@ -229,7 +226,6 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-	_ = QueryUserById(userId)
 
 	content, err := GetTeacherProfile(userId, teacherId)
 	if err != nil {
@@ -282,10 +278,19 @@ func V1Atrium(w http.ResponseWriter, r *http.Request) {
 		pageStr := vars["page"][0]
 		page, _ = strconv.ParseInt(pageStr, 10, 64)
 	}
-
-	content := GetAtrium(userId, page)
-
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+	content, err := GetAtrium(userId, page, count)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -327,9 +332,12 @@ func V1FeedPost(w http.ResponseWriter, r *http.Request) {
 		attributeStr = vars["attribute"][0]
 	}
 
-	content := PostPOIFeed(userId, timestamp, feedType, text, imageStr, originFeedId, attributeStr)
-
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	content, err := PostPOIFeed(userId, timestamp, feedType, text, imageStr, originFeedId, attributeStr)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -349,9 +357,12 @@ func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
 
 	feedId := vars["feedId"][0]
 
-	content := GetFeedDetail(feedId, userId)
-
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	content, err := GetFeedDetail(feedId, userId)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -374,12 +385,15 @@ func V1FeedLike(w http.ResponseWriter, r *http.Request) {
 
 	feedId := vars["feedId"][0]
 
-	_ = LikePOIFeed(userId, feedId, timestamp)
+	_, _ = LikePOIFeed(userId, feedId, timestamp)
 
-	content := GetFeedDetail(feedId, userId)
+	content, err := GetFeedDetail(feedId, userId)
 
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -414,12 +428,15 @@ func V1FeedComment(w http.ResponseWriter, r *http.Request) {
 		replyToId, _ = strconv.ParseInt(replyToStr, 10, 64)
 	}
 
-	_ = PostPOIFeedComment(userId, feedId, timestamp, text, imageStr, replyToId)
+	_, _ = PostPOIFeedComment(userId, feedId, timestamp, text, imageStr, replyToId)
 
-	content := GetFeedDetail(feedId, userId)
+	content, err := GetFeedDetail(feedId, userId)
 
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -442,10 +459,13 @@ func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 
 	commentId := vars["commentId"][0]
 
-	content := LikePOIFeedComment(userId, commentId, timestamp)
+	content, err := LikePOIFeedComment(userId, commentId, timestamp)
 
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -489,7 +509,7 @@ func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	user := QueryUserById(userId)
 	if user == nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(0, "user"+userIdStr+" doesn't exist!"))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, "user"+userIdStr+" doesn't exist!"))
 	} else {
 		content := user.Balance
 		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
@@ -516,10 +536,21 @@ func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
 		pageStr := vars["page"][0]
 		page, _ = strconv.ParseInt(pageStr, 10, 64)
 	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
 
-	content := GetUserFeed(userId, page)
+	content, err := GetUserFeed(userId, page, count)
 
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -566,10 +597,20 @@ func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
 		pageStr := vars["page"][0]
 		page, _ = strconv.ParseInt(pageStr, 10, 64)
 	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+	content, err := GetUserLike(userId, page, count)
 
-	content := GetUserLike(userId, page)
-
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -646,8 +687,12 @@ func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
  */
 func V1GradeList(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
-	content := QueryGradeList()
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	content, err := QueryGradeList()
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 /*
@@ -666,11 +711,19 @@ func V1SubjectList(w http.ResponseWriter, r *http.Request) {
 	gradeId, _ := strconv.ParseInt(gradeIdStr, 10, 64)
 
 	if gradeId == 0 {
-		content := QuerySubjectList()
-		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+		content, err := QuerySubjectList()
+		if err != nil {
+			json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+		} else {
+			json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+		}
 	} else {
-		content := QuerySubjectListByGrade(gradeId)
-		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+		content, err := QuerySubjectListByGrade(gradeId)
+		if err != nil {
+			json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+		} else {
+			json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+		}
 	}
 }
 
@@ -1014,8 +1067,12 @@ func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 
 func V1Banner(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
-	content := QueryBannerList()
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	content, err := QueryBannerList()
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
 }
 
 func V1StatusLive(w http.ResponseWriter, r *http.Request) {
@@ -1038,8 +1095,19 @@ func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := r.Form
 	phone := vars["phone"][0]
-	content := HasPhoneBindWithQQ(phone)
-	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	content, err := HasPhoneBindWithQQ(phone)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
+}
+
+func ThrowsPanic(w http.ResponseWriter) {
+	if x := recover(); x != nil {
+		seelog.Error(x)
+		json.NewEncoder(w).Encode(NewPOIResponse(2, x))
+	}
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
@@ -1053,11 +1121,4 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	userIdStr := vars["userId"][0]
 	fmt.Println(userIdStr)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, content))
-}
-
-func ThrowsPanic(w http.ResponseWriter) {
-	if x := recover(); x != nil {
-		seelog.Error(x)
-		json.NewEncoder(w).Encode(NewPOIResponse(2, x))
-	}
 }

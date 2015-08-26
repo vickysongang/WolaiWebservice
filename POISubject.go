@@ -17,23 +17,23 @@ func init() {
 	orm.RegisterModel(new(POISubject))
 }
 
-func QuerySubjectList() POISubjects {
+func QuerySubjectList() (POISubjects, error) {
 	subjects := make(POISubjects, 0)
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,name").From("subject")
 	sql := qb.String()
 	o := orm.NewOrm()
 	_, err := o.Raw(sql).QueryRows(&subjects)
 	if err != nil {
 		seelog.Error(err.Error())
-		return nil
+		return nil, err
 	}
-	return subjects
+	return subjects, nil
 }
 
-func QuerySubjectListByGrade(gradeId int64) POISubjects {
+func QuerySubjectListByGrade(gradeId int64) (POISubjects, error) {
 	subjects := make(POISubjects, 0)
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("subject.id,subject.name").From("subject").InnerJoin("grade_to_subject").On("grade_to_subject.subject_id = subject.id").
 		Where("grade_to_subject.grade_id = ?")
 	sql := qb.String()
@@ -41,14 +41,14 @@ func QuerySubjectListByGrade(gradeId int64) POISubjects {
 	_, err := o.Raw(sql, gradeId).QueryRows(&subjects)
 	if err != nil {
 		seelog.Error("gradeId:", gradeId, " ", err.Error())
-		return nil
+		return nil, err
 	}
-	return subjects
+	return subjects, nil
 }
 
 func QuerySubjectById(subjectId int64) *POISubject {
 	subject := POISubject{}
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,name").From("subject").Where("id = ?")
 	sql := qb.String()
 	o := orm.NewOrm()

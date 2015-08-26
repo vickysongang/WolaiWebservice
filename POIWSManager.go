@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	seelog "github.com/cihub/seelog"
 )
 
 type POIWSManager struct {
@@ -40,7 +40,7 @@ func NewPOIWSManager() POIWSManager {
 
 func (wsm *POIWSManager) SetUserChan(userId int64, userChan chan POIWSMessage) {
 	wsm.userMap[userId] = userChan
-	fmt.Println("WSManager: user chan created, userId: ", userId)
+	seelog.Debug("WSManager: user chan created, userId: ", userId)
 }
 
 func (wsm *POIWSManager) GetUserChan(userId int64) chan POIWSMessage {
@@ -50,7 +50,7 @@ func (wsm *POIWSManager) GetUserChan(userId int64) chan POIWSMessage {
 func (wsm *POIWSManager) RemoveUserChan(userId int64) {
 	if _, ok := wsm.userMap[userId]; ok {
 		delete(wsm.userMap, userId)
-		fmt.Println("WSManager: user chan removed, userId: ", userId)
+		seelog.Debug("WSManager: user chan removed, userId: ", userId)
 	}
 }
 
@@ -61,7 +61,7 @@ func (wsm *POIWSManager) HasUserChan(userId int64) bool {
 
 func (wsm *POIWSManager) SetOrderChan(orderId int64, orderChan chan POIWSMessage) {
 	wsm.orderMap[orderId] = orderChan
-	fmt.Println("WSManager: order chan created, orderId: ", orderId)
+	seelog.Debug("WSManager: order chan created, orderId: ", orderId)
 }
 
 func (wsm *POIWSManager) GetOrderChan(orderId int64) chan POIWSMessage {
@@ -71,7 +71,7 @@ func (wsm *POIWSManager) GetOrderChan(orderId int64) chan POIWSMessage {
 func (wsm *POIWSManager) RemoveOrderChan(orderId int64) {
 	if _, ok := wsm.orderMap[orderId]; ok {
 		delete(wsm.orderMap, orderId)
-		fmt.Println("WSManager: order chan removed, orderId: ", orderId)
+		seelog.Debug("WSManager: order chan removed, orderId: ", orderId)
 	}
 }
 
@@ -82,7 +82,7 @@ func (wsm *POIWSManager) HasOrderChan(orderId int64) bool {
 
 func (wsm *POIWSManager) SetSessionChan(sessionId int64, sessionChan chan POIWSMessage) {
 	wsm.sessionMap[sessionId] = sessionChan
-	fmt.Println("WSManager: session chan created, sessionId: ", sessionId)
+	seelog.Debug("WSManager: session chan created, sessionId: ", sessionId)
 }
 
 func (wsm *POIWSManager) GetSessionChan(sessionId int64) chan POIWSMessage {
@@ -92,7 +92,7 @@ func (wsm *POIWSManager) GetSessionChan(sessionId int64) chan POIWSMessage {
 func (wsm *POIWSManager) RemoveSessionChan(sessionId int64) {
 	if _, ok := wsm.sessionMap[sessionId]; ok {
 		delete(wsm.sessionMap, sessionId)
-		fmt.Println("WSManager: session chan created, sessionId: ", sessionId)
+		seelog.Debug("WSManager: session chan created, sessionId: ", sessionId)
 	}
 }
 
@@ -102,13 +102,13 @@ func (wsm *POIWSManager) HasSessionChan(sessionId int64) bool {
 }
 
 func (wsm *POIWSManager) SetUserOnline(userId int64, timestamp int64) {
-	fmt.Println("SetUserOnline:", userId)
+	seelog.Debug("SetUserOnline:", userId)
 	wsm.onlineUserMap[userId] = timestamp
 }
 
 func (wsm *POIWSManager) SetUserOffline(userId int64) {
 	if _, ok := wsm.onlineUserMap[userId]; ok {
-		fmt.Println("SetUserOffline:", userId)
+		seelog.Debug("SetUserOffline:", userId)
 		delete(wsm.onlineUserMap, userId)
 	}
 }
@@ -121,13 +121,13 @@ func (wsm *POIWSManager) GetUserOnlineStatus(userId int64) int64 {
 }
 
 func (wsm *POIWSManager) SetTeacherOnline(userId int64, timestamp int64) {
-	fmt.Println("SetTeacherOnline:", userId)
+	seelog.Debug("SetTeacherOnline:", userId)
 	wsm.onlineTeacherMap[userId] = timestamp
 }
 
 func (wsm *POIWSManager) SetTeacherOffline(userId int64) {
 	if _, ok := wsm.onlineTeacherMap[userId]; ok {
-		fmt.Println("SetTeacherOffline:", userId)
+		seelog.Debug("SetTeacherOffline:", userId)
 		delete(wsm.onlineTeacherMap, userId)
 	}
 }

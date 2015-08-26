@@ -133,7 +133,7 @@ func InsertOrderDispatch(orderDispatch *POIOrderDispatch) *POIOrderDispatch {
 func QueryOrderById(orderId int64) *POIOrder {
 	order := POIOrder{}
 	o := orm.NewOrm()
-	db, _ := orm.NewQueryBuilder("mysql")
+	db, _ := orm.NewQueryBuilder(DB_TYPE)
 	db.Select("id,creator,grade_id,subject_id,date,period_id,length,type,status,price_per_hour,real_price_per_hour,teacher_id").
 		From("orders").Where("id = ?")
 	sql := db.String()
@@ -176,7 +176,7 @@ func UpdateOrderDispatchInfo(orderId int64, userId int64, dispatchInfo map[strin
 
 func QueryOrderDispatch(orderId, userId int64) *POIOrderDispatch {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,order_id,teacher_id,dispatch_time,reply_time,plan_time,result").From("order_dispatch").
 		Where("order_id = ? and teacher_id = ?")
 	sql := qb.String()

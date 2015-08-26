@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"strconv"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -55,24 +57,23 @@ func InsertPOIFeedComment(userId int64, commentId string, feedId string, text st
 }
 
 func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text string, imageStr string,
-	replyToId int64) *POIFeedComment {
+	replyToId int64) (*POIFeedComment, error) {
 	feedComment := POIFeedComment{}
-
+	var err error
 	user := QueryUserById(userId)
 	if user == nil {
-		seelog.Warn("user ", userId, " doesn't exsit.")
-		return nil
+		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")
+		seelog.Error(err.Error())
+		return nil, err
 	}
 	var feed *POIFeed
 	if RedisManager.redisError == nil {
 		feed = RedisManager.GetFeed(feedId)
 	} else {
-		feed = GetFeed(feedId)
-	}
-
-	if feed == nil {
-		seelog.Warn("feed ", feedId, " doesn't exsit.")
-		return nil
+		feed, err = GetFeed(feedId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	feedComment.Id = uuid.NewV4().String()
@@ -98,25 +99,26 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	}
 	go SendCommentNotification(feedComment.Id)
 	go InsertPOIFeedComment(userId, feedComment.Id, feedId, text, imageStr, replyToId)
-	return &feedComment
+	return &feedComment, nil
 }
 
-func LikePOIFeedComment(userId int64, feedCommentId string, timestamp float64) *POIFeedComment {
+func LikePOIFeedComment(userId int64, feedCommentId string, timestamp float64) (*POIFeedComment, error) {
 	var feedComment *POIFeedComment
+	var err error
 	if RedisManager.redisError == nil {
 		feedComment = RedisManager.GetFeedComment(feedCommentId)
 	} else {
-		feedComment = GetFeedComment(feedCommentId)
+		feedComment, err = GetFeedComment(feedCommentId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	user := QueryUserById(userId)
 	if user == nil {
-		seelog.Warn("user ", userId, "doesn't exsit.")
-		return nil
-	}
-	if feedComment == nil {
-		seelog.Warn("feedComment ", feedCommentId, " doesn't exsit.")
-		return nil
+		err = errors.New("user " + strconv.Itoa(int(userId)) + "doesn't exsit.")
+		seelog.Error(err.Error())
+		return nil, err
 	}
 	if RedisManager.redisError == nil {
 		if !RedisManager.HasLikedFeedComment(feedComment, user) {
@@ -125,5 +127,5 @@ func LikePOIFeedComment(userId int64, feedCommentId string, timestamp float64) *
 			RedisManager.LikeFeedComment(feedComment, user, timestamp)
 		}
 	}
-	return feedComment
+	return feedComment, nil
 }

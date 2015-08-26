@@ -55,6 +55,7 @@ func (d *duration) UnmarshalText(text []byte) error {
 	d.Duration, err = time.ParseDuration(string(text))
 	if err != nil {
 		seelog.Error(string(text), " ", err.Error())
+		return err
 	}
-	return err
+	return nil
 }

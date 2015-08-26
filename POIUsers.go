@@ -72,7 +72,7 @@ func InsertPOIUser(user *POIUser) (int64, error) {
 
 func QueryUserById(userId int64) *POIUser {
 	var user *POIUser
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,nickname,avatar,gender,access_right,status,balance").From("users").Where("id = ?")
 	sql := qb.String()
 	o := orm.NewOrm()
@@ -86,7 +86,7 @@ func QueryUserById(userId int64) *POIUser {
 
 func QueryUserByPhone(phone string) *POIUser {
 	var user *POIUser
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,nickname,avatar,gender,access_right,status,balance").From("users").Where("phone = ?").Limit(1)
 	sql := qb.String()
 	o := orm.NewOrm()
@@ -123,7 +123,7 @@ func InsertUserOauth(userId int64, qqOpenId string) {
 
 func QueryUserByQQOpenId(qqOpenId string) int64 {
 	var userOauth *POIOAuth
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("user_id").From("user_oauth").Where("open_id_qq = ?").Limit(1)
 	sql := qb.String()
 	o := orm.NewOrm()
@@ -135,19 +135,19 @@ func QueryUserByQQOpenId(qqOpenId string) int64 {
 	return userOauth.UserId
 }
 
-func HasPhoneBindWithQQ(phone string) bool {
+func HasPhoneBindWithQQ(phone string) (bool, error) {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("users.id").From("users").InnerJoin("user_oauth").On("users.id = user_oauth.user_id").Where("users.phone = ?")
 	sql := qb.String()
 	var maps []orm.Params
 	count, err := o.Raw(sql, phone).Values(&maps)
 	if err != nil {
 		seelog.Error("phone:", phone, " ", err.Error())
-		return false
+		return false, err
 	}
 	if count > 0 {
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }

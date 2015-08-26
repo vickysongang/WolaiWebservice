@@ -94,7 +94,7 @@ func InsertSession(session *POISession) *POISession {
 
 func QuerySessionById(sessionId int64) *POISession {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,order_id, creator, tutor, plan_time, length, status, rating, comment, time_from, time_to").
 		From("sessions").Where("id = ?")
 	sql := qb.String()
@@ -126,7 +126,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) (POIOrder
 	orderInSessions := make(POIOrderInSessions, 0)
 	o := orm.NewOrm()
 	start := pageNum * pageCount
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
 		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour").
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
@@ -166,7 +166,7 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) (POIOrder
 	orderInSessions := make(POIOrderInSessions, 0)
 	o := orm.NewOrm()
 	start := pageNum * pageCount
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
 		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour").
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").

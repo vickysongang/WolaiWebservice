@@ -18,23 +18,24 @@ func init() {
 	orm.RegisterModel(new(POIGrade))
 }
 
-func QueryGradeList() POIGrades {
+func QueryGradeList() (POIGrades, error) {
 	grades := make(POIGrades, 0)
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,name,pid").From("grade")
 	sql := qb.String()
 	o := orm.NewOrm()
 	_, err := o.Raw(sql).QueryRows(&grades)
 	if err != nil {
 		seelog.Error(err.Error())
+		return grades, err
 	}
-	return grades
+	return grades, nil
 }
 
 func QueryGradeById(gradeId int64) *POIGrade {
 	grade := POIGrade{}
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,name,pid").From("grade").Where("id = ?")
 	sql := qb.String()
 	err := o.Raw(sql, gradeId).QueryRow(&grade)

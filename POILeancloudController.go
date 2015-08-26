@@ -43,8 +43,8 @@ func SendCommentNotification(feedCommentId string) {
 		feedComment = RedisManager.GetFeedComment(feedCommentId)
 		feed = RedisManager.GetFeed(feedComment.FeedId)
 	} else {
-		feedComment = GetFeedComment(feedCommentId)
-		feed = GetFeed(feedComment.FeedId)
+		feedComment, _ = GetFeedComment(feedCommentId)
+		feed, _ = GetFeed(feedComment.FeedId)
 	}
 
 	if feedComment == nil || feed == nil {
@@ -90,7 +90,7 @@ func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 	if RedisManager.redisError == nil {
 		feed = RedisManager.GetFeed(feedId)
 	} else {
-		feed = GetFeed(feedId)
+		feed, _ = GetFeed(feedId)
 	}
 
 	if user == nil || feed == nil {

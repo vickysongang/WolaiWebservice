@@ -141,7 +141,7 @@ func init() {
 func QueryTeacherList(pageNum, pageCount int64) (POITeachers, error) {
 	start := pageNum * pageCount
 	teachers := make(POITeachers, 0)
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("users.id, users.nickname, users.avatar, users.gender,teacher_profile.service_time,teacher_profile.price_per_hour," +
 		"teacher_profile.real_price_per_hour,school.name school_name, department.name dept_name").
 		From("users").InnerJoin("teacher_profile").On("users.id = teacher_profile.user_id").InnerJoin("school").
@@ -165,7 +165,7 @@ func QueryTeacherList(pageNum, pageCount int64) (POITeachers, error) {
 }
 
 func QueryTeacher(userId int64) *POITeacher {
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("users.id,users.nickname,users.avatar, users.gender,teacher_profile.service_time, teacher_profile.price_per_hour,teacher_profile.real_price_per_hour,school.name school_name,department.name dept_name").
 		From("users").InnerJoin("teacher_profile").On("users.id = teacher_profile.user_id").
 		InnerJoin("school").On("teacher_profile.school_id = school.id").
@@ -185,7 +185,7 @@ func QueryTeacher(userId int64) *POITeacher {
 }
 
 func QueryTeacherProfile(userId int64) (*POITeacherProfile, error) {
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("users.id,users.nickname, users.avatar, users.gender,teacher_profile.service_time," +
 		"teacher_profile.intro, teacher_profile.price_per_hour,teacher_profile.real_price_per_hour," +
 		"school.name school_name, department.name dept_name,teacher_profile.rating").
@@ -212,7 +212,7 @@ func QueryTeacherProfile(userId int64) (*POITeacherProfile, error) {
 }
 
 func QueryTeacherProfileByUserId(userId int64) *POITeacherProfileModel {
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("user_id,school_id,department_id,service_time,rating,intro,price_per_hour,real_price_per_hour").
 		From("teacher_profile").Where("user_id = ?")
 	sql := qb.String()
@@ -228,7 +228,7 @@ func QueryTeacherProfileByUserId(userId int64) *POITeacherProfileModel {
 
 func QueryTeacherLabelByUserId(userId int64) []string {
 	labels := make([]string, 0)
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("teacher_label.name").From("teacher_label").InnerJoin("teacher_to_label").
 		On("teacher_to_label.label_id = teacher_label.id").Where("teacher_to_label.user_id = ?")
 	o := orm.NewOrm()
@@ -243,7 +243,7 @@ func QueryTeacherLabelByUserId(userId int64) []string {
 
 func QueryTeacherSubjectByUserId(userId int64) POITeacherSubjects {
 	subjects := make(POITeacherSubjects, 0)
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("subject.name,teacher_to_subject.description").From("teacher_to_subject").
 		InnerJoin("subject").On("teacher_to_subject.subject_id = subject.id").Where("teacher_to_subject.user_id = ?")
 	sql := qb.String()
@@ -258,7 +258,7 @@ func QueryTeacherSubjectByUserId(userId int64) POITeacherSubjects {
 
 func QueryTeacherResumeByUserId(userId int64) POITeacherResumes {
 	resumes := make(POITeacherResumes, 0)
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,user_id,start,stop,name").From("teacher_to_resume").Where("user_id = ?")
 	sql := qb.String()
 	o := orm.NewOrm()
@@ -283,7 +283,7 @@ func UpdateTeacherServiceTime(userId int64, length int64) {
 func QueryTeacherLabelByName(name string) *POITeacherLabel {
 	o := orm.NewOrm()
 	teacherLabel := POITeacherLabel{}
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,name").From("teacher_label").Where("name = ?")
 	sql := qb.String()
 	err := o.Raw(sql, name).QueryRow(&teacherLabel)
@@ -312,7 +312,7 @@ func InsertTeacherLabel(name string) int64 {
 func QueryTeacherToLabel(userId, labelId int64) *POITeacherToLabel {
 	o := orm.NewOrm()
 	ttl := POITeacherToLabel{}
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,user_id,label_id").From("teacher_to_lable").Where("user_id = ? and label_id = ?")
 	sql := qb.String()
 	err := o.Raw(sql, userId, labelId).QueryRow(&ttl)
@@ -336,7 +336,7 @@ func InsertTeacherToLabel(teacherLabel *POITeacherToLabel) int64 {
 func QueryTeacherToSubject(userId, subjectId int64) *POITeacherToSubject {
 	o := orm.NewOrm()
 	tts := POITeacherToSubject{}
-	qb, _ := orm.NewQueryBuilder("mysql")
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
 	qb.Select("id,user_id,subject_id,description").From("teacher_to_subject").Where("user_id = ? and subject_id = ?")
 	sql := qb.String()
 	err := o.Raw(sql, userId, subjectId).QueryRow(&tts)
