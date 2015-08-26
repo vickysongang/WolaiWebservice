@@ -18,6 +18,11 @@ var upgrader = websocket.Upgrader{
 
 func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	// 将HTTP请求升级为Websocket连接
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		seelog.Error("V1WebSocketHandler:", err.Error())
@@ -136,9 +141,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
 			userChan <- resp
 			WSUserLogout(userId)
-			if _, ok := <-userChan; ok {
-				close(userChan)
-			}
+			close(userChan)
 
 		// 订单中心老师上线信息
 		case WS_ORDER_TEACHER_ONLINE:
@@ -239,7 +242,11 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POIWSMessage) {
-
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
 	// 初始化心跳计时器
 	pingTicker := time.NewTicker(time.Second * 5)
 	pongTicker := time.NewTicker(time.Second * 5)
@@ -258,9 +265,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 				seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 				if WsManager.GetUserOnlineStatus(userId) == loginTS {
 					WSUserLogout(userId)
-					if _, ok := <-userChan; ok {
-						close(userChan)
-					}
+					close(userChan)
 				}
 				conn.Close()
 				return
@@ -274,9 +279,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 				seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
 				if WsManager.GetUserOnlineStatus(userId) == loginTS {
 					WSUserLogout(userId)
-					if _, ok := <-userChan; ok {
-						close(userChan)
-					}
+					close(userChan)
 				}
 				conn.Close()
 				return
@@ -308,9 +311,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 
 					if WsManager.GetUserOnlineStatus(userId) == loginTS {
 						WSUserLogout(userId)
-						if _, ok := <-userChan; ok {
-							close(userChan)
-						}
+						close(userChan)
 					}
 					conn.Close()
 					return

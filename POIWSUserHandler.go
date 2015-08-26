@@ -2,9 +2,16 @@ package main
 
 import (
 	"time"
+
+	seelog "github.com/cihub/seelog"
 )
 
 func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
 	userChan := make(chan POIWSMessage, 10)
 
 	if msg.OperationCode != WS_LOGIN && msg.OperationCode != WS_RECONNECT {
@@ -40,6 +47,12 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 }
 
 func WSUserLogout(userId int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
 	CheckSessionBreak(userId)
 	WsManager.RemoveUserChan(userId)
 	WsManager.SetUserOffline(userId)

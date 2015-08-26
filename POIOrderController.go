@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	seelog "github.com/cihub/seelog"
+	"github.com/cihub/seelog"
 )
 
 func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int64,
@@ -32,34 +32,36 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		Status:    ORDER_STATUS_CREATED,
 		TeacherId: teacherId}
 
-	startTime, _ := time.Parse(time.RFC3339, order.Date)   //预计上课时间
-	dateDiff := startTime.YearDay() - time.Now().YearDay() //预计上课时间距离当前时间的天数
-	if dateDiff < 0 {
-		err = errors.New("上课日期不能早于当前日期")
-		seelog.Error(err.Error())
-		return 2, nil, err
-	}
-	if dateDiff > 6 {
-		err = errors.New("上课日期不能晚于当前日期一个星期")
-		seelog.Error(err.Error())
-		return 2, nil, err
-	}
-	if dateDiff == 0 {
-		hour := time.Now().Hour()
-		if hour > 12 && periodId == 1 {
-			err = errors.New("不能选择上午")
+	if orderType == 2 {
+		startTime, _ := time.Parse(time.RFC3339, order.Date)   //预计上课时间
+		dateDiff := startTime.YearDay() - time.Now().YearDay() //预计上课时间距离当前时间的天数
+		if dateDiff < 0 {
+			err = errors.New("上课日期不能早于当前日期")
 			seelog.Error(err.Error())
 			return 2, nil, err
 		}
-		if hour > 18 && (periodId == 1 || periodId == 2) {
-			err = errors.New("不能选择上午和下午")
+		if dateDiff > 6 {
+			err = errors.New("上课日期不能晚于当前日期一个星期")
 			seelog.Error(err.Error())
 			return 2, nil, err
 		}
-		if hour > 22 && (periodId == 1 || periodId == 2 || periodId == 3) {
-			err = errors.New("只能选择现在")
-			seelog.Error(err.Error())
-			return 2, nil, err
+		if dateDiff == 0 {
+			hour := time.Now().Hour()
+			if hour > 12 && periodId == 1 {
+				err = errors.New("不能选择上午")
+				seelog.Error(err.Error())
+				return 2, nil, err
+			}
+			if hour > 18 && (periodId == 1 || periodId == 2) {
+				err = errors.New("不能选择上午和下午")
+				seelog.Error(err.Error())
+				return 2, nil, err
+			}
+			if hour > 22 && (periodId == 1 || periodId == 2 || periodId == 3) {
+				err = errors.New("只能选择现在")
+				seelog.Error(err.Error())
+				return 2, nil, err
+			}
 		}
 	}
 

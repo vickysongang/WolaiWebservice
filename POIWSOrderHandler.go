@@ -9,6 +9,12 @@ import (
 )
 
 func POIWSOrderHandler(orderId int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
 	order := QueryOrderById(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan := WsManager.GetOrderChan(orderId)
@@ -401,6 +407,12 @@ func POIWSOrderHandler(orderId int64) {
 }
 
 func InitOrderDispatch(msg POIWSMessage, userId int64, timestamp int64) bool {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
 	orderIdStr, ok := msg.Attribute["orderId"]
 	if !ok {
 		return false
@@ -432,6 +444,12 @@ func InitOrderDispatch(msg POIWSMessage, userId int64, timestamp int64) bool {
 }
 
 func RecoverTeacherOrder(userId int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
 	if !WsManager.HasUserChan(userId) {
 		return
 	}
@@ -451,6 +469,12 @@ func RecoverTeacherOrder(userId int64) {
 }
 
 func RecoverStudentOrder(userId int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
 	if !WsManager.HasUserChan(userId) {
 		return
 	}

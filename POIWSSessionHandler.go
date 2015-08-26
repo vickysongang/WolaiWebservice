@@ -8,6 +8,12 @@ import (
 )
 
 func POIWSSessionHandler(sessionId int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
 	session := QuerySessionById(sessionId)
 	order := QueryOrderById(session.OrderId)
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
@@ -423,6 +429,12 @@ func POIWSSessionHandler(sessionId int64) {
 }
 
 func InitSessionMonitor(sessionId int64) bool {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 
 	session := QuerySessionById(sessionId)
@@ -470,6 +482,12 @@ func InitSessionMonitor(sessionId int64) bool {
 }
 
 func CheckSessionBreak(userId int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
 	if _, ok := WsManager.userSessionLiveMap[userId]; !ok {
 		return
 	}
@@ -485,6 +503,12 @@ func CheckSessionBreak(userId int64) {
 }
 
 func RecoverUserSession(userId int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
 	if !WsManager.HasUserChan(userId) {
 		return
 	}
