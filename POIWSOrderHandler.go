@@ -56,7 +56,9 @@ func POIWSOrderHandler(orderId int64) {
 			UpdateOrderInfo(orderId, orderInfo)
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
-			close(orderChan)
+			if _, ok := <-orderChan; ok {
+				close(orderChan)
+			}
 			seelog.Debug("POIWSOrderHandler_OrderExpired:", orderId)
 			return
 
@@ -91,7 +93,9 @@ func POIWSOrderHandler(orderId int64) {
 			UpdateOrderInfo(orderId, orderInfo)
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
-			close(orderChan)
+			if _, ok := <-orderChan; ok {
+				close(orderChan)
+			}
 			seelog.Debug("POIWSOrderHandler_OrderExpired:", orderId)
 			return
 
@@ -203,7 +207,9 @@ func POIWSOrderHandler(orderId int64) {
 				UpdateOrderInfo(orderId, orderInfo)
 				WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 				WsManager.RemoveOrderChan(orderId)
-				close(orderChan)
+				if _, ok := <-orderChan; ok {
+					close(orderChan)
+				}
 				seelog.Debug("POIWSOrderHandler_OrderCancelled:", orderId)
 				return
 
@@ -316,7 +322,9 @@ func POIWSOrderHandler(orderId int64) {
 				UpdateOrderInfo(orderId, orderInfo)
 				WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 				WsManager.RemoveOrderChan(orderId)
-				close(orderChan)
+				if _, ok := <-orderChan; ok {
+					close(orderChan)
+				}
 				return
 
 			case WS_ORDER_RECOVER_TEACHER:

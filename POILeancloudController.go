@@ -12,6 +12,13 @@ const (
 	USER_TRADE_RECORD   = 1002
 )
 
+type POIConversationParticipant struct {
+	ConversationId string `json:"convId"`
+	Participant    string `json:"participant"`
+}
+
+type POIConversationParticipants []POIConversationParticipant
+
 func SendWelcomeMessageTeacher(userId int64) {
 	attr := map[string]string{
 		"mediaId": "teacher_welcome_1.jpg",
@@ -389,4 +396,31 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 		Attribute: attr,
 	}
 	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &studentTMsg)
+}
+
+/*
+ * 根据对话id获取对话的参与者
+ * 参数conversationInfo为JSON串，是对话id的集合
+ * 返回结果为JSON串，是对话参与人的集合
+ */
+func GetConversationParticipants(conversationInfo string) (*POIConversationParticipants, error) {
+	var convIds []string
+	err := json.Unmarshal([]byte(conversationInfo), &convIds)
+	if err != nil {
+		return nil, err
+	}
+	participants := make(POIConversationParticipants, 0)
+	if RedisManager.redisError == nil {
+		for i := range convIds {
+			convId := convIds[i]
+			conversationParticipant := POIConversationParticipant{}
+			participant := RedisManager.GetConversationParticipant(convId)
+			conversationParticipant.ConversationId = convId
+			conversationParticipant.Participant = participant
+			participants = append(participants, conversationParticipant)
+		}
+	} else {
+		return nil, RedisManager.redisError
+	}
+	return &participants, nil
 }

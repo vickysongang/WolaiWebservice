@@ -594,7 +594,12 @@ var routes = Routes{
 		"/v1/status/live",
 		V1StatusLive,
 	},
-
+	Route{
+		"V1ConversationParticipantsPOST",
+		"POST",
+		"/v1/conversation/participant",
+		v1GetConversationParticipants,
+	},
 	Route{
 		"TestGET",
 		"GET",

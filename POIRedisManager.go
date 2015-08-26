@@ -396,6 +396,20 @@ func (rm *POIRedisManager) SetConversation(conversationId string, userId1, userI
 
 	_ = rm.redisClient.HSet(USER_CONVERSATION+userId1Str, userId2Str, conversationId)
 	_ = rm.redisClient.HSet(USER_CONVERSATION+userId2Str, userId1Str, conversationId)
+
+	//将Conversation里对话的两个人存入redis
+	_ = rm.redisClient.HSet(USER_CONVERSATION+conversationId, conversationId, userId1Str+","+userId2Str)
+}
+
+/*
+ * 根据对话的id获取对话的参与人
+ */
+func (rm *POIRedisManager) GetConversationParticipant(conversationId string) string {
+	participants, err := rm.redisClient.HGet(USER_CONVERSATION+conversationId, conversationId).Result()
+	if err != nil {
+		return ""
+	}
+	return participants
 }
 
 func (rm *POIRedisManager) GetConversation(userId1, userId2 int64) string {

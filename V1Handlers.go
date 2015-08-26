@@ -1103,6 +1103,22 @@ func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func v1GetConversationParticipants(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	convInfo := vars["convInfo"][0]
+	content, err := GetConversationParticipants(convInfo)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, content))
+	}
+}
+
 func ThrowsPanic(w http.ResponseWriter) {
 	if x := recover(); x != nil {
 		seelog.Error(x)
