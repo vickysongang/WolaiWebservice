@@ -695,9 +695,6 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 		teacherId, _ = strconv.ParseInt(teacherIdStr, 10, 64)
 	}
 
-	timestampNano := time.Now().UnixNano()
-	timestamp := float64(timestampNano) / 1000000000.0
-
 	gradeIdStr := vars["gradeId"][0]
 	gradeId, _ := strconv.ParseInt(gradeIdStr, 10, 64)
 
@@ -715,10 +712,13 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 	orderTypeStr := vars["orderType"][0]
 	orderType, _ := strconv.ParseInt(orderTypeStr, 10, 64)
 
-	status, content := OrderCreate(userId, teacherId, timestamp, gradeId, subjectId, date,
+	status, content, err := OrderCreate(userId, teacherId, gradeId, subjectId, date,
 		periodId, length, orderType)
-
-	json.NewEncoder(w).Encode(NewPOIResponse(status, content))
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error()))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(status, content))
+	}
 }
 
 /*

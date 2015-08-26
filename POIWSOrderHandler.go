@@ -26,7 +26,7 @@ func POIWSOrderHandler(orderId int64) {
 
 	timestamp := time.Now().Unix()
 	dispatchStart := timestamp
-	seelog.Info("POIWSOrderHandler_OrderCreated:", orderId)
+	seelog.Debug("POIWSOrderHandler_OrderCreated:", orderId)
 
 	for {
 		select {
@@ -57,7 +57,7 @@ func POIWSOrderHandler(orderId int64) {
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
 			close(orderChan)
-			seelog.Info("POIWSOrderHandler_OrderExpired:", orderId)
+			seelog.Debug("POIWSOrderHandler_OrderExpired:", orderId)
 			return
 
 		case <-selectTimer.C:
@@ -92,7 +92,7 @@ func POIWSOrderHandler(orderId int64) {
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
 			close(orderChan)
-			seelog.Info("POIWSOrderHandler_OrderExpired:", orderId)
+			seelog.Debug("POIWSOrderHandler_OrderExpired:", orderId)
 			return
 
 		case <-dispatchTicker.C:
@@ -123,7 +123,7 @@ func POIWSOrderHandler(orderId int64) {
 					}
 					InsertOrderDispatch(&orderDispatch)
 					WsManager.SetOrderDispatch(orderId, teacherId, timestamp)
-					seelog.Info("POIWSOrderHandler_OrderDispatched:", orderId, " to Teacher: ", teacherId)
+					seelog.Debug("POIWSOrderHandler_OrderDispatched:", orderId, " to Teacher: ", teacherId)
 				}
 			}
 
@@ -160,7 +160,7 @@ func POIWSOrderHandler(orderId int64) {
 				UpdateOrderDispatchInfo(orderId, msg.UserId, orderDispatchInfo)
 				WsManager.SetOrderReply(orderId, msg.UserId, timestamp)
 
-				seelog.Info("POIWSOrderHandler_OrderPresented:", orderId, " replied by teacher: ", msg.UserId)
+				seelog.Debug("POIWSOrderHandler_OrderPresented:", orderId, " replied by teacher: ", msg.UserId)
 				// 向学生发送老师接单信息
 				if !WsManager.HasUserChan(order.Creator.UserId) {
 					break
@@ -204,7 +204,7 @@ func POIWSOrderHandler(orderId int64) {
 				WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 				WsManager.RemoveOrderChan(orderId)
 				close(orderChan)
-				seelog.Info("POIWSOrderHandler_OrderCancelled:", orderId)
+				seelog.Debug("POIWSOrderHandler_OrderCancelled:", orderId)
 				return
 
 			case WS_ORDER_CONFIRM:
@@ -261,7 +261,7 @@ func POIWSOrderHandler(orderId int64) {
 					resultMsg.Attribute["status"] = strconv.FormatInt(status, 10)
 					dispatchChan <- resultMsg
 				}
-				seelog.Info("POIWSOrderHandler_OrderConfirmed:", orderId, " to teacher: ", teacherId)
+				seelog.Debug("POIWSOrderHandler_OrderConfirmed:", orderId, " to teacher: ", teacherId)
 				// 进入上课流程
 				dispatchInfo := QueryOrderDispatch(orderId, teacherId)
 				planTime := dispatchInfo.PlanTime
@@ -388,7 +388,7 @@ func POIWSOrderHandler(orderId int64) {
 					recoverPresMsg.Attribute["teacherInfo"] = string(teacherByte)
 					recoverPresMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
 					recoverChan <- recoverPresMsg
-					seelog.Info("POIWSOrderHandler_OrderRecover:", orderId, " replied by teacher: ", msg.UserId)
+					seelog.Debug("POIWSOrderHandler_OrderRecover:", orderId, " replied by teacher: ", msg.UserId)
 				}
 
 			}

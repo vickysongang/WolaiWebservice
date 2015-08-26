@@ -97,7 +97,7 @@ func NewPOIOrder(creator *POIUser, gradeId int64, subjectId int64, date string, 
 	}
 }
 
-func InsertOrder(order *POIOrder) *POIOrder {
+func InsertOrder(order *POIOrder) (*POIOrder, error) {
 	o := orm.NewOrm()
 	orderTypeStr := OrderTypeDict[order.Type]
 	order.OrderType = orderTypeStr
@@ -107,10 +107,10 @@ func InsertOrder(order *POIOrder) *POIOrder {
 	orderId, err := o.Insert(order)
 	if err != nil {
 		seelog.Error("order:", order, " ", err.Error())
-		return nil
+		return nil, err
 	}
 	order.Id = orderId
-	return order
+	return order, nil
 }
 
 func InsertOrderDispatch(orderDispatch *POIOrderDispatch) *POIOrderDispatch {

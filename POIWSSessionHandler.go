@@ -46,7 +46,7 @@ func POIWSSessionHandler(sessionId int64) {
 				expireMsg.UserId = session.Teacher.UserId
 				userChan <- expireMsg
 			}
-			seelog.Info("POIWSSessionHandler: session expired: " + sessionIdStr)
+			seelog.Debug("POIWSSessionHandler: session expired: " + sessionIdStr)
 
 			if !isServing {
 				sessionInfo := map[string]interface{}{
@@ -98,7 +98,7 @@ func POIWSSessionHandler(sessionId int64) {
 			}
 			UpdateSessionInfo(sessionId, sessionInfo)
 
-			seelog.Info("POIWSSessionHandler: instant session start: " + sessionIdStr)
+			seelog.Debug("POIWSSessionHandler: instant session start: " + sessionIdStr)
 
 		case cur := <-syncTicker.C:
 			if !isServing || isPaused {
@@ -201,7 +201,7 @@ func POIWSSessionHandler(sessionId int64) {
 					}
 					UpdateSessionInfo(sessionId, sessionInfo)
 
-					seelog.Info("POIWSSessionHandler: session start: " + sessionIdStr)
+					seelog.Debug("POIWSSessionHandler: session start: " + sessionIdStr)
 				}
 
 			case WS_SESSION_CANCEL:
@@ -256,7 +256,7 @@ func POIWSSessionHandler(sessionId int64) {
 				session = QuerySessionById(sessionId)
 				HandleSessionTrade(session, TRADE_RESULT_SUCCESS)
 
-				seelog.Info("POIWSSessionHandler: session end: " + sessionIdStr)
+				seelog.Debug("POIWSSessionHandler: session end: " + sessionIdStr)
 
 				WsManager.RemoveSessionLive(sessionId)
 				WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
@@ -413,7 +413,7 @@ func POIWSSessionHandler(sessionId int64) {
 					syncTicker = time.NewTicker(time.Second * 60)
 					waitingTimer.Stop()
 
-					seelog.Info("POIWSSessionHandler: session resumed: " + sessionIdStr)
+					seelog.Debug("POIWSSessionHandler: session resumed: " + sessionIdStr)
 				}
 			}
 		}
