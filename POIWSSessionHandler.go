@@ -69,9 +69,8 @@ func POIWSSessionHandler(sessionId int64) {
 			WsManager.RemoveSessionLive(sessionId)
 			WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
 			WsManager.RemoveSessionChan(sessionId)
-			if _, ok := <-sessionChan; ok {
-				close(sessionChan)
-			}
+			close(sessionChan)
+
 			return
 
 		case cur := <-countdownTimer.C:
@@ -263,9 +262,8 @@ func POIWSSessionHandler(sessionId int64) {
 				WsManager.RemoveSessionLive(sessionId)
 				WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
 				WsManager.RemoveSessionChan(sessionId)
-				if _, ok := <-sessionChan; ok {
-					close(sessionChan)
-				}
+				close(sessionChan)
+
 				return
 
 			case WS_SESSION_BREAK:
