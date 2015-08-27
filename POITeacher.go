@@ -391,7 +391,7 @@ func InsertTeacher(teacherInfo string) (POITeacherInfos, error) {
 		//插入用户基本信息
 		user := POIUser{}
 		user.AccessRight = 2
-		user.Status = 0
+		user.Status = 1
 		user.Avatar = teacher.Avatar
 		user.Gender = teacher.Gender
 		user.Nickname = teacher.Nickname
