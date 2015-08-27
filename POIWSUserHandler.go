@@ -17,11 +17,9 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	if msg.OperationCode != WS_LOGIN && msg.OperationCode != WS_RECONNECT {
 		return userChan, false
 	}
-
-	_, oki := msg.Attribute["installationId"]
 	_, oko := msg.Attribute["objectId"]
 
-	if !oki && !oko {
+	if !oko {
 		return userChan, false
 	}
 

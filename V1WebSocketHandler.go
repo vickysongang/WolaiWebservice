@@ -286,7 +286,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			}
 
 		// 处理向用户发送消息
-		case msg := <-userChan:
+		case msg, ok := <-userChan:
 			// 特殊处理，收到用户心跳信息
 			if msg.OperationCode == WS_PONG {
 				pingpong = true
@@ -296,7 +296,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 					if WsManager.GetUserOnlineStatus(userId) == loginTS {
 						WSUserLogout(userId)
-						if _, ok := <-userChan; ok {
+						if ok {
 							close(userChan)
 						}
 					}
@@ -311,7 +311,9 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 
 					if WsManager.GetUserOnlineStatus(userId) == loginTS {
 						WSUserLogout(userId)
-						close(userChan)
+						if ok {
+							close(userChan)
+						}
 					}
 					conn.Close()
 					return
