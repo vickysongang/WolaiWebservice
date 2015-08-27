@@ -17,7 +17,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		return 2, nil, errors.New("User " + strconv.Itoa(int(creatorId)) + " doesn't exist!")
 	}
 
-	if creator.Balance < 0 {
+	if creator.Balance <= 0 {
 		return 5001, nil, errors.New("余额不足")
 	}
 
@@ -36,7 +36,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		Status:    ORDER_STATUS_CREATED,
 		TeacherId: teacherId}
 
-	if orderType == 2 {
+	if orderType == ORDER_TYPE_GENERAL_APPOINTMENT {
 		startTime, _ := time.Parse(time.RFC3339, order.Date)   //预计上课时间
 		dateDiff := startTime.YearDay() - time.Now().YearDay() //预计上课时间距离当前时间的天数
 		if dateDiff < 0 {
