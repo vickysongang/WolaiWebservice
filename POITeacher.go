@@ -57,7 +57,7 @@ type POITeacherProfileModel struct {
 	Intro            string  `json:"intro"`
 	PricePerHour     int64   `json:"pricePerHour"`
 	RealPricePerHour int64   `json:"realPricePerHour"`
-	ServiceTime      int64   `json:"-"`
+	ServiceTime      int64   `json:"serviceTime"`
 	Rating           float64 `json:"-"`
 }
 
@@ -85,9 +85,9 @@ type POITeacherToSubject struct {
 //老师的完整信息结构体，用于解析维护老师信息时从客户端传过来的json字符串
 type POITeacherInfo struct {
 	POIUser                `json:"teacherInfo"`
-	LabelList              []string `json:"labelList,omitempty"`
-	POITeacherResume       `json:"resumeInfo"`
-	POITeacherToSubject    `json:"subjectInfo"`
+	LabelList              []string              `json:"labelList,omitempty"`
+	ResumeInfo             []POITeacherResume    `json:"resumeInfo"`
+	SubjectInfo            []POITeacherToSubject `json:"subjectInfo"`
 	POITeacherProfileModel `json:"profileInfo"`
 }
 
@@ -416,14 +416,20 @@ func InsertTeacher(teacherInfo string) (POITeacherInfos, error) {
 			InsertTeacherToLabel(&teacherToLabel)
 		}
 		//处理科目信息
-		teacherSubject := POITeacherToSubject{UserId: userId, SubjectId: teacher.SubjectId, Description: teacher.Description}
-		InsertTeacherToSubject(&teacherSubject)
+		subjectList := teacher.SubjectInfo
+		for _, subject := range subjectList {
+			teacherSubject := POITeacherToSubject{UserId: userId, SubjectId: subject.SubjectId, Description: subject.Description}
+			InsertTeacherToSubject(&teacherSubject)
+		}
 		//处理简历信息
-		teacherResume := POITeacherResume{UserId: userId, Start: teacher.Start, Stop: teacher.Stop, Name: teacher.Name}
-		InsertTeacherToResume(&teacherResume)
+		resumeList := teacher.ResumeInfo
+		for _, resume := range resumeList {
+			teacherResume := POITeacherResume{UserId: userId, Start: resume.Start, Stop: resume.Stop, Name: resume.Name}
+			InsertTeacherToResume(&teacherResume)
+		}
 		//处理Profile信息
 		teacherProfile := POITeacherProfileModel{UserId: userId, SchoolId: teacher.SchoolId, DepartmentId: teacher.DepartmentId,
-			Intro: teacher.Intro, PricePerHour: teacher.PricePerHour, RealPricePerHour: teacher.RealPricePerHour}
+			Intro: teacher.Intro, PricePerHour: teacher.PricePerHour, RealPricePerHour: teacher.RealPricePerHour, ServiceTime: teacher.ServiceTime}
 		InsertTeacherProfile(&teacherProfile)
 	}
 	return teachers, nil

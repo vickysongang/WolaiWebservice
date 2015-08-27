@@ -17,6 +17,10 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		return 2, nil, errors.New("User " + strconv.Itoa(int(creatorId)) + " doesn't exist!")
 	}
 
+	if creator.Balance < 0 {
+		return 5001, nil, errors.New("余额不足")
+	}
+
 	if orderType == ORDER_TYPE_PERSONAL_INSTANT && teacherId == 0 {
 		return 2, nil, nil
 	}

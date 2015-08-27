@@ -1,7 +1,5 @@
 package main
 
-import "math"
-
 func GetTeacherRecommendationList(userId, pageNum, pageCount int64) (POITeachers, error) {
 	teachers, err := QueryTeacherList(pageNum, pageCount)
 	if err != nil {
@@ -19,8 +17,7 @@ func GetTeacherProfile(userId, teacherId int64) (*POITeacherProfile, error) {
 	if err != nil {
 		return nil, err
 	}
-	mod := math.Mod(float64(teacherId), 50)
-	teacherProfile.Rating = float64(50-mod) / 10.0
+	teacherProfile.Rating = 5.0
 
 	if RedisManager.redisError == nil {
 		teacherProfile.HasFollowed = RedisManager.HasFollowedUser(userId, teacherId)
