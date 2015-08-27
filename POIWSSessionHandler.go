@@ -80,22 +80,48 @@ func POIWSSessionHandler(sessionId int64) {
 			return
 
 		case cur := <-countdownTimer.C:
+			lastSync = cur.Unix()
+			isServing = true
+			teacherOnline := WsManager.HasUserChan(session.Teacher.UserId)
+			studentOnline := WsManager.HasUserChan(session.Creator.UserId)
+
+			if !teacherOnline {
+				if studentOnline {
+					breakMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK)
+					breakMsg.Attribute["sessionId"] = sessionIdStr
+					breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
+					breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+					breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+					breakChan := WsManager.GetUserChan(breakMsg.UserId)
+					breakChan <- breakMsg
+				}
+				isPaused = true
+				break
+			}
+			if !studentOnline {
+				if teacherOnline {
+					breakMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_BREAK)
+					breakMsg.Attribute["sessionId"] = sessionIdStr
+					breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
+					breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+					breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+					breakChan := WsManager.GetUserChan(breakMsg.UserId)
+					breakChan <- breakMsg
+				}
+				isPaused = true
+				break
+			}
+
 			startMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_START)
 			startMsg.Attribute["sessionId"] = sessionIdStr
 			startMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
 			startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-			if WsManager.HasUserChan(session.Teacher.UserId) {
-				teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
-				teacherChan <- startMsg
-			}
-			if WsManager.HasUserChan(session.Creator.UserId) {
-				startMsg.UserId = session.Creator.UserId
-				studentChan := WsManager.GetUserChan(session.Creator.UserId)
-				studentChan <- startMsg
-			}
+			teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+			teacherChan <- startMsg
+			startMsg.UserId = session.Creator.UserId
+			studentChan := WsManager.GetUserChan(session.Creator.UserId)
+			studentChan <- startMsg
 
-			lastSync = cur.Unix()
-			isServing = true
 			syncTicker = time.NewTicker(time.Second * 60)
 			waitingTimer.Stop()
 
