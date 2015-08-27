@@ -287,36 +287,35 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 
 		// 处理向用户发送消息
 		case msg, ok := <-userChan:
-			// 特殊处理，收到用户心跳信息
-			if msg.OperationCode == WS_PONG {
-				pingpong = true
-			} else {
-				err := conn.WriteJSON(msg)
-				if err != nil {
-					seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
-					if WsManager.GetUserOnlineStatus(userId) == loginTS {
-						WSUserLogout(userId)
-						if ok {
-							close(userChan)
-						}
-					}
-					conn.Close()
-					return
-				}
-				msgByte, _ := json.Marshal(msg)
-				seelog.Debug("WebSocketWriter: UserId: ", userId, "Msg: ", string(msgByte))
-				if msg.OperationCode == WS_FORCE_QUIT ||
-					msg.OperationCode == WS_FORCE_LOGOUT ||
-					msg.OperationCode == WS_LOGOUT_RESP {
+			if ok {
+				// 特殊处理，收到用户心跳信息
+				if msg.OperationCode == WS_PONG {
+					pingpong = true
+				} else {
+					err := conn.WriteJSON(msg)
+					if err != nil {
+						seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
+						if WsManager.GetUserOnlineStatus(userId) == loginTS {
+							WSUserLogout(userId)
 
-					if WsManager.GetUserOnlineStatus(userId) == loginTS {
-						WSUserLogout(userId)
-						if ok {
 							close(userChan)
 						}
+						conn.Close()
+						return
 					}
-					conn.Close()
-					return
+					msgByte, _ := json.Marshal(msg)
+					seelog.Debug("WebSocketWriter: UserId: ", userId, "Msg: ", string(msgByte))
+					if msg.OperationCode == WS_FORCE_QUIT ||
+						msg.OperationCode == WS_FORCE_LOGOUT ||
+						msg.OperationCode == WS_LOGOUT_RESP {
+
+						if WsManager.GetUserOnlineStatus(userId) == loginTS {
+							WSUserLogout(userId)
+							close(userChan)
+						}
+						conn.Close()
+						return
+					}
 				}
 			}
 		}
