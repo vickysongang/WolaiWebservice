@@ -331,13 +331,18 @@ func POIWSOrderHandler(orderId int64) {
 
 			case WS_ORDER_RECOVER_TEACHER:
 				replyTs, ok := WsManager.teacherOrderDispatchMap[msg.UserId][orderId]
+				seelog.Debug("In teacher order recover: ", msg.UserId, " orderId: ", orderId)
 				if !ok {
+					seelog.Debug("In teacher order recover: ", msg.UserId, " no teacher entry")
 					break
 				}
 
 				if !WsManager.HasUserChan(msg.UserId) {
+					seelog.Debug("In teacher order recover: ", msg.UserId, " no userchan")
 					break
 				}
+
+				seelog.Debug("In teacher order recover: ", msg.UserId, " constructing msg")
 
 				var countstart int64
 				var hasReply int64
@@ -362,8 +367,7 @@ func POIWSOrderHandler(orderId int64) {
 				recoverTeacherMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
 				recoverTeacherMsg.Attribute["countstart"] = strconv.FormatInt(countstart, 10)
 				recoverTeacherMsg.Attribute["replied"] = strconv.FormatInt(hasReply, 10)
-				recoverChan := WsManager.GetUserChan(msg.UserId)
-				recoverChan <- recoverTeacherMsg
+				userChan <- recoverTeacherMsg
 
 			case WS_ORDER_RECOVER_STU:
 				if !WsManager.HasUserChan(msg.UserId) {
