@@ -249,7 +249,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 	}()
 	// 初始化心跳计时器
 	pingTicker := time.NewTicker(time.Second * 5)
-	pongTicker := time.NewTicker(time.Second * 5)
+	pongTicker := time.NewTicker(time.Second * 10)
 	pingpong := true
 
 	loginTS := WsManager.GetUserOnlineStatus(userId)
@@ -304,7 +304,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					return
 				}
 				msgByte, _ := json.Marshal(msg)
-				seelog.Debug("WebSocketWriter: UserId: ", msg.UserId, "Msg: ", string(msgByte))
+				seelog.Debug("WebSocketWriter: UserId: ", userId, "Msg: ", string(msgByte))
 				if msg.OperationCode == WS_FORCE_QUIT ||
 					msg.OperationCode == WS_FORCE_LOGOUT ||
 					msg.OperationCode == WS_LOGOUT_RESP {
