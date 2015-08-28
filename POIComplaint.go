@@ -27,14 +27,15 @@ func init() {
 	orm.RegisterModel(new(POIComplaint))
 }
 
-func InsertPOIComplaint(complaint *POIComplaint) (int64, error) {
+func InsertPOIComplaint(complaint *POIComplaint) (*POIComplaint, error) {
 	o := orm.NewOrm()
 	id, err := o.Insert(complaint)
 	if err != nil {
 		seelog.Error("complaint:", complaint, " ", err.Error())
-		return 0, err
+		return nil, err
 	}
-	return id, nil
+	complaint.Id = id
+	return complaint, nil
 }
 
 func UpdateComplaintInfo(complaintId int64, complaintInfo map[string]interface{}) error {

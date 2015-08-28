@@ -12,7 +12,6 @@ import (
 )
 
 const (
-
 	// Time allowed to read the next pong message from the peer.
 	pongWait = 10 * time.Second
 
@@ -154,10 +153,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 根据信息中的操作码进行对应处理
 		switch msg.OperationCode {
 
-		// 心跳信息，直接转发处理
-		//		case WS_PONG:
-		//			userChan <- msg
-
 		// 用户登出信息
 		case WS_LOGOUT:
 			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
@@ -264,6 +259,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POIWSMessage) {
+	// 初始化心跳计时器
 	pingTicker := time.NewTicker(pingPeriod)
 	defer func() {
 		pingTicker.Stop()
@@ -272,10 +268,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			seelog.Error(r)
 		}
 	}()
-	// 初始化心跳计时器
-
-	//	pongTicker := time.NewTicker(time.Second * 6)
-	//	pingpong := true
 
 	loginTS := WsManager.GetUserOnlineStatus(userId)
 
@@ -291,47 +283,12 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 				}
 				return
 			}
-			//			else {
-			//				pingMsg := NewPOIWSMessage("", userId, WS_PING)
-			//				conn.WriteJSON(pingMsg)
-			//			}
-			//			pingMsg := NewPOIWSMessage("", userId, WS_PING)
-			//			err := conn.WriteJSON(pingMsg)
-			//			if err != nil {
-			//				seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
-			//				if WsManager.GetUserOnlineStatus(userId) == loginTS {
-			//					WSUserLogout(userId)
-			//					close(userChan)
-			//				}
-			//				return
-			//			}
-
-		// 检验用户是否连接超时
-		//		case <-pongTicker.C:
-		//			if pingpong {
-		//				pingpong = false
-		//			} else {
-		//				if userId == 10012 {
-		//					seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
-		//				}
-		//				if WsManager.GetUserOnlineStatus(userId) == loginTS {
-		//					seelog.Debug("Logout:", userId)
-		//					WSUserLogout(userId)
-		//					close(userChan)
-		//				}
-		//				return
-		//			}
 
 		// 处理向用户发送消息
 		case msg, ok := <-userChan:
 			if ok {
 				seelog.Debug("Handle heartbeat PONG: ", msg.OperationCode)
 
-				// 特殊处理，收到用户心跳信息
-				//				if msg.OperationCode == WS_PONG {
-				//					pingpong = true
-				//				} else {
-				//				conn.SetWriteDeadline(time.Now().Add(writeWait))
 				err := conn.WriteJSON(msg)
 				if err != nil {
 					seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
@@ -361,7 +318,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			} else {
 				return
 			}
-			//			}
 		}
 	}
 }

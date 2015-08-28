@@ -13,9 +13,10 @@ import (
 *  comment为交易的备注
 *  返回交易记录的id，如果id为0，代表插入交易记录失败
  */
-func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) (int64, error) {
+func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) (*POITradeRecord, error) {
 	var tradeRecordId int64
 	var err error
+	var tradeRecord POITradeRecord
 	user := QueryUserById(userId)
 	switch tradeType {
 	case TRADE_CHARGE:
@@ -23,7 +24,7 @@ func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) 
 			//增加用户的余额
 			AddUserBalance(userId, amount)
 			//插入充值记录
-			tradeRecord := POITradeRecord{UserId: userId, TradeType: TRADE_CHARGE, TradeAmount: amount, OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
+			tradeRecord = POITradeRecord{UserId: userId, TradeType: TRADE_CHARGE, TradeAmount: amount, OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance + amount
 			tradeRecordId, err = InsertTradeRecord(&tradeRecord)
 		}
@@ -33,7 +34,7 @@ func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) 
 			//增加用户的余额
 			AddUserBalance(userId, amount)
 			//插入充值记录
-			tradeRecord := POITradeRecord{UserId: userId, TradeType: TRADE_PROMOTION, TradeAmount: amount, OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
+			tradeRecord = POITradeRecord{UserId: userId, TradeType: TRADE_PROMOTION, TradeAmount: amount, OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance + amount
 			tradeRecordId, err = InsertTradeRecord(&tradeRecord)
 		}
@@ -41,7 +42,7 @@ func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) 
 		{
 			AddUserBalance(userId, amount)
 			//插入充值记录
-			tradeRecord := POITradeRecord{UserId: userId, TradeType: TRADE_PROMOTION, TradeAmount: amount, OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
+			tradeRecord = POITradeRecord{UserId: userId, TradeType: TRADE_PROMOTION, TradeAmount: amount, OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance + amount
 			tradeRecordId, err = InsertTradeRecord(&tradeRecord)
 		}
@@ -50,12 +51,13 @@ func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) 
 			//减少用户的余额
 			MinusUserBalance(userId, amount)
 			//插入提现记录
-			tradeRecord := POITradeRecord{UserId: userId, TradeType: TRADE_WITHDRAW, TradeAmount: (0 - amount), OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
+			tradeRecord = POITradeRecord{UserId: userId, TradeType: TRADE_WITHDRAW, TradeAmount: (0 - amount), OrderType: SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance - amount
 			tradeRecordId, err = InsertTradeRecord(&tradeRecord)
 		}
 	}
-	return tradeRecordId, err
+	tradeRecord.Id = tradeRecordId
+	return &tradeRecord, err
 }
 
 func HandleSessionTrade(session *POISession, result string) {

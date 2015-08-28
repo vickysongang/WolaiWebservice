@@ -1004,7 +1004,7 @@ func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
- *  8.1 SearchTeacher
+ *  8.1 Search  Teacher
  */
 func V1SearchTeacher(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
@@ -1042,13 +1042,77 @@ func V1SearchTeacher(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+ * 9.1 Insert Evaluation
+ */
+func V1Evaluate(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	sessionIdStr := vars["sessionId"][0]
+	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
+
+	evaluationContent := vars["content"][0]
+
+	evaluation := POIEvaluation{UserId: userId, SessionId: sessionId, Content: evaluationContent}
+	content, err := InsertEvaluation(&evaluation)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
+	}
+}
+
+/*
+ * 9.2 Query Evaluation
+ */
+func V1GetEvaluation(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	sessionIdStr := vars["sessionId"][0]
+	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
+
+	content, err := QueryEvaluationInfo(userId, sessionId)
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
+	}
+}
+
+/*
+ * 9.3 Query Evaluation Labels
+ */
+func V1GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+
+	content, err := QueryEvaluationLabels()
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
+	}
+}
+
 func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
 	}
-
 	vars := r.Form
 
 	userIdStr := vars["userId"][0]
@@ -1121,8 +1185,7 @@ func v1GetConversationParticipants(w http.ResponseWriter, r *http.Request) {
 func ThrowsPanic(w http.ResponseWriter) {
 	if x := recover(); x != nil {
 		seelog.Error(x)
-		msg, _ := x.(string)
-		json.NewEncoder(w).Encode(NewPOIResponse(2, msg, nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, "parse param error", nil))
 	}
 }
 
@@ -1136,5 +1199,6 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
 	//	userIdStr := vars["userId"][0]
 	//	fmt.Println(userIdStr)
-	json.NewEncoder(w).Encode(NewPOIResponse(0, "", nil))
+	content, _ := QueryEvaluation4Self(1001, 1)
+	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }

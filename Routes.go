@@ -556,6 +556,46 @@ var routes = Routes{
 		"/v1/search/teacher",
 		V1SearchTeacher,
 	},
+
+	// 9.1 Insert Evaluation
+	Route{
+		"V1EvaluatePOST",
+		"POST",
+		"/v1/evaluation/insert",
+		V1Evaluate,
+	},
+	Route{
+		"V1EvaluateGET",
+		"GET",
+		"/v1/evaluation/insert",
+		V1Evaluate,
+	},
+	// 9.2 Query Evaluation
+	Route{
+		"V1GetEvaluationPOST",
+		"POST",
+		"/v1/evaluation/query",
+		V1GetEvaluation,
+	},
+	Route{
+		"V1GetEvaluationGET",
+		"GET",
+		"/v1/evaluation/query",
+		V1GetEvaluation,
+	},
+	// 9.3 Query Evaluation Labels
+	Route{
+		"V1GetEvaluationLabelPOST",
+		"POST",
+		"/v1/evaluation/label",
+		V1GetEvaluationLabels,
+	},
+	Route{
+		"V1GetEvaluationLabelGET",
+		"GET",
+		"/v1/evaluation/label",
+		V1GetEvaluationLabels,
+	},
 	Route{
 		"V1SessionRatingPOST",
 		"POST",
