@@ -294,7 +294,8 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			}
 
 		// 处理向用户发送消息
-		case msg, ok := <-userChan:
+		default:
+			msg, ok := <-userChan
 			if ok {
 				if msg.UserId == 10012 {
 					seelog.Debug("Handle heartbeat PONG: ", msg.OperationCode)
@@ -332,10 +333,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 						return
 					}
 				}
-			}
-		default:
-			{
-
 			}
 		}
 	}
