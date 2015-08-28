@@ -261,7 +261,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 
 	for {
 		select {
-
 		// 发送心跳
 		case <-pingTicker.C:
 			pingMsg := NewPOIWSMessage("", userId, WS_PING)

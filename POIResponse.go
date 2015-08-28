@@ -6,7 +6,7 @@ type POIResponse struct {
 	Content interface{} `json:"content,omitempty"`
 }
 
-func NewPOIResponse(status int64, content interface{}) POIResponse {
+func NewPOIResponse(status int64, errMsg string, content interface{}) POIResponse {
 	response := POIResponse{Status: status, Content: content}
 	return response
 }
