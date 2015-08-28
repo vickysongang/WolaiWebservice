@@ -11,6 +11,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	// Time allowed to read the next pong message from the peer.
+	pongWait = 10 * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
+	pingPeriod = (pongWait * 9) / 10
+)
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -49,9 +57,8 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		seelog.Debug("V1WSHandler: unstructed message")
 		return
 	}
-	if msg.UserId == 10012 {
-		seelog.Debug("V1WSHandler: recieved: ", string(p))
-	}
+
+	seelog.Debug("V1WSHandler: recieved: ", string(p))
 
 	// 比对客户端时间和系统时间
 	timestamp := time.Now().Unix()
@@ -91,11 +98,23 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	go RecoverStudentOrder(userId)
 	go RecoverUserSession(userId)
 
+	conn.SetReadDeadline(time.Now().Add(pongWait))
+	conn.SetPongHandler(func(string) error {
+		conn.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
+
 	for {
 
 		// 读取Websocket信息
 		_, p, err = conn.ReadMessage()
 		if err != nil {
+			seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
+			loginTS := WsManager.GetUserOnlineStatus(userId)
+			if WsManager.GetUserOnlineStatus(userId) == loginTS {
+				WSUserLogout(userId)
+				close(userChan)
+			}
 			conn.Close()
 			return
 		}
@@ -136,9 +155,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 心跳信息，直接转发处理
 		case WS_PONG:
-			if msg.UserId == 10012 {
-				seelog.Debug("Recieve HeartBeat Message: ", string(p))
-			}
 			userChan <- msg
 
 		// 用户登出信息
@@ -248,14 +264,15 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POIWSMessage) {
 	defer func() {
+		conn.Close()
 		if r := recover(); r != nil {
 			seelog.Error(r)
 		}
 	}()
 	// 初始化心跳计时器
-	pingTicker := time.NewTicker(time.Second * 5)
-	pongTicker := time.NewTicker(time.Second * 10)
-	pingpong := true
+	pingTicker := time.NewTicker(pingPeriod)
+	//	pongTicker := time.NewTicker(time.Second * 6)
+	//	pingpong := true
 
 	loginTS := WsManager.GetUserOnlineStatus(userId)
 
@@ -263,34 +280,43 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 		select {
 		// 发送心跳
 		case <-pingTicker.C:
-			pingMsg := NewPOIWSMessage("", userId, WS_PING)
-			err := conn.WriteJSON(pingMsg)
-			if err != nil {
+			if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 				if WsManager.GetUserOnlineStatus(userId) == loginTS {
 					WSUserLogout(userId)
 					close(userChan)
 				}
-				conn.Close()
 				return
+			} else {
+				pingMsg := NewPOIWSMessage("", userId, WS_PING)
+				conn.WriteJSON(pingMsg)
 			}
+			//			pingMsg := NewPOIWSMessage("", userId, WS_PING)
+			//			err := conn.WriteJSON(pingMsg)
+			//			if err != nil {
+			//				seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
+			//				if WsManager.GetUserOnlineStatus(userId) == loginTS {
+			//					WSUserLogout(userId)
+			//					close(userChan)
+			//				}
+			//				return
+			//			}
 
 		// 检验用户是否连接超时
-		case <-pongTicker.C:
-			if pingpong {
-				pingpong = false
-			} else {
-				if userId == 10012 {
-					seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
-				}
-				if WsManager.GetUserOnlineStatus(userId) == loginTS {
-					seelog.Debug("Logout:", userId)
-					WSUserLogout(userId)
-					close(userChan)
-				}
-				conn.Close()
-				return
-			}
+		//		case <-pongTicker.C:
+		//			if pingpong {
+		//				pingpong = false
+		//			} else {
+		//				if userId == 10012 {
+		//					seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
+		//				}
+		//				if WsManager.GetUserOnlineStatus(userId) == loginTS {
+		//					seelog.Debug("Logout:", userId)
+		//					WSUserLogout(userId)
+		//					close(userChan)
+		//				}
+		//				return
+		//			}
 
 		// 处理向用户发送消息
 		case msg, ok := <-userChan:
@@ -300,42 +326,33 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 				}
 
 				// 特殊处理，收到用户心跳信息
-				if msg.OperationCode == WS_PONG {
-					if msg.UserId == 10012 {
-						seelog.Debug("PINGPONG true")
-					}
-					pingpong = true
-				} else {
-					err := conn.WriteJSON(msg)
-					if err != nil {
-						seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
-						if WsManager.GetUserOnlineStatus(userId) == loginTS {
-							WSUserLogout(userId)
+				//				if msg.OperationCode == WS_PONG {
+				//					pingpong = true
+				//				} else {
+				err := conn.WriteJSON(msg)
+				if err != nil {
+					seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
+					if WsManager.GetUserOnlineStatus(userId) == loginTS {
+						WSUserLogout(userId)
 
-							close(userChan)
-						}
-						conn.Close()
-						return
+						close(userChan)
 					}
-					msgByte, _ := json.Marshal(msg)
-					seelog.Debug("WebSocketWriter: UserId: ", userId, "Msg: ", string(msgByte))
-					if msg.OperationCode == WS_FORCE_QUIT ||
-						msg.OperationCode == WS_FORCE_LOGOUT ||
-						msg.OperationCode == WS_LOGOUT_RESP {
+					return
+				}
+				msgByte, _ := json.Marshal(msg)
+				seelog.Debug("WebSocketWriter: UserId: ", userId, "Msg: ", string(msgByte))
+				if msg.OperationCode == WS_FORCE_QUIT ||
+					msg.OperationCode == WS_FORCE_LOGOUT ||
+					msg.OperationCode == WS_LOGOUT_RESP {
 
-						if WsManager.GetUserOnlineStatus(userId) == loginTS {
-							WSUserLogout(userId)
-							close(userChan)
-						}
-						conn.Close()
-						return
+					if WsManager.GetUserOnlineStatus(userId) == loginTS {
+						WSUserLogout(userId)
+						close(userChan)
 					}
+					return
 				}
 			}
-		default:
-			{
-
-			}
+			//			}
 		}
 	}
 }
