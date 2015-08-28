@@ -154,8 +154,8 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		switch msg.OperationCode {
 
 		// 心跳信息，直接转发处理
-		case WS_PONG:
-			userChan <- msg
+		//		case WS_PONG:
+		//			userChan <- msg
 
 		// 用户登出信息
 		case WS_LOGOUT:
@@ -287,10 +287,11 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					close(userChan)
 				}
 				return
-			} else {
-				pingMsg := NewPOIWSMessage("", userId, WS_PING)
-				conn.WriteJSON(pingMsg)
 			}
+			//			else {
+			//				pingMsg := NewPOIWSMessage("", userId, WS_PING)
+			//				conn.WriteJSON(pingMsg)
+			//			}
 			//			pingMsg := NewPOIWSMessage("", userId, WS_PING)
 			//			err := conn.WriteJSON(pingMsg)
 			//			if err != nil {
