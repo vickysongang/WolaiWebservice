@@ -263,14 +263,16 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POIWSMessage) {
+	pingTicker := time.NewTicker(pingPeriod)
 	defer func() {
+		pingTicker.Stop()
 		conn.Close()
 		if r := recover(); r != nil {
 			seelog.Error(r)
 		}
 	}()
 	// 初始化心跳计时器
-	pingTicker := time.NewTicker(pingPeriod)
+
 	//	pongTicker := time.NewTicker(time.Second * 6)
 	//	pingpong := true
 
