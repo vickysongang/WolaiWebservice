@@ -255,7 +255,6 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 				}
 			}
 		} else {
-			seelog.Debug("No newest LeanCloud message!")
 			break
 		}
 		if count == 1000 {

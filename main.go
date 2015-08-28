@@ -35,7 +35,7 @@ func init() {
 	RedisManager = NewPOIRedisManager()
 	WsManager = NewPOIWSManager()
 	SessionTicker = time.NewTicker(time.Millisecond * 5000)
-	LCMessageTicker = time.NewTicker(time.Minute * 1)
+	LCMessageTicker = time.NewTicker(time.Second * 10)
 	//注册数据库
 	err = orm.RegisterDataBase("default", DB_TYPE, Config.Database.Username+":"+
 		Config.Database.Password+"@"+

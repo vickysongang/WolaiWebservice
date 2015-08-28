@@ -333,6 +333,10 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					}
 				}
 			}
+		default:
+			{
+				seelog.Debug("This is default!")
+			}
 		}
 	}
 }
