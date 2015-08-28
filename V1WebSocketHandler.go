@@ -49,7 +49,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		seelog.Debug("V1WSHandler: unstructed message")
 		return
 	}
-	if msg.UserId == 10546 {
+	if msg.UserId == 10012 {
 		seelog.Debug("V1WSHandler: recieved: ", string(p))
 	}
 
@@ -136,7 +136,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 心跳信息，直接转发处理
 		case WS_PONG:
-			if msg.UserId == 10546 {
+			if msg.UserId == 10012 {
 				seelog.Debug("Recieve HeartBeat Message: ", string(p))
 			}
 			userChan <- msg
@@ -281,7 +281,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			if pingpong {
 				pingpong = false
 			} else {
-				if userId == 10546 {
+				if userId == 10012 {
 					seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
 				}
 				if WsManager.GetUserOnlineStatus(userId) == loginTS {
@@ -296,13 +296,13 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 		// 处理向用户发送消息
 		case msg, ok := <-userChan:
 			if ok {
-				if msg.UserId == 10546 {
+				if msg.UserId == 10012 {
 					seelog.Debug("Handle heartbeat PONG: ", msg.OperationCode)
 				}
 
 				// 特殊处理，收到用户心跳信息
 				if msg.OperationCode == WS_PONG {
-					if msg.UserId == 10546 {
+					if msg.UserId == 10012 {
 						seelog.Debug("PINGPONG true")
 					}
 					pingpong = true
