@@ -12,6 +12,9 @@ import (
 )
 
 const (
+	// Time allowed to write a message to the peer.
+	writeWait = 10 * time.Second
+
 	// Time allowed to read the next pong message from the peer.
 	pongWait = 10 * time.Second
 
@@ -52,6 +55,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
 		resp.Attribute["errCode"] = "2"
 		resp.Attribute["errMsg"] = "unstructed message"
+		conn.SetWriteDeadline(time.Now().Add(writeWait))
 		err = conn.WriteJSON(resp)
 		//		conn.Close()
 		seelog.Debug("V1WSHandler: unstructed message")
@@ -67,6 +71,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
 		resp.Attribute["errCode"] = "3"
 		resp.Attribute["errMsg"] = "local time not accepted"
+		conn.SetWriteDeadline(time.Now().Add(writeWait))
 		err = conn.WriteJSON(resp)
 		//		conn.Close()
 		seelog.Debug("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
@@ -80,12 +85,14 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
 		resp.Attribute["errCode"] = "4"
 		resp.Attribute["errMsg"] = "illegal websocket login"
+		conn.SetWriteDeadline(time.Now().Add(writeWait))
 		err = conn.WriteJSON(resp)
 		//		conn.Close()
 		seelog.Debug("V1WSHandler: illegal websocket login; UserId: ", msg.UserId)
 		return
 	} else {
 		loginResp := NewPOIWSMessage(msg.MessageId, msg.UserId, msg.OperationCode+1)
+		conn.SetWriteDeadline(time.Now().Add(writeWait))
 		err = conn.WriteJSON(loginResp)
 	}
 
@@ -282,6 +289,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 		select {
 		// 发送心跳
 		case <-pingTicker.C:
+			conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 				if WsManager.GetUserOnlineStatus(userId) == loginTS {
@@ -330,6 +338,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 				//				if msg.OperationCode == WS_PONG {
 				//					pingpong = true
 				//				} else {
+				conn.SetWriteDeadline(time.Now().Add(writeWait))
 				err := conn.WriteJSON(msg)
 				if err != nil {
 					seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
