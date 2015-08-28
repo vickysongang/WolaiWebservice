@@ -2,8 +2,8 @@ package main
 
 type POIResponse struct {
 	Status  int64       `json:"errCode"`
-	ErrMsg  string      `json:"errMsg,omitempty"`
-	Content interface{} `json:"content,omitempty"`
+	ErrMsg  string      `json:"errMsg"`
+	Content interface{} `json:"content"`
 }
 
 func NewPOIResponse(status int64, errMsg string, content interface{}) POIResponse {
