@@ -134,6 +134,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 心跳信息，直接转发处理
 		case WS_PONG:
+			seelog.Debug("收到心跳信息：", string(p))
 			userChan <- msg
 
 		// 用户登出信息
