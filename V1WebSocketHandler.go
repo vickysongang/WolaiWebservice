@@ -35,7 +35,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		seelog.Error("V1WebSocketHandler:", err.Error())
 		return
 	}
-	seelog.Debug("V1WSHandler: recieved: ", string(p))
 
 	// 消息反序列化
 	var msg POIWSMessage
@@ -49,6 +48,9 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		conn.Close()
 		seelog.Debug("V1WSHandler: unstructed message")
 		return
+	}
+	if msg.UserId == 10546 {
+		seelog.Debug("V1WSHandler: recieved: ", string(p))
 	}
 
 	// 比对客户端时间和系统时间
@@ -134,7 +136,9 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 心跳信息，直接转发处理
 		case WS_PONG:
-			seelog.Debug("Recieve HeartBeat Message: ", string(p))
+			if msg.UserId == 10546 {
+				seelog.Debug("Recieve HeartBeat Message: ", string(p))
+			}
 			userChan <- msg
 
 		// 用户登出信息
@@ -289,9 +293,13 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 		// 处理向用户发送消息
 		case msg, ok := <-userChan:
 			if ok {
-				seelog.Debug("Handle heartbeat PONG: ", msg.OperationCode)
+				if msg.UserId == 10546 {
+					seelog.Debug("Handle heartbeat PONG: ", msg.OperationCode)
+				}
+
 				// 特殊处理，收到用户心跳信息
 				if msg.OperationCode == WS_PONG {
+					seelog.Debug("PINGPONG true")
 					pingpong = true
 				} else {
 					err := conn.WriteJSON(msg)
