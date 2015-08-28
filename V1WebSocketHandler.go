@@ -281,8 +281,11 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			if pingpong {
 				pingpong = false
 			} else {
-				seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
+				if userId == 10546 {
+					seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
+				}
 				if WsManager.GetUserOnlineStatus(userId) == loginTS {
+					seelog.Debug("Logout:", userId)
 					WSUserLogout(userId)
 					close(userChan)
 				}
@@ -299,7 +302,9 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 
 				// 特殊处理，收到用户心跳信息
 				if msg.OperationCode == WS_PONG {
-					seelog.Debug("PINGPONG true")
+					if msg.UserId == 10546 {
+						seelog.Debug("PINGPONG true")
+					}
 					pingpong = true
 				} else {
 					err := conn.WriteJSON(msg)
