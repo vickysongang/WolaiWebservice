@@ -26,17 +26,17 @@ var upgrader = websocket.Upgrader{
 
 func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	// 将HTTP请求升级为Websocket连接
-	defer func() {
-		if r := recover(); r != nil {
-			seelog.Error(r)
-		}
-	}()
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		seelog.Error("V1WebSocketHandler:", err.Error())
 		return
 	}
-
+	defer func() {
+		conn.Close()
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
 	// 读取Websocket初始化消息
 	_, p, err := conn.ReadMessage()
 	if err != nil {
@@ -53,7 +53,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp.Attribute["errCode"] = "2"
 		resp.Attribute["errMsg"] = "unstructed message"
 		err = conn.WriteJSON(resp)
-		conn.Close()
+		//		conn.Close()
 		seelog.Debug("V1WSHandler: unstructed message")
 		return
 	}
@@ -68,7 +68,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp.Attribute["errCode"] = "3"
 		resp.Attribute["errMsg"] = "local time not accepted"
 		err = conn.WriteJSON(resp)
-		conn.Close()
+		//		conn.Close()
 		seelog.Debug("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
 		return
 	}
@@ -81,7 +81,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp.Attribute["errCode"] = "4"
 		resp.Attribute["errMsg"] = "illegal websocket login"
 		err = conn.WriteJSON(resp)
-		conn.Close()
+		//		conn.Close()
 		seelog.Debug("V1WSHandler: illegal websocket login; UserId: ", msg.UserId)
 		return
 	} else {
@@ -115,7 +115,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 				WSUserLogout(userId)
 				close(userChan)
 			}
-			conn.Close()
+			//			conn.Close()
 			return
 		}
 
@@ -324,9 +324,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 		// 处理向用户发送消息
 		case msg, ok := <-userChan:
 			if ok {
-				if msg.UserId == 10012 {
-					seelog.Debug("Handle heartbeat PONG: ", msg.OperationCode)
-				}
+				seelog.Debug("Handle heartbeat PONG: ", msg.OperationCode)
 
 				// 特殊处理，收到用户心跳信息
 				//				if msg.OperationCode == WS_PONG {
@@ -342,8 +340,12 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					}
 					return
 				}
-				msgByte, _ := json.Marshal(msg)
-				seelog.Debug("WebSocketWriter: UserId: ", userId, "Msg: ", string(msgByte))
+
+				msgByte, err := json.Marshal(msg)
+				if err != nil {
+					seelog.Debug("WebSocketWriter: UserId: ", userId, "Msg: ", string(msgByte))
+				}
+
 				if msg.OperationCode == WS_FORCE_QUIT ||
 					msg.OperationCode == WS_FORCE_LOGOUT ||
 					msg.OperationCode == WS_LOGOUT_RESP {
@@ -354,6 +356,8 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					}
 					return
 				}
+			} else {
+				return
 			}
 			//			}
 		}
