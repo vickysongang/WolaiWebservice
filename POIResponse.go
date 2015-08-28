@@ -7,6 +7,6 @@ type POIResponse struct {
 }
 
 func NewPOIResponse(status int64, errMsg string, content interface{}) POIResponse {
-	response := POIResponse{Status: status, Content: content}
+	response := POIResponse{Status: status, ErrMsg: errMsg, Content: content}
 	return response
 }
