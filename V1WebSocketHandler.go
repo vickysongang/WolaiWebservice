@@ -134,7 +134,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 心跳信息，直接转发处理
 		case WS_PONG:
-			seelog.Debug("收到心跳信息：", string(p))
+			seelog.Debug("Recieve HeartBeat Message: ", string(p))
 			userChan <- msg
 
 		// 用户登出信息
@@ -289,6 +289,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 		// 处理向用户发送消息
 		case msg, ok := <-userChan:
 			if ok {
+				seelog.Debug("Handle heartbeat PONG: ", msg.OperationCode)
 				// 特殊处理，收到用户心跳信息
 				if msg.OperationCode == WS_PONG {
 					pingpong = true
