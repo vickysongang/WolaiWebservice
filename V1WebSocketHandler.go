@@ -287,8 +287,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 		// 处理向用户发送消息
 		case msg, ok := <-userChan:
 			if ok {
-				seelog.Debug("Handle heartbeat PONG: ", msg.OperationCode)
-
 				err := conn.WriteJSON(msg)
 				if err != nil {
 					seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
