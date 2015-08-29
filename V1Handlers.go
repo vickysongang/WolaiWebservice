@@ -1199,6 +1199,6 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
 	//	userIdStr := vars["userId"][0]
 	//	fmt.Println(userIdStr)
-	content, _ := QueryEvaluation4Self(1001, 1)
+	content, _ := QueryEffectiveActivities("REGISTER")
 	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }
