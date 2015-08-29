@@ -398,6 +398,23 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &studentTMsg)
 }
 
+func SendAdvertisementMessage(title, desc, mediaId, url string, userId int64) {
+	attr := map[string]string{
+		"title":       title,
+		"description": desc,
+		"mediaId":     mediaId,
+		"url":         url,
+	}
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_AD,
+		Text:      "[活动消息]",
+		Attribute: attr,
+	}
+
+	LCSendTypedMessage(USER_WOLAI_SUPPORT, userId, &lcTMsg)
+}
+
 /*
  * 根据对话id获取对话的参与者
  * 参数conversationInfo为JSON串，是对话id的集合
