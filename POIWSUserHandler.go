@@ -17,7 +17,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	if msg.OperationCode != WS_LOGIN && msg.OperationCode != WS_RECONNECT {
 		return userChan, false
 	}
-	_, oko := msg.Attribute["objectId"]
+	objectId, oko := msg.Attribute["objectId"]
 
 	if !oko {
 		return userChan, false
@@ -40,6 +40,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 
 	WsManager.SetUserChan(msg.UserId, userChan)
 	WsManager.SetUserOnline(msg.UserId, time.Now().Unix())
+	RedisManager.SetUserObjectId(msg.UserId, objectId)
 
 	return userChan, true
 }
