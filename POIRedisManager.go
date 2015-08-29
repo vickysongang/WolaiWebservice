@@ -277,7 +277,7 @@ func (rm *POIRedisManager) HasFavedFeed(feed *POIFeed, user *POIUser) bool {
 }
 
 func (rm *POIRedisManager) GetFeedComments(feedId string) POIFeedComments {
-	feedCommentZs := rm.redisClient.ZRevRangeWithScores(FEED_COMMENT+feedId, 0, -1).Val()
+	feedCommentZs := rm.redisClient.ZRangeWithScores(FEED_COMMENT+feedId, 0, -1).Val()
 
 	feedComments := make([]POIFeedComment, len(feedCommentZs))
 
