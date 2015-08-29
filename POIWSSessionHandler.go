@@ -80,12 +80,18 @@ func POIWSSessionHandler(sessionId int64) {
 			return
 
 		case cur := <-countdownTimer.C:
-			seelog.Debug("cutdown..............................................................................")
 			lastSync = cur.Unix()
 			isServing = true
+
+			sessionInfo := map[string]interface{}{
+				"Status":   SESSION_STATUS_SERVING,
+				"TimeFrom": time.Now(),
+			}
+			UpdateSessionInfo(sessionId, sessionInfo)
+
 			teacherOnline := WsManager.HasUserChan(session.Teacher.UserId)
 			studentOnline := WsManager.HasUserChan(session.Creator.UserId)
-			seelog.Debug("teacherOnline:", teacherOnline, "  studentOneline:", studentOnline)
+
 			if !teacherOnline {
 				if studentOnline {
 					breakMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK)
@@ -125,12 +131,6 @@ func POIWSSessionHandler(sessionId int64) {
 
 			syncTicker = time.NewTicker(time.Second * 60)
 			waitingTimer.Stop()
-
-			sessionInfo := map[string]interface{}{
-				"Status":   SESSION_STATUS_SERVING,
-				"TimeFrom": time.Now(),
-			}
-			UpdateSessionInfo(sessionId, sessionInfo)
 
 			seelog.Debug("POIWSSessionHandler: instant session start: " + sessionIdStr)
 
