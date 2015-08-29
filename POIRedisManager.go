@@ -483,6 +483,8 @@ func (rm *POIRedisManager) GetUserObjectId(userId int64) string {
 }
 
 func (rm *POIRedisManager) RemoveUserObjectId(userId int64) {
-	//userIdStr := strconv.FormatInt(userId, 10)
+	userIdStr := strconv.FormatInt(userId, 10)
+	_, _ = rm.redisClient.HDel(USER_OBJECTID, userIdStr).Result()
+
 	return
 }

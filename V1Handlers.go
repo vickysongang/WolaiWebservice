@@ -12,13 +12,13 @@ import (
 )
 
 func Dummy(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-	vars := r.Form
-	objectId := vars["objectId"][0]
-	LCPushNotification(objectId)
+	// err := r.ParseForm()
+	// if err != nil {
+	// 	seelog.Error(err.Error())
+	// }
+	// vars := r.Form
+	// objectId := vars["objectId"][0]
+	// LCPushNotification(objectId)
 }
 
 func Dummy2(w http.ResponseWriter, r *http.Request) {

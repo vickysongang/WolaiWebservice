@@ -77,6 +77,9 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 
 	if orderPtr.Type == ORDER_TYPE_PERSONAL_INSTANT {
 		go SendPersonalOrderNotification(orderPtr.Id, teacherId)
+		if !WsManager.HasUserChan(teacherId) {
+			LCPushNotification(NewPersonalOrderPushReq(orderPtr.Id, teacherId))
+		}
 	}
 
 	return 0, orderPtr, nil

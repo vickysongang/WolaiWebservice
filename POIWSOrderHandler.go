@@ -120,10 +120,15 @@ func POIWSOrderHandler(orderId int64) {
 
 			// 遍历在线老师名单，如果未派发则直接派发
 			for teacherId, _ := range WsManager.onlineTeacherMap {
-				if !WsManager.HasDispatchedUser(orderId, teacherId) && WsManager.HasUserChan(teacherId) {
+				if !WsManager.HasDispatchedUser(orderId, teacherId) {
 					dispatchMsg.UserId = teacherId
-					teacherChan := WsManager.GetUserChan(teacherId)
-					teacherChan <- dispatchMsg
+
+					if WsManager.HasUserChan(teacherId) {
+						teacherChan := WsManager.GetUserChan(teacherId)
+						teacherChan <- dispatchMsg
+					} else {
+						LCPushNotification(NewOrderPushReq(orderId, teacherId))
+					}
 
 					orderDispatch := POIOrderDispatch{
 						OrderId:   orderId,

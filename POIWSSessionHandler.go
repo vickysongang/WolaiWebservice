@@ -179,6 +179,9 @@ func POIWSSessionHandler(sessionId int64) {
 					startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 					creatorChan := WsManager.GetUserChan(session.Creator.UserId)
 					creatorChan <- startMsg
+				} else {
+					LCPushNotification(NewSessionPushReq(sessionId,
+						WS_SESSION_START, session.Creator.UserId))
 				}
 
 				isCalling = true
@@ -383,11 +386,13 @@ func POIWSSessionHandler(sessionId int64) {
 				resumeMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_RESUME)
 				resumeMsg.Attribute["sessionId"] = sessionIdStr
 				resumeMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-				if !WsManager.HasUserChan(session.Creator.UserId) {
-					break
+				if WsManager.HasUserChan(session.Creator.UserId) {
+					studentChan := WsManager.GetUserChan(session.Creator.UserId)
+					studentChan <- resumeMsg
+				} else {
+					LCPushNotification(NewSessionPushReq(sessionId,
+						WS_SESSION_RESUME, session.Creator.UserId))
 				}
-				studentChan := WsManager.GetUserChan(session.Creator.UserId)
-				studentChan <- resumeMsg
 				isCalling = true
 
 			case WS_SESSION_RESUME_CANCEL:
@@ -486,12 +491,19 @@ func InitSessionMonitor(sessionId int64) bool {
 	if WsManager.HasUserChan(session.Teacher.UserId) {
 		teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
 		teacherChan <- alertMsg
+	} else {
+		LCPushNotification(NewSessionPushReq(sessionId,
+			alertMsg.OperationCode, session.Teacher.UserId))
 	}
+
 	if order.Type != ORDER_TYPE_GENERAL_APPOINTMENT {
 		if WsManager.HasUserChan(session.Creator.UserId) {
 			alertMsg.UserId = session.Creator.UserId
 			studentChan := WsManager.GetUserChan(session.Creator.UserId)
 			studentChan <- alertMsg
+		} else {
+			LCPushNotification(NewSessionPushReq(sessionId,
+				alertMsg.OperationCode, session.Creator.UserId))
 		}
 	}
 
