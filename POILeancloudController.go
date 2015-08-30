@@ -369,18 +369,21 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 	}
 
 	teacher := QueryTeacher(session.Teacher.UserId)
-	if teacher == nil {
+	student := QueryUserById(session.Creator.UserId)
+	if teacher == nil || student == nil {
 		return
 	}
 
 	attr := make(map[string]string)
 	teacherStr, _ := json.Marshal(teacher)
+	studentStr, _ := json.Marshal(student)
 
 	attr["oprCode"] = LC_SESSION_REPORT
 	attr["sessionId"] = strconv.FormatInt(sessionId, 10)
 	attr["length"] = strconv.FormatInt(session.Length, 10)
 	attr["price"] = strconv.FormatInt(teacherPrice, 10)
 	attr["teacherInfo"] = string(teacherStr)
+	attr["studentInfo"] = string(studentStr)
 
 	teacherTMsg := LCTypedMessage{
 		Type:      LC_MSG_SESSION,
