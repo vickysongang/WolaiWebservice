@@ -105,6 +105,7 @@ type POITeacherModel struct {
 	Intro            string
 	Rating           float64
 	Phone            string
+	AccessRight      int64
 }
 
 type POITeacherModels []POITeacherModel
@@ -186,7 +187,7 @@ func QueryTeacher(userId int64) *POITeacher {
 
 func QueryTeacherProfile(userId int64) (*POITeacherProfile, error) {
 	qb, _ := orm.NewQueryBuilder(DB_TYPE)
-	qb.Select("users.id,users.nickname, users.avatar, users.gender,teacher_profile.service_time," +
+	qb.Select("users.id,users.nickname, users.avatar, users.access_right,users.gender,teacher_profile.service_time," +
 		"teacher_profile.intro, teacher_profile.price_per_hour,teacher_profile.real_price_per_hour," +
 		"school.name school_name, department.name dept_name,teacher_profile.rating").
 		From("users").InnerJoin("teacher_profile").On("users.id = teacher_profile.user_id").
@@ -194,6 +195,7 @@ func QueryTeacherProfile(userId int64) (*POITeacherProfile, error) {
 		InnerJoin("department").On("teacher_profile.department_id = department.id").
 		Where("users.id = ?")
 	sql := qb.String()
+	fmt.Println(sql)
 	o := orm.NewOrm()
 	var teacherModel POITeacherModel
 	err := o.Raw(sql, userId).QueryRow(&teacherModel)
@@ -201,10 +203,21 @@ func QueryTeacherProfile(userId int64) (*POITeacherProfile, error) {
 		seelog.Error("userId:", userId, " ", err.Error())
 		return nil, err
 	}
-	teacherProfile := POITeacherProfile{POITeacher: POITeacher{POIUser: POIUser{UserId: teacherModel.Id, Nickname: teacherModel.Nickname,
-		Avatar: teacherModel.Avatar, Gender: teacherModel.Gender}, ServiceTime: teacherModel.ServiceTime, School: teacherModel.SchoolName,
-		Department: teacherModel.DeptName, PricePerHour: teacherModel.PricePerHour, RealPricePerHour: teacherModel.RealPricePerHour},
-		Intro: teacherModel.Intro, Rating: teacherModel.Rating}
+	teacherProfile := POITeacherProfile{
+		POITeacher: POITeacher{
+			POIUser: POIUser{
+				UserId:      teacherModel.Id,
+				Nickname:    teacherModel.Nickname,
+				AccessRight: teacherModel.AccessRight,
+				Avatar:      teacherModel.Avatar,
+				Gender:      teacherModel.Gender},
+			ServiceTime:      teacherModel.ServiceTime,
+			School:           teacherModel.SchoolName,
+			Department:       teacherModel.DeptName,
+			PricePerHour:     teacherModel.PricePerHour,
+			RealPricePerHour: teacherModel.RealPricePerHour},
+		Intro:  teacherModel.Intro,
+		Rating: teacherModel.Rating}
 	teacherProfile.LabelList = QueryTeacherLabelByUserId(teacherModel.Id)
 	teacherProfile.SubjectList = QueryTeacherSubjectByUserId(teacherModel.Id)
 	teacherProfile.EducationList = QueryTeacherResumeByUserId(teacherModel.Id)
