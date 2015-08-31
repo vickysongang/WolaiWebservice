@@ -9,15 +9,15 @@ import (
 )
 
 type POIEvaluation struct {
-	Id         int64     `json:"id" orm:"pk"`
+	Id         int64     `json:"-" orm:"pk"`
 	UserId     int64     `json:"userId"`
-	SessionId  int64     `json:"sessionId"`
+	OrderId    int64     `json:"orderId"`
 	Content    string    `json:"content"`
 	CreateTime time.Time `orm:"auto_now_add;type(datetime)"`
 }
 
 type POIEvaluationLabel struct {
-	Id   int64  `json:"id" orm:"pk"`
+	Id   int64  `json:"-" orm:"pk"`
 	Name string `json:"name"`
 	Rank int64  `json:"-"`
 }

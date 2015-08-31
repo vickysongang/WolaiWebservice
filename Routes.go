@@ -195,7 +195,7 @@ var routes = Routes{
 		V1FeedPost,
 	},
 
-	// 2.3 Feed Detial
+	// 2.3 Feed Detail
 	Route{
 		"V1FeedDetailPOST",
 		"POST",

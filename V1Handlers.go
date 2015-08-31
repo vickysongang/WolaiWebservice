@@ -1098,12 +1098,12 @@ func V1Evaluate(w http.ResponseWriter, r *http.Request) {
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
-	sessionIdStr := vars["sessionId"][0]
-	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
+	orderIdStr := vars["orderId"][0]
+	orderId, _ := strconv.ParseInt(orderIdStr, 10, 64)
 
 	evaluationContent := vars["content"][0]
 
-	evaluation := POIEvaluation{UserId: userId, SessionId: sessionId, Content: evaluationContent}
+	evaluation := POIEvaluation{UserId: userId, OrderId: orderId, Content: evaluationContent}
 	content, err := InsertEvaluation(&evaluation)
 	if err != nil {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
