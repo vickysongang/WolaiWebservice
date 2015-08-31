@@ -24,6 +24,17 @@ func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface
 		return nil
 	}
 
+	title := "您有一条上课提醒"
+	switch oprCode {
+	case WS_SESSION_ALERT:
+		title = "您有一个与" + session.Creator.Nickname + "同学的预约辅导已到上课时间。请开始上课。"
+	case WS_SESSION_START:
+		title = session.Teacher.Nickname + "老师向您发起上课请求。"
+	case WS_SESSION_RESUME:
+		title = session.Teacher.Nickname + "老师向您发起恢复课堂请求。"
+	case WS_SESSION_INSTANT_START:
+		title = "您有一个立即辅导即将开始上课"
+	}
 	lcReq := map[string]interface{}{
 		"where": map[string]interface{}{
 			"objectId": objectId,
@@ -31,7 +42,7 @@ func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface
 		"data": map[string]interface{}{
 			"android": map[string]interface{}{
 				"alert":     "您有一条上课提醒",
-				"title":     "您有一条上课提醒",
+				"title":     title,
 				"action":    "com.poi.SESSION_REQUEST",
 				"sound":     "session_sound.mp3",
 				"sessionId": strconv.FormatInt(sessionId, 10),
@@ -60,13 +71,15 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 
 	grade := QueryGradeById(order.GradeId)
 	subject := QuerySubjectById(order.SubjectId)
+	parentGrade := QueryGradeById(grade.Pid)
+
 	titleStr := "您有一个来自" + order.Creator.Nickname + "同学的"
 	if order.Type == ORDER_TYPE_GENERAL_INSTANT {
 		titleStr = titleStr + "立即辅导"
 	} else if order.Type == ORDER_TYPE_GENERAL_APPOINTMENT {
 		titleStr = titleStr + "预约辅导"
 	}
-	titleStr = titleStr + "订单，辅导内容为" + grade.Name + subject.Name + "。"
+	titleStr = titleStr + "订单，辅导内容为" + parentGrade.Name + grade.Name + subject.Name + "。"
 
 	lcReq := map[string]interface{}{
 		"where": map[string]interface{}{
@@ -98,11 +111,13 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 
 	grade := QueryGradeById(order.GradeId)
 	subject := QuerySubjectById(order.SubjectId)
+	parentGrade := QueryGradeById(grade.Pid)
+
 	titleStr := "您有一个来自" + order.Creator.Nickname + "同学的"
 	if order.Type == ORDER_TYPE_PERSONAL_INSTANT {
 		titleStr = titleStr + "私人辅导"
 	}
-	titleStr = titleStr + "订单，辅导内容为" + grade.Name + subject.Name + "。"
+	titleStr = titleStr + "订单，辅导内容为" + parentGrade.Name + grade.Name + subject.Name + "。"
 
 	lcReq := map[string]interface{}{
 		"where": map[string]interface{}{
