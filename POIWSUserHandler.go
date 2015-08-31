@@ -31,13 +31,24 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 		WSUserLogout(msg.UserId)
 		seelog.Debug("UserId:", msg.UserId, " Force Logout!")
 		oldChan := WsManager.GetUserChan(msg.UserId)
-
-		if msg.OperationCode == WS_LOGIN {
-			seelog.Debug("Send Force Logout message to ", msg.UserId)
-			msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
-			oldChan <- msgFL
+		select {
+		case _, ok := <-oldChan:
+			if ok {
+				if msg.OperationCode == WS_LOGIN {
+					seelog.Debug("Send Force Logout message to ", msg.UserId)
+					msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
+					oldChan <- msgFL
+				}
+				close(oldChan)
+			}
+		default:
+			if msg.OperationCode == WS_LOGIN {
+				seelog.Debug("Send Force Logout message to ", msg.UserId)
+				msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
+				oldChan <- msgFL
+			}
+			close(oldChan)
 		}
-		close(oldChan)
 	}
 
 	WsManager.SetUserChan(msg.UserId, userChan)
