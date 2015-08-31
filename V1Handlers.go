@@ -1161,23 +1161,6 @@ func V1GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*
- * 9.4 Check order has Evaluated
- */
-func V1CheckOrderEvaluated(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanic(w)
-	err := r.ParseForm()
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-	vars := r.Form
-
-	sessionIdStr := vars["sessionId"][0]
-	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
-	content := HasOrderEvaluated(sessionId)
-	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
-}
-
 func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
@@ -1270,6 +1253,6 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
 	//	userIdStr := vars["userId"][0]
 	//	fmt.Println(userIdStr)
-	content, _ := GetFeedFlowAtrium(0, 1)
+	content, _ := QueryOrderInSession4Student(10021, 0, 1)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }

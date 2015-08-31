@@ -596,19 +596,7 @@ var routes = Routes{
 		"/v1/evaluation/label",
 		V1GetEvaluationLabels,
 	},
-	// 9.4 Check Order Has Evaluated
-	Route{
-		"V1CheckOrderEvaluatedPOST",
-		"POST",
-		"/v1/evaluation/check",
-		V1CheckOrderEvaluated,
-	},
-	Route{
-		"V1CheckOrderEvaluatedGET",
-		"GET",
-		"/v1/evaluation/check",
-		V1CheckOrderEvaluated,
-	},
+
 	Route{
 		"V1SessionRatingPOST",
 		"POST",

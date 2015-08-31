@@ -144,7 +144,7 @@ func QueryEvaluationInfo(userId, sessionId int64) (*POIEvaluationInfos, error) {
 	return &evalutionInfos, nil
 }
 
-func HasOrderEvaluated(sessionId int64) bool {
+func HasOrderInSessionEvaluated(sessionId int64) bool {
 	o := orm.NewOrm()
 	count, err := o.QueryTable("evaluation").Filter("session_id", sessionId).Count()
 	if err != nil {
