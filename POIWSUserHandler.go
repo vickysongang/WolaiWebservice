@@ -31,9 +31,12 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 		oldChan := WsManager.GetUserChan(msg.UserId)
 
 		WSUserLogout(msg.UserId)
+		seelog.Debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 		if msg.OperationCode == WS_LOGIN {
+			seelog.Debug("............................................................")
 			msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
 			oldChan <- msgFL
+			seelog.Debug("************************************************************")
 		}
 		close(oldChan)
 	}
