@@ -126,8 +126,9 @@ func POIWSOrderHandler(orderId int64) {
 					if WsManager.HasUserChan(teacherId) {
 						teacherChan := WsManager.GetUserChan(teacherId)
 						teacherChan <- dispatchMsg
+					} else {
+						LCPushNotification(NewOrderPushReq(orderId, teacherId))
 					}
-					LCPushNotification(NewOrderPushReq(orderId, teacherId))
 
 					orderDispatch := POIOrderDispatch{
 						OrderId:   orderId,
