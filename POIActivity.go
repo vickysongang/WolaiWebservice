@@ -37,8 +37,12 @@ func (activity *POIActivity) TableName() string {
 	return "activities"
 }
 
+func (userToActivity *POIUserToActivity) TableName() string {
+	return "user_to_activity"
+}
+
 func init() {
-	orm.RegisterModel(new(POIActivity))
+	orm.RegisterModel(new(POIActivity), new(POIUserToActivity))
 }
 
 func InsertActivity(activity *POIActivity) (*POIActivity, error) {
@@ -73,4 +77,19 @@ func QueryEffectiveActivities(activityType string) (POIActivities, error) {
 		return nil, err
 	}
 	return activities, nil
+}
+
+/*
+ * 检查用户是否已经参与该活动
+ */
+func CheckUserHasParticipatedInActivity(userId, activityId int64) bool {
+	o := orm.NewOrm()
+	count, err := o.QueryTable("user_to_activity").Filter("user_id", userId).Filter("activity_id", activityId).Count()
+	if err != nil {
+		return false
+	}
+	if count > 0 {
+		return true
+	}
+	return false
 }

@@ -31,10 +31,14 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 	activities, err := QueryEffectiveActivities(REGISTER_ACTIVITY)
 	if err == nil {
 		for _, activity := range activities {
-			HandleSystemTrade(newUser.UserId, activity.Amount, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, activity.Theme)
-			go SendWelcomeMessageStudent(newUser.UserId)
-			go SendTradeNotificationSystem(newUser.UserId, activity.Amount, LC_TRADE_STATUS_INCOME,
-				activity.Title, activity.Subtitle, activity.Extra)
+			if !CheckUserHasParticipatedInActivity(id, activity.Id) {
+				userToActivity := POIUserToActivity{UserId: id, ActivityId: activity.Id}
+				InsertUserToActivity(&userToActivity)
+				HandleSystemTrade(newUser.UserId, activity.Amount, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, activity.Theme)
+				go SendWelcomeMessageStudent(newUser.UserId)
+				go SendTradeNotificationSystem(newUser.UserId, activity.Amount, LC_TRADE_STATUS_INCOME,
+					activity.Title, activity.Subtitle, activity.Extra)
+			}
 		}
 	}
 	//	HandleSystemTrade(newUser.UserId, WOLAI_GIVE_AMOUNT, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, "新用户注册奖励")
