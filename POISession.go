@@ -40,6 +40,7 @@ type POIOrderInSession struct {
 	Length           int64       `json:"timeLength"`
 	TotalCoat        int64       `json:"totalCost"`
 	HasEvaluated     bool        `json:"hasEvaluated"`
+	Identity         string      `json:"identity"`
 	Tutor            int64       `json:"-"`
 	Creator          int64       `json:"-"`
 	PlanTime         string      `json:"-"`
@@ -160,6 +161,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) (POIOrder
 			orderInSession.TotalCoat = orderInSession.PricePerHour * orderInSession.EstimateLength / 60
 		}
 		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId)
+		orderInSession.Identity = "student"
 	}
 	return orderInSessions, nil
 }
@@ -184,12 +186,6 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) (POIOrder
 		user := *(QueryUserById(orderInSession.Creator))
 		teacher := POITeacher{POIUser: user}
 		orderInSession.UserInfo = &teacher
-		//		orderInSession.UserInfo.POIUser.UserId = user.UserId
-		//		orderInSession.UserInfo.POIUser.Nickname = user.Nickname
-		//		orderInSession.UserInfo.POIUser.Avatar = user.Avatar
-		//		orderInSession.UserInfo.POIUser.Gender = user.Gender
-		//		orderInSession.UserInfo.POIUser.AccessRight = user.AccessRight
-		//		orderInSession.UserInfo.POIUser.Phone = user.Phone
 
 		if orderInSession.Status == SESSION_STATUS_COMPLETE {
 			orderInSession.TimeFromStr = orderInSession.TimeFrom.Format(time.RFC3339)
@@ -209,6 +205,7 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) (POIOrder
 			orderInSession.TotalCoat = orderInSession.RealPricePerHour * orderInSession.EstimateLength / 60
 		}
 		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId)
+		orderInSession.Identity = "teacher"
 	}
 	return orderInSessions, nil
 }
