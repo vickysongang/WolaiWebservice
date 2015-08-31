@@ -151,3 +151,15 @@ func HasPhoneBindWithQQ(phone string) (bool, error) {
 	}
 	return false, nil
 }
+
+func CheckUserExist(userId int64) bool {
+	o := orm.NewOrm()
+	count, err := o.QueryTable("users").Filter("id", userId).Count()
+	if err != nil {
+		return false
+	}
+	if count > 0 {
+		return true
+	}
+	return false
+}

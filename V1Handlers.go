@@ -304,7 +304,7 @@ func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
  * 2.1 Atrium
  */
 func V1Atrium(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanic(w)
+	//	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())

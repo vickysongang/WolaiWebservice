@@ -307,13 +307,15 @@ func (rm *POIRedisManager) GetFeedLikeList(feedId string) POIUsers {
 func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int64) POIFeeds {
 	feedZs := rm.redisClient.ZRevRangeWithScores(FEEDFLOW_ATRIUM, start, stop).Val()
 
-	feeds := make(POIFeeds, len(feedZs))
+	feeds := make(POIFeeds, 0)
 
 	for i := range feedZs {
 		str, _ := feedZs[i].Member.(string)
-		feeds[i] = *rm.GetFeed(str)
+		feed := *rm.GetFeed(str)
+		if feed.Creator != nil && CheckUserExist(feed.Creator.UserId) {
+			feeds = append(feeds, feed)
+		}
 	}
-
 	return feeds
 }
 

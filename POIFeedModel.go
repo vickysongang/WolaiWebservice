@@ -195,7 +195,8 @@ func GetFeedFlowAtrium(start, pageNum int) (POIFeeds, error) {
 	o := orm.NewOrm()
 	var feedIds []string
 	qb, _ := orm.NewQueryBuilder(DB_TYPE)
-	qb.Select("feed_id").From("feed").OrderBy("create_time").Desc().Limit(pageNum).Offset(start)
+	qb.Select("feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").
+		OrderBy("create_time").Desc().Limit(pageNum).Offset(start)
 	sql := qb.String()
 	_, err := o.Raw(sql).QueryRows(&feedIds)
 	feeds := make(POIFeeds, len(feedIds))
