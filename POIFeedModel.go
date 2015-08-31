@@ -191,12 +191,12 @@ func GetFeedComments(feedId string) POIFeedComments {
 	return feedComments
 }
 
-func GetFeedFlowAtrium(start, pageNum int) (POIFeeds, error) {
+func GetFeedFlowAtrium(start, pageCount int) (POIFeeds, error) {
 	o := orm.NewOrm()
 	var feedIds []string
 	qb, _ := orm.NewQueryBuilder(DB_TYPE)
-	qb.Select("feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").
-		OrderBy("create_time").Desc().Limit(pageNum).Offset(start)
+	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").
+		OrderBy("feed.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
 	_, err := o.Raw(sql).QueryRows(&feedIds)
 	feeds := make(POIFeeds, len(feedIds))
@@ -213,11 +213,11 @@ func GetFeedFlowAtrium(start, pageNum int) (POIFeeds, error) {
 	return feeds, nil
 }
 
-func GetFeedFlowUserFeed(userId int64, start, pageNum int) POIFeeds {
+func GetFeedFlowUserFeed(userId int64, start, pageCount int) POIFeeds {
 	o := orm.NewOrm()
 	var feedIds []string
 	qb, _ := orm.NewQueryBuilder(DB_TYPE)
-	qb.Select("feed_id").From("feed").Where("creator = ?").OrderBy("create_time").Asc().Limit(pageNum).Offset(start)
+	qb.Select("feed_id").From("feed").Where("creator = ?").OrderBy("create_time").Asc().Limit(pageCount).Offset(start)
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&feedIds)
 	if err != nil {
@@ -234,11 +234,11 @@ func GetFeedFlowUserFeed(userId int64, start, pageNum int) POIFeeds {
 	return feeds
 }
 
-func GetFeedFlowUserFeedLike(userId int64, start, pageNum int) POIFeeds {
+func GetFeedFlowUserFeedLike(userId int64, start, pageCount int) POIFeeds {
 	var feedIds []string
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(DB_TYPE)
-	qb.Select("feed_id").From("feed_like").Where("user_id = ?").OrderBy("create_time").Asc().Limit(pageNum).Offset(start)
+	qb.Select("feed_id").From("feed_like").Where("user_id = ?").OrderBy("create_time").Asc().Limit(pageCount).Offset(start)
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&feedIds)
 	if err != nil {

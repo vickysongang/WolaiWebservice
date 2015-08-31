@@ -10,6 +10,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var NullSlice []interface{}
+var NullObject interface{}
+
+type NullJsonObject struct {
+}
+
+func init() {
+	NullSlice = make([]interface{}, 0)
+	NullObject = NullJsonObject{}
+}
+
 func Dummy(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
@@ -133,7 +144,7 @@ func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
 	openId := vars["openId"][0]
 	status, content := POIUserOauthLogin(openId)
 	if content == nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(status, "", nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(status, "", NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(status, "", content))
 	}
@@ -205,7 +216,7 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 		content, err = QueryOrderInSession4Teacher(userId, int(pageNum), int(pageCount))
 	}
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -240,7 +251,7 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := GetTeacherRecommendationList(userId, page, count)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -262,7 +273,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 
 	teacher := QueryUserById(teacherId)
 	if teacher.AccessRight != USER_ACCESSRIGHT_TEACHER {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, "", nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, "", NullObject))
 		return
 	}
 
@@ -271,7 +282,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 
 	content, err := GetTeacherProfile(userId, teacherId)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -291,12 +302,12 @@ func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
 		teacherInfo := vars["teacherInfo"][0]
 		content, err := InsertTeacher(teacherInfo)
 		if err != nil {
-			json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+			json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 		} else {
 			json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 		}
 	} else {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, "teacherInfo is needed.", nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, "teacherInfo is needed.", NullSlice))
 	}
 }
 
@@ -304,7 +315,7 @@ func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
  * 2.1 Atrium
  */
 func V1Atrium(w http.ResponseWriter, r *http.Request) {
-	//	defer ThrowsPanic(w)
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -329,7 +340,7 @@ func V1Atrium(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := GetAtrium(userId, page, count)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -376,7 +387,7 @@ func V1FeedPost(w http.ResponseWriter, r *http.Request) {
 
 	content, err := PostPOIFeed(userId, timestamp, feedType, text, imageStr, originFeedId, attributeStr)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -401,7 +412,7 @@ func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
 
 	content, err := GetFeedDetail(feedId, userId)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -432,7 +443,7 @@ func V1FeedLike(w http.ResponseWriter, r *http.Request) {
 	content, err := GetFeedDetail(feedId, userId)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -475,7 +486,7 @@ func V1FeedComment(w http.ResponseWriter, r *http.Request) {
 	content, err := GetFeedDetail(feedId, userId)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -504,7 +515,7 @@ func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 	content, err := LikePOIFeedComment(userId, commentId, timestamp)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -528,7 +539,7 @@ func V1UserInfo(w http.ResponseWriter, r *http.Request) {
 	content := LoadPOIUser(userId)
 
 	if content == nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, "", nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, "", NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -551,7 +562,7 @@ func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	user := QueryUserById(userId)
 	if user == nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, "user"+userIdStr+" doesn't exist!", nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, "user"+userIdStr+" doesn't exist!", NullObject))
 	} else {
 		content := user.Balance
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
@@ -589,7 +600,7 @@ func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
 	content, err := GetUserFeed(userId, page, count)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -613,7 +624,7 @@ func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
 	content := GetUserFollowing(userId)
 
 	if content == nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, "", nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, "", NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -649,7 +660,7 @@ func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
 	content, err := GetUserLike(userId, page, count)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -731,7 +742,7 @@ func V1GradeList(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	content, err := QueryGradeList()
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -755,14 +766,14 @@ func V1SubjectList(w http.ResponseWriter, r *http.Request) {
 	if gradeId == 0 {
 		content, err := QuerySubjectList()
 		if err != nil {
-			json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+			json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 		} else {
 			json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 		}
 	} else {
 		content, err := QuerySubjectListByGrade(gradeId)
 		if err != nil {
-			json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+			json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 		} else {
 			json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 		}
@@ -810,7 +821,7 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 	status, content, err := OrderCreate(userId, teacherId, gradeId, subjectId, date,
 		periodId, length, orderType)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(status, "", content))
 	}
@@ -841,7 +852,7 @@ func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
 	accept, _ := strconv.ParseInt(acceptStr, 10, 64)
 
 	status := OrderPersonalConfirm(userId, orderId, accept, timestamp)
-	json.NewEncoder(w).Encode(NewPOIResponse(status, "", nil))
+	json.NewEncoder(w).Encode(NewPOIResponse(status, "", NullObject))
 }
 
 /*
@@ -866,7 +877,7 @@ func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := HandleSystemTrade(userId, amount, TRADE_CHARGE, "S", comment)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -894,7 +905,7 @@ func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := HandleSystemTrade(userId, amount, TRADE_WITHDRAW, "S", comment)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -922,7 +933,7 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := HandleSystemTrade(userId, amount, TRADE_AWARD, "S", comment)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -950,7 +961,7 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := HandleSystemTrade(userId, amount, TRADE_PROMOTION, "S", comment)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -984,7 +995,7 @@ func V1TradeRecord(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := QuerySessionTradeRecords(userId, int(page), int(count))
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -1015,7 +1026,7 @@ func V1Complain(w http.ResponseWriter, r *http.Request) {
 	complaint := POIComplaint{UserId: userId, SessionId: sessionId, Reasons: reasons, Comment: comment, Status: "pending"}
 	content, err := InsertPOIComplaint(&complaint)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -1040,9 +1051,9 @@ func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
 	complaintMap := map[string]interface{}{"Status": "processed", "Suggestion": suggestion}
 	err = UpdateComplaintInfo(complaintId, complaintMap)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
-		json.NewEncoder(w).Encode(NewPOIResponse(0, "", nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(0, "", NullObject))
 	}
 }
 
@@ -1079,7 +1090,7 @@ func V1SearchTeacher(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := SearchTeacher(userId, keyword, pageNum, pageCount)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -1106,7 +1117,7 @@ func V1Evaluate(w http.ResponseWriter, r *http.Request) {
 	evaluation := POIEvaluation{UserId: userId, OrderId: orderId, Content: evaluationContent}
 	content, err := InsertEvaluation(&evaluation)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -1125,12 +1136,12 @@ func V1GetEvaluation(w http.ResponseWriter, r *http.Request) {
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
-	sessionIdStr := vars["sessionId"][0]
-	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
+	orderIdStr := vars["orderId"][0]
+	orderId, _ := strconv.ParseInt(orderIdStr, 10, 64)
 
-	content, err := QueryEvaluationInfo(userId, sessionId)
+	content, err := QueryEvaluationInfo(userId, orderId)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -1144,10 +1155,27 @@ func V1GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
 
 	content, err := QueryEvaluationLabels()
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
+}
+
+/*
+ * 9.4 Check order has Evaluated
+ */
+func V1CheckOrderEvaluated(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+
+	orderIdStr := vars["orderId"][0]
+	orderId, _ := strconv.ParseInt(orderIdStr, 10, 64)
+	content := HasOrderEvaluated(orderId)
+	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }
 
 func V1SessionRating(w http.ResponseWriter, r *http.Request) {
@@ -1168,14 +1196,14 @@ func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	rating, _ := strconv.ParseInt(ratingStr, 10, 64)
 
 	_ = sessionId + rating + userId
-	json.NewEncoder(w).Encode(NewPOIResponse(0, "", nil))
+	json.NewEncoder(w).Encode(NewPOIResponse(0, "", NullObject))
 }
 
 func V1Banner(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	content, err := QueryBannerList()
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -1203,7 +1231,7 @@ func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
 	phone := vars["phone"][0]
 	content, err := HasPhoneBindWithQQ(phone)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -1219,7 +1247,7 @@ func v1GetConversationParticipants(w http.ResponseWriter, r *http.Request) {
 	convInfo := vars["convInfo"][0]
 	content, err := GetConversationParticipants(convInfo)
 	if err != nil {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 	}
@@ -1228,7 +1256,7 @@ func v1GetConversationParticipants(w http.ResponseWriter, r *http.Request) {
 func ThrowsPanic(w http.ResponseWriter) {
 	if x := recover(); x != nil {
 		seelog.Error(x)
-		json.NewEncoder(w).Encode(NewPOIResponse(2, "parse param error", nil))
+		json.NewEncoder(w).Encode(NewPOIResponse(2, "parse param error", NullObject))
 	}
 }
 
@@ -1242,6 +1270,6 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
 	//	userIdStr := vars["userId"][0]
 	//	fmt.Println(userIdStr)
-	content, _ := QueryEffectiveActivities("REGISTER")
+	content, _ := GetFeedFlowAtrium(0, 1)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }

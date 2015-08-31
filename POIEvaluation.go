@@ -62,28 +62,28 @@ func InsertEvaluationLabel(evalutionLabel *POIEvaluationLabel) (int64, error) {
 	return id, nil
 }
 
-func QueryEvaluation4Self(userId, sessionId int64) (*POIEvaluation, error) {
+func QueryEvaluation4Self(userId, orderId int64) (*POIEvaluation, error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(DB_TYPE)
-	qb.Select("id,user_id,session_id,content,create_time").From("evaluation").
-		Where("user_id = ? and session_id = ?")
+	qb.Select("id,user_id,order_id,content,create_time").From("evaluation").
+		Where("user_id = ? and order_id = ?")
 	sql := qb.String()
 	evalution := POIEvaluation{}
-	err := o.Raw(sql, userId, sessionId).QueryRow(&evalution)
+	err := o.Raw(sql, userId, orderId).QueryRow(&evalution)
 	if err != nil {
 		return nil, err
 	}
 	return &evalution, nil
 }
 
-func QueryEvaluation4Other(userId, sessionId int64) (*POIEvaluation, error) {
+func QueryEvaluation4Other(userId, orderId int64) (*POIEvaluation, error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(DB_TYPE)
-	qb.Select("id,user_id,session_id,content,create_time").From("evaluation").
-		Where("user_id <> ? and session_id = ?")
+	qb.Select("id,user_id,order_id,content,create_time").From("evaluation").
+		Where("user_id <> ? and order_id = ?")
 	sql := qb.String()
 	evalution := POIEvaluation{}
-	err := o.Raw(sql, userId, sessionId).QueryRow(&evalution)
+	err := o.Raw(sql, userId, orderId).QueryRow(&evalution)
 	if err != nil {
 		return nil, err
 	}
@@ -103,13 +103,12 @@ func QueryEvaluationLabels() (POIEvaluationLabels, error) {
 	return labels, nil
 }
 
-func QueryEvaluationInfo(userId, sessionId int64) (*POIEvaluationInfos, error) {
-	fmt.Println("userId:", userId, "sessionId:", sessionId)
+func QueryEvaluationInfo(userId, orderId int64) (*POIEvaluationInfos, error) {
 	user := QueryUserById(userId)
 	accessRight := user.AccessRight
-	self, err1 := QueryEvaluation4Self(userId, sessionId)
+	self, err1 := QueryEvaluation4Self(userId, orderId)
 	fmt.Println(user.AccessRight)
-	other, err2 := QueryEvaluation4Other(userId, sessionId)
+	other, err2 := QueryEvaluation4Other(userId, orderId)
 
 	selfEvaluation := POIEvaluationInfo{}
 	otherEvaluation := POIEvaluationInfo{}
@@ -143,4 +142,16 @@ func QueryEvaluationInfo(userId, sessionId int64) (*POIEvaluationInfos, error) {
 		}
 	}
 	return &evalutionInfos, nil
+}
+
+func HasOrderEvaluated(orderId int64) bool {
+	o := orm.NewOrm()
+	count, err := o.QueryTable("evaluation").Filter("order_id", orderId).Count()
+	if err != nil {
+		return false
+	}
+	if count > 1 {
+		return true
+	}
+	return false
 }
