@@ -88,6 +88,9 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		loginResp := NewPOIWSMessage(msg.MessageId, msg.UserId, msg.OperationCode+1)
 		err = conn.WriteJSON(loginResp)
+		if err != nil {
+			seelog.Debug("V1WSHandler:Send Code 12 to ", msg.UserId)
+		}
 	}
 
 	// 建立处理用户连接的独立goroutine
