@@ -19,13 +19,14 @@ func POIWSSessionHandler(sessionId int64) {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	sessionChan := WsManager.GetSessionChan(sessionId)
 
+	timestamp := time.Now().Unix()
+
 	var length int64
-	var lastSync int64
+	var lastSync int64 = timestamp
 
 	isCalling := false
 	isServing := false
 	isPaused := false
-	timestamp := time.Now().Unix()
 
 	syncTicker := time.NewTicker(time.Second * 60)
 	waitingTimer := time.NewTimer(time.Minute * 20)
@@ -80,6 +81,7 @@ func POIWSSessionHandler(sessionId int64) {
 			return
 
 		case cur := <-countdownTimer.C:
+			seelog.Debug("sessionId:", sessionId, " count down...")
 			lastSync = cur.Unix()
 			isServing = true
 

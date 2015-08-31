@@ -39,7 +39,7 @@ type POIOrderInSession struct {
 	RealPricePerHour int64     `json:"realPricePerHour"`
 	Length           int64     `json:"timeLength"`
 	TotalCoat        int64     `json:"totalCost"`
-	EvaluationStatus bool      `json:"evaluationStatus"`
+	HasEvaluated     bool      `json:"hasEvaluated"`
 	Tutor            int64     `json:"-"`
 	Creator          int64     `json:"-"`
 	PlanTime         string    `json:"-"`
@@ -159,7 +159,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) (POIOrder
 			orderInSession.TimeToStr = timeTo.Format(time.RFC3339)
 			orderInSession.TotalCoat = orderInSession.PricePerHour * orderInSession.EstimateLength / 60
 		}
-		orderInSession.EvaluationStatus = HasOrderInSessionEvaluated(orderInSession.SessionId)
+		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId)
 	}
 	return orderInSessions, nil
 }
@@ -200,7 +200,7 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) (POIOrder
 			orderInSession.TimeToStr = timeTo.Format(time.RFC3339)
 			orderInSession.TotalCoat = orderInSession.RealPricePerHour * orderInSession.EstimateLength / 60
 		}
-		orderInSession.EvaluationStatus = HasOrderInSessionEvaluated(orderInSession.SessionId)
+		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId)
 	}
 	return orderInSessions, nil
 }

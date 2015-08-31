@@ -33,6 +33,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() {
 		conn.Close()
+		seelog.Debug("close websocket connection ......")
 		if r := recover(); r != nil {
 			seelog.Error(r)
 		}
@@ -108,7 +109,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 读取Websocket信息
 		_, p, err = conn.ReadMessage()
-		seelog.Debug("V1Handler websocket recieve message:", string(p))
 		if err != nil {
 			seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
 			loginTS := WsManager.GetUserOnlineStatus(userId)
@@ -119,6 +119,8 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			//			conn.Close()
 			return
 		}
+
+		seelog.Debug("V1Handler websocket recieve message:", string(p))
 
 		// 信息反序列化
 		err = json.Unmarshal([]byte(p), &msg)
@@ -144,11 +146,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			resp.Attribute["errMsg"] = "local time not accepted"
 			userChan <- resp
 			return
-		}
-
-		// 输出
-		if msg.OperationCode != WS_PONG {
-			seelog.Debug("V1WSHandler recieved: UserId", userId, " Msg: ", string(p))
 		}
 
 		// 根据信息中的操作码进行对应处理
@@ -277,6 +274,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 		select {
 		// 发送心跳
 		case <-pingTicker.C:
+
 			if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 				if WsManager.GetUserOnlineStatus(userId) == loginTS {
@@ -290,11 +288,11 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 		case msg, ok := <-userChan:
 			if ok {
 				err := conn.WriteJSON(msg)
+
 				if err != nil {
 					seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 					if WsManager.GetUserOnlineStatus(userId) == loginTS {
 						WSUserLogout(userId)
-
 						close(userChan)
 					}
 					return
@@ -308,7 +306,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 				if msg.OperationCode == WS_FORCE_QUIT ||
 					msg.OperationCode == WS_FORCE_LOGOUT ||
 					msg.OperationCode == WS_LOGOUT_RESP {
-
 					if WsManager.GetUserOnlineStatus(userId) == loginTS {
 						WSUserLogout(userId)
 						close(userChan)
