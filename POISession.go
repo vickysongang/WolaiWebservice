@@ -27,26 +27,26 @@ type POISession struct {
 }
 
 type POIOrderInSession struct {
-	OrderId          int64     `json:"orderId" orm:"pk"`
-	SessionId        int64     `json:"sessionId"`
-	User             *POIUser  `json:"userInfo" orm:"-"`
-	GradeId          int64     `json:"gradeId"`
-	SubjectId        int64     `json:"subjectId"`
-	Status           string    `json:"sessionStatus"`
-	TimeFromStr      string    `json:"startTime" orm:"-"`
-	TimeToStr        string    `json:"endTime" orm:"-"`
-	PricePerHour     int64     `json:"pricePerHour"`
-	RealPricePerHour int64     `json:"realPricePerHour"`
-	Length           int64     `json:"timeLength"`
-	TotalCoat        int64     `json:"totalCost"`
-	HasEvaluated     bool      `json:"hasEvaluated"`
-	Tutor            int64     `json:"-"`
-	Creator          int64     `json:"-"`
-	PlanTime         string    `json:"-"`
-	TimeFrom         time.Time `json:"-"`
-	TimeTo           time.Time `json:"-"`
-	RealLength       int64     `json:"-"`
-	EstimateLength   int64     `json:"-"`
+	OrderId          int64       `json:"orderId" orm:"pk"`
+	SessionId        int64       `json:"sessionId"`
+	UserInfo         *POITeacher `json:"userInfo" orm:"-"`
+	GradeId          int64       `json:"gradeId"`
+	SubjectId        int64       `json:"subjectId"`
+	Status           string      `json:"sessionStatus"`
+	TimeFromStr      string      `json:"startTime" orm:"-"`
+	TimeToStr        string      `json:"endTime" orm:"-"`
+	PricePerHour     int64       `json:"pricePerHour"`
+	RealPricePerHour int64       `json:"realPricePerHour"`
+	Length           int64       `json:"timeLength"`
+	TotalCoat        int64       `json:"totalCost"`
+	HasEvaluated     bool        `json:"hasEvaluated"`
+	Tutor            int64       `json:"-"`
+	Creator          int64       `json:"-"`
+	PlanTime         string      `json:"-"`
+	TimeFrom         time.Time   `json:"-"`
+	TimeTo           time.Time   `json:"-"`
+	RealLength       int64       `json:"-"`
+	EstimateLength   int64       `json:"-"`
 }
 
 type POIOrderInSessions []*POIOrderInSession
@@ -140,8 +140,8 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) (POIOrder
 	}
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
-		user := QueryUserById(orderInSession.Tutor)
-		orderInSession.User = user
+		user := QueryTeacher(orderInSession.Tutor)
+		orderInSession.UserInfo = user
 		if orderInSession.Status == SESSION_STATUS_COMPLETE {
 			orderInSession.TimeFromStr = orderInSession.TimeFrom.Format(time.RFC3339)
 			orderInSession.TimeToStr = orderInSession.TimeTo.Format(time.RFC3339)
@@ -181,8 +181,16 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) (POIOrder
 	}
 	for i := range orderInSessions {
 		orderInSession := orderInSessions[i]
-		user := QueryUserById(orderInSession.Creator)
-		orderInSession.User = user
+		user := *(QueryUserById(orderInSession.Creator))
+		teacher := POITeacher{POIUser: user}
+		orderInSession.UserInfo = &teacher
+		//		orderInSession.UserInfo.POIUser.UserId = user.UserId
+		//		orderInSession.UserInfo.POIUser.Nickname = user.Nickname
+		//		orderInSession.UserInfo.POIUser.Avatar = user.Avatar
+		//		orderInSession.UserInfo.POIUser.Gender = user.Gender
+		//		orderInSession.UserInfo.POIUser.AccessRight = user.AccessRight
+		//		orderInSession.UserInfo.POIUser.Phone = user.Phone
+
 		if orderInSession.Status == SESSION_STATUS_COMPLETE {
 			orderInSession.TimeFromStr = orderInSession.TimeFrom.Format(time.RFC3339)
 			orderInSession.TimeToStr = orderInSession.TimeTo.Format(time.RFC3339)
