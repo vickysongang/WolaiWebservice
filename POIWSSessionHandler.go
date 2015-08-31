@@ -181,12 +181,11 @@ func POIWSSessionHandler(sessionId int64) {
 						startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 						creatorChan := WsManager.GetUserChan(session.Creator.UserId)
 						creatorChan <- startMsg
-					} else {
-						LCPushNotification(NewSessionPushReq(sessionId,
-							WS_SESSION_START, session.Creator.UserId))
 					}
+					go LCPushNotification(NewSessionPushReq(sessionId,
+						WS_SESSION_START, session.Creator.UserId))
+
 					isCalling = true
-					//go SendSessionNotification(sessionId, 2)
 
 				case WS_SESSION_ACCEPT:
 					acceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_ACCEPT_RESP)
@@ -390,10 +389,10 @@ func POIWSSessionHandler(sessionId int64) {
 					if WsManager.HasUserChan(session.Creator.UserId) {
 						studentChan := WsManager.GetUserChan(session.Creator.UserId)
 						studentChan <- resumeMsg
-					} else {
-						LCPushNotification(NewSessionPushReq(sessionId,
-							WS_SESSION_RESUME, session.Creator.UserId))
 					}
+					go LCPushNotification(NewSessionPushReq(sessionId,
+						WS_SESSION_RESUME, session.Creator.UserId))
+
 					isCalling = true
 
 				case WS_SESSION_RESUME_CANCEL:
@@ -496,20 +495,19 @@ func InitSessionMonitor(sessionId int64) bool {
 	if WsManager.HasUserChan(session.Teacher.UserId) {
 		teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
 		teacherChan <- alertMsg
-	} else {
-		LCPushNotification(NewSessionPushReq(sessionId,
-			alertMsg.OperationCode, session.Teacher.UserId))
 	}
+	go LCPushNotification(NewSessionPushReq(sessionId,
+		alertMsg.OperationCode, session.Teacher.UserId))
 
 	if order.Type != ORDER_TYPE_GENERAL_APPOINTMENT {
 		if WsManager.HasUserChan(session.Creator.UserId) {
 			alertMsg.UserId = session.Creator.UserId
 			studentChan := WsManager.GetUserChan(session.Creator.UserId)
 			studentChan <- alertMsg
-		} else {
-			LCPushNotification(NewSessionPushReq(sessionId,
-				alertMsg.OperationCode, session.Creator.UserId))
 		}
+		go LCPushNotification(NewSessionPushReq(sessionId,
+			alertMsg.OperationCode, session.Creator.UserId))
+
 	}
 
 	sessionChan := make(chan POIWSMessage)
