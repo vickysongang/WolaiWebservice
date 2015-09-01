@@ -2,18 +2,16 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+
+	seelog "github.com/cihub/seelog"
 )
 
 func POISessionTickerHandler() {
 	for t := range SessionTicker.C {
-		//fmt.Println("Tick at", t.Unix())
-
 		ticks := RedisManager.GetSessionTicks(t.Unix())
 
 		for i := range ticks {
-			fmt.Println("POISessionTickerHandler: @", t.Unix(), " ticks: "+ticks[i])
-
+			seelog.Debug("POISessionTickerHandler: @", t.Unix(), " ticks: "+ticks[i])
 			var tickInfo map[string]int64
 			_ = json.Unmarshal([]byte(ticks[i]), &tickInfo)
 
