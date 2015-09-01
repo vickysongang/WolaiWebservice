@@ -62,7 +62,7 @@ func POIWSOrderHandler(orderId int64) {
 			UpdateOrderInfo(orderId, orderInfo)
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
-			close(orderChan)
+			//			close(orderChan)
 
 			seelog.Debug("POIWSOrderHandler_OrderExpired:", orderId)
 			return
@@ -98,7 +98,7 @@ func POIWSOrderHandler(orderId int64) {
 			UpdateOrderInfo(orderId, orderInfo)
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
-			close(orderChan)
+			//			close(orderChan)
 
 			seelog.Debug("POIWSOrderHandler_OrderExpired:", orderId)
 			return
@@ -217,7 +217,7 @@ func POIWSOrderHandler(orderId int64) {
 					UpdateOrderInfo(orderId, orderInfo)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 					WsManager.RemoveOrderChan(orderId)
-					close(orderChan)
+					//					close(orderChan)
 
 					seelog.Debug("POIWSOrderHandler_OrderCancelled:", orderId)
 					return
@@ -331,7 +331,7 @@ func POIWSOrderHandler(orderId int64) {
 					UpdateOrderInfo(orderId, orderInfo)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 					WsManager.RemoveOrderChan(orderId)
-					close(orderChan)
+					//					close(orderChan)
 
 					return
 

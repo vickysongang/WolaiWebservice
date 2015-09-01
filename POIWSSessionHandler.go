@@ -76,7 +76,7 @@ func POIWSSessionHandler(sessionId int64) {
 			WsManager.RemoveSessionLive(sessionId)
 			WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
 			WsManager.RemoveSessionChan(sessionId)
-			close(sessionChan)
+			//			close(sessionChan)
 
 			return
 
@@ -299,7 +299,7 @@ func POIWSSessionHandler(sessionId int64) {
 					WsManager.RemoveSessionLive(sessionId)
 					WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
 					WsManager.RemoveSessionChan(sessionId)
-					close(sessionChan)
+					//					close(sessionChan)
 
 					return
 
