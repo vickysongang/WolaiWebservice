@@ -13,7 +13,7 @@ import (
 
 const (
 	// Time allowed to read the next pong message from the peer.
-	pongWait = 10 * time.Second
+	pongWait = 60 * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
@@ -111,7 +111,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 
 		// 读取Websocket信息
-		seelog.Debug("************************************************************************")
 		_, p, err = conn.ReadMessage()
 		if err != nil {
 			seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
