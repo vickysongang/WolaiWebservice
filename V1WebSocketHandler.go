@@ -13,7 +13,7 @@ import (
 
 const (
 	// Time allowed to read the next pong message from the peer.
-	pongWait = 60 * time.Second
+	pongWait = 10 * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
@@ -123,8 +123,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		seelog.Debug("V1Handler websocket recieve message:", string(p))
-
 		// 信息反序列化
 		err = json.Unmarshal([]byte(p), &msg)
 		if err != nil {
@@ -137,6 +135,10 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 如果信息与本连接的用户Id不符合，忽略信息
 		if msg.UserId != userId {
 			continue
+		}
+
+		if msg.OperationCode != WS_PONG {
+			seelog.Debug("V1Handler websocket recieve message:", string(p))
 		}
 
 		// 比对客户端时间和系统时间
