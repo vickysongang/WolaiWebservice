@@ -79,7 +79,6 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		go SendPersonalOrderNotification(orderPtr.Id, teacherId)
 		go LCPushNotification(NewPersonalOrderPushReq(orderPtr.Id, teacherId))
 	}
-
 	return 0, orderPtr, nil
 }
 

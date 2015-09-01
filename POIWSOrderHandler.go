@@ -120,7 +120,8 @@ func POIWSOrderHandler(orderId int64) {
 
 			// 遍历在线老师名单，如果未派发则直接派发
 			for teacherId, _ := range WsManager.onlineTeacherMap {
-				if !WsManager.HasDispatchedUser(orderId, teacherId) {
+				//如果订单已经被派发到该老师或者该老师正在与其他学生上课，则不再给该老师派单
+				if !WsManager.HasDispatchedUser(orderId, teacherId) && !WsManager.HasSessionWithOther(teacherId) {
 					dispatchMsg.UserId = teacherId
 
 					if WsManager.HasUserChan(teacherId) {

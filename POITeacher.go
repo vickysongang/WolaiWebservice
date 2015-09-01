@@ -195,7 +195,6 @@ func QueryTeacherProfile(userId int64) (*POITeacherProfile, error) {
 		InnerJoin("department").On("teacher_profile.department_id = department.id").
 		Where("users.id = ?")
 	sql := qb.String()
-	fmt.Println(sql)
 	o := orm.NewOrm()
 	var teacherModel POITeacherModel
 	err := o.Raw(sql, userId).QueryRow(&teacherModel)

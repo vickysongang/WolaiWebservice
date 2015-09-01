@@ -235,3 +235,15 @@ func (wsm *POIWSManager) RemoveUserSession(sessionId int64, teacherId int64, stu
 		}
 	}
 }
+
+/*
+ * 判断用户是否正在与他人上课
+ */
+func (wsm *POIWSManager) HasSessionWithOther(userId int64) bool {
+	if sessionLiveMap, ok := wsm.userSessionLiveMap[userId]; ok {
+		if len(sessionLiveMap) > 0 {
+			return true
+		}
+	}
+	return false
+}
