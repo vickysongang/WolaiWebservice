@@ -28,7 +28,7 @@ func SendWelcomeMessageTeacher(userId int64) {
 		Text:      "[图片消息]",
 		Attribute: attr,
 	}
-	LCSendTypedMessage(USER_WOLAI_SUPPORT, userId, &msg)
+	LCSendTypedMessage(USER_WOLAI_SUPPORT, userId, &msg, false)
 }
 
 func SendWelcomeMessageStudent(userId int64) {
@@ -40,7 +40,7 @@ func SendWelcomeMessageStudent(userId int64) {
 		Text:      "[图片消息]",
 		Attribute: attr,
 	}
-	LCSendTypedMessage(USER_WOLAI_SUPPORT, userId, &msg)
+	LCSendTypedMessage(USER_WOLAI_SUPPORT, userId, &msg, false)
 }
 
 func SendCommentNotification(feedCommentId string) {
@@ -78,13 +78,13 @@ func SendCommentNotification(feedCommentId string) {
 
 	// if someone comments himself...
 	if feedComment.Creator.UserId != feed.Creator.UserId {
-		LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.UserId, &lcTMsg)
+		LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.UserId, &lcTMsg, false)
 	}
 
 	if feedComment.ReplyTo != nil {
 		// if someone replies the author... the poor man should not be notified twice
 		if feedComment.ReplyTo.UserId != feed.Creator.UserId {
-			LCSendTypedMessage(USER_SYSTEM_MESSAGE, feedComment.ReplyTo.UserId, &lcTMsg)
+			LCSendTypedMessage(USER_SYSTEM_MESSAGE, feedComment.ReplyTo.UserId, &lcTMsg, false)
 		}
 	}
 
@@ -126,7 +126,7 @@ func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.UserId, &lcTMsg)
+	LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.UserId, &lcTMsg, false)
 
 	return
 }
@@ -153,7 +153,7 @@ func SendTradeNotificationSystem(userId int64, amount int64, status, title, subt
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(USER_TRADE_RECORD, userId, &lcTMsg)
+	LCSendTypedMessage(USER_TRADE_RECORD, userId, &lcTMsg, false)
 }
 
 func SendTradeNotificationSession(teacherId int64, studentId int64, subject string,
@@ -182,7 +182,7 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 		Text:      "[交易提醒]",
 		Attribute: attrTeacher,
 	}
-	LCSendTypedMessage(USER_TRADE_RECORD, teacherId, &teacherTMsg)
+	LCSendTypedMessage(USER_TRADE_RECORD, teacherId, &teacherTMsg, false)
 
 	attrStudent := map[string]string{
 		"type":      LC_TRADE_TYPE_STUDENT,
@@ -202,7 +202,7 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 		Text:      "[交易提醒]",
 		Attribute: attrStudent,
 	}
-	LCSendTypedMessage(USER_TRADE_RECORD, studentId, &studentTMsg)
+	LCSendTypedMessage(USER_TRADE_RECORD, studentId, &studentTMsg, false)
 }
 
 // func SendSessionNotification(sessionId int64, oprCode int64) {
@@ -218,14 +218,14 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 
 // 	switch oprCode {
 // 	case -1:
-// 		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg)
+// 		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg, false)
 // 	case 1:
-// 		LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, lcTMsg)
+// 		LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, lcTMsg, false)
 // 	case 2:
-// 		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg)
+// 		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg, false)
 // 	case 3:
-// 		LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, lcTMsg)
-// 		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg)
+// 		LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, lcTMsg, false)
+// 		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg, false)
 // 	}
 // }
 
@@ -250,7 +250,7 @@ func SendPersonalOrderNotification(orderId int64, teacherId int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(order.Creator.UserId, teacherId, &lcTMsg)
+	LCSendTypedMessage(order.Creator.UserId, teacherId, &lcTMsg, false)
 }
 
 func SendPersonalOrderRejectNotification(orderId int64, teacherId int64) {
@@ -272,7 +272,7 @@ func SendPersonalOrderRejectNotification(orderId int64, teacherId int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(teacherId, order.Creator.UserId, &lcTMsg)
+	LCSendTypedMessage(teacherId, order.Creator.UserId, &lcTMsg, false)
 }
 
 func SendSessionCreatedNotification(sessionId int64) {
@@ -299,8 +299,7 @@ func SendSessionCreatedNotification(sessionId int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg)
-	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &lcTMsg)
+	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg, true)
 }
 
 func SendSessionReminderNotification(sessionId int64, seconds int64) {
@@ -330,8 +329,7 @@ func SendSessionReminderNotification(sessionId int64, seconds int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg)
-	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &lcTMsg)
+	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg, true)
 }
 
 func SendSessionCancelNotification(sessionId int64) {
@@ -358,8 +356,7 @@ func SendSessionCancelNotification(sessionId int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg)
-	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &lcTMsg)
+	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg, true)
 }
 
 func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice int64) {
@@ -390,7 +387,7 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 		Text:      "您有一条结算提醒",
 		Attribute: attr,
 	}
-	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &teacherTMsg)
+	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &teacherTMsg, false)
 
 	attr["price"] = strconv.FormatInt(studentPrice, 10)
 	studentTMsg := LCTypedMessage{
@@ -398,7 +395,7 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 		Text:      "您有一条结算提醒",
 		Attribute: attr,
 	}
-	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &studentTMsg)
+	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &studentTMsg, false)
 }
 
 func SendAdvertisementMessage(title, desc, mediaId, url string, userId int64) {
@@ -415,7 +412,7 @@ func SendAdvertisementMessage(title, desc, mediaId, url string, userId int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(USER_WOLAI_SUPPORT, userId, &lcTMsg)
+	LCSendTypedMessage(USER_WOLAI_SUPPORT, userId, &lcTMsg, false)
 }
 
 /*
