@@ -113,7 +113,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 读取Websocket信息
 		_, p, err = conn.ReadMessage()
 		if err != nil {
-			seelog.Error(err.Error())
 			seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
 			loginTS := WsManager.GetUserOnlineStatus(userId)
 			if WsManager.GetUserOnlineStatus(userId) == loginTS {
@@ -157,6 +156,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 用户登出信息
 		case WS_LOGOUT:
+			seelog.Debug("User:", userId, " common logout!")
 			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
 			userChan <- resp
 			WSUserLogout(userId)
