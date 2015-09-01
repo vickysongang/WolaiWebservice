@@ -113,6 +113,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 读取Websocket信息
 		_, p, err = conn.ReadMessage()
 		if err != nil {
+			seelog.Error(err.Error())
 			seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
 			loginTS := WsManager.GetUserOnlineStatus(userId)
 			if WsManager.GetUserOnlineStatus(userId) == loginTS {
