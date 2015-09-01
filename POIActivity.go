@@ -57,7 +57,7 @@ func InsertActivity(activity *POIActivity) (*POIActivity, error) {
 
 func InsertUserToActivity(userToActivity *POIUserToActivity) (*POIUserToActivity, error) {
 	o := orm.NewOrm()
-	id, err := o.Insert(&userToActivity)
+	id, err := o.Insert(userToActivity)
 	if err != nil {
 		return nil, err
 	}

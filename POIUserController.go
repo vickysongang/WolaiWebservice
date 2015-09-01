@@ -1,8 +1,6 @@
 package main
 
-import (
-	"strconv"
-)
+import "strconv"
 
 func LoadPOIUser(userId int64) *POIUser {
 	return QueryUserById(userId)
