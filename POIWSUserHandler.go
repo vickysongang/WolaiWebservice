@@ -35,7 +35,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 		case _, ok := <-oldChan:
 			if ok {
 				if msg.OperationCode == WS_LOGIN {
-					seelog.Debug("Send Force Logout message to ", msg.UserId)
+					seelog.Debug("Send Force Logout message1 to ", msg.UserId)
 					msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
 					oldChan <- msgFL
 				}
@@ -43,7 +43,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 			}
 		default:
 			if msg.OperationCode == WS_LOGIN {
-				seelog.Debug("Send Force Logout message to ", msg.UserId)
+				seelog.Debug("Send Force Logout message2 to ", msg.UserId)
 				msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
 				oldChan <- msgFL
 			}
