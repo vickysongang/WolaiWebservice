@@ -107,14 +107,13 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		conn.SetReadDeadline(time.Now().Add(pongWait))
 		return nil
 	})
-
+	loginTS := WsManager.GetUserOnlineStatus(userId)
 	for {
 
 		// 读取Websocket信息
 		_, p, err = conn.ReadMessage()
 		if err != nil {
 			seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
-			loginTS := WsManager.GetUserOnlineStatus(userId)
 			if WsManager.GetUserOnlineStatus(userId) == loginTS {
 				WSUserLogout(userId)
 				close(userChan)
