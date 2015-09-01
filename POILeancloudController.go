@@ -330,6 +330,8 @@ func SendSessionReminderNotification(sessionId int64, seconds int64) {
 		Attribute: attr,
 	}
 
+	_, _ = GetUserConversation(session.Creator.UserId, session.Teacher.UserId)
+
 	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg)
 	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &lcTMsg)
 }
