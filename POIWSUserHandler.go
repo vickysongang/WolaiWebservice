@@ -26,11 +26,10 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	if user := QueryUserById(msg.UserId); user == nil {
 		return userChan, false
 	}
-
 	if WsManager.HasUserChan(msg.UserId) {
-		WSUserLogout(msg.UserId)
 		seelog.Debug("UserId:", msg.UserId, " Force Logout!")
 		oldChan := WsManager.GetUserChan(msg.UserId)
+		WSUserLogout(msg.UserId)
 		select {
 		case _, ok := <-oldChan:
 			if ok {

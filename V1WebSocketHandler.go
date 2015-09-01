@@ -33,7 +33,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() {
 		conn.Close()
-		seelog.Debug("close websocket connection ......")
+		seelog.Debug("V1WebSocketHandler close websocket connection ......")
 		if r := recover(); r != nil {
 			seelog.Error(r)
 		}
@@ -268,6 +268,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 	defer func() {
 		pingTicker.Stop()
 		conn.Close()
+		seelog.Debug("WebSocketWriteHandler close websocket connection")
 		if r := recover(); r != nil {
 			seelog.Error(r)
 		}
