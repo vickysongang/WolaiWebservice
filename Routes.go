@@ -647,4 +647,17 @@ var routes = Routes{
 		"/test",
 		Test,
 	},
+
+	Route{
+		"V1SendAdvMessagePOST",
+		"POST",
+		"/v1/send/adv",
+		V1SendAdvMessage,
+	},
+	Route{
+		"V1SendAdvMessageGET",
+		"GET",
+		"/v1/send/adv",
+		V1SendAdvMessage,
+	},
 }

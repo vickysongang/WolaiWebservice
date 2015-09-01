@@ -1256,3 +1256,25 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	content, _ := QueryOrderInSession4Student(10021, 0, 1)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }
+
+func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	title := vars["title"][0]
+	description := vars["desc"][0]
+	mediaId := vars["mediaId"][0]
+	url := vars["url"][0]
+	SendAdvertisementMessage(title, description, mediaId, url, userId)
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, "", nil))
+
+}
