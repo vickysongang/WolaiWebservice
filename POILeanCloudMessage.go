@@ -127,7 +127,7 @@ func init() {
 // 	return &lcTMsg
 // }
 
-func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
+func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage, twoway bool) {
 	user := QueryUserById(userId)
 	target := QueryUserById(targetId)
 	if user == nil || target == nil {
@@ -144,6 +144,16 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 		Transient:      false,
 	}
 
+	LCSendMessage(&lcMsg)
+
+	if twoway {
+		targetIdStr := strconv.FormatInt(targetId, 10)
+		lcMsg.SendId = targetIdStr
+		LCSendMessage(&lcMsg)
+	}
+}
+
+func LCSendMessage(lcMsg *LCMessage) {
 	url := LC_SEND_MSG
 	seelog.Debug("URL:>", url)
 
@@ -161,6 +171,7 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 	if err != nil {
 		seelog.Error(err.Error())
 	}
+
 	defer resp.Body.Close()
 	return
 }
