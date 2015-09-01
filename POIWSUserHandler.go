@@ -7,6 +7,7 @@ import (
 )
 
 func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
+	seelog.Debug("WsUserLogin:", msg.UserId)
 	defer func() {
 		if r := recover(); r != nil {
 			seelog.Error(r)

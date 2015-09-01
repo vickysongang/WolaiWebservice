@@ -111,6 +111,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 
 		// 读取Websocket信息
+		seelog.Debug("************************************************************************")
 		_, p, err = conn.ReadMessage()
 		if err != nil {
 			seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId)
