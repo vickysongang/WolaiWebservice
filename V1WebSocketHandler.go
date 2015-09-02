@@ -104,12 +104,15 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	conn.SetReadDeadline(time.Now().Add(pongWait))
 	conn.SetPongHandler(func(string) error {
-		conn.SetReadDeadline(time.Now().Add(pongWait))
+		err := conn.SetReadDeadline(time.Now().Add(pongWait))
+		if err != nil {
+			seelog.Error(err.Error())
+			return err
+		}
 		return nil
 	})
 	loginTS := WsManager.GetUserOnlineStatus(userId)
 	for {
-
 		// 读取Websocket信息
 		_, p, err = conn.ReadMessage()
 		if err != nil {
@@ -157,7 +160,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 用户登出信息
 		case WS_LOGOUT:
-			seelog.Debug("User:", userId, " common logout!")
+			seelog.Debug("User:", userId, " COMMON LOGOUT!!!!!")
 			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
 			userChan <- resp
 			WSUserLogout(userId)
