@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
+	"time"
 
 	seelog "github.com/cihub/seelog"
 	"gopkg.in/redis.v3"
@@ -501,11 +503,22 @@ func (rm *POIRedisManager) RemoveUserObjectId(userId int64) {
 	return
 }
 
-func (rm *POIRedisManager) SetSessionTime4Teacher(session *POISession) {
-	if session == nil {
-		return
+func (rm *POIRedisManager) SetSessionTime4Teacher(sessionId int64) {
+	orderInSession, err := QueryOrderInSession(sessionId)
+	if err == nil {
+		planTimeStr := orderInSession.PlanTime
+		length := orderInSession.EstimateLength
+		d1, _ := time.ParseDuration("-30m")
+		planTime, _ := time.Parse(time.RFC3339, planTimeStr)
+		timeFrom := planTime.Add(d1)
+		l := length + 30*60
+		d2, _ := time.ParseDuration("+" + strconv.Itoa(int(l)) + "s")
+		timeTo := planTime.Add(d2)
+		//		teacherIdStr := strconv.Itoa(int(orderInSession.Tutor))
+		//        timeFromZ := redis.Z{Member:}
+		fmt.Println(planTimeStr, length)
+		fmt.Println(timeFrom, timeTo)
 	}
-
 	//	feedZ := redis.Z{Member: feed.Id, Score: feed.CreateTimestamp}
 	//	userIdStr := strconv.FormatInt(feed.Creator.UserId, 10)
 

@@ -1256,6 +1256,7 @@ func ThrowsPanic(w http.ResponseWriter) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
+
 	//	defer ThrowsPanic(w)
 	//	err := r.ParseForm()
 	//	if err != nil {
@@ -1265,8 +1266,8 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
 	//	userIdStr := vars["userId"][0]
 	//	fmt.Println(userIdStr)
-	content := RedisManager.GetUserFollowList(10011, 0, 10)
-	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
+	RedisManager.SetSessionTime4Teacher(1390)
+	//	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }
 
 func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {

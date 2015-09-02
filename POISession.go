@@ -124,6 +124,22 @@ func UpdateSessionInfo(sessionId int64, sessionInfo map[string]interface{}) {
 	return
 }
 
+func QueryOrderInSession(sessionId int64) (*POIOrderInSession, error) {
+	orderInSession := POIOrderInSession{}
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
+	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
+		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour").
+		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
+		Where("sessions.id = ?").OrderBy("sessions.create_time")
+	sql := qb.String()
+	err := o.Raw(sql, sessionId).QueryRow(&orderInSession)
+	if err != nil {
+		return nil, err
+	}
+	return &orderInSession, nil
+}
+
 func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) (POIOrderInSessions, error) {
 	orderInSessions := make(POIOrderInSessions, 0)
 	o := orm.NewOrm()
