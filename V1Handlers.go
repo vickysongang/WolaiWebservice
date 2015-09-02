@@ -620,8 +620,20 @@ func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
 
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
 
-	content := GetUserFollowing(userId)
+	content := GetUserFollowing(userId, page, count)
 
 	if content == nil {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, "", NullSlice))
@@ -1253,7 +1265,7 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
 	//	userIdStr := vars["userId"][0]
 	//	fmt.Println(userIdStr)
-	content, _ := QueryOrderInSession4Student(10021, 0, 1)
+	content := RedisManager.GetUserFollowList(10011, 0, 10)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }
 

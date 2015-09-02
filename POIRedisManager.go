@@ -380,16 +380,24 @@ func (rm *POIRedisManager) HasFollowedUser(userId, followId int64) bool {
 	return result
 }
 
-func (rm *POIRedisManager) GetUserFollowList(userId int64) POITeachers {
+func (rm *POIRedisManager) GetUserFollowList(userId, pageNum, pageCount int64) POITeachers {
 	userIdStr := strconv.FormatInt(userId, 10)
 	userIds := rm.redisClient.HKeys(USER_FOLLOWING + userIdStr).Val()
-
-	teachers := make(POITeachers, len(userIds))
-	for i := range userIds {
-		userIdtmp, _ := strconv.ParseInt(userIds[i], 10, 64)
-		teachers[i] = *(QueryTeacher(userIdtmp))
+	start := pageNum * pageCount
+	//	teachers := make(POITeachers, len(userIds))
+	teachers := make(POITeachers, 0)
+	//	for i := range userIds {
+	//		userIdtmp, _ := strconv.ParseInt(userIds[i], 10, 64)
+	//		teachers[i] = *(QueryTeacher(userIdtmp))
+	//	}
+	length := int64(len(userIds))
+	for i := start; i < (start + pageCount); i++ {
+		if i < length {
+			userIdtmp, _ := strconv.ParseInt(userIds[i], 10, 64)
+			teacher := *(QueryTeacher(userIdtmp))
+			teachers = append(teachers, teacher)
+		}
 	}
-
 	return teachers
 }
 

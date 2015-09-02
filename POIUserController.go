@@ -117,14 +117,14 @@ func POIUserUnfollow(userId, followId int64) (int64, bool) {
 	return 0, false
 }
 
-func GetUserFollowing(userId int64) POITeachers {
+func GetUserFollowing(userId, pageNum, pageCount int64) POITeachers {
 	user := QueryUserById(userId)
 	if user == nil {
 		return nil
 	}
 	var teachers POITeachers
 	if RedisManager.redisError == nil {
-		teachers = RedisManager.GetUserFollowList(userId)
+		teachers = RedisManager.GetUserFollowList(userId, pageNum, pageCount)
 	}
 	return teachers
 }
