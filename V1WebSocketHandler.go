@@ -283,7 +283,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 		select {
 		// 发送心跳
 		case <-pingTicker.C:
-
+			seelog.Debug("Send heartbeat to userId:", userId, "!!!!!!!")
 			if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 				if WsManager.GetUserOnlineStatus(userId) == loginTS {

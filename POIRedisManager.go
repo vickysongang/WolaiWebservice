@@ -42,6 +42,8 @@ const (
 	ORDER_PLANTIME = "order:plan_time:"
 
 	SESSION_TICKER = "session:ticker"
+
+	SESSION_TEACHER = "session:teacher:"
 )
 
 func NewPOIRedisManager() POIRedisManager {
@@ -497,4 +499,20 @@ func (rm *POIRedisManager) RemoveUserObjectId(userId int64) {
 	_, _ = rm.redisClient.HDel(USER_OBJECTID, userIdStr).Result()
 
 	return
+}
+
+func (rm *POIRedisManager) SetSessionTime4Teacher(session *POISession) {
+	if session == nil {
+		return
+	}
+
+	//	feedZ := redis.Z{Member: feed.Id, Score: feed.CreateTimestamp}
+	//	userIdStr := strconv.FormatInt(feed.Creator.UserId, 10)
+
+	//	_ = rm.redisClient.ZAdd(FEEDFLOW_ATRIUM, feedZ)
+	//	_ = rm.redisClient.ZAdd(USER_FEED+userIdStr, feedZ)
+
+	//	if feed.FeedType == FEEDTYPE_REPOST {
+	//		_ = rm.redisClient.ZAdd(FEED_REPOST+userIdStr, feedZ)
+	//	}
 }

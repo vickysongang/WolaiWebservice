@@ -47,7 +47,7 @@ func init() {
 
 func InsertActivity(activity *POIActivity) (*POIActivity, error) {
 	o := orm.NewOrm()
-	id, err := o.Insert(&activity)
+	id, err := o.Insert(activity)
 	if err != nil {
 		return nil, err
 	}
