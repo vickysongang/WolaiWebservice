@@ -104,6 +104,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	conn.SetReadDeadline(time.Now().Add(pongWait))
 	conn.SetPongHandler(func(string) error {
+		seelog.Debug("Recieve heartbeat from userId:", userId, "&&&&&&&")
 		err := conn.SetReadDeadline(time.Now().Add(pongWait))
 		if err != nil {
 			seelog.Error(err.Error())
