@@ -309,7 +309,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 				}
 
 				msgByte, err := json.Marshal(msg)
-				if err != nil {
+				if err == nil {
 					seelog.Debug("WebSocketWriter: UserId: ", userId, "Msg: ", string(msgByte))
 				}
 
