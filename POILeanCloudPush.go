@@ -137,7 +137,7 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 
 func LCPushNotification(lcReq *map[string]interface{}) {
 	url := LC_PUSH
-	seelog.Info("URL:>", url)
+	//seelog.Info("URL:>", url)
 
 	query, _ := json.Marshal(lcReq)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
@@ -147,7 +147,7 @@ func LCPushNotification(lcReq *map[string]interface{}) {
 	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Master-Key", Config.LeanCloud.MasterKey)
 	req.Header.Set("Content-Type", "application/json")
-	seelog.Info("Request:", string(query))
+	seelog.Info("[LeanCloud Push]:", string(query))
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {

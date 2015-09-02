@@ -25,7 +25,7 @@ func NewLeanCloudConvReq(name, member1, member2 string) LeanCloudConvReq {
 
 func LCGetConversationId(member1, member2 string) string {
 	url := LC_CONV_ID
-	seelog.Info("URL:>", url)
+	//seelog.Debug("URL:>", url)
 	lcReq := NewLeanCloudConvReq("conversation", member1, member2)
 
 	query, _ := json.Marshal(lcReq)
@@ -36,7 +36,7 @@ func LCGetConversationId(member1, member2 string) string {
 	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Application-Key", Config.LeanCloud.AppKey)
 	req.Header.Set("Content-Type", "application/json")
-	seelog.Info("Request:", string(query))
+	seelog.Debug("[LeanCloudConversation]:", string(query))
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {

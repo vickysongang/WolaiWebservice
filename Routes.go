@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
+	"time"
 
+	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/mux"
 )
 
@@ -18,14 +21,29 @@ type Routes []Route
 func NewRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 	for _, route := range routes {
+		var handler http.Handler
+		handler = route.HandlerFunc
+		handler = WebLogger(handler, route.Name)
+
 		router.
 			Methods(route.Method).
 			Path(route.Pattern).
 			Name(route.Name).
-			Handler(route.HandlerFunc)
-		//		seelog.Debug("Method:", route.Method, " Pattern:", route.Pattern, " Name:", route.Name, " Handler:", route.HandlerFunc)
+			Handler(handler)
 	}
 	return router
+}
+
+func WebLogger(inner http.Handler, name string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		inner.ServeHTTP(w, r)
+
+		formData, _ := json.Marshal(r.Form)
+		seelog.Info("[", r.Method, "] ", r.RequestURI, "\t", name, "\t", time.Since(start),
+			"\t", string(formData))
+	})
 }
 
 var routes = Routes{
