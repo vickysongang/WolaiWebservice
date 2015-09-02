@@ -205,30 +205,6 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 	LCSendTypedMessage(USER_TRADE_RECORD, studentId, &studentTMsg, false)
 }
 
-// func SendSessionNotification(sessionId int64, oprCode int64) {
-// 	session := QuerySessionById(sessionId)
-// 	if session == nil {
-// 		return
-// 	}
-
-// 	lcTMsg := NewSessionNotification(sessionId, oprCode)
-// 	if lcTMsg == nil {
-// 		return
-// 	}
-
-// 	switch oprCode {
-// 	case -1:
-// 		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg, false)
-// 	case 1:
-// 		LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, lcTMsg, false)
-// 	case 2:
-// 		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg, false)
-// 	case 3:
-// 		LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, lcTMsg, false)
-// 		LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, lcTMsg, false)
-// 	}
-// }
-
 func SendPersonalOrderNotification(orderId int64, teacherId int64) {
 	order := QueryOrderById(orderId)
 	teacher := QueryUserById(teacherId)

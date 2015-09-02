@@ -95,38 +95,6 @@ func init() {
 	orm.RegisterModel(new(LCMessageLog), new(LCSupportMessageLog))
 }
 
-// func NewSessionNotification(sessionId int64, oprCode int64) *LCTypedMessage {
-// 	session := QuerySessionById(sessionId)
-// 	if session == nil {
-// 		return nil
-// 	}
-
-// 	attr := make(map[string]string)
-// 	sessionIdStr := strconv.FormatInt(sessionId, 10)
-// 	switch oprCode {
-// 	case -1:
-// 		attr["oprCode"] = "-1"
-// 		attr["sessionId"] = sessionIdStr
-// 	case 1:
-// 		attr["oprCode"] = "1"
-// 		attr["sessionId"] = sessionIdStr
-// 		attr["countdown"] = "10"
-// 		attr["planTime"] = session.PlanTime
-// 	case 2:
-// 		attr["oprCode"] = "2"
-// 		attr["sessionId"] = sessionIdStr
-// 		tmpStr, _ := json.Marshal(session.Teacher)
-// 		attr["teacherInfo"] = string(tmpStr)
-// 	case 3:
-// 		attr["oprCode"] = "3"
-// 		attr["sessionId"] = sessionIdStr
-// 	}
-
-// 	lcTMsg := LCTypedMessage{Type: 6, Text: "您有一条上课提醒", Attribute: attr}
-
-// 	return &lcTMsg
-// }
-
 func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage, twoway bool) {
 	user := QueryUserById(userId)
 	target := QueryUserById(targetId)
@@ -155,7 +123,7 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage, twoway b
 
 func LCSendMessage(lcMsg *LCMessage) {
 	url := LC_SEND_MSG
-	seelog.Debug("URL:>", url)
+	//seelog.Debug("URL:>", url)
 
 	query, _ := json.Marshal(lcMsg)
 
