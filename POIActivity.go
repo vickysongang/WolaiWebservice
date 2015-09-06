@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/cihub/seelog"
 )
 
 const (
@@ -84,7 +85,8 @@ func QueryEffectiveActivities(activityType string) (POIActivities, error) {
  */
 func CheckUserHasParticipatedInActivity(userId, activityId int64) bool {
 	o := orm.NewOrm()
-	count, err := o.QueryTable("user_to_activity").Filter("user_id", userId).Filter("activity_id", activityId).Count()
+	count, err := o.QueryTable("user_to_activity").Filter("user_id", userId).
+		Filter("activity_id", activityId).Count()
 	if err != nil {
 		return false
 	}
@@ -92,4 +94,16 @@ func CheckUserHasParticipatedInActivity(userId, activityId int64) bool {
 		return true
 	}
 	return false
+}
+
+func UpdateUserToActivityInfo(userId, activityId int64, updateInfo map[string]interface{}) {
+	o := orm.NewOrm()
+	var params orm.Params = make(orm.Params)
+	for k, v := range updateInfo {
+		params[k] = v
+	}
+	_, err := o.QueryTable("user_to_activity").Filter("user_id", userId).Filter("activity_id", activityId).Update(params)
+	if err != nil {
+		seelog.Error("userId:", userId, " activityId:", activityId, " updateInfo:", updateInfo, err.Error())
+	}
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -1173,6 +1174,43 @@ func V1GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+ * 10.1 Activities
+ */
+func V1GetActivities(w http.ResponseWriter, r *http.Request) {
+	//	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	activityType := vars["type"][0]
+	activities, err := QueryEffectiveActivities(activityType)
+	if err == nil {
+		mediaIds := make([]string, 0)
+		for _, activity := range activities {
+			if !CheckUserHasParticipatedInActivity(userId, activity.Id) {
+				userToActivity := POIUserToActivity{UserId: userId, ActivityId: activity.Id}
+				InsertUserToActivity(&userToActivity)
+				if activity.MediaId != "" {
+					mediaIds = append(mediaIds, activity.MediaId)
+				}
+				if activityType == REGISTER_ACTIVITY {
+					HandleSystemTrade(userId, activity.Amount, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, activity.Theme)
+					go SendTradeNotificationSystem(userId, activity.Amount, LC_TRADE_STATUS_INCOME,
+						activity.Title, activity.Subtitle, activity.Extra)
+				}
+			}
+		}
+		json.NewEncoder(w).Encode(NewPOIResponse(0, "", mediaIds))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
+	}
+}
+
 func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
@@ -1266,7 +1304,8 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
 	//	userIdStr := vars["userId"][0]
 	//	fmt.Println(userIdStr)
-	RedisManager.SetSessionTime4Teacher(1390)
+	content := RedisManager.IsTeacherBusy(10116, time.Now().Unix()-100, time.Now().Unix())
+	fmt.Println(content)
 	//	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }
 

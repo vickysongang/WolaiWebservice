@@ -282,9 +282,10 @@ func POIWSSessionHandler(sessionId int64) {
 
 					length = length + (timestamp - lastSync)
 
+					timeTo := time.Now()
 					sessionInfo := map[string]interface{}{
 						"Status": SESSION_STATUS_COMPLETE,
-						"TimeTo": time.Now(),
+						"TimeTo": timeTo,
 						"Length": length,
 					}
 					UpdateSessionInfo(sessionId, sessionInfo)

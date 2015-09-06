@@ -503,6 +503,9 @@ func (rm *POIRedisManager) RemoveUserObjectId(userId int64) {
 	return
 }
 
+/*
+ * 将老师的计划开始时间和预计结束时间存入redis
+ */
 func (rm *POIRedisManager) SetSessionTime4Teacher(sessionId int64) {
 	orderInSession, err := QueryOrderInSession(sessionId)
 	if err == nil {
@@ -514,18 +517,44 @@ func (rm *POIRedisManager) SetSessionTime4Teacher(sessionId int64) {
 		l := length + 30*60
 		d2, _ := time.ParseDuration("+" + strconv.Itoa(int(l)) + "s")
 		timeTo := planTime.Add(d2)
-		//		teacherIdStr := strconv.Itoa(int(orderInSession.Tutor))
-		//        timeFromZ := redis.Z{Member:}
+		teacherIdStr := strconv.Itoa(int(orderInSession.Tutor))
+		sessionIdStr := strconv.Itoa(int(sessionId))
+		timeFromZ := redis.Z{Member: sessionIdStr + ":FROM", Score: float64(timeFrom.Unix())}
+		timeToZ := redis.Z{Member: sessionIdStr + ":TO", Score: float64(timeTo.Unix())}
+		rm.redisClient.ZAdd(SESSION_TEACHER+teacherIdStr, timeFromZ)
+		rm.redisClient.ZAdd(SESSION_TEACHER+teacherIdStr, timeToZ)
 		fmt.Println(planTimeStr, length)
 		fmt.Println(timeFrom, timeTo)
 	}
-	//	feedZ := redis.Z{Member: feed.Id, Score: feed.CreateTimestamp}
-	//	userIdStr := strconv.FormatInt(feed.Creator.UserId, 10)
+}
 
-	//	_ = rm.redisClient.ZAdd(FEEDFLOW_ATRIUM, feedZ)
-	//	_ = rm.redisClient.ZAdd(USER_FEED+userIdStr, feedZ)
+/*
+ * 更改老师指定课程的结束时间
+ */
+func (rm *POIRedisManager) UpdateSessionTimeTo4Teacher(sessionId, teacherId int64, timeTo time.Time) {
+	teacherIdStr := strconv.Itoa(int(teacherId))
+	sessionIdStr := strconv.Itoa(int(sessionId))
+	timeToZ := redis.Z{Member: sessionIdStr + ":TO", Score: float64(timeTo.Unix())}
+	rm.redisClient.ZAdd(SESSION_TEACHER+teacherIdStr, timeToZ)
+}
 
-	//	if feed.FeedType == FEEDTYPE_REPOST {
-	//		_ = rm.redisClient.ZAdd(FEED_REPOST+userIdStr, feedZ)
-	//	}
+/*
+ * 判断老师在某一时间段内是否处于忙碌状态
+ */
+func (rm *POIRedisManager) IsTeacherBusy(teacherId int64, fromTimestamp, toTimeStamp int64) bool {
+	teacherIdStr := strconv.Itoa(int(teacherId))
+	sessions, err := rm.redisClient.ZRangeByScore(SESSION_TEACHER+teacherIdStr,
+		redis.ZRangeByScore{
+			Min:    strconv.FormatInt(fromTimestamp, 10),
+			Max:    strconv.FormatInt(toTimeStamp, 10),
+			Offset: 0,
+			Count:  10,
+		}).Result()
+	if err == redis.Nil {
+		return false
+	}
+	if len(sessions) > 0 {
+		return true
+	}
+	return false
 }
