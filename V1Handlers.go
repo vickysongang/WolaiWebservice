@@ -1330,3 +1330,23 @@ func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(NewPOIResponse(0, "", nil))
 
 }
+
+func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	_ = vars["subjectId"][0]
+	_ = vars["gradeId"][0]
+
+	content := map[string]interface{}{
+		"price":     4000,
+		"realPrice": 6000,
+	}
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
+}

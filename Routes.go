@@ -691,4 +691,17 @@ var routes = Routes{
 		"/v1/send/adv",
 		V1SendAdvMessage,
 	},
+
+	Route{
+		"V1TeacherExpectPost",
+		"POST",
+		"/v1/teacher/expect",
+		V1TeacherExpect,
+	},
+	Route{
+		"V1TeacherExpectGET",
+		"GET",
+		"/v1/teacher/expect",
+		V1TeacherExpect,
+	},
 }
