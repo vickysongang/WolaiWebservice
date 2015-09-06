@@ -30,20 +30,19 @@ func POIUserLogin(phone string) (int64, *POIUser) {
 	activities, err := QueryEffectiveActivities(REGISTER_ACTIVITY)
 	if err == nil {
 		for _, activity := range activities {
-			if !CheckUserHasParticipatedInActivity(id, activity.Id) {
-				userToActivity := POIUserToActivity{UserId: id, ActivityId: activity.Id}
-				InsertUserToActivity(&userToActivity)
-				HandleSystemTrade(newUser.UserId, activity.Amount, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, activity.Theme)
-				go SendTradeNotificationSystem(newUser.UserId, activity.Amount, LC_TRADE_STATUS_INCOME,
-					activity.Title, activity.Subtitle, activity.Extra)
-			}
+			userToActivity := POIUserToActivity{UserId: id, ActivityId: activity.Id}
+			InsertUserToActivity(&userToActivity)
+			HandleSystemTrade(newUser.UserId, activity.Amount, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, activity.Theme)
+			go SendTradeNotificationSystem(newUser.UserId, activity.Amount, LC_TRADE_STATUS_INCOME,
+				activity.Title, activity.Subtitle, activity.Extra)
+			RedisManager.SetActivityNotification(id, activity.Id, activity.MediaId)
 		}
 	}
-	//	HandleSystemTrade(newUser.UserId, WOLAI_GIVE_AMOUNT, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, "新用户注册奖励")
-	//	go SendWelcomeMessageStudent(newUser.UserId)
-	//	go SendTradeNotificationSystem(newUser.UserId, WOLAI_GIVE_AMOUNT, LC_TRADE_STATUS_INCOME,
-	//		"红包充值成功", "注册“我来”赠送的100元红包已经成功充入你的账户",
-	//		"邀请更多同学一起来“我来”，每邀请一位同学你们俩都将多获得20元红包哦！")
+	// HandleSystemTrade(newUser.UserId, WOLAI_GIVE_AMOUNT, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, "新用户注册奖励")
+	// go SendWelcomeMessageStudent(newUser.UserId)
+	// go SendTradeNotificationSystem(newUser.UserId, WOLAI_GIVE_AMOUNT, LC_TRADE_STATUS_INCOME,
+	// 	"红包充值成功", "注册“我来”赠送的100元红包已经成功充入你的账户",
+	// 	"邀请更多同学一起来“我来”，每邀请一位同学你们俩都将多获得20元红包哦！")
 	return 1001, newUser
 }
 

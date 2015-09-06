@@ -43,9 +43,10 @@ const (
 	ORDER_RESPONSE = "order:response:"
 	ORDER_PLANTIME = "order:plan_time:"
 
-	SESSION_TICKER = "session:ticker"
-
+	SESSION_TICKER  = "session:ticker"
 	SESSION_TEACHER = "session:teacher:"
+
+	ACTIVITY_NOTIFICATION = "activity:notification:"
 )
 
 func NewPOIRedisManager() POIRedisManager {
@@ -557,4 +558,36 @@ func (rm *POIRedisManager) IsTeacherBusy(teacherId int64, fromTimestamp, toTimeS
 		return true
 	}
 	return false
+}
+
+func (rm *POIRedisManager) SetActivityNotification(userId int64, activityId int64, mediaId string) {
+	userIdStr := strconv.FormatInt(userId, 10)
+	activityIdStr := strconv.FormatInt(activityId, 10)
+
+	_ = rm.redisClient.HSet(ACTIVITY_NOTIFICATION+userIdStr, activityIdStr, mediaId)
+
+	return
+}
+
+func (rm *POIRedisManager) GetActivityNotification(userId int64) []string {
+	result := make([]string, 0)
+
+	userIdStr := strconv.FormatInt(userId, 10)
+	hashMap, err := rm.redisClient.HGetAllMap(ACTIVITY_NOTIFICATION + userIdStr).Result()
+
+	if err == redis.Nil {
+		return result
+	}
+
+	size := len(hashMap)
+	if size == 0 {
+		return result
+	}
+
+	for field, mediaId := range hashMap {
+		result = append(result, mediaId)
+		_ = rm.redisClient.HDel(ACTIVITY_NOTIFICATION+userIdStr, field)
+	}
+
+	return result
 }

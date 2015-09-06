@@ -64,11 +64,9 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 
 	vars := r.Form
 
-	userIdStr := vars["userId"][0]
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-
-	SendAdvertisementMessage("我来回馈新老用户", "充值100万免费赠送额外1000元！", "adv.png", "www.wolai.me", userId)
-
+	activityIdStr := vars["id"][0]
+	activityId, _ := strconv.ParseInt(activityIdStr, 10, 64)
+	RedisManager.SetActivityNotification(10001, activityId, "promo_1.png")
 }
 
 /*
@@ -1177,7 +1175,7 @@ func V1GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
 /*
  * 10.1 Activities
  */
-func V1GetActivities(w http.ResponseWriter, r *http.Request) {
+func V1ActivityNotification(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1187,28 +1185,31 @@ func V1GetActivities(w http.ResponseWriter, r *http.Request) {
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
-	activityType := vars["type"][0]
-	activities, err := QueryEffectiveActivities(activityType)
-	if err == nil {
-		mediaIds := make([]string, 0)
-		for _, activity := range activities {
-			if !CheckUserHasParticipatedInActivity(userId, activity.Id) {
-				userToActivity := POIUserToActivity{UserId: userId, ActivityId: activity.Id}
-				InsertUserToActivity(&userToActivity)
-				if activity.MediaId != "" {
-					mediaIds = append(mediaIds, activity.MediaId)
-				}
-				if activityType == REGISTER_ACTIVITY {
-					HandleSystemTrade(userId, activity.Amount, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, activity.Theme)
-					go SendTradeNotificationSystem(userId, activity.Amount, LC_TRADE_STATUS_INCOME,
-						activity.Title, activity.Subtitle, activity.Extra)
-				}
-			}
-		}
-		json.NewEncoder(w).Encode(NewPOIResponse(0, "", mediaIds))
-	} else {
-		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
-	}
+	content := RedisManager.GetActivityNotification(userId)
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
+	// activityType := vars["type"][0]
+	// activities, err := QueryEffectiveActivities(activityType)
+	// if err == nil {
+	// 	mediaIds := make([]string, 0)
+	// 	for _, activity := range activities {
+	// 		if !CheckUserHasParticipatedInActivity(userId, activity.Id) {
+	// 			userToActivity := POIUserToActivity{UserId: userId, ActivityId: activity.Id}
+	// 			InsertUserToActivity(&userToActivity)
+	// 			if activity.MediaId != "" {
+	// 				mediaIds = append(mediaIds, activity.MediaId)
+	// 			}
+	// 			if activityType == REGISTER_ACTIVITY {
+	// 				HandleSystemTrade(userId, activity.Amount, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, activity.Theme)
+	// 				go SendTradeNotificationSystem(userId, activity.Amount, LC_TRADE_STATUS_INCOME,
+	// 					activity.Title, activity.Subtitle, activity.Extra)
+	// 			}
+	// 		}
+	// 	}
+	// 	json.NewEncoder(w).Encode(NewPOIResponse(0, "", mediaIds))
+	// } else {
+	// 	json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
+	// }
 }
 
 func V1SessionRating(w http.ResponseWriter, r *http.Request) {

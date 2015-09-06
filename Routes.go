@@ -614,18 +614,19 @@ var routes = Routes{
 		"/v1/evaluation/label",
 		V1GetEvaluationLabels,
 	},
+
 	// 10.1 Get Activities
 	Route{
 		"V1GetActivitiesPOST",
 		"POST",
-		"/v1/activity/participate",
-		V1GetActivities,
+		"/v1/activity/notification",
+		V1ActivityNotification,
 	},
 	Route{
 		"V1GetActivitiesGET",
 		"GET",
-		"/v1/activity/participate",
-		V1GetActivities,
+		"/v1/activity/notification",
+		V1ActivityNotification,
 	},
 
 	Route{
