@@ -139,8 +139,12 @@ func GetUserConversation(userId1, userId2 int64) (int64, string) {
 	if RedisManager.redisError == nil {
 		convId = RedisManager.GetConversation(userId1, userId2)
 		if convId == "" {
-			convId = LCGetConversationId(strconv.FormatInt(userId1, 10), strconv.FormatInt(userId2, 10))
-			RedisManager.SetConversation(convId, userId1, userId2)
+			convId2 := LCGetConversationId(strconv.FormatInt(userId1, 10), strconv.FormatInt(userId2, 10))
+			convId = RedisManager.GetConversation(userId1, userId2)
+			if convId == "" {
+				convId = convId2
+				RedisManager.SetConversation(convId, userId1, userId2)
+			}
 		}
 	}
 
