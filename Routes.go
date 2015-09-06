@@ -627,7 +627,32 @@ var routes = Routes{
 		"/v1/activity/participate",
 		V1GetActivities,
 	},
-
+	// 11.1 Bind User with InvitatoinCode
+	Route{
+		"V1BindInvitationCodePOST",
+		"POST",
+		"/v1/invitation/bind",
+		V1BindUserWithInvitationCode,
+	},
+	Route{
+		"V1BindInvitationCodeGET",
+		"GET",
+		"/v1/invitation/bind",
+		V1BindUserWithInvitationCode,
+	},
+	// 11.2 Check User Has binded with invitationCode
+	Route{
+		"V1CheckUserBindWithInvitationCodePOST",
+		"POST",
+		"/v1/invitation/check",
+		V1CheckUserHasBindWithInvitationCode,
+	},
+	Route{
+		"V1CheckUserBindWithInvitationCodeGET",
+		"GET",
+		"/v1/invitation/check",
+		V1CheckUserHasBindWithInvitationCode,
+	},
 	Route{
 		"V1SessionRatingPOST",
 		"POST",

@@ -1211,6 +1211,49 @@ func V1GetActivities(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+ * 11.1 Bind User with InvitationCode
+ */
+func V1BindUserWithInvitationCode(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	invitationCode := vars["code"][0]
+	valid := CheckInvitationCodeValid(invitationCode)
+	if !valid {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, "邀请码无效", NullObject))
+	} else {
+		userToInvitation := POIUserToInvitation{UserId: userId, InvitationCode: invitationCode}
+		_, err := InsertUserToInvitation(&userToInvitation)
+		if err != nil {
+			json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
+		} else {
+			json.NewEncoder(w).Encode(NewPOIResponse(0, "", NullObject))
+		}
+	}
+}
+
+/*
+ * 11.1 Check user has binded with InvitationCode
+ */
+func V1CheckUserHasBindWithInvitationCode(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	bindFlag := CheckUserHasBindWithInvitationCode(userId)
+	json.NewEncoder(w).Encode(NewPOIResponse(0, "", bindFlag))
+}
+
 func V1SessionRating(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
