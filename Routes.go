@@ -68,6 +68,12 @@ var routes = Routes{
 		"/dummy2",
 		Dummy2,
 	},
+	Route{
+		"TestGET",
+		"GET",
+		"/test",
+		Test,
+	},
 
 	// 1.1 Login
 	Route{
@@ -468,6 +474,7 @@ var routes = Routes{
 		"/v1/order/personal/confirm",
 		V1OrderPersonalConfirm,
 	},
+
 	//6.1 Trade Charge
 	Route{
 		"V1TradeChargePOST",
@@ -697,12 +704,6 @@ var routes = Routes{
 		"POST",
 		"/v1/conversation/participant",
 		v1GetConversationParticipants,
-	},
-	Route{
-		"TestGET",
-		"GET",
-		"/test",
-		Test,
 	},
 
 	Route{
