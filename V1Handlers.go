@@ -1178,7 +1178,7 @@ func V1GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
  * 10.1 Activities
  */
 func V1GetActivities(w http.ResponseWriter, r *http.Request) {
-	//	defer ThrowsPanic(w)
+	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
