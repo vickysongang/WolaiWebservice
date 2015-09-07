@@ -80,8 +80,8 @@ func Test(w http.ResponseWriter, r *http.Request) {
 	//	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
 	//	userIdStr := vars["userId"][0]
 	//	fmt.Println(userIdStr)
-	content := RedisManager.IsTeacherBusy(10116, time.Now().Unix()-100, time.Now().Unix())
-	fmt.Println(content)
+	//  content := RedisManager.IsTeacherBusy(10116, time.Now().Unix()-100, time.Now().Unix())
+	fmt.Println("")
 	//	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }
 

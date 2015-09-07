@@ -10,6 +10,7 @@ const (
 	USER_SYSTEM_MESSAGE = 1000
 	USER_WOLAI_SUPPORT  = 1001
 	USER_TRADE_RECORD   = 1002
+	USER_WOLAI_TEAM     = 1003
 )
 
 type POIConversationParticipant struct {
@@ -28,7 +29,7 @@ func SendWelcomeMessageTeacher(userId int64) {
 		Text:      "[图片消息]",
 		Attribute: attr,
 	}
-	LCSendTypedMessage(USER_WOLAI_SUPPORT, userId, &msg, false)
+	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &msg, false)
 }
 
 func SendWelcomeMessageStudent(userId int64) {
@@ -40,7 +41,7 @@ func SendWelcomeMessageStudent(userId int64) {
 		Text:      "[图片消息]",
 		Attribute: attr,
 	}
-	LCSendTypedMessage(USER_WOLAI_SUPPORT, userId, &msg, false)
+	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &msg, false)
 }
 
 func SendCommentNotification(feedCommentId string) {
@@ -388,7 +389,7 @@ func SendAdvertisementMessage(title, desc, mediaId, url string, userId int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(USER_WOLAI_SUPPORT, userId, &lcTMsg, false)
+	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &lcTMsg, false)
 }
 
 /*

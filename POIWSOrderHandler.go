@@ -278,6 +278,7 @@ func POIWSOrderHandler(orderId int64) {
 						dispatchChan <- resultMsg
 					}
 					seelog.Debug("POIWSOrderHandler_OrderConfirmed:", orderId, " to teacher: ", teacherId)
+
 					// 进入上课流程
 					dispatchInfo := QueryOrderDispatch(orderId, teacherId)
 					planTime := dispatchInfo.PlanTime
@@ -291,6 +292,7 @@ func POIWSOrderHandler(orderId int64) {
 						QueryUserById(teacherId),
 						planTime)
 					sessionPtr := InsertSession(&session)
+					RedisManager.SetTeacherSessionTime(sessionPtr.Id)
 
 					// 发送Leancloud订单成功通知
 					go SendSessionCreatedNotification(sessionPtr.Id)
