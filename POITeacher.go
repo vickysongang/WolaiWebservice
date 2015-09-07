@@ -143,7 +143,7 @@ func QueryTeacherList(pageNum, pageCount int64) (POITeachers, error) {
 	start := pageNum * pageCount
 	teachers := make(POITeachers, 0)
 	qb, _ := orm.NewQueryBuilder(DB_TYPE)
-	qb.Select("users.id, users.nickname, users.avatar, users.gender,teacher_profile.service_time,teacher_profile.price_per_hour," +
+	qb.Select("users.id, users.nickname, users.avatar, users.gender,users.access_right,teacher_profile.service_time,teacher_profile.price_per_hour," +
 		"teacher_profile.real_price_per_hour,school.name school_name, department.name dept_name").
 		From("users").InnerJoin("teacher_profile").On("users.id = teacher_profile.user_id").InnerJoin("school").
 		On("teacher_profile.school_id = school.id").InnerJoin("department").On("teacher_profile.department_id = department.id").
@@ -158,9 +158,18 @@ func QueryTeacherList(pageNum, pageCount int64) (POITeachers, error) {
 	}
 	for i := range teacherModels {
 		teacher := teacherModels[i]
-		teachers = append(teachers, POITeacher{POIUser: POIUser{UserId: teacher.Id, Nickname: teacher.Nickname,
-			Avatar: teacher.Avatar, Gender: teacher.Gender}, ServiceTime: teacher.ServiceTime, School: teacher.SchoolName,
-			Department: teacher.DeptName, PricePerHour: teacher.PricePerHour, RealPricePerHour: teacher.RealPricePerHour})
+		teachers = append(teachers, POITeacher{
+			POIUser: POIUser{
+				UserId:      teacher.Id,
+				Nickname:    teacher.Nickname,
+				Avatar:      teacher.Avatar,
+				AccessRight: teacher.AccessRight,
+				Gender:      teacher.Gender},
+			ServiceTime:      teacher.ServiceTime,
+			School:           teacher.SchoolName,
+			Department:       teacher.DeptName,
+			PricePerHour:     teacher.PricePerHour,
+			RealPricePerHour: teacher.RealPricePerHour})
 	}
 	return teachers, nil
 }

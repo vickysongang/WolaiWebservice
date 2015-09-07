@@ -615,7 +615,7 @@ var routes = Routes{
 		V1GetEvaluationLabels,
 	},
 
-	// 10.1 Get Activities
+	// 10.1 Activity Notification
 	Route{
 		"V1GetActivitiesPOST",
 		"POST",
