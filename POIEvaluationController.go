@@ -27,6 +27,9 @@ func CheckRandNumInSlice(slice []int64, randNum int64) bool {
 
 func GetRandNumSlice(sliceSize int64, length int64) []int64 {
 	var result []int64
+	if sliceSize <= 0 {
+		return result
+	}
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for {
 		randNum := r.Int63n(length)

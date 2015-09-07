@@ -69,7 +69,7 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	content, _ := QuerySystemEvaluationLabels(10011, 565, 200)
+	content, _ := QuerySystemEvaluationLabels(10011, 565, 1)
 	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }
 
