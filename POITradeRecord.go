@@ -118,6 +118,19 @@ func InsertTradeToSession(tradeToSession *POITradeToSession) int64 {
 	return id
 }
 
+func QuerySessionIdByTradeRecord(tradeRecordId int64) int64 {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
+	qb.Select("session_id").From("trade_to_session").Where("trade_record_id = ?")
+	sql := qb.String()
+	var sessionId int64
+	err := o.Raw(sql, tradeRecordId).QueryRow(&sessionId)
+	if err != nil {
+		return 0
+	}
+	return sessionId
+}
+
 func QuerySessionTradeRecords(userId int64, pageNum, pageCount int) (*POISessionTradeRecords, error) {
 	start := pageNum * pageCount
 	records := make(POISessionTradeRecords, 0)
@@ -132,10 +145,20 @@ func QuerySessionTradeRecords(userId int64, pageNum, pageCount int) (*POISession
 		return nil, err
 	}
 	returnRecords := make(POISessionTradeRecords, 0)
+	user := QueryUserById(userId)
 	for i := range records {
 		record := records[i]
-		user := QueryUserById(userId)
-		record.User = user
+		sessionId := QuerySessionIdByTradeRecord(record.Id)
+		if sessionId == 0 {
+			record.User = user
+		} else {
+			session := QuerySessionById(sessionId)
+			if userId == session.Tutor {
+				record.User = QueryUserById(session.Created)
+			} else if userId == session.Created {
+				record.User = QueryUserById(session.Tutor)
+			}
+		}
 		returnRecords = append(returnRecords, record)
 	}
 	return &returnRecords, nil
