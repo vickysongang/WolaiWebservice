@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -70,19 +69,8 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-
-	//	defer ThrowsPanic(w)
-	//	err := r.ParseForm()
-	//	if err != nil {
-	//		seelog.Error(err.Error())
-	//	}
-	//	vars := r.Form
-	//	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
-	//	userIdStr := vars["userId"][0]
-	//	fmt.Println(userIdStr)
-	content := RedisManager.IsTeacherBusy(10116, time.Now().Unix()-100, time.Now().Unix())
-	fmt.Println(content)
-	//	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
+	content, _ := QuerySystemEvaluationLabels(10011, 565, 200)
+	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }
 
 func ThrowsPanic(w http.ResponseWriter) {
@@ -1209,8 +1197,24 @@ func V1GetEvaluation(w http.ResponseWriter, r *http.Request) {
  */
 func V1GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
-	content, err := QueryEvaluationLabels()
+	sessionIdStr := vars["sessionId"][0]
+	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 8
+	}
+	content, err := QuerySystemEvaluationLabels(userId, sessionId, count)
 	if err != nil {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
