@@ -69,6 +69,29 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 	RedisManager.SetActivityNotification(10001, activityId, "promo_1.png")
 }
 
+func Test(w http.ResponseWriter, r *http.Request) {
+
+	//	defer ThrowsPanic(w)
+	//	err := r.ParseForm()
+	//	if err != nil {
+	//		seelog.Error(err.Error())
+	//	}
+	//	vars := r.Form
+	//	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
+	//	userIdStr := vars["userId"][0]
+	//	fmt.Println(userIdStr)
+	content := RedisManager.IsTeacherBusy(10116, time.Now().Unix()-100, time.Now().Unix())
+	fmt.Println(content)
+	//	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
+}
+
+func ThrowsPanic(w http.ResponseWriter) {
+	if x := recover(); x != nil {
+		seelog.Error(x)
+		json.NewEncoder(w).Encode(NewPOIResponse(2, "parse param error", NullObject))
+	}
+}
+
 /*
  * 1.1 Login
  */
@@ -867,6 +890,29 @@ func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
+ * 5.5 Teacher Expect Price
+ */
+func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	_ = vars["subjectId"][0]
+	_ = vars["gradeId"][0]
+
+	content := map[string]interface{}{
+		"price":     4000,
+		"realPrice": 6000,
+	}
+
+	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
+}
+
+/*
  * 6.1 Trade Charge
  */
 func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
@@ -1255,27 +1301,6 @@ func V1CheckUserHasBindWithInvitationCode(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(NewPOIResponse(0, "", bindFlag))
 }
 
-func V1SessionRating(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanic(w)
-	err := r.ParseForm()
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-	vars := r.Form
-
-	userIdStr := vars["userId"][0]
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-
-	sessionIdStr := vars["sessionId"][0]
-	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
-
-	ratingStr := vars["rating"][0]
-	rating, _ := strconv.ParseInt(ratingStr, 10, 64)
-
-	_ = sessionId + rating + userId
-	json.NewEncoder(w).Encode(NewPOIResponse(0, "", NullObject))
-}
-
 func V1Banner(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	content, err := QueryBannerList()
@@ -1330,29 +1355,6 @@ func v1GetConversationParticipants(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ThrowsPanic(w http.ResponseWriter) {
-	if x := recover(); x != nil {
-		seelog.Error(x)
-		json.NewEncoder(w).Encode(NewPOIResponse(2, "parse param error", NullObject))
-	}
-}
-
-func Test(w http.ResponseWriter, r *http.Request) {
-
-	//	defer ThrowsPanic(w)
-	//	err := r.ParseForm()
-	//	if err != nil {
-	//		seelog.Error(err.Error())
-	//	}
-	//	vars := r.Form
-	//	content, _ := SearchTeacher(1001, "15886462035", 0, 10)
-	//	userIdStr := vars["userId"][0]
-	//	fmt.Println(userIdStr)
-	content := RedisManager.IsTeacherBusy(10116, time.Now().Unix()-100, time.Now().Unix())
-	fmt.Println(content)
-	//	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
-}
-
 func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
@@ -1373,24 +1375,4 @@ func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(NewPOIResponse(0, "", nil))
 
-}
-
-func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanic(w)
-	err := r.ParseForm()
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-
-	vars := r.Form
-
-	_ = vars["subjectId"][0]
-	_ = vars["gradeId"][0]
-
-	content := map[string]interface{}{
-		"price":     4000,
-		"realPrice": 6000,
-	}
-
-	json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
 }

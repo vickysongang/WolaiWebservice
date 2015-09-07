@@ -37,7 +37,8 @@ const (
 	USER_FOLLOWER          = "user:follower:"
 	USER_OBJECTID          = "user:object_id"
 
-	USER_CONVERSATION = "conversation:"
+	USER_CONVERSATION          = "conversation:"
+	CONVERSATION_PARTICIPATION = "conversation_list"
 
 	ORDER_DISPATCH = "order:dispatch:"
 	ORDER_RESPONSE = "order:response:"
@@ -414,14 +415,15 @@ func (rm *POIRedisManager) SetConversation(conversationId string, userId1, userI
 	_ = rm.redisClient.HSet(USER_CONVERSATION+userId2Str, userId1Str, conversationId)
 
 	//将Conversation里对话的两个人存入redis
-	_ = rm.redisClient.HSet(USER_CONVERSATION+conversationId, conversationId, userId1Str+","+userId2Str)
+	//_ = rm.redisClient.HSet(USER_CONVERSATION+conversationId, conversationId, userId1Str+","+userId2Str)
+	_ = rm.redisClient.HSet(CONVERSATION_PARTICIPATION, conversationId, userId1Str+","+userId2Str)
 }
 
 /*
  * 根据对话的id获取对话的参与人
  */
 func (rm *POIRedisManager) GetConversationParticipant(conversationId string) string {
-	participants, err := rm.redisClient.HGet(USER_CONVERSATION+conversationId, conversationId).Result()
+	participants, err := rm.redisClient.HGet(CONVERSATION_PARTICIPATION, conversationId).Result()
 	if err != nil {
 		return ""
 	}

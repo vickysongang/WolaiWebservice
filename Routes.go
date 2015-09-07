@@ -68,6 +68,12 @@ var routes = Routes{
 		"/dummy2",
 		Dummy2,
 	},
+	Route{
+		"TestGET",
+		"GET",
+		"/test",
+		Test,
+	},
 
 	// 1.1 Login
 	Route{
@@ -468,6 +474,21 @@ var routes = Routes{
 		"/v1/order/personal/confirm",
 		V1OrderPersonalConfirm,
 	},
+
+	//5.5 Teacher Expect Price
+	Route{
+		"V1TeacherExpectPost",
+		"POST",
+		"/v1/teacher/expect",
+		V1TeacherExpect,
+	},
+	Route{
+		"V1TeacherExpectGET",
+		"GET",
+		"/v1/teacher/expect",
+		V1TeacherExpect,
+	},
+
 	//6.1 Trade Charge
 	Route{
 		"V1TradeChargePOST",
@@ -481,6 +502,7 @@ var routes = Routes{
 		"/v1/trade/charge",
 		V1TradeCharge,
 	},
+
 	//6.2 Trade Withdraw
 	Route{
 		"V1TradeWithdrawPOST",
@@ -494,6 +516,7 @@ var routes = Routes{
 		"/v1/trade/withdraw",
 		V1TradeWithdraw,
 	},
+
 	//6.3 Trade Award
 	Route{
 		"V1TradeAwardPOST",
@@ -507,6 +530,7 @@ var routes = Routes{
 		"/v1/trade/award",
 		V1TradeAward,
 	},
+
 	//6.4 Trade Promotion
 	Route{
 		"V1TradePromotionPOST",
@@ -548,6 +572,7 @@ var routes = Routes{
 		"/v1/complaint/complain",
 		V1Complain,
 	},
+
 	// 7.2 Handle Complaint
 	Route{
 		"V1HandleComplaintPOST",
@@ -561,6 +586,7 @@ var routes = Routes{
 		"/v1/complaint/handle",
 		V1HandleComplaint,
 	},
+
 	// 8.1 Search Teachers
 	Route{
 		"V1SearchTeacherPOST",
@@ -582,12 +608,14 @@ var routes = Routes{
 		"/v1/evaluation/insert",
 		V1Evaluate,
 	},
+
 	Route{
 		"V1EvaluateGET",
 		"GET",
 		"/v1/evaluation/insert",
 		V1Evaluate,
 	},
+
 	// 9.2 Query Evaluation
 	Route{
 		"V1GetEvaluationPOST",
@@ -601,6 +629,7 @@ var routes = Routes{
 		"/v1/evaluation/query",
 		V1GetEvaluation,
 	},
+
 	// 9.3 Query Evaluation Labels
 	Route{
 		"V1GetEvaluationLabelPOST",
@@ -628,6 +657,7 @@ var routes = Routes{
 		"/v1/activity/notification",
 		V1ActivityNotification,
 	},
+
 	// 11.1 Bind User with InvitatoinCode
 	Route{
 		"V1BindInvitationCodePOST",
@@ -641,6 +671,7 @@ var routes = Routes{
 		"/v1/invitation/bind",
 		V1BindUserWithInvitationCode,
 	},
+
 	// 11.2 Check User Has binded with invitationCode
 	Route{
 		"V1CheckUserBindWithInvitationCodePOST",
@@ -653,18 +684,6 @@ var routes = Routes{
 		"GET",
 		"/v1/invitation/check",
 		V1CheckUserHasBindWithInvitationCode,
-	},
-	Route{
-		"V1SessionRatingPOST",
-		"POST",
-		"/v1/session/rating",
-		V1SessionRating,
-	},
-	Route{
-		"V1SessionRatingGET",
-		"GET",
-		"/v1/session/rating",
-		V1SessionRating,
 	},
 
 	Route{
@@ -692,17 +711,12 @@ var routes = Routes{
 		"/v1/status/live",
 		V1StatusLive,
 	},
+
 	Route{
 		"V1ConversationParticipantsPOST",
 		"POST",
 		"/v1/conversation/participant",
 		v1GetConversationParticipants,
-	},
-	Route{
-		"TestGET",
-		"GET",
-		"/test",
-		Test,
 	},
 
 	Route{
@@ -716,18 +730,5 @@ var routes = Routes{
 		"GET",
 		"/v1/send/adv",
 		V1SendAdvMessage,
-	},
-
-	Route{
-		"V1TeacherExpectPost",
-		"POST",
-		"/v1/teacher/expect",
-		V1TeacherExpect,
-	},
-	Route{
-		"V1TeacherExpectGET",
-		"GET",
-		"/v1/teacher/expect",
-		V1TeacherExpect,
 	},
 }
