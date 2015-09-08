@@ -216,7 +216,7 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 	}
 	var typeStr string
 	if len(vars["type"]) == 0 {
-		typeStr = "student"
+		typeStr = "both"
 	} else {
 		typeStr = vars["type"][0]
 	}
@@ -225,6 +225,8 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 		content, err = QueryOrderInSession4Student(userId, int(pageNum), int(pageCount))
 	} else if typeStr == "teacher" {
 		content, err = QueryOrderInSession4Teacher(userId, int(pageNum), int(pageCount))
+	} else if typeStr == "both" {
+		content, err = QueryOrderInSession4Both(userId, int(pageNum), int(pageCount))
 	}
 	if err != nil {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
