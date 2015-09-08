@@ -735,12 +735,12 @@ var routes = Routes{
 		"V1GetHelpCheatsPOST",
 		"POST",
 		"/v1/help/get",
-		V1GetHelpCheats,
+		V1GetHelpItems,
 	},
 	Route{
 		"V1GetHelpCheatsGET",
 		"GET",
 		"/v1/help/get",
-		V1GetHelpCheats,
+		V1GetHelpItems,
 	},
 }

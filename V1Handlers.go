@@ -1382,9 +1382,9 @@ func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func V1GetHelpCheats(w http.ResponseWriter, r *http.Request) {
+func V1GetHelpItems(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
-	content, err := QueryHelpCheats()
+	content, err := QueryHelpItems()
 	if err != nil {
 		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	} else {
