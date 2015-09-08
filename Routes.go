@@ -731,4 +731,16 @@ var routes = Routes{
 		"/v1/send/adv",
 		V1SendAdvMessage,
 	},
+	Route{
+		"V1GetHelpCheatsPOST",
+		"POST",
+		"/v1/help/get",
+		V1GetHelpCheats,
+	},
+	Route{
+		"V1GetHelpCheatsGET",
+		"GET",
+		"/v1/help/get",
+		V1GetHelpCheats,
+	},
 }

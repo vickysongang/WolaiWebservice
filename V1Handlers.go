@@ -76,7 +76,8 @@ func Test(w http.ResponseWriter, r *http.Request) {
 func ThrowsPanic(w http.ResponseWriter) {
 	if x := recover(); x != nil {
 		seelog.Error(x)
-		json.NewEncoder(w).Encode(NewPOIResponse(2, "parse param error", NullObject))
+		err, _ := x.(error)
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
 	}
 }
 
@@ -1377,6 +1378,16 @@ func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {
 	url := vars["url"][0]
 	SendAdvertisementMessage(title, description, mediaId, url, userId)
 
-	json.NewEncoder(w).Encode(NewPOIResponse(0, "", nil))
+	json.NewEncoder(w).Encode(NewPOIResponse(0, "", NullObject))
 
+}
+
+func V1GetHelpCheats(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	content, err := QueryHelpCheats()
+	if err != nil {
+		json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullObject))
+	} else {
+		json.NewEncoder(w).Encode(NewPOIResponse(0, "", content))
+	}
 }

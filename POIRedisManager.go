@@ -401,6 +401,7 @@ func (rm *POIRedisManager) GetUserFollowList(userId, pageNum, pageCount int64) P
 		if i < length {
 			userIdtmp, _ := strconv.ParseInt(userIds[i], 10, 64)
 			teacher := *(QueryTeacher(userIdtmp))
+			teacher.HasFollowed = true
 			teachers = append(teachers, teacher)
 		}
 	}
