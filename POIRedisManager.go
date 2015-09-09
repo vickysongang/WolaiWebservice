@@ -20,10 +20,11 @@ const (
 
 	FEEDFLOW_ATRIUM = "feed_flow:atrium"
 
-	FEED_LIKE    = "feed:like:"
-	FEED_COMMENT = "feed:comment:"
-	FEED_FAV     = "feed:fav:"
-	FEED_REPOST  = "feed:repost:"
+	FEED_LIKE       = "feed:like:"
+	FEED_COMMENT    = "feed:comment:"
+	FEED_FAV        = "feed:fav:"
+	FEED_REPOST     = "feed:repost:"
+	FEED_LIKE_COUNT = "feed:like_count:"
 
 	FEED_COMMENT_LIKE = "comment:like:"
 
@@ -88,7 +89,6 @@ func (rm *POIRedisManager) GetFeed(feedId string) *POIFeed {
 	if hashMap["origin_feed_id"] != "" {
 		feed.OriginFeed = rm.GetFeed(hashMap["origin_feed_id"])
 	}
-
 	tmpInt, _ = strconv.ParseInt(hashMap["like_count"], 10, 64)
 	feed.LikeCount = tmpInt
 
@@ -151,9 +151,11 @@ func (rm *POIRedisManager) SetFeed(feed *POIFeed) {
 
 	tmpBytes, _ = json.Marshal(feed.Attribute)
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "attribute", string(tmpBytes))
-
-	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "like_count", strconv.FormatInt(feed.LikeCount, 10))
-	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "comment_count", strconv.FormatInt(feed.CommentCount, 10))
+	//Modified:20150909
+	likeCount := int64(len(rm.GetFeedLikeList(feed.Id)))
+	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "like_count", strconv.FormatInt(likeCount, 10))
+	commentCount := int64(len(rm.GetFeedComments(feed.Id)))
+	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "comment_count", strconv.FormatInt(commentCount, 10))
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "repost_count", strconv.FormatInt(feed.RepostCount, 10))
 }
 
@@ -226,6 +228,24 @@ func (rm *POIRedisManager) UnlikeFeed(feed *POIFeed, user *POIUser) {
 
 	_ = rm.redisClient.ZRem(FEED_LIKE+feed.Id, userIdStr)
 	_ = rm.redisClient.ZRem(USER_FEED_LIKE+userIdStr, feed.Id)
+}
+
+func (rm *POIRedisManager) GetFeedLikeCount(feedId string, userId int64) int64 {
+	userIdStr := strconv.FormatInt(userId, 10)
+	countStr, _ := rm.redisClient.HGet(FEED_LIKE_COUNT+feedId, userIdStr).Result()
+	count, err := strconv.ParseInt(countStr, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return count
+}
+
+func (rm *POIRedisManager) SetFeedLikeCount(feedId string, userId int64) {
+	userIdStr := strconv.FormatInt(userId, 10)
+	oldCount := rm.GetFeedLikeCount(feedId, userId)
+	newCount := oldCount + 1
+	newCountStr := strconv.FormatInt(newCount, 10)
+	rm.redisClient.HSet(FEED_LIKE_COUNT+feedId, userIdStr, newCountStr)
 }
 
 func (rm *POIRedisManager) LikeFeedComment(feedComment *POIFeedComment, user *POIUser, timestamp float64) {
@@ -401,6 +421,7 @@ func (rm *POIRedisManager) GetUserFollowList(userId, pageNum, pageCount int64) P
 		if i < length {
 			userIdtmp, _ := strconv.ParseInt(userIds[i], 10, 64)
 			teacher := *(QueryTeacher(userIdtmp))
+			teacher.HasFollowed = true
 			teachers = append(teachers, teacher)
 		}
 	}

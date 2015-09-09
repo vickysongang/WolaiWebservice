@@ -17,9 +17,11 @@ type POIEvaluation struct {
 }
 
 type POIEvaluationLabel struct {
-	Id   int64  `json:"-" orm:"pk"`
-	Name string `json:"name"`
-	Rank int64  `json:"-"`
+	Id            int64  `json:"-" orm:"pk"`
+	Name          string `json:"name"`
+	GenderType    int64  `json:"-"`
+	AttributeType string `json:"-"`
+	ObjectType    string `json:"-"`
 }
 
 type POIEvaluationLabels []*POIEvaluationLabel
@@ -90,13 +92,34 @@ func QueryEvaluation4Other(userId, sessionId int64) (*POIEvaluation, error) {
 	return &evalution, nil
 }
 
-func QueryEvaluationLabels() (POIEvaluationLabels, error) {
+/*
+ * 根据条件查询系统推荐标签
+ * genderType 性别类型，0代表女性，1代表男性，2代表中性
+ * attributeType 属性分类，personal代表个人标签，style代表讲课风格，subject代表科目标签，ability代表能力程度
+ * objectType 对象分类，student代表学生，teacher代表老师,both代表两者均可以
+ */
+func QueryEvaluationLabels(genderType int64, attributeType, objectType string) (POIEvaluationLabels, error) {
+	labels := make(POIEvaluationLabels, 0)
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
+	qb.Select("name").From("evaluation_label").Where("gender_type in (?,2) and attribute_type = ? and object_type in (?,'both')")
+	sql := qb.String()
+	_, err := o.Raw(sql, genderType, attributeType, objectType).QueryRows(&labels)
+	if err != nil {
+		return nil, err
+	}
+	return labels, nil
+}
+
+func QueryEvaluationLabelsBySubject(subjectId int64) (POIEvaluationLabels, error) {
 	labels := POIEvaluationLabels{}
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(DB_TYPE)
-	qb.Select("id,name,rank").From("evaluation_label").OrderBy("rank").Asc()
+	qb.Select("evaluation_label.name").From("evaluation_label").
+		InnerJoin("evaluation_to_subject").On("evaluation_label.id = evaluation_to_subject.label_id").
+		Where("evaluation_label.attribute_type = 'subject' and evaluation_to_subject.subject_id = ?")
 	sql := qb.String()
-	_, err := o.Raw(sql).QueryRows(&labels)
+	_, err := o.Raw(sql, subjectId).QueryRows(&labels)
 	if err != nil {
 		return nil, err
 	}

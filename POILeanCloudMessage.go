@@ -15,6 +15,7 @@ import (
 
 const (
 	LC_SEND_MSG     = "https://leancloud.cn/1.1/rtm/messages"
+	LC_QUERY_API    = "https://api.leancloud.cn/1.1/classes/_Conversation"
 	SUPPORT_USER_ID = 1001
 )
 
@@ -242,4 +243,33 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 		}
 	}
 	return content
+}
+
+func QueryConversationParticipants(convId string) string {
+	url := fmt.Sprintf("%s/%s", LC_QUERY_API, convId)
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
+	req.Header.Set("X-AVOSCloud-Application-Key", Config.LeanCloud.AppKey)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		seelog.Error(err.Error())
+		return ""
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	var objs interface{}
+	json.Unmarshal(body, &objs)
+	infoMap, _ := objs.(map[string]interface{})
+	infoArray, _ := infoMap["m"].([]interface{})
+	var participants string
+	for _, v := range infoArray {
+		userIdStr, _ := v.(string)
+		participants = participants + "," + userIdStr
+	}
+	if len(participants) > 0 {
+		participants = participants[1:]
+	}
+	return participants
 }

@@ -93,9 +93,9 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 
 	feed.IncreaseComment()
 	if RedisManager.redisError == nil {
-		RedisManager.SetFeed(feed)
 		RedisManager.SetFeedComment(&feedComment)
 		RedisManager.PostFeedComment(&feedComment)
+		RedisManager.SetFeed(feed)
 	}
 	go SendCommentNotification(feedComment.Id)
 	go InsertPOIFeedComment(userId, feedComment.Id, feedId, text, imageStr, replyToId)

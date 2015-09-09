@@ -426,6 +426,11 @@ func GetConversationParticipants(conversationInfo string) (*POIConversationParti
 			convId := convIds[i]
 			conversationParticipant := POIConversationParticipant{}
 			participant := RedisManager.GetConversationParticipant(convId)
+			//Modified:20150909
+			if participant == "" {
+				participant = QueryConversationParticipants(convId)
+			}
+
 			conversationParticipant.ConversationId = convId
 			conversationParticipant.Participant = participant
 			participants = append(participants, conversationParticipant)

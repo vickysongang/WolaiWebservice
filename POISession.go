@@ -225,3 +225,52 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) (POIOrder
 	}
 	return orderInSessions, nil
 }
+
+func QueryOrderInSession4Both(userId int64, pageNum, pageCount int) (POIOrderInSessions, error) {
+	orderInSessions := make(POIOrderInSessions, 0)
+	o := orm.NewOrm()
+	start := pageNum * pageCount
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
+	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
+		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour").
+		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
+		Where("sessions.creator = ? or sessions.tutor = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
+	sql := qb.String()
+	_, err := o.Raw(sql, userId, userId).QueryRows(&orderInSessions)
+	if err != nil {
+		seelog.Error("userId:", userId, " ", err.Error())
+		return orderInSessions, err
+	}
+	for i := range orderInSessions {
+		orderInSession := orderInSessions[i]
+		if userId == orderInSession.Creator {
+			teacher := QueryTeacher(orderInSession.Tutor)
+			orderInSession.UserInfo = teacher
+			orderInSession.Identity = "student"
+		} else if userId == orderInSession.Tutor {
+			user := *(QueryUserById(orderInSession.Creator))
+			creator := POITeacher{POIUser: user}
+			orderInSession.UserInfo = &creator
+			orderInSession.Identity = "teacher"
+		}
+		if orderInSession.Status == SESSION_STATUS_COMPLETE {
+			orderInSession.TimeFromStr = orderInSession.TimeFrom.Format(time.RFC3339)
+			orderInSession.TimeToStr = orderInSession.TimeTo.Format(time.RFC3339)
+			orderInSession.Length = orderInSession.RealLength
+			orderInSession.TotalCoat = QueryTradeAmount(orderInSession.SessionId, userId)
+			if orderInSession.TotalCoat < 0 {
+				orderInSession.TotalCoat = 0 - orderInSession.TotalCoat
+			}
+		} else {
+			orderInSession.TimeFromStr = orderInSession.PlanTime
+			orderInSession.Length = orderInSession.EstimateLength
+			d, _ := time.ParseDuration("+" + strconv.FormatInt(orderInSession.EstimateLength, 10) + "m")
+			planTime, _ := time.Parse(time.RFC3339, orderInSession.PlanTime)
+			timeTo := planTime.Add(d)
+			orderInSession.TimeToStr = timeTo.Format(time.RFC3339)
+			orderInSession.TotalCoat = orderInSession.RealPricePerHour * orderInSession.EstimateLength / 60
+		}
+		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId)
+	}
+	return orderInSessions, nil
+}
