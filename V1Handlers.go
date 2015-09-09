@@ -1371,6 +1371,9 @@ func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {
 
 	vars := r.Form
 
+	if len(vars["userId"]) == 0 {
+		return
+	}
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
