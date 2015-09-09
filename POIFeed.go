@@ -187,12 +187,18 @@ func GetFeedDetail(feedId string, userId int64) (*POIFeedDetail, error) {
 	if RedisManager.redisError == nil {
 		feed = RedisManager.GetFeed(feedId)
 		likedUserList = RedisManager.GetFeedLikeList(feedId)
+
+		//Added 20150909
+		feed.LikeCount = int64(len(likedUserList))
 	} else {
 		feed, err = GetFeed(feedId)
 		if err != nil {
 			return nil, err
 		}
 		likedUserList = GetFeedLikeList(feedId)
+
+		//Added 20150909
+		feed.LikeCount = int64(len(likedUserList))
 	}
 	user := QueryUserById(userId)
 	if user == nil {
@@ -203,6 +209,10 @@ func GetFeedDetail(feedId string, userId int64) (*POIFeedDetail, error) {
 	var comments POIFeedComments
 	if RedisManager.redisError == nil {
 		comments = RedisManager.GetFeedComments(feedId)
+
+		//Added 20150909
+		feed.CommentCount = int64(len(comments))
+
 		for i := range comments {
 			comment := comments[i]
 			comments[i].HasLiked = RedisManager.HasLikedFeedComment(&comment, user)
@@ -211,7 +221,12 @@ func GetFeedDetail(feedId string, userId int64) (*POIFeedDetail, error) {
 		feed.HasFaved = RedisManager.HasFavedFeed(feed, user)
 	} else {
 		comments = GetFeedComments(feedId)
+
+		//Added 20150909
+		feed.CommentCount = int64(len(comments))
+
 		feed.HasLiked = HasLikedFeed(feed, user)
+
 	}
 	feedDetail := POIFeedDetail{Feed: feed, LikedUsers: likedUserList, Comments: comments}
 	return &feedDetail, nil

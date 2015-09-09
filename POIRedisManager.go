@@ -88,7 +88,6 @@ func (rm *POIRedisManager) GetFeed(feedId string) *POIFeed {
 	if hashMap["origin_feed_id"] != "" {
 		feed.OriginFeed = rm.GetFeed(hashMap["origin_feed_id"])
 	}
-
 	tmpInt, _ = strconv.ParseInt(hashMap["like_count"], 10, 64)
 	feed.LikeCount = tmpInt
 
