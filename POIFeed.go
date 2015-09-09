@@ -166,8 +166,12 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) (*POIFeed, erro
 		if RedisManager.redisError == nil {
 			RedisManager.SetFeed(feed)
 			RedisManager.LikeFeed(feed, user, timestamp)
+			count := RedisManager.GetFeedLikeCount(feed.Id, userId)
+			if count == 0 {
+				go SendLikeNotification(userId, timestamp, feedId)
+			}
+			RedisManager.SetFeedLikeCount(feed.Id, userId)
 		}
-		go SendLikeNotification(userId, timestamp, feedId)
 		go InsertPOIFeedLike(userId, feedId)
 	} else {
 		feed.DecreaseLike()
