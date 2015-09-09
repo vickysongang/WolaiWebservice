@@ -164,8 +164,8 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) (*POIFeed, erro
 	if !likeFeedFlag {
 		feed.IncreaseLike()
 		if RedisManager.redisError == nil {
-			RedisManager.SetFeed(feed)
 			RedisManager.LikeFeed(feed, user, timestamp)
+			RedisManager.SetFeed(feed)
 
 			//Modified:20150909
 			count := RedisManager.GetFeedLikeCount(feed.Id, userId)
@@ -179,8 +179,8 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) (*POIFeed, erro
 	} else {
 		feed.DecreaseLike()
 		if RedisManager.redisError == nil {
-			RedisManager.SetFeed(feed)
 			RedisManager.UnlikeFeed(feed, user)
+			RedisManager.SetFeed(feed)
 		}
 		go DeletePOIFeedLike(userId, feed.Id)
 	}
