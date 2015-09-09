@@ -43,9 +43,9 @@ const (
 	ORDER_RESPONSE = "order:response:"
 	ORDER_PLANTIME = "order:plan_time:"
 
-	SESSION_TICKER         = "session:ticker"
-	SESSION_TEACHER_TICKER = "session:teacher_ticker"
-	SESSION_TEACHER_LOCK   = "session:teacher:"
+	SESSION_TICKER      = "session:ticker"
+	SESSION_USER_TICKER = "session:user_ticker"
+	SESSION_USER_LOCK   = "session:user:"
 
 	ACTIVITY_NOTIFICATION = "activity:notification:"
 )
@@ -509,7 +509,7 @@ func (rm *POIRedisManager) RemoveUserObjectId(userId int64) {
 /*
  * 将老师的计划开始时间和预计结束时间存入redis
  */
-func (rm *POIRedisManager) SetTeacherSessionTime(sessionId int64) {
+func (rm *POIRedisManager) SetSessionUserTick(sessionId int64) {
 	//orderInSession, err := QueryOrderInSession(sessionId)
 	session := QuerySessionById(sessionId)
 	if session == nil {
@@ -529,30 +529,75 @@ func (rm *POIRedisManager) SetTeacherSessionTime(sessionId int64) {
 	timeFrom := planTime.Add(-blockDuration)
 	timeTo := planTime.Add(lengthDuration).Add(blockDuration)
 
-	startMap := map[string]int64{
-		"teacherId": session.Teacher.UserId,
+	teacherStartMap := map[string]int64{
+		"userId":    session.Teacher.UserId,
 		"sessionId": sessionId,
 		"lock":      1,
 	}
-	endMap := map[string]int64{
-		"teacherId": session.Teacher.UserId,
+	teacherEndMap := map[string]int64{
+		"userId":    session.Teacher.UserId,
 		"sessionId": sessionId,
 		"lock":      0,
 	}
-	startStr, _ := json.Marshal(startMap)
-	endStr, _ := json.Marshal(endMap)
+	studentStartMap := map[string]int64{
+		"userId":    session.Creator.UserId,
+		"sessionId": sessionId,
+		"lock":      1,
+	}
+	studentEndMap := map[string]int64{
+		"userId":    session.Creator.UserId,
+		"sessionId": sessionId,
+		"lock":      0,
+	}
+	teacherStartStr, _ := json.Marshal(teacherStartMap)
+	teacherEndStr, _ := json.Marshal(teacherEndMap)
+	studentStartStr, _ := json.Marshal(studentStartMap)
+	studentEndStr, _ := json.Marshal(studentEndMap)
+
 	teacherIdStr := strconv.FormatInt(session.Teacher.UserId, 10)
+	studentIdStr := strconv.FormatInt(session.Creator.UserId, 10)
 
-	timeFromZ := redis.Z{Member: string(startStr), Score: float64(timeFrom.Unix())}
-	timeToZ := redis.Z{Member: string(endStr), Score: float64(timeTo.Unix())}
+	teacherTimeFromZ := redis.Z{Member: string(teacherStartStr), Score: float64(timeFrom.Unix())}
+	teacherTimeToZ := redis.Z{Member: string(teacherEndStr), Score: float64(timeTo.Unix())}
+	studentTimeFromZ := redis.Z{Member: string(studentStartStr), Score: float64(timeFrom.Unix())}
+	studentTimeToZ := redis.Z{Member: string(studentEndStr), Score: float64(timeTo.Unix())}
 
-	rm.redisClient.ZAdd(SESSION_TEACHER_LOCK+teacherIdStr, timeFromZ)
-	rm.redisClient.ZAdd(SESSION_TEACHER_LOCK+teacherIdStr, timeToZ)
-	rm.redisClient.ZAdd(SESSION_TEACHER_TICKER, timeFromZ)
-	rm.redisClient.ZAdd(SESSION_TEACHER_TICKER, timeToZ)
+	rm.redisClient.ZAdd(SESSION_USER_LOCK+teacherIdStr, teacherTimeFromZ)
+	rm.redisClient.ZAdd(SESSION_USER_LOCK+teacherIdStr, teacherTimeToZ)
+	rm.redisClient.ZAdd(SESSION_USER_LOCK+studentIdStr, studentTimeFromZ)
+	rm.redisClient.ZAdd(SESSION_USER_LOCK+studentIdStr, studentTimeToZ)
 
-	seelog.Debug("[SessionLock]: ", timeFrom.Format(time.RFC3339), " content:", string(startStr))
-	seelog.Debug("[SessionUnLock]: ", timeTo.Format(time.RFC3339), " content:", string(endStr))
+	rm.redisClient.ZAdd(SESSION_USER_TICKER, teacherTimeFromZ)
+	//rm.redisClient.ZAdd(SESSION_USER_TICKER, teacherTimeToZ)
+	rm.redisClient.ZAdd(SESSION_USER_TICKER, studentTimeFromZ)
+	//rm.redisClient.ZAdd(SESSION_USER_TICKER, studentTimeToZ)
+}
+
+/*
+ * 获取特定时间段内的用户事件
+ */
+func (rm *POIRedisManager) GetSessionUserTicks(timestamp int64) []POITickInfo {
+	ticks, err := rm.redisClient.ZRangeByScoreWithScores(SESSION_USER_TICKER,
+		redis.ZRangeByScore{
+			Min:    "-inf",
+			Max:    strconv.FormatInt(timestamp+5, 10),
+			Offset: 0,
+			Count:  0,
+		}).Result()
+	if err == redis.Nil {
+		return nil
+	}
+
+	tickInfo := make([]POITickInfo, 0)
+	for i := range ticks {
+		_ = rm.redisClient.ZRem(SESSION_USER_TICKER, ticks[i].Member.(string))
+		tickInfo = append(tickInfo, POITickInfo{
+			Timestamp: int64(ticks[i].Score),
+			Content:   ticks[i].Member.(string),
+		})
+	}
+
+	return tickInfo
 }
 
 /*
@@ -568,6 +613,24 @@ func (rm *POIRedisManager) SetTeacherSessionTime(sessionId int64) {
 /*
  * 判断老师在某一时间段内是否处于忙碌状态
  */
+func (rm *POIRedisManager) IsUserAvailable(userId int64, timestampFrom, timestampTo int64) bool {
+	userIdStr := strconv.FormatInt(userId, 10)
+	items, err := rm.redisClient.ZRangeByScore(SESSION_USER_LOCK+userIdStr,
+		redis.ZRangeByScore{
+			Min:    strconv.FormatInt(timestampFrom, 10),
+			Max:    strconv.FormatInt(timestampTo, 10),
+			Offset: 0,
+			Count:  10,
+		}).Result()
+	if err == redis.Nil {
+		return true
+	}
+	if len(items) > 0 {
+		return false
+	}
+	return true
+}
+
 // func (rm *POIRedisManager) IsTeacherBusy(teacherId int64, fromTimestamp, toTimeStamp int64) bool {
 // 	teacherIdStr := strconv.Itoa(int(teacherId))
 // 	sessions, err := rm.redisClient.ZRangeByScore(SESSION_TEACHER+teacherIdStr,

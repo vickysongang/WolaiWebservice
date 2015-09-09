@@ -18,6 +18,12 @@ type POIWSManager struct {
 
 	sessionLiveMap     map[int64]int64          // sessionId to timestamp
 	userSessionLiveMap map[int64]map[int64]bool // userId to sessionId
+	userSessionLockMap map[int64]POISessionLock // userId to sessionLock
+}
+
+type POISessionLock struct {
+	IsLocked        bool
+	UpdateTimestamp int64
 }
 
 func NewPOIWSManager() POIWSManager {
@@ -35,6 +41,7 @@ func NewPOIWSManager() POIWSManager {
 
 		sessionLiveMap:     make(map[int64]int64),
 		userSessionLiveMap: make(map[int64]map[int64]bool),
+		userSessionLockMap: make(map[int64]POISessionLock),
 	}
 }
 
@@ -234,6 +241,26 @@ func (wsm *POIWSManager) RemoveUserSession(sessionId int64, teacherId int64, stu
 			delete(wsm.userSessionLiveMap[studentId], sessionId)
 		}
 	}
+}
+
+func (wsm *POIWSManager) SetUserSessionLock(userId int64, lock bool, timestamp int64) {
+	if sessionLock, ok := wsm.userSessionLockMap[userId]; ok {
+		if sessionLock.UpdateTimestamp > timestamp {
+			return
+		}
+	}
+
+	wsm.userSessionLockMap[userId] = POISessionLock{
+		IsLocked:        lock,
+		UpdateTimestamp: timestamp,
+	}
+}
+
+func (wsm *POIWSManager) IsUserSessionLocked(userId int64) bool {
+	if _, ok := wsm.userSessionLockMap[userId]; !ok {
+		return false
+	}
+	return wsm.userSessionLockMap[userId].IsLocked
 }
 
 /*
