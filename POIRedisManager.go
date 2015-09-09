@@ -151,9 +151,11 @@ func (rm *POIRedisManager) SetFeed(feed *POIFeed) {
 
 	tmpBytes, _ = json.Marshal(feed.Attribute)
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "attribute", string(tmpBytes))
-
-	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "like_count", strconv.FormatInt(feed.LikeCount, 10))
-	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "comment_count", strconv.FormatInt(feed.CommentCount, 10))
+	//Modified:20150909
+	likeCount := int64(len(rm.GetFeedLikeList(feed.Id)))
+	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "like_count", strconv.FormatInt(likeCount, 10))
+	commentCount := int64(len(rm.GetFeedComments(feed.Id)))
+	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "comment_count", strconv.FormatInt(commentCount, 10))
 	_ = rm.redisClient.HSet(CACHE_FEED+feed.Id, "repost_count", strconv.FormatInt(feed.RepostCount, 10))
 }
 

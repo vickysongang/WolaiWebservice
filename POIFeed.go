@@ -166,10 +166,13 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) (*POIFeed, erro
 		if RedisManager.redisError == nil {
 			RedisManager.SetFeed(feed)
 			RedisManager.LikeFeed(feed, user, timestamp)
+
+			//Modified:20150909
 			count := RedisManager.GetFeedLikeCount(feed.Id, userId)
 			if count == 0 {
 				go SendLikeNotification(userId, timestamp, feedId)
 			}
+
 			RedisManager.SetFeedLikeCount(feed.Id, userId)
 		}
 		go InsertPOIFeedLike(userId, feedId)
@@ -191,18 +194,12 @@ func GetFeedDetail(feedId string, userId int64) (*POIFeedDetail, error) {
 	if RedisManager.redisError == nil {
 		feed = RedisManager.GetFeed(feedId)
 		likedUserList = RedisManager.GetFeedLikeList(feedId)
-
-		//Added 20150909
-		feed.LikeCount = int64(len(likedUserList))
 	} else {
 		feed, err = GetFeed(feedId)
 		if err != nil {
 			return nil, err
 		}
 		likedUserList = GetFeedLikeList(feedId)
-
-		//Added 20150909
-		feed.LikeCount = int64(len(likedUserList))
 	}
 	user := QueryUserById(userId)
 	if user == nil {
@@ -213,10 +210,6 @@ func GetFeedDetail(feedId string, userId int64) (*POIFeedDetail, error) {
 	var comments POIFeedComments
 	if RedisManager.redisError == nil {
 		comments = RedisManager.GetFeedComments(feedId)
-
-		//Added 20150909
-		feed.CommentCount = int64(len(comments))
-
 		for i := range comments {
 			comment := comments[i]
 			comments[i].HasLiked = RedisManager.HasLikedFeedComment(&comment, user)
@@ -225,12 +218,7 @@ func GetFeedDetail(feedId string, userId int64) (*POIFeedDetail, error) {
 		feed.HasFaved = RedisManager.HasFavedFeed(feed, user)
 	} else {
 		comments = GetFeedComments(feedId)
-
-		//Added 20150909
-		feed.CommentCount = int64(len(comments))
-
 		feed.HasLiked = HasLikedFeed(feed, user)
-
 	}
 	feedDetail := POIFeedDetail{Feed: feed, LikedUsers: likedUserList, Comments: comments}
 	return &feedDetail, nil
