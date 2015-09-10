@@ -52,6 +52,7 @@ type LCSupportMessageLog struct {
 	To         string    `json:"to"`
 	Data       string    `json:"data"`
 	Timestamp  string    `json:"-"`
+	Type       string    `json:"-"`
 }
 
 const (
@@ -222,21 +223,24 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 			InsertLCMessageLog(&messageLog)
 			if RedisManager.redisError == nil {
 				//如果是客服消息，则将该消息存入客服消息表
-				if err == nil {
-					if RedisManager.IsSupportMessage(USER_WOLAI_SUPPORT, toStr) || RedisManager.IsSupportMessage(USER_WOLAI_TEAM, toStr) {
-						//此处对新用户注册通知图片的处理不是合适的，需要完善
-						if !strings.Contains(messageLog.Data, "student_welcome_1.jpg") {
-							supportMessageLog := LCSupportMessageLog{}
-							supportMessageLog.MsgId = messageLog.MsgId
-							supportMessageLog.ConvId = messageLog.ConvId
-							supportMessageLog.From = messageLog.From
-							supportMessageLog.To = messageLog.To
-							supportMessageLog.FromIp = messageLog.FromIp
-							supportMessageLog.Data = messageLog.Data
-							supportMessageLog.Timestamp = messageLog.Timestamp
-							supportMessageLog.CreateTime = messageLog.CreateTime
-							InsertLCSupportMessageLog(&supportMessageLog)
+				if RedisManager.IsSupportMessage(USER_WOLAI_SUPPORT, toStr) || RedisManager.IsSupportMessage(USER_WOLAI_TEAM, toStr) {
+					//此处对新用户注册通知图片的处理不是合适的，需要完善
+					if !strings.Contains(messageLog.Data, "student_welcome_1.jpg") {
+						supportMessageLog := LCSupportMessageLog{}
+						supportMessageLog.MsgId = messageLog.MsgId
+						supportMessageLog.ConvId = messageLog.ConvId
+						supportMessageLog.From = messageLog.From
+						supportMessageLog.To = messageLog.To
+						supportMessageLog.FromIp = messageLog.FromIp
+						supportMessageLog.Data = messageLog.Data
+						supportMessageLog.Timestamp = messageLog.Timestamp
+						supportMessageLog.CreateTime = messageLog.CreateTime
+						if RedisManager.IsSupportMessage(USER_WOLAI_TEAM, toStr) {
+							supportMessageLog.Type = "team"
+						} else {
+							supportMessageLog.Type = "support"
 						}
+						InsertLCSupportMessageLog(&supportMessageLog)
 					}
 				}
 			}
