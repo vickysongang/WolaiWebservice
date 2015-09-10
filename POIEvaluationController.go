@@ -52,29 +52,12 @@ func GetRandNumSlice(sliceSize int64, length int64) []int64 {
 func QuerySystemEvaluationLabels(userId, sessionId, count int64) (POIEvaluationLabels, error) {
 	labels := POIEvaluationLabels{}
 	session := QuerySessionById(sessionId)
-	user := QueryUserById(userId)
+	//如果当前用户是学生，则要返回老师的标签信息，如果当前用户是老师，则要返回学生的标签信息
 	//学生
 	if userId == session.Created {
+		teacher := QueryUserById(session.Tutor)
 		//个人标签
-		studentPersonalLabels, err := QueryEvaluationLabels(user.Gender, PERSONAL_EVALUATION_LABEL, STUDENT_EVALUATION_LABEL)
-		if err != nil {
-			return nil, err
-		}
-		personalCount := count / 2
-		for _, v := range GetRandNumSlice(personalCount, int64(len(studentPersonalLabels))) {
-			labels = append(labels, studentPersonalLabels[v])
-		}
-		//能力程度
-		studentAbilityLabels, err := QueryEvaluationLabels(user.Gender, ABILITY_EVALUATION_LABEL, STUDENT_EVALUATION_LABEL)
-		if err != nil {
-			return nil, err
-		}
-		for _, v := range GetRandNumSlice(count-personalCount, int64(len(studentAbilityLabels))) {
-			labels = append(labels, studentAbilityLabels[v])
-		}
-	} else if userId == session.Tutor { //老师
-		//个人标签
-		teacherPersonalLabels, err := QueryEvaluationLabels(user.Gender, PERSONAL_EVALUATION_LABEL, TEACHER_EVALUATION_LABEL)
+		teacherPersonalLabels, err := QueryEvaluationLabels(teacher.Gender, PERSONAL_EVALUATION_LABEL, TEACHER_EVALUATION_LABEL)
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +66,7 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) (POIEvaluationL
 			labels = append(labels, teacherPersonalLabels[v])
 		}
 		//讲课风格
-		teacherStyleLabels, err := QueryEvaluationLabels(user.Gender, STYLE_EVALUATION_LABEL, TEACHER_EVALUATION_LABEL)
+		teacherStyleLabels, err := QueryEvaluationLabels(teacher.Gender, STYLE_EVALUATION_LABEL, TEACHER_EVALUATION_LABEL)
 		if err != nil {
 			return nil, err
 		}
@@ -98,6 +81,25 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) (POIEvaluationL
 		}
 		for _, v := range GetRandNumSlice(2, int64(len(teacherSubjectLabels))) {
 			labels = append(labels, teacherSubjectLabels[v])
+		}
+	} else if userId == session.Tutor { //老师
+		student := QueryUserById(session.Created)
+		//个人标签
+		studentPersonalLabels, err := QueryEvaluationLabels(student.Gender, PERSONAL_EVALUATION_LABEL, STUDENT_EVALUATION_LABEL)
+		if err != nil {
+			return nil, err
+		}
+		personalCount := count / 2
+		for _, v := range GetRandNumSlice(personalCount, int64(len(studentPersonalLabels))) {
+			labels = append(labels, studentPersonalLabels[v])
+		}
+		//能力程度
+		studentAbilityLabels, err := QueryEvaluationLabels(student.Gender, ABILITY_EVALUATION_LABEL, STUDENT_EVALUATION_LABEL)
+		if err != nil {
+			return nil, err
+		}
+		for _, v := range GetRandNumSlice(count-personalCount, int64(len(studentAbilityLabels))) {
+			labels = append(labels, studentAbilityLabels[v])
 		}
 	}
 	return labels, nil
