@@ -39,7 +39,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 	switch orderType {
 	case ORDER_TYPE_GENERAL_INSTANT:
 		if WsManager.IsUserSessionLocked(creatorId) {
-			err = errors.New("您很快有一节课要开始")
+			err = errors.New("你有一堂课马上就要开始啦！")
 			return 5002, nil, err
 		}
 
@@ -89,7 +89,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 
 	case ORDER_TYPE_PERSONAL_INSTANT:
 		if WsManager.IsUserSessionLocked(creatorId) {
-			err = errors.New("您很快有一节课要开始")
+			err = errors.New("你有一堂课马上就要开始啦！")
 			return 5002, nil, err
 		}
 	}
