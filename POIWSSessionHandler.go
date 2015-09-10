@@ -76,6 +76,8 @@ func POIWSSessionHandler(sessionId int64) {
 			WsManager.RemoveSessionLive(sessionId)
 			WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
 			WsManager.RemoveSessionChan(sessionId)
+			WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
+			WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
 			//			close(sessionChan)
 
 			return
@@ -300,6 +302,9 @@ func POIWSSessionHandler(sessionId int64) {
 					WsManager.RemoveSessionLive(sessionId)
 					WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
 					WsManager.RemoveSessionChan(sessionId)
+					WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
+					WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
+
 					//					close(sessionChan)
 
 					return
@@ -519,6 +524,8 @@ func InitSessionMonitor(sessionId int64) bool {
 	timestamp := time.Now().Unix()
 	WsManager.SetSessionLive(sessionId, timestamp)
 	WsManager.SetUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
+	WsManager.SetUserSessionLock(session.Creator.UserId, true, timestamp)
+	WsManager.SetUserSessionLock(session.Teacher.UserId, true, timestamp)
 
 	go POIWSSessionHandler(sessionId)
 

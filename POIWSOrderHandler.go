@@ -121,7 +121,7 @@ func POIWSOrderHandler(orderId int64) {
 			// 遍历在线老师名单，如果未派发则直接派发
 			for teacherId, _ := range WsManager.onlineTeacherMap {
 				//如果订单已经被派发到该老师或者该老师正在与其他学生上课，则不再给该老师派单
-				if !WsManager.HasDispatchedUser(orderId, teacherId) {
+				if !WsManager.HasDispatchedUser(orderId, teacherId) && !WsManager.IsUserSessionLocked(teacherId) {
 					dispatchMsg.UserId = teacherId
 
 					if WsManager.HasUserChan(teacherId) {
@@ -153,6 +153,23 @@ func POIWSOrderHandler(orderId int64) {
 					timeReply, ok := msg.Attribute["time"]
 					if !ok {
 						replyResp.Attribute["errCode"] = "2"
+						userChan <- replyResp
+						break
+					}
+
+					//判断回复时间合法性
+					timestampFrom, timestampTo, err := parseReplyTime(timeReply, order.Length)
+					if err != nil {
+						replyResp.Attribute["errCode"] = "2"
+						replyResp.Attribute["errMsg"] = err.Error()
+						userChan <- replyResp
+						break
+					}
+
+					//判断是否有预约冲突
+					if !RedisManager.IsUserAvailable(msg.UserId, timestampFrom, timestampTo) {
+						replyResp.Attribute["errCode"] = "1091"
+						replyResp.Attribute["errMsg"] = "您在这个时间已经有其他课程安排"
 						userChan <- replyResp
 						break
 					}
@@ -292,7 +309,7 @@ func POIWSOrderHandler(orderId int64) {
 						QueryUserById(teacherId),
 						planTime)
 					sessionPtr := InsertSession(&session)
-					RedisManager.SetTeacherSessionTime(sessionPtr.Id)
+					RedisManager.SetSessionUserTick(sessionPtr.Id)
 
 					// 发送Leancloud订单成功通知
 					go SendSessionCreatedNotification(sessionPtr.Id)
@@ -420,6 +437,19 @@ func POIWSOrderHandler(orderId int64) {
 			}
 		}
 	}
+}
+
+func parseReplyTime(replyTimeStr string, lengthMin int64) (int64, int64, error) {
+	replyTime, err := time.Parse(time.RFC3339, replyTimeStr)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	length := time.Duration(lengthMin) * time.Minute
+	timeStart := replyTime
+	timeEnd := replyTime.Add(length)
+
+	return timeStart.Unix(), timeEnd.Unix(), nil
 }
 
 func InitOrderDispatch(msg POIWSMessage, userId int64, timestamp int64) bool {

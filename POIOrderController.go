@@ -36,7 +36,14 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		Status:    ORDER_STATUS_CREATED,
 		TeacherId: teacherId}
 
-	if orderType == ORDER_TYPE_GENERAL_APPOINTMENT {
+	switch orderType {
+	case ORDER_TYPE_GENERAL_INSTANT:
+		if WsManager.IsUserSessionLocked(creatorId) {
+			err = errors.New("您很快有一节课要开始")
+			return 5002, nil, err
+		}
+
+	case ORDER_TYPE_GENERAL_APPOINTMENT:
 		startTime, _ := time.Parse(time.RFC3339, order.Date)   //预计上课时间
 		dateDiff := startTime.YearDay() - time.Now().YearDay() //预计上课时间距离当前时间的天数
 		if dateDiff < 0 {
@@ -67,6 +74,24 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 				return 2, nil, err
 			}
 		}
+
+		// 根据用户输入的预约时间信息获取冲突时间段
+		timestampFrom, timestampTo, err := parseAppointmentTime(date, periodId)
+		if err != nil {
+			return 2, nil, err
+		}
+
+		// 判断用户时间是否冲突
+		if !RedisManager.IsUserAvailable(creatorId, timestampFrom, timestampTo) {
+			err := errors.New("预约课程时间冲突")
+			return 5003, nil, err
+		}
+
+	case ORDER_TYPE_PERSONAL_INSTANT:
+		if WsManager.IsUserSessionLocked(creatorId) {
+			err = errors.New("您很快有一节课要开始")
+			return 5002, nil, err
+		}
 	}
 
 	orderPtr, err := InsertOrder(&order)
@@ -76,10 +101,54 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 	}
 
 	if orderPtr.Type == ORDER_TYPE_PERSONAL_INSTANT {
-		go SendPersonalOrderNotification(orderPtr.Id, teacherId)
-		go LCPushNotification(NewPersonalOrderPushReq(orderPtr.Id, teacherId))
+		if WsManager.IsUserSessionLocked(teacherId) {
+			orderInfo := map[string]interface{}{
+				"Status": ORDER_STATUS_CANCELLED,
+			}
+			UpdateOrderInfo(orderPtr.Id, orderInfo)
+			go SendPersonalOrderAutoRejectNotification(creatorId, teacherId)
+		} else {
+			go SendPersonalOrderNotification(orderPtr.Id, teacherId)
+			go LCPushNotification(NewPersonalOrderPushReq(orderPtr.Id, teacherId))
+		}
 	}
 	return 0, orderPtr, nil
+}
+
+func parseAppointmentTime(date string, period int64) (int64, int64, error) {
+	dateTime, err := time.Parse(time.RFC3339, date)
+	if err != nil {
+		return 0, 0, err
+	}
+	year := dateTime.Year()
+	month := dateTime.Month()
+	day := dateTime.Day()
+	loc := dateTime.Location()
+
+	var startHour, startMin int
+	var endHour, endMin int
+	switch period {
+	case ORDER_PERIOD_MORNING:
+		startHour = 7
+		endHour = 13
+	case ORDER_PERIOD_AFTERNOON:
+		startHour = 13
+		endHour = 18
+	case ORDER_PERIOD_EVENING:
+		startHour = 18
+		endHour = 23
+	default:
+		err := errors.New("Invalid period")
+		return 0, 0, err
+	}
+
+	startTime := time.Date(year, month, day, startHour, startMin, 0, 0, loc)
+	endTime := time.Date(year, month, day, endHour, endMin, 0, 0, loc)
+
+	timestampFrom := startTime.Unix()
+	timestampTo := endTime.Unix()
+
+	return timestampFrom, timestampTo, nil
 }
 
 func OrderPersonalConfirm(userId int64, orderId int64, accept int64, timestamp float64) int64 {

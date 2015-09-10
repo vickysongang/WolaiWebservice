@@ -252,6 +252,23 @@ func SendPersonalOrderRejectNotification(orderId int64, teacherId int64) {
 	LCSendTypedMessage(teacherId, order.Creator.UserId, &lcTMsg, false)
 }
 
+func SendPersonalOrderAutoRejectNotification(studentId int64, teacherId int64) {
+	attr := make(map[string]string)
+	studentTMsg := LCTypedMessage{
+		Type:      LC_MSG_TEXT,
+		Text:      "[系统提示]老师正忙，暂时不能收到你的约课请求，建议换个时间再试试看噢！",
+		Attribute: attr,
+	}
+	teacherTMsg := LCTypedMessage{
+		Type:      LC_MSG_TEXT,
+		Text:      "[系统提示]你有课程正在进行中，暂时不能接受学生的约课请求，记得联系他换个时间再约喔！",
+		Attribute: attr,
+	}
+
+	LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+	LCSendTypedMessage(studentId, teacherId, &teacherTMsg, false)
+}
+
 func SendSessionCreatedNotification(sessionId int64) {
 	session := QuerySessionById(sessionId)
 	if session == nil {

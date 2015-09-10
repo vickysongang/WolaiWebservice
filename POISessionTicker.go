@@ -6,14 +6,19 @@ import (
 	seelog "github.com/cihub/seelog"
 )
 
+type POITickInfo struct {
+	Timestamp int64
+	Content   string
+}
+
 func POISessionTickerHandler() {
 	for t := range SessionTicker.C {
-		ticks := RedisManager.GetSessionTicks(t.Unix())
+		sessionTicks := RedisManager.GetSessionTicks(t.Unix())
 
-		for i := range ticks {
-			seelog.Debug("POISessionTickerHandler: @", t.Unix(), " ticks: "+ticks[i])
+		for i := range sessionTicks {
+			seelog.Debug("POISessionTickerHandler: @", t.Unix(), " SessionTicks: "+sessionTicks[i])
 			var tickInfo map[string]int64
-			_ = json.Unmarshal([]byte(ticks[i]), &tickInfo)
+			_ = json.Unmarshal([]byte(sessionTicks[i]), &tickInfo)
 
 			sessionId := tickInfo["sessionId"]
 			session := QuerySessionById(sessionId)
@@ -27,6 +32,20 @@ func POISessionTickerHandler() {
 			case 5:
 				go SendSessionReminderNotification(sessionId, tickInfo["seconds"])
 			}
+		}
+
+		sessionLockTicks := RedisManager.GetSessionUserTicks(t.Unix())
+		for i := range sessionLockTicks {
+			seelog.Debug("POISessionTickerHandler: @", t.Unix(), " LockTicks: "+sessionLockTicks[i].Content)
+			var tickInfo map[string]int64
+			_ = json.Unmarshal([]byte(sessionLockTicks[i].Content), &tickInfo)
+
+			if tickInfo["lock"] == 1 {
+				WsManager.SetUserSessionLock(tickInfo["userId"], true, sessionLockTicks[i].Timestamp)
+			}
+			// } else if tickInfo["lock"] == 0 {
+			// 	WsManager.SetUserSessionLock(tickInfo["userId"], false, sessionLockTicks[i].Timestamp)
+			// }
 		}
 	}
 }
