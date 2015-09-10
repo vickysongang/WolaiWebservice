@@ -104,7 +104,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	conn.SetReadDeadline(time.Now().Add(pongWait))
 	conn.SetPongHandler(func(string) error {
-		seelog.Debug("Recieve heartbeat from userId:", userId, "&&&&&&&")
 		err := conn.SetReadDeadline(time.Now().Add(pongWait))
 		if err != nil {
 			seelog.Error(err.Error())
@@ -284,7 +283,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 		select {
 		// 发送心跳
 		case <-pingTicker.C:
-			seelog.Debug("Send heartbeat to userId:", userId, "!!!!!!!")
 			if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 				if WsManager.GetUserOnlineStatus(userId) == loginTS {
