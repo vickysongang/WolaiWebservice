@@ -637,7 +637,7 @@ func (rm *POIRedisManager) GetSessionUserTicks(timestamp int64) []POITickInfo {
  * 判断老师在某一时间段内是否处于忙碌状态
  */
 func (rm *POIRedisManager) IsUserAvailable(userId int64, timestampFrom, timestampTo int64) bool {
-	//seelog.Debug("IsUserAvailable: ", userId, "\t", timestampFrom, "\t", timestampTo)
+	seelog.Debug("IsUserAvailable: ", userId, "\t", timestampFrom, "\t", timestampTo)
 	userIdStr := strconv.FormatInt(userId, 10)
 	items, err := rm.redisClient.ZRangeByScore(SESSION_USER_LOCK+userIdStr,
 		redis.ZRangeByScore{
