@@ -83,7 +83,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 
 		// 判断用户时间是否冲突
 		if !RedisManager.IsUserAvailable(creatorId, timestampFrom, timestampTo) {
-			err := errors.New("预约课程时间冲突")
+			err := errors.New("预约的时间段内已经有别的课啦！")
 			return 5003, nil, err
 		}
 
