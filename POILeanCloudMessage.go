@@ -226,6 +226,7 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 				if err == nil {
 					if supportUserId == USER_WOLAI_SUPPORT || supportUserId == USER_WOLAI_TEAM {
 						//					if RedisManager.IsSupportMessage(USER_WOLAI_SUPPORT, toStr) || RedisManager.IsSupportMessage(USER_WOLAI_TEAM, toStr) {
+						//此处对新用户注册通知图片的处理不是合适的，需要完善
 						if !strings.Contains(messageLog.Data, "student_welcome_1.jpg") {
 							supportMessageLog := LCSupportMessageLog{}
 							supportMessageLog.MsgId = messageLog.MsgId
