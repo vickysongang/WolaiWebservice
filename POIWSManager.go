@@ -254,6 +254,8 @@ func (wsm *POIWSManager) SetUserSessionLock(userId int64, lock bool, timestamp i
 		IsLocked:        lock,
 		UpdateTimestamp: timestamp,
 	}
+
+	seelog.Debug("SetUserSessionLock: userId:", userId, " locked: ", lock, " timestamp: ", timestamp)
 }
 
 func (wsm *POIWSManager) IsUserSessionLocked(userId int64) bool {

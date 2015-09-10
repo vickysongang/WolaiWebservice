@@ -592,6 +592,8 @@ func (rm *POIRedisManager) SetSessionUserTick(sessionId int64) {
 	//rm.redisClient.ZAdd(SESSION_USER_TICKER, teacherTimeToZ)
 	rm.redisClient.ZAdd(SESSION_USER_TICKER, studentTimeFromZ)
 	//rm.redisClient.ZAdd(SESSION_USER_TICKER, studentTimeToZ)
+
+	seelog.Debug("SetSessionLock: sessionId:", sessionId, "teacherId:", session.Teacher.UserId, " studentId:", session.Creator.UserId)
 }
 
 /*
