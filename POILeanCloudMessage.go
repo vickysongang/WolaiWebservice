@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -14,9 +15,8 @@ import (
 )
 
 const (
-	LC_SEND_MSG     = "https://leancloud.cn/1.1/rtm/messages"
-	LC_QUERY_API    = "https://api.leancloud.cn/1.1/classes/_Conversation"
-	SUPPORT_USER_ID = 1001
+	LC_SEND_MSG  = "https://leancloud.cn/1.1/rtm/messages"
+	LC_QUERY_API = "https://api.leancloud.cn/1.1/classes/_Conversation"
 )
 
 type LCMessage struct {
@@ -222,17 +222,23 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 			InsertLCMessageLog(&messageLog)
 			if RedisManager.redisError == nil {
 				//如果是客服消息，则将该消息存入客服消息表
-				if RedisManager.IsSupportMessage(SUPPORT_USER_ID, toStr) {
-					supportMessageLog := LCSupportMessageLog{}
-					supportMessageLog.MsgId = messageLog.MsgId
-					supportMessageLog.ConvId = messageLog.ConvId
-					supportMessageLog.From = messageLog.From
-					supportMessageLog.To = messageLog.To
-					supportMessageLog.FromIp = messageLog.FromIp
-					supportMessageLog.Data = messageLog.Data
-					supportMessageLog.Timestamp = messageLog.Timestamp
-					supportMessageLog.CreateTime = messageLog.CreateTime
-					InsertLCSupportMessageLog(&supportMessageLog)
+				supportUserId, err := strconv.ParseInt(messageLog.From, 10, 64)
+				if err == nil {
+					if supportUserId == USER_WOLAI_SUPPORT || supportUserId == USER_WOLAI_TEAM {
+						//					if RedisManager.IsSupportMessage(USER_WOLAI_SUPPORT, toStr) || RedisManager.IsSupportMessage(USER_WOLAI_TEAM, toStr) {
+						if !strings.Contains(messageLog.Data, "student_welcome_1.jpg") {
+							supportMessageLog := LCSupportMessageLog{}
+							supportMessageLog.MsgId = messageLog.MsgId
+							supportMessageLog.ConvId = messageLog.ConvId
+							supportMessageLog.From = messageLog.From
+							supportMessageLog.To = messageLog.To
+							supportMessageLog.FromIp = messageLog.FromIp
+							supportMessageLog.Data = messageLog.Data
+							supportMessageLog.Timestamp = messageLog.Timestamp
+							supportMessageLog.CreateTime = messageLog.CreateTime
+							InsertLCSupportMessageLog(&supportMessageLog)
+						}
+					}
 				}
 			}
 		} else {
