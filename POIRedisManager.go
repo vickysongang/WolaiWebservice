@@ -637,7 +637,7 @@ func (rm *POIRedisManager) GetSessionUserTicks(timestamp int64) []POITickInfo {
  * 判断老师在某一时间段内是否处于忙碌状态
  */
 func (rm *POIRedisManager) IsUserAvailable(userId int64, timestampFrom, timestampTo int64) bool {
-	seelog.Debug("IsUserAvailable: ", userId, "\t", timestampFrom, "\t", timestampTo)
+	//seelog.Debug("IsUserAvailable: ", userId, "\t", timestampFrom, "\t", timestampTo)
 	userIdStr := strconv.FormatInt(userId, 10)
 	items, err := rm.redisClient.ZRangeByScore(SESSION_USER_LOCK+userIdStr,
 		redis.ZRangeByScore{
@@ -652,26 +652,25 @@ func (rm *POIRedisManager) IsUserAvailable(userId int64, timestampFrom, timestam
 	if len(items) > 0 {
 		return false
 	}
+
+	items, err = rm.redisClient.ZRevRangeByScore(SESSION_USER_LOCK+userIdStr,
+		redis.ZRangeByScore{
+			Min:    "-inf",
+			Max:    strconv.FormatInt(timestampFrom, 10),
+			Offset: 0,
+			Count:  1,
+		}).Result()
+	if len(items) == 0 {
+		return true
+	}
+	var tickInfo map[string]int64
+	_ = json.Unmarshal([]byte(items[0]), &tickInfo)
+
+	if tickInfo["lock"] == 1 {
+		return false
+	}
 	return true
 }
-
-// func (rm *POIRedisManager) IsTeacherBusy(teacherId int64, fromTimestamp, toTimeStamp int64) bool {
-// 	teacherIdStr := strconv.Itoa(int(teacherId))
-// 	sessions, err := rm.redisClient.ZRangeByScore(SESSION_TEACHER+teacherIdStr,
-// 		redis.ZRangeByScore{
-// 			Min:    strconv.FormatInt(fromTimestamp, 10),
-// 			Max:    strconv.FormatInt(toTimeStamp, 10),
-// 			Offset: 0,
-// 			Count:  10,
-// 		}).Result()
-// 	if err == redis.Nil {
-// 		return false
-// 	}
-// 	if len(sessions) > 0 {
-// 		return true
-// 	}
-// 	return false
-// }
 
 func (rm *POIRedisManager) SetActivityNotification(userId int64, activityId int64, mediaId string) {
 	userIdStr := strconv.FormatInt(userId, 10)
