@@ -157,21 +157,23 @@ func POIWSOrderHandler(orderId int64) {
 						break
 					}
 
-					//判断回复时间合法性
-					timestampFrom, timestampTo, err := parseReplyTime(timeReply, order.Length)
-					if err != nil {
-						replyResp.Attribute["errCode"] = "2"
-						replyResp.Attribute["errMsg"] = err.Error()
-						userChan <- replyResp
-						break
-					}
+					if order.Type == ORDER_TYPE_GENERAL_APPOINTMENT {
+						//判断回复时间合法性
+						timestampFrom, timestampTo, err := parseReplyTime(timeReply, order.Length)
+						if err != nil {
+							replyResp.Attribute["errCode"] = "2"
+							replyResp.Attribute["errMsg"] = err.Error()
+							userChan <- replyResp
+							break
+						}
 
-					//判断是否有预约冲突
-					if !RedisManager.IsUserAvailable(msg.UserId, timestampFrom, timestampTo) {
-						replyResp.Attribute["errCode"] = "1091"
-						replyResp.Attribute["errMsg"] = "预约的时间段内已有别的课啦！"
-						userChan <- replyResp
-						break
+						//判断是否有预约冲突
+						if !RedisManager.IsUserAvailable(msg.UserId, timestampFrom, timestampTo) {
+							replyResp.Attribute["errCode"] = "1091"
+							replyResp.Attribute["errMsg"] = "预约的时间段内已有别的课啦！"
+							userChan <- replyResp
+							break
+						}
 					}
 					replyResp.Attribute["errCode"] = "0"
 					userChan <- replyResp
@@ -309,7 +311,6 @@ func POIWSOrderHandler(orderId int64) {
 						QueryUserById(teacherId),
 						planTime)
 					sessionPtr := InsertSession(&session)
-					RedisManager.SetSessionUserTick(sessionPtr.Id)
 
 					// 发送Leancloud订单成功通知
 					go SendSessionCreatedNotification(sessionPtr.Id)
@@ -318,6 +319,8 @@ func POIWSOrderHandler(orderId int64) {
 					if order.Type == ORDER_TYPE_GENERAL_INSTANT {
 						_ = InitSessionMonitor(sessionPtr.Id)
 					} else if order.Type == ORDER_TYPE_GENERAL_APPOINTMENT {
+						RedisManager.SetSessionUserTick(sessionPtr.Id)
+
 						planTime, _ := time.Parse(time.RFC3339, dispatchInfo.PlanTime)
 						planTimeTS := planTime.Unix()
 
