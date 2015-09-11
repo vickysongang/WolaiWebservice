@@ -473,6 +473,10 @@ func InitOrderDispatch(msg POIWSMessage, userId int64, timestamp int64) bool {
 		return false
 	}
 
+	if WsManager.HasOrderChan(orderId) {
+		return false
+	}
+
 	order := QueryOrderById(orderId)
 	if userId != order.Creator.UserId {
 		return false
