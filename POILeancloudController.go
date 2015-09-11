@@ -405,8 +405,17 @@ func SendAdvertisementMessage(title, desc, mediaId, url string, userId int64) {
 		Text:      "[活动消息]",
 		Attribute: attr,
 	}
+	if userId != 0 {
+		LCSendTypedMessage(USER_WOLAI_TEAM, userId, &lcTMsg, false)
+		return
+	}
 
-	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &lcTMsg, false)
+	userIds := QueryUserAllId()
+	for _, id := range userIds {
+		go LCSendTypedMessage(USER_WOLAI_TEAM, id, &lcTMsg, false)
+	}
+
+	return
 }
 
 /*

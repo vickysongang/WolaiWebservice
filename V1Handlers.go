@@ -28,30 +28,10 @@ func Dummy(w http.ResponseWriter, r *http.Request) {
 		seelog.Error(err.Error())
 	}
 
-	vars := r.Form
+	//vars := r.Form
 
-	objectId := vars["objectId"][0]
-
-	lcReq := map[string]interface{}{
-		"where": map[string]interface{}{
-			"objectId": objectId,
-		},
-		"data": map[string]interface{}{
-			"android": map[string]interface{}{
-				"alert":     "您有一条上课提醒",
-				"title":     "您有一条上课提醒",
-				"action":    "com.poi.SESSION_REQUEST",
-				"sound":     "session_sound.mp3",
-				"sessionId": "1360",
-				"teacherId": "10004",
-				"studentId": "10498",
-				"oprCode":   "203",
-				"countdown": "10",
-			},
-		},
-	}
-
-	LCPushNotification(&lcReq)
+	userIds := QueryUserAllId()
+	json.NewEncoder(w).Encode(userIds)
 }
 
 func Dummy2(w http.ResponseWriter, r *http.Request) {
@@ -1371,11 +1351,11 @@ func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {
 
 	vars := r.Form
 
-	if len(vars["userId"]) == 0 {
-		return
+	var userId int64
+	if len(vars["userId"]) > 0 {
+		userIdStr := vars["userId"][0]
+		userId, _ = strconv.ParseInt(userIdStr, 10, 64)
 	}
-	userIdStr := vars["userId"][0]
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
 	title := vars["title"][0]
 	description := vars["desc"][0]

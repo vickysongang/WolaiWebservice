@@ -98,6 +98,20 @@ func QueryUserByPhone(phone string) *POIUser {
 	return user
 }
 
+func QueryUserAllId() []int64 {
+	var userIds []int64
+	qb, _ := orm.NewQueryBuilder(DB_TYPE)
+	qb.Select("id").From("users").Where("status = 0 AND id >= 10000")
+	sql := qb.String()
+	o := orm.NewOrm()
+	_, err := o.Raw(sql).QueryRows(&userIds)
+	if err != nil {
+		seelog.Error("QueryAlluserId: ", err.Error())
+		return nil
+	}
+	return userIds
+}
+
 func UpdateUserInfo(userId int64, userInfo map[string]interface{}) *POIUser {
 	o := orm.NewOrm()
 	var params orm.Params = make(orm.Params)
