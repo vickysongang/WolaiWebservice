@@ -86,6 +86,14 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 			"objectId": objectId,
 		},
 		"data": map[string]interface{}{
+			"ios": map[string]interface{}{
+				"alert": map[string]interface{}{
+					"title":          "我来",
+					"body":           titleStr,
+					"action-loc-key": "处理",
+				},
+				"action": "hahaha",
+			},
 			"android": map[string]interface{}{
 				"alert":  "您有一条约课提醒",
 				"title":  titleStr,
@@ -125,11 +133,7 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 		},
 		"data": map[string]interface{}{
 			"ios": map[string]interface{}{
-				"alert": map[string]interface{}{
-					"title":          "我来",
-					"body":           titleStr,
-					"action-loc-key": "处理",
-				},
+				"alert": titleStr
 				"action": "hahaha",
 			},
 			"android": map[string]interface{}{
