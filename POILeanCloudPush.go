@@ -133,8 +133,10 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 		},
 		"data": map[string]interface{}{
 			"ios": map[string]interface{}{
-				"alert": titleStr
-				"action": "hahaha",
+				"alert":   titleStr,
+				"action":  "hahaha",
+				"miscStr": "111",
+				"miscNum": 111,
 			},
 			"android": map[string]interface{}{
 				"alert":  "您有一条约课提醒",
