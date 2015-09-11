@@ -156,7 +156,7 @@ func LCPushNotification(lcReq *map[string]interface{}) {
 	query, _ := json.Marshal(lcReq)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
 	if err != nil {
-		seelog.Error("LCGetConversationId:", err.Error())
+		seelog.Error("LeanCloud PushNotification:", err.Error())
 	}
 	req.Header.Set("X-AVOSCloud-Application-Id", Config.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Master-Key", Config.LeanCloud.MasterKey)
