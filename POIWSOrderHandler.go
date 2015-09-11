@@ -407,11 +407,9 @@ func POIWSOrderHandler(orderId int64) {
 					if countdown < 0 {
 						break
 					}
-					orderByte, _ := json.Marshal(order)
 
 					recoverStuMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER_RECOVER_STU)
 					recoverStuMsg.Attribute["orderId"] = orderIdStr
-					recoverStuMsg.Attribute["orderInfo"] = string(orderByte)
 					recoverStuMsg.Attribute["countdown"] = "120"
 					recoverStuMsg.Attribute["countstart"] = strconv.FormatInt(120-dispatchStart, 10)
 					recoverChan := WsManager.GetUserChan(msg.UserId)
