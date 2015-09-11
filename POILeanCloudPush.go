@@ -144,6 +144,7 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 				"action": "com.poi.POINT_TO_POINT_ORDER",
 			},
 		},
+		"prod": "dev",
 	}
 
 	return &lcReq

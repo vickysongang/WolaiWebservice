@@ -641,8 +641,8 @@ func (rm *POIRedisManager) IsUserAvailable(userId int64, timestampFrom, timestam
 	userIdStr := strconv.FormatInt(userId, 10)
 	items, err := rm.redisClient.ZRangeByScore(SESSION_USER_LOCK+userIdStr,
 		redis.ZRangeByScore{
-			Min:    strconv.FormatInt(timestampFrom, 10),
-			Max:    strconv.FormatInt(timestampTo, 10),
+			Min:    "(" + strconv.FormatInt(timestampFrom, 10),
+			Max:    "(" + strconv.FormatInt(timestampTo, 10),
 			Offset: 0,
 			Count:  10,
 		}).Result()
@@ -656,7 +656,7 @@ func (rm *POIRedisManager) IsUserAvailable(userId int64, timestampFrom, timestam
 	items, err = rm.redisClient.ZRevRangeByScore(SESSION_USER_LOCK+userIdStr,
 		redis.ZRangeByScore{
 			Min:    "-inf",
-			Max:    strconv.FormatInt(timestampFrom, 10),
+			Max:    "(" + strconv.FormatInt(timestampFrom, 10),
 			Offset: 0,
 			Count:  1,
 		}).Result()
