@@ -83,7 +83,7 @@ func HandleSessionTrade(session *POISession, result string) {
 	//学生付款
 	var studentAmount int64
 	studentAmount = (int64(math.Floor(float64(order.PricePerHour*session.Length/3600))) + 50) / 100 * 100
-	if studentAmount < 100 {
+	if studentAmount < 100 && studentAmount != 0 {
 		studentAmount = 100
 	}
 	MinusUserBalance(student.UserId, studentAmount)
@@ -96,7 +96,7 @@ func HandleSessionTrade(session *POISession, result string) {
 	//老师收款
 	var teacherAmount int64
 	teacherAmount = (int64(math.Floor(float64(order.RealPricePerHour*session.Length/3600))) + 50) / 100 * 100
-	if teacherAmount < 100 {
+	if teacherAmount < 100 && teacherAmount != 0 {
 		teacherAmount = 100
 	}
 	AddUserBalance(teacher.UserId, teacherAmount)
