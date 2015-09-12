@@ -2,7 +2,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -127,17 +126,15 @@ func QueryEvaluationLabelsBySubject(subjectId int64) (POIEvaluationLabels, error
 }
 
 func QueryEvaluationInfo(userId, sessionId int64) (*POIEvaluationInfos, error) {
-	user := QueryUserById(userId)
-	accessRight := user.AccessRight
+	session := QuerySessionById(sessionId)
 	self, err1 := QueryEvaluation4Self(userId, sessionId)
-	fmt.Println(user.AccessRight)
 	other, err2 := QueryEvaluation4Other(userId, sessionId)
 
 	selfEvaluation := POIEvaluationInfo{}
 	otherEvaluation := POIEvaluationInfo{}
 
 	evalutionInfos := make(POIEvaluationInfos, 0)
-	if accessRight == 2 {
+	if userId == session.Tutor {
 		if err1 == nil {
 			selfEvaluation.Type = "teacher"
 			selfEvaluation.Evalution = self
@@ -150,7 +147,7 @@ func QueryEvaluationInfo(userId, sessionId int64) (*POIEvaluationInfos, error) {
 
 			evalutionInfos = append(evalutionInfos, otherEvaluation)
 		}
-	} else if accessRight == 3 {
+	} else if userId == session.Created {
 		if err1 == nil {
 			selfEvaluation.Type = "student"
 			selfEvaluation.Evalution = self
