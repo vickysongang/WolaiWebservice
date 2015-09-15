@@ -425,7 +425,7 @@ func POIWSSessionHandler(sessionId int64) {
 					isCalling = false
 
 				case WS_SESSION_RESUME_ACCEPT:
-					resAcceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_ACCEPT_RESP)
+					resAcceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_ACCEPT_RESP)
 					acceptStr, ok := msg.Attribute["accept"]
 					if !ok {
 						resAcceptResp.Attribute["errCode"] = "2"
