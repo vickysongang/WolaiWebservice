@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"time"
 
+	"POIWolaiWebService/utils"
+
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/utils"
 )
 
 const (

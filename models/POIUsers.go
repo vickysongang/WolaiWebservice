@@ -3,10 +3,11 @@ package models
 import (
 	"time"
 
+	"POIWolaiWebService/utils"
+
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/tmhenry/POIWolaiWebService/utils"
 )
 
 const WOLAI_GIVE_AMOUNT = 10000

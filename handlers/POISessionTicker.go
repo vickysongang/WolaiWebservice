@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"time"
 
+	"POIWolaiWebService/leancloud"
+	"POIWolaiWebService/managers"
+	"POIWolaiWebService/models"
+	"POIWolaiWebService/websocket"
+
 	seelog "github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/leancloud"
-	"github.com/tmhenry/POIWolaiWebService/managers"
-	"github.com/tmhenry/POIWolaiWebService/models"
-	"github.com/tmhenry/POIWolaiWebService/websocket"
 )
 
 var SessionTicker *time.Ticker

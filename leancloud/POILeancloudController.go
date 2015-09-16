@@ -10,10 +10,11 @@ import (
 	"strings"
 	"time"
 
+	"POIWolaiWebService/managers"
+	"POIWolaiWebService/models"
+	"POIWolaiWebService/utils"
+
 	"github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/managers"
-	"github.com/tmhenry/POIWolaiWebService/models"
-	"github.com/tmhenry/POIWolaiWebService/utils"
 )
 
 const (

@@ -1,9 +1,10 @@
 package models
 
 import (
+	"POIWolaiWebService/utils"
+
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/utils"
 )
 
 type POIBanner struct {

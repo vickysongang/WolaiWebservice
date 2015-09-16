@@ -4,11 +4,12 @@ import (
 	"strconv"
 	"time"
 
+	"POIWolaiWebService/controllers/trade"
+	"POIWolaiWebService/leancloud"
+	"POIWolaiWebService/managers"
+	"POIWolaiWebService/models"
+
 	seelog "github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/controllers/trade"
-	"github.com/tmhenry/POIWolaiWebService/leancloud"
-	"github.com/tmhenry/POIWolaiWebService/managers"
-	"github.com/tmhenry/POIWolaiWebService/models"
 )
 
 func POIWSSessionHandler(sessionId int64) {

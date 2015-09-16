@@ -3,9 +3,10 @@ package websocket
 import (
 	"time"
 
+	"POIWolaiWebService/managers"
+	"POIWolaiWebService/models"
+
 	seelog "github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/managers"
-	"github.com/tmhenry/POIWolaiWebService/models"
 )
 
 func WSUserLogin(msg models.POIWSMessage) (chan models.POIWSMessage, bool) {

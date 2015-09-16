@@ -1,8 +1,9 @@
 package managers
 
 import (
+	"POIWolaiWebService/models"
+
 	seelog "github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/models"
 )
 
 type POIWSManager struct {

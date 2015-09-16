@@ -6,11 +6,12 @@ import (
 	"errors"
 	"strconv"
 
+	"POIWolaiWebService/leancloud"
+	"POIWolaiWebService/managers"
+	"POIWolaiWebService/models"
+
 	"github.com/cihub/seelog"
 	"github.com/satori/go.uuid"
-	"github.com/tmhenry/POIWolaiWebService/leancloud"
-	"github.com/tmhenry/POIWolaiWebService/managers"
-	"github.com/tmhenry/POIWolaiWebService/models"
 )
 
 func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text string, imageStr string,

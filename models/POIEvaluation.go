@@ -4,8 +4,9 @@ package models
 import (
 	"time"
 
+	"POIWolaiWebService/utils"
+
 	"github.com/astaxie/beego/orm"
-	"github.com/tmhenry/POIWolaiWebService/utils"
 )
 
 type POIEvaluation struct {

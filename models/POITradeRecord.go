@@ -4,9 +4,10 @@ package models
 import (
 	"time"
 
+	"POIWolaiWebService/utils"
+
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/utils"
 )
 
 type POITradeRecord struct {

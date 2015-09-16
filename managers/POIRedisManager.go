@@ -5,9 +5,10 @@ import (
 	"strconv"
 	"time"
 
+	"POIWolaiWebService/models"
+	"POIWolaiWebService/utils"
+
 	seelog "github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/models"
-	"github.com/tmhenry/POIWolaiWebService/utils"
 	"gopkg.in/redis.v3"
 )
 

@@ -6,8 +6,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/tmhenry/POIWolaiWebService/leancloud"
-	"github.com/tmhenry/POIWolaiWebService/models"
+	"POIWolaiWebService/leancloud"
+	"POIWolaiWebService/models"
 )
 
 /*

@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"POIWolaiWebService/managers"
+	"POIWolaiWebService/models"
+	"POIWolaiWebService/utils"
+
 	seelog "github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/managers"
-	"github.com/tmhenry/POIWolaiWebService/models"
-	"github.com/tmhenry/POIWolaiWebService/utils"
 )
 
 const LC_PUSH = "https://leancloud.cn/1.1/push"

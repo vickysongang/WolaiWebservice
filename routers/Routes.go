@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"POIWolaiWebService/handlers"
+	"POIWolaiWebService/websocket"
+
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/mux"
-	"github.com/tmhenry/POIWolaiWebService/handlers"
-	"github.com/tmhenry/POIWolaiWebService/websocket"
 )
 
 type Route struct {

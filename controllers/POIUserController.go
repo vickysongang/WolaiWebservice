@@ -3,10 +3,10 @@ package controllers
 import (
 	"strconv"
 
-	"github.com/tmhenry/POIWolaiWebService/controllers/trade"
-	"github.com/tmhenry/POIWolaiWebService/leancloud"
-	"github.com/tmhenry/POIWolaiWebService/managers"
-	"github.com/tmhenry/POIWolaiWebService/models"
+	"POIWolaiWebService/controllers/trade"
+	"POIWolaiWebService/leancloud"
+	"POIWolaiWebService/managers"
+	"POIWolaiWebService/models"
 )
 
 func LoadPOIUser(userId int64) *models.POIUser {

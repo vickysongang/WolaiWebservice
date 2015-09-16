@@ -6,11 +6,12 @@ import (
 
 	"strconv"
 
+	"POIWolaiWebService/leancloud"
+	"POIWolaiWebService/managers"
+	"POIWolaiWebService/models"
+
 	seelog "github.com/cihub/seelog"
 	"github.com/satori/go.uuid"
-	"github.com/tmhenry/POIWolaiWebService/leancloud"
-	"github.com/tmhenry/POIWolaiWebService/managers"
-	"github.com/tmhenry/POIWolaiWebService/models"
 )
 
 func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, imageStr string,

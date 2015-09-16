@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/tmhenry/POIWolaiWebService/models"
+	"POIWolaiWebService/models"
 )
 
 const (

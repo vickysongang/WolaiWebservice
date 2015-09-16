@@ -3,11 +3,12 @@ package main
 import (
 	"net/http"
 
+	"POIWolaiWebService/handlers"
+	"POIWolaiWebService/routers"
+	"POIWolaiWebService/utils"
+
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/handlers"
-	"github.com/tmhenry/POIWolaiWebService/routers"
-	"github.com/tmhenry/POIWolaiWebService/utils"
 )
 
 func init() {

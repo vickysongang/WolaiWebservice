@@ -4,9 +4,10 @@ package models
 import (
 	"time"
 
+	"POIWolaiWebService/utils"
+
 	"github.com/astaxie/beego/orm"
 	"github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/utils"
 )
 
 const (

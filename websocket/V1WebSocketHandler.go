@@ -7,10 +7,11 @@ import (
 	"strconv"
 	"time"
 
+	"POIWolaiWebService/managers"
+	"POIWolaiWebService/models"
+
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/websocket"
-	"github.com/tmhenry/POIWolaiWebService/managers"
-	"github.com/tmhenry/POIWolaiWebService/models"
 )
 
 const (

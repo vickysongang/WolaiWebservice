@@ -6,8 +6,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"POIWolaiWebService/utils"
+
 	seelog "github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/utils"
 )
 
 const LC_CONV_ID = "https://api.leancloud.cn/1.1/classes/_Conversation"

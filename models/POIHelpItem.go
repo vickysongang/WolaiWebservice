@@ -2,8 +2,9 @@
 package models
 
 import (
+	"POIWolaiWebService/utils"
+
 	"github.com/astaxie/beego/orm"
-	"github.com/tmhenry/POIWolaiWebService/utils"
 )
 
 type POIHelpItem struct {

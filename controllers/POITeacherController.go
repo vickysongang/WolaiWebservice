@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"POIWolaiWebService/managers"
+	"POIWolaiWebService/models"
+
 	"github.com/cihub/seelog"
-	"github.com/tmhenry/POIWolaiWebService/managers"
-	"github.com/tmhenry/POIWolaiWebService/models"
 )
 
 func GetTeacherRecommendationList(userId, pageNum, pageCount int64) (models.POITeachers, error) {
