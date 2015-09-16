@@ -69,6 +69,16 @@ func POIUserOauthLogin(openId string) (int64, *models.POIUser) {
 	}
 
 	user := LoadPOIUser(userId)
+	if user != nil {
+		//如果老师是第一次登陆，则修改老师的status字段为0，0代表不是第一次登陆，1代表从未登陆过
+		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER &&
+			user.Status == models.USER_STATUS_INACTIVE {
+			userInfo := make(map[string]interface{})
+			userInfo["Status"] = 0
+			models.UpdateUserInfo(user.UserId, userInfo)
+			leancloud.SendWelcomeMessageTeacher(user.UserId)
+		}
+	}
 	return 0, user
 }
 
