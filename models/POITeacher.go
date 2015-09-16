@@ -403,7 +403,7 @@ func QueryTeachersByCond(userId int64, keyword string, pageNum, pageCount int64)
 		From("users").InnerJoin("teacher_profile").On("users.id = teacher_profile.user_id").
 		InnerJoin("school").On("teacher_profile.school_id = school.id").
 		InnerJoin("department").On("teacher_profile.department_id = department.id").
-		Where("users.access_right = 2 and (users.nickname like ? or users.phone like ?)").Limit(int(pageCount)).Offset(int(start))
+		Where("users.access_right = 2 and users.status = 0 and (users.nickname like ? or users.phone like ?)").Limit(int(pageCount)).Offset(int(start))
 	sql := qb.String()
 	o := orm.NewOrm()
 	var teacherModels POITeacherModels
