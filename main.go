@@ -2,21 +2,12 @@ package main
 
 import (
 	"net/http"
-	"time"
 
-	"github.com/BurntSushi/toml"
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"
-)
-
-const DB_TYPE = "mysql"
-
-var (
-	RedisManager    POIRedisManager
-	WsManager       POIWSManager
-	SessionTicker   *time.Ticker
-	LCMessageTicker *time.Ticker
-	Config          POIConfig
+	"github.com/tmhenry/POIWolaiWebService/handlers"
+	"github.com/tmhenry/POIWolaiWebService/routers"
+	"github.com/tmhenry/POIWolaiWebService/utils"
 )
 
 func init() {
@@ -27,22 +18,13 @@ func init() {
 	}
 	seelog.ReplaceLogger(logger)
 
-	//加载系统使用到的配置信息
-	if _, err := toml.DecodeFile("/var/lib/poi/POIWolaiWebService.toml", &Config); err != nil {
-		seelog.Critical(err.Error())
-	}
-
-	RedisManager = NewPOIRedisManager()
-	WsManager = NewPOIWSManager()
-	SessionTicker = time.NewTicker(time.Millisecond * 5000)
-	LCMessageTicker = time.NewTicker(time.Second * 10)
 	//注册数据库
-	err = orm.RegisterDataBase("default", DB_TYPE, Config.Database.Username+":"+
-		Config.Database.Password+"@"+
-		Config.Database.Method+"("+
-		Config.Database.Address+":"+
-		Config.Database.Port+")/"+
-		Config.Database.Database+"?charset=utf8&loc=Asia%2FShanghai", 30)
+	err = orm.RegisterDataBase("default", utils.DB_TYPE, utils.Config.Database.Username+":"+
+		utils.Config.Database.Password+"@"+
+		utils.Config.Database.Method+"("+
+		utils.Config.Database.Address+":"+
+		utils.Config.Database.Port+")/"+
+		utils.Config.Database.Database+"?charset=utf8&loc=Asia%2FShanghai", 30)
 	if err != nil {
 		seelog.Critical(err.Error())
 	}
@@ -51,9 +33,9 @@ func init() {
 func main() {
 	orm.Debug = false
 
-	go POISessionTickerHandler()
-	go POILeanCloudTickerHandler()
+	go handlers.POISessionTickerHandler()
+	go handlers.POILeanCloudTickerHandler()
 
-	router := NewRouter()
-	seelog.Critical(http.ListenAndServe(Config.Server.Port, router))
+	router := routers.NewRouter()
+	seelog.Critical(http.ListenAndServe(utils.Config.Server.Port, router))
 }
