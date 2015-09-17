@@ -23,7 +23,9 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 	}
 
 	if creator.Balance <= 0 {
-		return 5001, nil, errors.New("余额不足")
+		err = errors.New("余额不足")
+		seelog.Error(err.Error())
+		return 5001, nil, err
 	}
 
 	if orderType == models.ORDER_TYPE_PERSONAL_INSTANT && teacherId == 0 {
@@ -45,6 +47,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 	case models.ORDER_TYPE_GENERAL_INSTANT:
 		if managers.WsManager.IsUserSessionLocked(creatorId) {
 			err = errors.New("你有一堂课马上就要开始啦！")
+			seelog.Error(err.Error())
 			return 5002, nil, err
 		}
 
@@ -89,12 +92,14 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		// 判断用户时间是否冲突
 		if !managers.RedisManager.IsUserAvailable(creatorId, timestampFrom, timestampTo) {
 			err := errors.New("预约的时间段内已经有别的课啦！")
+			seelog.Error(err.Error())
 			return 5003, nil, err
 		}
 
 	case models.ORDER_TYPE_PERSONAL_INSTANT:
 		if managers.WsManager.IsUserSessionLocked(creatorId) {
 			err = errors.New("你有一堂课马上就要开始啦！")
+			seelog.Error(err.Error())
 			return 5002, nil, err
 		}
 	}
