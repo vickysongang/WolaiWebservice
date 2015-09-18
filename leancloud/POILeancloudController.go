@@ -561,6 +561,7 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 		fromIpStr, _ := messageMap["from-ip"].(string)
 		messageLog.FromIp = fromIpStr
 		datasStr, _ := messageMap["data"].(string)
+		seelog.Debug("!!!!!!!!!!!!!!dataStr:", datasStr, "   ", utils.FilterEmoji(datasStr))
 		messageLog.Data = utils.FilterEmoji(datasStr)
 		timestamp, _ := messageMap["timestamp"].(float64)
 		messageLog.Timestamp = strconv.FormatFloat(timestamp, 'f', 0, 64)
