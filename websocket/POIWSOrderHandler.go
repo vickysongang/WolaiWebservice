@@ -324,7 +324,10 @@ func POIWSOrderHandler(orderId int64) {
 					if order.Type == models.ORDER_TYPE_GENERAL_INSTANT {
 						_ = InitSessionMonitor(sessionPtr.Id)
 					} else if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT {
-						managers.RedisManager.SetSessionUserTick(sessionPtr.Id)
+						if managers.RedisManager.SetSessionUserTick(sessionPtr.Id) {
+							managers.WsManager.SetUserSessionLock(sessionPtr.Teacher.UserId, true, timestamp)
+							managers.WsManager.SetUserSessionLock(sessionPtr.Creator.UserId, true, timestamp)
+						}
 
 						planTime, _ := time.Parse(time.RFC3339, dispatchInfo.PlanTime)
 						planTimeTS := planTime.Unix()
