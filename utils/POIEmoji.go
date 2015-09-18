@@ -1,20 +1,29 @@
 // POIEmoji
 package utils
 
-import "unicode/utf8"
+import (
+	"fmt"
+	"regexp"
+	"unicode/utf8"
+)
 
 // 过滤 emoji 表情
 func FilterEmoji(content string) string {
-	newContent := ""
+	new_content := ""
 	for _, value := range content {
 		r, size := utf8.DecodeRuneInString(string(value))
 		if size <= 3 {
-			newContent += string(value)
+			ok, _ := regexp.MatchString(`U\+E[0-9]{3}`, fmt.Sprintf("%U", r))
+			if ok {
+				new_content += emojiToUnicode(r)
+			} else {
+				new_content += string(value)
+			}
 		} else {
-			newContent += emojiToUnicode(r)
+			new_content += emojiToUnicode(r)
 		}
 	}
-	return newContent
+	return new_content
 }
 
 func emojiToUnicode(runeValue rune) (unicodeValue string) {
