@@ -538,7 +538,7 @@ func (rm *POIRedisManager) RemoveUserObjectId(userId int64) {
 /*
  * 将老师的计划开始时间和预计结束时间存入redis
  */
-func (rm *POIRedisManager) SetSessionUserTick(sessionId int64) {
+func (rm *POIRedisManager) SetSessionUserTick(sessionId int64) bool {
 	//orderInSession, err := QueryOrderInSession(sessionId)
 	session := models.QuerySessionById(sessionId)
 	if session == nil {
@@ -602,6 +602,11 @@ func (rm *POIRedisManager) SetSessionUserTick(sessionId int64) {
 	//rm.redisClient.ZAdd(SESSION_USER_TICKER, studentTimeToZ)
 
 	seelog.Debug("SetSessionLock: sessionId:", sessionId, "teacherId:", session.Teacher.UserId, " studentId:", session.Creator.UserId)
+
+	if time.Now().Unix() > timeFrom.Unix() {
+		return true
+	}
+	return false
 }
 
 /*
