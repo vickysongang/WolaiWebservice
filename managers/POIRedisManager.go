@@ -542,11 +542,11 @@ func (rm *POIRedisManager) SetSessionUserTick(sessionId int64) bool {
 	//orderInSession, err := QueryOrderInSession(sessionId)
 	session := models.QuerySessionById(sessionId)
 	if session == nil {
-		return
+		return false
 	}
 	order := models.QueryOrderById(session.OrderId)
 	if order == nil {
-		return
+		return false
 	}
 
 	planTimeStr := session.PlanTime
