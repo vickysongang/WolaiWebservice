@@ -13,7 +13,7 @@ func FilterEmoji(content string) string {
 	for _, value := range content {
 		r, size := utf8.DecodeRuneInString(string(value))
 		if size <= 3 {
-			ok, _ := regexp.MatchString(`U\+E[0-9]{3}`, fmt.Sprintf("%U", r))
+			ok, _ := regexp.MatchString(`U\+E[0-9a-fA-F]{3}`, fmt.Sprintf("%U", r))
 			if ok {
 				new_content += emojiToUnicode(r)
 			} else {
