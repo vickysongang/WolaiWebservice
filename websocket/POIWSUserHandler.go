@@ -50,7 +50,6 @@ func WSUserLogin(msg models.POIWSMessage) (chan models.POIWSMessage, bool) {
 				msgFL := models.NewPOIWSMessage("", msg.UserId, models.WS_FORCE_LOGOUT)
 				oldChan <- msgFL
 			}
-			close(oldChan)
 		}
 	}
 
