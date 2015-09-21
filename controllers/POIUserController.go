@@ -89,7 +89,7 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 		return 0, user
 	}
 
-	userId, _ := models.InsertPOIUser(&models.POIUser{Phone: phone, Nickname: nickname, Avatar: avatar, Gender: gender, AccessRight: 3, Balance: models.WOLAI_GIVE_AMOUNT})
+	userId, _ := models.InsertPOIUser(&models.POIUser{Phone: phone, Nickname: nickname, Avatar: avatar, Gender: gender, AccessRight: 3})
 	user = LoadPOIUser(userId)
 	models.InsertUserOauth(userId, openId)
 
