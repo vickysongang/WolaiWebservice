@@ -92,6 +92,21 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 	userId, _ := models.InsertPOIUser(&models.POIUser{Phone: phone, Nickname: nickname, Avatar: avatar, Gender: gender, AccessRight: 3, Balance: models.WOLAI_GIVE_AMOUNT})
 	user = LoadPOIUser(userId)
 	models.InsertUserOauth(userId, openId)
+
+	//新用户注册发送欢迎信息以及红包
+	go leancloud.SendWelcomeMessageStudent(userId)
+	activities, err := models.QueryEffectiveActivities(models.REGISTER_ACTIVITY)
+	if err == nil {
+		for _, activity := range activities {
+			userToActivity := models.POIUserToActivity{UserId: userId, ActivityId: activity.Id}
+			models.InsertUserToActivity(&userToActivity)
+			trade.HandleSystemTrade(user.UserId, activity.Amount, models.TRADE_PROMOTION, models.TRADE_RESULT_SUCCESS, activity.Theme)
+			go leancloud.SendTradeNotificationSystem(user.UserId, activity.Amount, leancloud.LC_TRADE_STATUS_INCOME,
+				activity.Title, activity.Subtitle, activity.Extra)
+			managers.RedisManager.SetActivityNotification(userId, activity.Id, activity.MediaId)
+		}
+	}
+
 	return 1003, user
 }
 
