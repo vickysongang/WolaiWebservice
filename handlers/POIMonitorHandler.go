@@ -5,21 +5,35 @@ import (
 	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
+type POIMonitorUser struct {
+	UserId    int64
+	LoginTime int64
+}
+
+type POIMonitorUsers struct {
+	OnlineUsers    []POIMonitorUser
+	OnlineTeachers []POIMonitorUser
+}
+
+func NewPOIMonitorUsers() POIMonitorUsers {
+	users := POIMonitorUsers{
+		OnlineUsers:    make([]POIMonitorUser, 0),
+		OnlineTeachers: make([]POIMonitorUser, 0),
+	}
+	return users
+}
+
 func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
-	monitorMap := make(map[string]interface{})
-	onlineUsers := managers.WsManager.OnlineUserMap
-	if len(onlineUsers) > 0 {
-		fmt.Println("onlineUsers:", onlineUsers)
-		monitorMap["OnlineUsers"] = onlineUsers
+	users := NewPOIMonitorUsers()
+	for k, v := range managers.WsManager.OnlineUserMap {
+		users.OnlineUsers = append(users.OnlineUsers, POIMonitorUser{UserId: k, LoginTime: v})
 	}
-	onlineTeachers := managers.WsManager.OnlineTeacherMap
-	if len(onlineTeachers) > 0 {
-		monitorMap["OnlineTeachers"] = onlineTeachers
+	for k, v := range managers.WsManager.OnlineTeacherMap {
+		users.OnlineTeachers = append(users.OnlineTeachers, POIMonitorUser{UserId: k, LoginTime: v})
 	}
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", monitorMap))
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", users))
 }
