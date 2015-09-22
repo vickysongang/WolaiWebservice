@@ -5,6 +5,7 @@ import (
 	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -50,7 +51,9 @@ func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	monitorOrders := POIMonitorOrders{}
+	fmt.Println("!!!!!!!!!!!!!!!!!:", len(managers.WsManager.OrderDispatchMap))
 	orderDispatchInfo, _ := json.Marshal(managers.WsManager.OrderDispatchMap)
+	fmt.Println("aaaaaaaaaaa:", string(orderDispatchInfo))
 	monitorOrders.OrderDispatchInfo = string(orderDispatchInfo)
 	teacherOrderDispatchInfo, _ := json.Marshal(managers.WsManager.TeacherOrderDispatchMap)
 	monitorOrders.TeacherOrderDispatchInfo = string(teacherOrderDispatchInfo)
