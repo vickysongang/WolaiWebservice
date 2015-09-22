@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"strconv"
+	"time"
 
 	"POIWolaiWebService/controllers/trade"
 	"POIWolaiWebService/leancloud"
@@ -24,6 +25,7 @@ func POIUserLogin(phone string) (int64, *models.POIUser) {
 			models.UpdateUserInfo(user.UserId, userInfo)
 			leancloud.SendWelcomeMessageTeacher(user.UserId)
 		}
+		models.UpdateUserInfo(user.UserId, map[string]interface{}{"LastLoginTime": time.Now()})
 		return 0, user
 	}
 	u := models.POIUser{}
@@ -79,6 +81,7 @@ func POIUserOauthLogin(openId string) (int64, *models.POIUser) {
 			leancloud.SendWelcomeMessageTeacher(user.UserId)
 		}
 	}
+	models.UpdateUserInfo(userId, map[string]interface{}{"LastLoginTime": time.Now()})
 	return 0, user
 }
 
