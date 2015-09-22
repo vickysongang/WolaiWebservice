@@ -175,7 +175,7 @@ func POIWSOrderHandler(orderId int64) {
 						//判断是否有预约冲突
 						if !managers.RedisManager.IsUserAvailable(msg.UserId, timestampFrom, timestampTo) {
 							replyResp.Attribute["errCode"] = "1091"
-							replyResp.Attribute["errMsg"] = "预约的时间段内已有别的课啦！"
+							replyResp.Attribute["errMsg"] = "该时间段内你已有其他课程！"
 							userChan <- replyResp
 							break
 						}
