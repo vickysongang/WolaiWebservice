@@ -746,4 +746,18 @@ var routes = Routes{
 		"/v1/help/get",
 		handlers.V1GetHelpItems,
 	},
+
+	//---------POI Monitor------//
+	Route{
+		"V1MonitorUserPOST",
+		"POST",
+		"/v1/monitor/user",
+		handlers.GetUserMonitorInfo,
+	},
+	Route{
+		"V1MonitorUserGET",
+		"GET",
+		"/v1/monitor/user",
+		handlers.GetUserMonitorInfo,
+	},
 }
