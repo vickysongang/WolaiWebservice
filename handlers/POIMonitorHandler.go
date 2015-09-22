@@ -19,6 +19,12 @@ type POIMonitorUsers struct {
 	OnlineTeachers []POIMonitorUser
 }
 
+type POIMonitorOrders struct {
+	OrderDispatchInfo        string
+	TeacherOrderDispatchInfo string
+	UserOrderDispatchInfo    string
+}
+
 func NewPOIMonitorUsers() POIMonitorUsers {
 	users := POIMonitorUsers{
 		OnlineUsers:    make([]POIMonitorUser, 0),
@@ -41,7 +47,14 @@ func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", users))
 }
 
-func GetUserLockedStatus(w http.ResponseWriter, r *http.Request) {
+func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
-
+	monitorOrders := POIMonitorOrders{}
+	orderDispatchInfo, _ := json.Marshal(managers.WsManager.OrderDispatchMap)
+	monitorOrders.OrderDispatchInfo = string(orderDispatchInfo)
+	teacherOrderDispatchInfo, _ := json.Marshal(managers.WsManager.TeacherOrderDispatchMap)
+	monitorOrders.TeacherOrderDispatchInfo = string(teacherOrderDispatchInfo)
+	userOrderDispatchInfo, _ := json.Marshal(managers.WsManager.UserOrderDispatchMap)
+	monitorOrders.UserOrderDispatchInfo = string(userOrderDispatchInfo)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", monitorOrders))
 }

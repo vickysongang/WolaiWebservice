@@ -760,4 +760,16 @@ var routes = Routes{
 		"/v1/monitor/user",
 		handlers.GetUserMonitorInfo,
 	},
+	Route{
+		"V1MonitorOrderPOST",
+		"POST",
+		"/v1/monitor/order",
+		handlers.GetOrderMonitorInfo,
+	},
+	Route{
+		"V1MonitorOrderGET",
+		"GET",
+		"/v1/monitor/order",
+		handlers.GetOrderMonitorInfo,
+	},
 }
