@@ -77,12 +77,23 @@ func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		}
 		orders.OrderDispatchInfo = append(orders.OrderDispatchInfo, master)
 	}
-	//	monitorOrders := POIMonitorOrders{}
-	//	orderDispatchInfo, _ := json.Marshal(managers.WsManager.OrderDispatchMap)
-	//	monitorOrders.OrderDispatchInfo = string(orderDispatchInfo)
-	//	teacherOrderDispatchInfo, _ := json.Marshal(managers.WsManager.TeacherOrderDispatchMap)
-	//	monitorOrders.TeacherOrderDispatchInfo = string(teacherOrderDispatchInfo)
-	//	userOrderDispatchInfo, _ := json.Marshal(managers.WsManager.UserOrderDispatchMap)
-	//	monitorOrders.UserOrderDispatchInfo = string(userOrderDispatchInfo)
+
+	for teacherId, orderMap := range managers.WsManager.TeacherOrderDispatchMap {
+		master := POIOrderDispatchMaster{MasterId: teacherId, Slaves: make([]POIOrderDispatchSlave, 0)}
+		for orderId, timestamp := range orderMap {
+			slave := POIOrderDispatchSlave{SlaveId: orderId, TimeStamp: timestamp}
+			master.Slaves = append(master.Slaves, slave)
+		}
+		orders.TeacherOrderDispatchInfo = append(orders.TeacherOrderDispatchInfo, master)
+	}
+
+	for userId, orderMap := range managers.WsManager.UserOrderDispatchMap {
+		master := POIOrderDispatchMaster{MasterId: userId, Slaves: make([]POIOrderDispatchSlave, 0)}
+		for orderId, timestamp := range orderMap {
+			slave := POIOrderDispatchSlave{SlaveId: orderId, TimeStamp: timestamp}
+			master.Slaves = append(master.Slaves, slave)
+		}
+		orders.UserOrderDispatchInfo = append(orders.UserOrderDispatchInfo, master)
+	}
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", orders))
 }
