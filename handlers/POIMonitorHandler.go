@@ -5,7 +5,6 @@ import (
 	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -20,10 +19,20 @@ type POIMonitorUsers struct {
 	OnlineTeachers []POIMonitorUser
 }
 
+type POIOrderDispatchSlave struct {
+	SlaveId   int64
+	TimeStamp int64
+}
+
+type POIOrderDispatchMaster struct {
+	MasterId int64
+	Slaves   []POIOrderDispatchSlave
+}
+
 type POIMonitorOrders struct {
-	OrderDispatchInfo        string
-	TeacherOrderDispatchInfo string
-	UserOrderDispatchInfo    string
+	OrderDispatchInfo        []POIOrderDispatchMaster
+	TeacherOrderDispatchInfo []POIOrderDispatchMaster
+	UserOrderDispatchInfo    []POIOrderDispatchMaster
 }
 
 func NewPOIMonitorUsers() POIMonitorUsers {
@@ -32,6 +41,15 @@ func NewPOIMonitorUsers() POIMonitorUsers {
 		OnlineTeachers: make([]POIMonitorUser, 0),
 	}
 	return users
+}
+
+func NewPOIMonitorOrders() POIMonitorOrders {
+	orders := POIMonitorOrders{
+		OrderDispatchInfo:        make([]POIOrderDispatchMaster, 0),
+		TeacherOrderDispatchInfo: make([]POIOrderDispatchMaster, 0),
+		UserOrderDispatchInfo:    make([]POIOrderDispatchMaster, 0),
+	}
+	return orders
 }
 
 func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
@@ -50,14 +68,21 @@ func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 
 func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
-	monitorOrders := POIMonitorOrders{}
-	fmt.Println("!!!!!!!!!!!!!!!!!:", len(managers.WsManager.OrderDispatchMap))
-	orderDispatchInfo, _ := json.Marshal(managers.WsManager.OrderDispatchMap)
-	fmt.Println("aaaaaaaaaaa:", string(orderDispatchInfo))
-	monitorOrders.OrderDispatchInfo = string(orderDispatchInfo)
-	teacherOrderDispatchInfo, _ := json.Marshal(managers.WsManager.TeacherOrderDispatchMap)
-	monitorOrders.TeacherOrderDispatchInfo = string(teacherOrderDispatchInfo)
-	userOrderDispatchInfo, _ := json.Marshal(managers.WsManager.UserOrderDispatchMap)
-	monitorOrders.UserOrderDispatchInfo = string(userOrderDispatchInfo)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", monitorOrders))
+	orders := NewPOIMonitorOrders()
+	for orderId, teacherMap := range managers.WsManager.OrderDispatchMap {
+		master := POIOrderDispatchMaster{MasterId: orderId, Slaves: make([]POIOrderDispatchSlave, 0)}
+		for teacherId, timestamp := range teacherMap {
+			slave := POIOrderDispatchSlave{SlaveId: teacherId, TimeStamp: timestamp}
+			master.Slaves = append(master.Slaves, slave)
+		}
+		orders.OrderDispatchInfo = append(orders.OrderDispatchInfo, master)
+	}
+	//	monitorOrders := POIMonitorOrders{}
+	//	orderDispatchInfo, _ := json.Marshal(managers.WsManager.OrderDispatchMap)
+	//	monitorOrders.OrderDispatchInfo = string(orderDispatchInfo)
+	//	teacherOrderDispatchInfo, _ := json.Marshal(managers.WsManager.TeacherOrderDispatchMap)
+	//	monitorOrders.TeacherOrderDispatchInfo = string(teacherOrderDispatchInfo)
+	//	userOrderDispatchInfo, _ := json.Marshal(managers.WsManager.UserOrderDispatchMap)
+	//	monitorOrders.UserOrderDispatchInfo = string(userOrderDispatchInfo)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", orders))
 }
