@@ -322,7 +322,7 @@ func POIWSSessionHandler(sessionId int64) {
 					length = length + (timestamp - lastSync)
 					lastSync = timestamp
 					isPaused = true
-					waitingTimer = time.NewTimer(time.Minute * 20)
+					waitingTimer = time.NewTimer(time.Minute * 5)
 
 					breakMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_BREAK)
 					if msg.UserId == session.Creator.UserId {
