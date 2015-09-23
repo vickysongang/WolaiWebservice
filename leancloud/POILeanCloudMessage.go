@@ -1,6 +1,23 @@
 // POILeanCloudMessage
 package leancloud
 
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
+	"POIWolaiWebService/managers"
+	"POIWolaiWebService/models"
+	"POIWolaiWebService/utils"
+
+	seelog "github.com/cihub/seelog"
+)
+
 const (
 	LC_MSG_TEXT        = -1
 	LC_MSG_IMAGE       = 2
@@ -42,9 +59,123 @@ type LCTypedMessage struct {
 	Attribute map[string]string `json:"_lcattrs,omitempty"`
 }
 
-type POIConversationParticipant struct {
-	ConversationId string `json:"convId"`
-	Participant    string `json:"participant"`
+func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage, twoway bool) {
+	user := models.QueryUserById(userId)
+	target := models.QueryUserById(targetId)
+	if user == nil || target == nil {
+		return
+	}
+
+	userIdStr := strconv.FormatInt(userId, 10)
+	lcTMsgByte, _ := json.Marshal(&lcTMsg)
+	_, convId := GetUserConversation(userId, targetId)
+	lcMsg := LCMessage{
+		SendId:         userIdStr,
+		ConversationId: convId,
+		Message:        string(lcTMsgByte),
+		Transient:      false,
+	}
+
+	LCSendMessage(&lcMsg)
+
+	if twoway {
+		targetIdStr := strconv.FormatInt(targetId, 10)
+		lcMsg.SendId = targetIdStr
+		LCSendMessage(&lcMsg)
+	}
 }
 
-type POIConversationParticipants []POIConversationParticipant
+func LCSendMessage(lcMsg *LCMessage) {
+	url := LC_SEND_MSG
+	//seelog.Debug("URL:>", url)
+
+	query, _ := json.Marshal(lcMsg)
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	req.Header.Set("X-AVOSCloud-Application-Id", utils.Config.LeanCloud.AppId)
+	req.Header.Set("X-AVOSCloud-Master-Key", utils.Config.LeanCloud.MasterKey)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	defer resp.Body.Close()
+	return
+}
+
+func SaveLeanCloudMessageLogs(baseTime int64) string {
+	url := fmt.Sprintf("%s/%s?%s=%d&%s=%d", LC_SEND_MSG, "logs", "limit", 1000, "max_ts", baseTime)
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-AVOSCloud-Application-Id", utils.Config.LeanCloud.AppId)
+	req.Header.Set("X-AVOSCloud-Application-Key", utils.Config.LeanCloud.AppKey)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		seelog.Error(err.Error())
+		return ""
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	content := string(body)
+	var objs []interface{}
+	json.Unmarshal(body, &objs)
+	var count int64
+	for _, v := range objs {
+		messageMap, _ := v.(map[string]interface{})
+		messageLog := models.LCMessageLog{}
+		msgIdStr, _ := messageMap["msg-id"].(string)
+		messageLog.MsgId = msgIdStr
+		convIdStr, _ := messageMap["conv-id"].(string)
+		messageLog.ConvId = convIdStr
+		fromStr, _ := messageMap["from"].(string)
+		messageLog.From = fromStr
+		toStr, _ := messageMap["to"].(string)
+		messageLog.To = toStr
+		fromIpStr, _ := messageMap["from-ip"].(string)
+		messageLog.FromIp = fromIpStr
+		datasStr, _ := messageMap["data"].(string)
+		messageLog.Data = utils.FilterEmoji(datasStr)
+		timestamp, _ := messageMap["timestamp"].(float64)
+		messageLog.Timestamp = strconv.FormatFloat(timestamp, 'f', 0, 64)
+		messageLog.CreateTime = time.Unix(int64(timestamp/1000), 0)
+		hasFlag := models.HasLCMessageLog(msgIdStr)
+		count++
+		if !hasFlag {
+			models.InsertLCMessageLog(&messageLog)
+			if managers.RedisManager.RedisError == nil {
+				//如果是客服消息，则将该消息存入客服消息表
+				if managers.RedisManager.IsSupportMessage(USER_WOLAI_SUPPORT, toStr) || managers.RedisManager.IsSupportMessage(USER_WOLAI_TEAM, toStr) {
+					//此处对新用户注册通知图片的处理不是合适的，需要完善
+					if !strings.Contains(messageLog.Data, "student_welcome_1.jpg") {
+						supportMessageLog := models.LCSupportMessageLog{}
+						supportMessageLog.MsgId = messageLog.MsgId
+						supportMessageLog.ConvId = messageLog.ConvId
+						supportMessageLog.From = messageLog.From
+						supportMessageLog.To = messageLog.To
+						supportMessageLog.FromIp = messageLog.FromIp
+						supportMessageLog.Data = messageLog.Data
+						supportMessageLog.Timestamp = messageLog.Timestamp
+						supportMessageLog.CreateTime = messageLog.CreateTime
+						if managers.RedisManager.IsSupportMessage(USER_WOLAI_TEAM, toStr) {
+							supportMessageLog.Type = "team"
+						} else {
+							supportMessageLog.Type = "support"
+						}
+						models.InsertLCSupportMessageLog(&supportMessageLog)
+					}
+				}
+			}
+		} else {
+			break
+		}
+		if count == 1000 {
+			SaveLeanCloudMessageLogs(int64(timestamp))
+		}
+	}
+	return content
+}
