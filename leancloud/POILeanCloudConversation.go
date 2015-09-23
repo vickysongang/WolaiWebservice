@@ -3,6 +3,7 @@ package leancloud
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -17,6 +18,13 @@ type LeanCloudConvReq struct {
 	Name   string   `json:"name"`
 	Member []string `json:"m"`
 }
+
+type POIConversationParticipant struct {
+	ConversationId string `json:"convId"`
+	Participant    string `json:"participant"`
+}
+
+type POIConversationParticipants []POIConversationParticipant
 
 func NewLeanCloudConvReq(name, member1, member2 string) LeanCloudConvReq {
 	member := make([]string, 2)
@@ -53,4 +61,33 @@ func LCGetConversationId(member1, member2 string) string {
 		seelog.Error(err.Error())
 	}
 	return respMap["objectId"]
+}
+
+func QueryConversationParticipants(convId string) string {
+	url := fmt.Sprintf("%s/%s", LC_QUERY_API, convId)
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-AVOSCloud-Application-Id", utils.Config.LeanCloud.AppId)
+	req.Header.Set("X-AVOSCloud-Application-Key", utils.Config.LeanCloud.AppKey)
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		seelog.Error(err.Error())
+		return ""
+	}
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	var objs interface{}
+	json.Unmarshal(body, &objs)
+	infoMap, _ := objs.(map[string]interface{})
+	infoArray, _ := infoMap["m"].([]interface{})
+	var participants string
+	for _, v := range infoArray {
+		userIdStr, _ := v.(string)
+		participants = participants + "," + userIdStr
+	}
+	if len(participants) > 0 {
+		participants = participants[1:]
+	}
+	return participants
 }

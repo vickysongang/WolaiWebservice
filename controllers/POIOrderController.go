@@ -178,6 +178,17 @@ func OrderPersonalConfirm(userId int64, orderId int64, accept int64, timestamp f
 
 		return 0
 	} else if accept == 1 {
+		if managers.WsManager.IsUserSessionLocked(order.Creator.UserId) {
+			orderInfo := map[string]interface{}{
+				"Status": models.ORDER_STATUS_CANCELLED,
+			}
+			models.UpdateOrderInfo(orderId, orderInfo)
+
+			go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator.UserId, userId)
+
+			return 0
+		}
+
 		orderInfo := map[string]interface{}{
 			"Status":           models.ORDER_STATUS_CONFIRMED,
 			"PricePerHour":     teacher.PricePerHour,
