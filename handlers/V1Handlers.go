@@ -1296,6 +1296,103 @@ func V1CheckUserHasBindWithInvitationCode(w http.ResponseWriter, r *http.Request
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", bindFlag))
 }
 
+/*
+ * 12.1 Get Courses
+ */
+func V1GetCourses(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	content, err := controllers.QueryUserCourse(10021, 1)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
+ * 12.2 Join Course
+ */
+func V1JoinCourse(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	var courseId int64
+	if len(vars["courseId"]) > 0 {
+		courseIdStr := vars["courseId"][0]
+		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
+	} else {
+		defaultCourseId, _ := models.QueryDefaultCourseId()
+		courseId = defaultCourseId
+	}
+	content, err := controllers.JoinCourse(userId, courseId)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
+ * 12.3 active Course
+ */
+func V1ActiveCourse(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	var courseId int64
+	if len(vars["courseId"]) > 0 {
+		courseIdStr := vars["courseId"][0]
+		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
+	} else {
+		defaultCourseId, _ := models.QueryDefaultCourseId()
+		courseId = defaultCourseId
+	}
+	content, err := controllers.ActiveUserCourse(userId, courseId)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
+ * 12.4 renew Course
+ */
+func V1RenewCourse(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	var courseId int64
+	if len(vars["courseId"]) > 0 {
+		courseIdStr := vars["courseId"][0]
+		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
+	} else {
+		defaultCourseId, _ := models.QueryDefaultCourseId()
+		courseId = defaultCourseId
+	}
+	content, err := controllers.RenewUserCourse(userId, courseId)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
 func V1Banner(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	content, err := models.QueryBannerList()
