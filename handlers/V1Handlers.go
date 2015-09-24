@@ -1311,7 +1311,14 @@ func V1CheckUserHasBindWithInvitationCode(w http.ResponseWriter, r *http.Request
  */
 func V1GetCourses(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
-	content, err := controllers.QueryUserCourse(10021, 1)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	content, err := controllers.QueryUserCourses(userId)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
