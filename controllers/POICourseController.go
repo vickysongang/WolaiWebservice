@@ -83,11 +83,11 @@ func RenewUserCourse(userId, courseId int64) (models.POICourse4User, error) {
 	}
 	var timeTo time.Time
 	if timeUnit == "D" {
-		timeTo = now.AddDate(0, 0, int(length+1))
+		timeTo = userToCourse.TimeTo.AddDate(0, 0, int(length+1))
 	} else if timeUnit == "M" {
-		timeTo = now.AddDate(0, int(length), 1)
+		timeTo = userToCourse.TimeTo.AddDate(0, int(length), 1)
 	} else if timeUnit == "Y" {
-		timeTo = now.AddDate(int(length), 0, 1)
+		timeTo = userToCourse.TimeTo.AddDate(int(length), 0, 1)
 	}
 	updateInfo := map[string]interface{}{
 		"Status":   models.COURSE_SERVING,

@@ -9,7 +9,7 @@ import (
 )
 
 type POIMonitorUser struct {
-	UserId    int64
+	User      *models.POIUser `json:"userInfo"`
 	LoginTime int64
 	Locked    bool
 }
@@ -57,11 +57,11 @@ func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	users := NewPOIMonitorUsers()
 	for k, v := range managers.WsManager.OnlineUserMap {
 		locked := managers.WsManager.IsUserSessionLocked(k)
-		users.OnlineUsers = append(users.OnlineUsers, POIMonitorUser{UserId: k, LoginTime: v, Locked: locked})
+		users.OnlineUsers = append(users.OnlineUsers, POIMonitorUser{User: models.QueryUserById(k), LoginTime: v, Locked: locked})
 	}
 	for k, v := range managers.WsManager.OnlineTeacherMap {
 		locked := managers.WsManager.IsUserSessionLocked(k)
-		users.OnlineTeachers = append(users.OnlineTeachers, POIMonitorUser{UserId: k, LoginTime: v, Locked: locked})
+		users.OnlineTeachers = append(users.OnlineTeachers, POIMonitorUser{User: models.QueryUserById(k), LoginTime: v, Locked: locked})
 	}
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", users))
 }
