@@ -1366,7 +1366,7 @@ func V1ActiveCourse(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
- * 12.4 renew Course
+ * 12.4 user renew Course
  */
 func V1RenewCourse(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
@@ -1385,7 +1385,42 @@ func V1RenewCourse(w http.ResponseWriter, r *http.Request) {
 		defaultCourseId, _ := models.QueryDefaultCourseId()
 		courseId = defaultCourseId
 	}
-	content, err := controllers.RenewUserCourse(userId, courseId)
+	content, err := controllers.UserRenewCourse(userId, courseId)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
+ * 12.5 support renew Course
+ */
+func V1SupportRenewCourse(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	var courseId int64
+	if len(vars["courseId"]) > 0 {
+		courseIdStr := vars["courseId"][0]
+		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
+	} else {
+		defaultCourseId, _ := models.QueryDefaultCourseId()
+		courseId = defaultCourseId
+	}
+	var renewCount int64
+	if len(vars["renewCount"]) > 0 {
+		renewCountStr := vars["renewCount"][0]
+		renewCount, _ = strconv.ParseInt(renewCountStr, 10, 64)
+	} else {
+		renewCount = 1
+	}
+	content, err := controllers.SupportRenewUserCourse(userId, courseId, renewCount)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
 	} else {

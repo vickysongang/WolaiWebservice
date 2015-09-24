@@ -43,6 +43,7 @@ type POIOrderInSession struct {
 	TotalCoat        int64       `json:"totalCost"`
 	HasEvaluated     bool        `json:"hasEvaluated"`
 	Identity         string      `json:"identity"`
+	Free             bool        `json:"free"`
 	Tutor            int64       `json:"-"`
 	Creator          int64       `json:"-"`
 	PlanTime         string      `json:"-"`
@@ -179,6 +180,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) (POIOrder
 			orderInSession.TotalCoat = orderInSession.PricePerHour * orderInSession.EstimateLength / 60
 		}
 		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId)
+		orderInSession.Free = IsUserFree4Session(userId)
 		orderInSession.Identity = "student"
 	}
 	return orderInSessions, nil
@@ -248,6 +250,7 @@ func QueryOrderInSession4Both(userId int64, pageNum, pageCount int) (POIOrderInS
 		if userId == orderInSession.Creator {
 			teacher := QueryTeacher(orderInSession.Tutor)
 			orderInSession.UserInfo = teacher
+			orderInSession.Free = IsUserFree4Session(userId)
 			orderInSession.Identity = "student"
 		} else if userId == orderInSession.Tutor {
 			user := *(QueryUserById(orderInSession.Creator))

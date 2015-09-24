@@ -38,7 +38,7 @@ func QueryUserCourse(userId, courseId int64) (models.POICourse4User, error) {
 		newUserToCourse := models.POIUserToCourse{}
 		newUserToCourse.UserId = userId
 		newUserToCourse.CourseId = course.Id
-		newUserToCourse.Status = "unopen"
+		newUserToCourse.Status = models.COURSE_UNOPEN
 		course4User.UserToCourse = &newUserToCourse
 	} else {
 		course4User.UserToCourse = userToCourse
@@ -51,6 +51,10 @@ func JoinCourse(userId, courseId int64) (models.POICourse4User, error) {
 	userToCourse := models.POIUserToCourse{UserId: userId, CourseId: courseId, Status: models.COURSE_OPENING}
 	models.InsertUserToCourse(&userToCourse)
 	course4User, _ := QueryUserCourse(userId, courseId)
+
+	purchaseRecord := models.POICoursePurchaseRecord{UserId: userId, CourseId: courseId, Type: models.COURSE_JOIN, Status: models.COURSE_PURCHASE_PENDING}
+	models.InsertCoursePurchaseRecord(&purchaseRecord)
+
 	return course4User, nil
 }
 
@@ -64,14 +68,31 @@ func ActiveUserCourse(userId, courseId int64) (models.POICourse4User, error) {
 		"TimeTo":   timeTo.Format(TIME_FORMAT),
 	}
 	models.UpdateUserCourseInfo(userId, courseId, updateInfo)
+
+	purchaseRecordInfo := map[string]interface{}{
+		"Status": models.COURSE_PURCHASE_COMPLETED,
+		"TimeTo": timeTo.Format(TIME_FORMAT),
+	}
+	models.UpdatePurchaseRecord(userId, courseId, purchaseRecordInfo)
+	course4User, _ := QueryUserCourse(userId, courseId)
+
+	return course4User, nil
+}
+
+func UserRenewCourse(userId, courseId int64) (models.POICourse4User, error) {
+	purchaseRecord, _ := models.QueryPendingPurchaseRecord(userId, courseId)
+	if purchaseRecord == nil {
+		newPurchaseRecord := models.POICoursePurchaseRecord{UserId: userId, CourseId: courseId, Type: models.COURSE_RENEW, Status: models.COURSE_PURCHASE_PENDING}
+		models.InsertCoursePurchaseRecord(&newPurchaseRecord)
+	}
 	course4User, _ := QueryUserCourse(userId, courseId)
 	return course4User, nil
 }
 
-func RenewUserCourse(userId, courseId int64) (models.POICourse4User, error) {
+func SupportRenewUserCourse(userId, courseId int64, renewCount int64) (models.POICourse4User, error) {
 	now := time.Now()
 	course, _ := models.QueryCourseById(courseId)
-	length := course.Length
+	length := course.Length * renewCount
 	timeUnit := course.TimeUnit
 	userToCourse, _ := models.QueryUserToCourse(courseId, userId)
 	status := userToCourse.Status
@@ -95,6 +116,14 @@ func RenewUserCourse(userId, courseId int64) (models.POICourse4User, error) {
 		"TimeTo":   timeTo.Format(TIME_FORMAT),
 	}
 	models.UpdateUserCourseInfo(userId, courseId, updateInfo)
+
+	purchaseRecordInfo := map[string]interface{}{
+		"Status": models.COURSE_PURCHASE_COMPLETED,
+		"TimeTo": timeTo.Format(TIME_FORMAT),
+		"Count":  renewCount,
+	}
+	models.UpdatePurchaseRecord(userId, courseId, purchaseRecordInfo)
+
 	course4User, _ := QueryUserCourse(userId, courseId)
 	return course4User, nil
 }

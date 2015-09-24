@@ -723,14 +723,14 @@ var routes = Routes{
 		handlers.V1ActiveCourse,
 	},
 	Route{
-		"V1ActiveCoursesGET",
+		"V1ActiveCourseGET",
 		"GET",
 		"/v1/course/active",
 		handlers.V1ActiveCourse,
 	},
-	// 12.4 Renew course
+	// 12.4 User Renew course
 	Route{
-		"V1RenewCoursesPOST",
+		"V1RenewCoursePOST",
 		"POST",
 		"/v1/course/renew",
 		handlers.V1RenewCourse,
@@ -740,6 +740,19 @@ var routes = Routes{
 		"GET",
 		"/v1/course/renew",
 		handlers.V1RenewCourse,
+	},
+	// 12.5 Support Renew course
+	Route{
+		"V1SupportRenewCoursePOST",
+		"POST",
+		"/v1/course/support/renew",
+		handlers.V1SupportRenewCourse,
+	},
+	Route{
+		"V1SupportRenewCourseGET",
+		"GET",
+		"/v1/course/support/renew",
+		handlers.V1SupportRenewCourse,
 	},
 	Route{
 		"V1BannerPOST",

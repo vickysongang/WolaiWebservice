@@ -14,6 +14,12 @@ const (
 	COURSE_OPENING = "opening"
 	COURSE_SERVING = "serving"
 	COURSE_EXPIRED = "expired"
+
+	COURSE_JOIN  = "join"
+	COURSE_RENEW = "renew"
+
+	COURSE_PURCHASE_PENDING   = "pending"
+	COURSE_PURCHASE_COMPLETED = "completed"
 )
 
 type POICourse struct {
@@ -37,7 +43,18 @@ type POIUserToCourse struct {
 	Status     string    `json:"status"`
 	TimeFrom   time.Time `json:"timeFrom"`
 	TimeTo     time.Time `json:"timeTo"`
-	CreateTime time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
+	CreateTime time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+}
+
+type POICoursePurchaseRecord struct {
+	Id         int64     `json:"-" orm:"pk"`
+	UserId     int64     `json:"userId"`
+	CourseId   int64     `json:"courseId"`
+	CreateTime time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+	TimeTo     time.Time `json:"timeTo"`
+	Count      int64     `json:"count"`
+	Type       string    `json:"type"`
+	Status     string    `json:"status"`
 }
 
 type POICourse4User struct {
@@ -56,8 +73,12 @@ func (c *POIUserToCourse) TableName() string {
 	return "user_to_course"
 }
 
+func (c *POICoursePurchaseRecord) TableName() string {
+	return "course_purchase_record"
+}
+
 func init() {
-	orm.RegisterModel(new(POICourse), new(POIUserToCourse))
+	orm.RegisterModel(new(POICourse), new(POIUserToCourse), new(POICoursePurchaseRecord))
 }
 
 func InsertCourse(course *POICourse) (*POICourse, error) {
@@ -111,6 +132,9 @@ func QueryDefaultCourseId() (int64, error) {
 	return courseId, nil
 }
 
+/*
+ * 查询赠送课程
+ */
 func QueryGiveCourse() (*POICourse, error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
@@ -159,4 +183,53 @@ func UpdateUserCourseInfo(userId int64, courseId int64, updateInfo map[string]in
 	if err != nil {
 		seelog.Error("userId:", userId, " updateInfo:", updateInfo, " ", err.Error())
 	}
+}
+
+func InsertCoursePurchaseRecord(purchaseRecord *POICoursePurchaseRecord) (*POICoursePurchaseRecord, error) {
+	o := orm.NewOrm()
+	id, err := o.Insert(purchaseRecord)
+	if err != nil {
+		return nil, err
+	}
+	purchaseRecord.Id = id
+	return purchaseRecord, nil
+}
+
+func QueryPendingPurchaseRecord(userId, courseId int64) (*POICoursePurchaseRecord, error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb.Select("id,user_id,course_id,time_to,create_time,count,type,status").
+		From("course_purchase_record").Where("course_id = ? and user_id = ? and status = 'pending'")
+	sql := qb.String()
+	purchaseRecord := POICoursePurchaseRecord{}
+	err := o.Raw(sql, courseId, userId).QueryRow(&purchaseRecord)
+	if err != nil {
+		return nil, err
+	}
+	return &purchaseRecord, nil
+}
+
+func UpdatePurchaseRecord(userId int64, courseId int64, updateInfo map[string]interface{}) {
+	o := orm.NewOrm()
+	var params orm.Params = make(orm.Params)
+	for k, v := range updateInfo {
+		params[k] = v
+	}
+	_, err := o.QueryTable("course_purchase_record").Filter("user_id", userId).Filter("course_id", courseId).
+		Filter("status", COURSE_PURCHASE_PENDING).Update(params)
+	if err != nil {
+		seelog.Error("userId:", userId, " updateInfo:", updateInfo, " ", err.Error())
+	}
+}
+
+func IsUserFree4Session(userId int64) bool {
+	o := orm.NewOrm()
+	count, err := o.QueryTable("user_to_course").Filter("user_id", userId).Filter("status", "serving").Count()
+	if err != nil {
+		return false
+	}
+	if count > 0 {
+		return true
+	}
+	return false
 }
