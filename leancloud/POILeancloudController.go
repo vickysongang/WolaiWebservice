@@ -184,6 +184,7 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 	}
 	LCSendTypedMessage(USER_TRADE_RECORD, teacherId, &teacherTMsg, false)
 
+	freeFlag := models.IsUserFree4Session(student.UserId)
 	attrStudent := map[string]string{
 		"type":      LC_TRADE_TYPE_STUDENT,
 		"title":     "交易提醒",
@@ -202,7 +203,9 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 		Text:      "[交易提醒]",
 		Attribute: attrStudent,
 	}
-	LCSendTypedMessage(USER_TRADE_RECORD, studentId, &studentTMsg, false)
+	if !freeFlag {
+		LCSendTypedMessage(USER_TRADE_RECORD, studentId, &studentTMsg, false)
+	}
 }
 
 func SendPersonalOrderNotification(orderId int64, teacherId int64) {
@@ -400,6 +403,13 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &teacherTMsg, false)
 
 	attr["price"] = strconv.FormatInt(studentPrice, 10)
+	freeFlag := models.IsUserFree4Session(student.UserId)
+	if freeFlag {
+		attr["free"] = "1"
+	} else {
+		attr["free"] = "0"
+	}
+
 	studentTMsg := LCTypedMessage{
 		Type:      LC_MSG_SESSION,
 		Text:      "您有一条结算提醒",
