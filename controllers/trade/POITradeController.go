@@ -83,18 +83,21 @@ func HandleSessionTrade(session *models.POISession, result string) {
 		comment = fmt.Sprintf("%s%s%s %dh", parentGrade.Name, grade.Name, subject.Name, hour)
 	}
 
-	//学生付款
+	//学生付款,如果学生是包月用户，则不需要付款
+	freeFlag := models.IsUserFree4Session(student.UserId)
 	var studentAmount int64
-	studentAmount = (int64(math.Floor(float64(order.PricePerHour*session.Length/3600))) + 50) / 100 * 100
-	if studentAmount < 100 && studentAmount != 0 {
-		studentAmount = 100
+	if !freeFlag {
+		studentAmount = (int64(math.Floor(float64(order.PricePerHour*session.Length/3600))) + 50) / 100 * 100
+		if studentAmount < 100 && studentAmount != 0 {
+			studentAmount = 100
+		}
+		models.MinusUserBalance(student.UserId, studentAmount)
+		studentTradeRecord := models.POITradeRecord{UserId: student.UserId, TradeType: models.TRADE_PAYMENT, TradeAmount: (0 - studentAmount), OrderType: models.STUDENT_ORDER, Result: result, Comment: comment}
+		studentTradeRecord.Balance = student.Balance - studentAmount
+		studentTradeRecordId, _ := models.InsertTradeRecord(&studentTradeRecord)
+		studentTradeToSession := models.POITradeToSession{SessionId: session.Id, TradeRecordId: studentTradeRecordId}
+		models.InsertTradeToSession(&studentTradeToSession)
 	}
-	models.MinusUserBalance(student.UserId, studentAmount)
-	studentTradeRecord := models.POITradeRecord{UserId: student.UserId, TradeType: models.TRADE_PAYMENT, TradeAmount: (0 - studentAmount), OrderType: models.STUDENT_ORDER, Result: result, Comment: comment}
-	studentTradeRecord.Balance = student.Balance - studentAmount
-	studentTradeRecordId, _ := models.InsertTradeRecord(&studentTradeRecord)
-	studentTradeToSession := models.POITradeToSession{SessionId: session.Id, TradeRecordId: studentTradeRecordId}
-	models.InsertTradeToSession(&studentTradeToSession)
 
 	//老师收款
 	var teacherAmount int64
