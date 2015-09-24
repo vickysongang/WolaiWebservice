@@ -32,6 +32,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		return 2, nil, nil
 	}
 
+	courseId := models.QueryCourse4User(creator.UserId)
 	order := models.POIOrder{
 		Creator:   creator,
 		GradeId:   gradeId,
@@ -41,7 +42,8 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		Length:    length,
 		Type:      orderType,
 		Status:    models.ORDER_STATUS_CREATED,
-		TeacherId: teacherId}
+		TeacherId: teacherId,
+		CourseId:  courseId}
 
 	switch orderType {
 	case models.ORDER_TYPE_GENERAL_INSTANT:

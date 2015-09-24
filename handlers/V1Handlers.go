@@ -888,7 +888,7 @@ func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
 	freeFlag := models.IsUserFree4Session(userId)
 	if freeFlag {
 		content := map[string]interface{}{
-			"price":     -1,
+			"price":     4000,
 			"realPrice": -1,
 		}
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))

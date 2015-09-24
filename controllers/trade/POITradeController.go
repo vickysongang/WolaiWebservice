@@ -84,9 +84,9 @@ func HandleSessionTrade(session *models.POISession, result string) {
 	}
 
 	//学生付款,如果学生是包月用户，则不需要付款
-	freeFlag := models.IsUserFree4Session(student.UserId)
+	courseId := order.CourseId
 	var studentAmount int64
-	if !freeFlag {
+	if courseId == 0 {
 		studentAmount = (int64(math.Floor(float64(order.PricePerHour*session.Length/3600))) + 50) / 100 * 100
 		if studentAmount < 100 && studentAmount != 0 {
 			studentAmount = 100
