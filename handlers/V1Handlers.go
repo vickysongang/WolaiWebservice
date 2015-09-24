@@ -882,13 +882,23 @@ func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
 
 	_ = vars["subjectId"][0]
 	_ = vars["gradeId"][0]
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
-	content := map[string]interface{}{
-		"price":     4000,
-		"realPrice": 6000,
+	freeFlag := models.IsUserFree4Session(userId)
+	if freeFlag {
+		content := map[string]interface{}{
+			"price":     -1,
+			"realPrice": -1,
+		}
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	} else {
+		content := map[string]interface{}{
+			"price":     4000,
+			"realPrice": 6000,
+		}
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
-
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 }
 
 /*
