@@ -45,6 +45,7 @@ func QueryUserCourse(userId, courseId int64) (models.POICourse4User, error) {
 	} else {
 		course4User.UserToCourse = userToCourse
 	}
+	course4User.JoinCount = models.GetCourseJoinCount(course.Id) + 555
 	course4User.CurrentTime = time.Now()
 	return course4User, nil
 }
