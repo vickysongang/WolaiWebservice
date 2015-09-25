@@ -241,7 +241,7 @@ func QueryOrderInSession4Both(userId int64, pageNum, pageCount int) (POIOrderInS
 	start := pageNum * pageCount
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
 	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
-		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour").
+		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour,orders.course_id").
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
 		Where("sessions.creator = ? or sessions.tutor = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
