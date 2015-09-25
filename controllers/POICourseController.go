@@ -25,6 +25,8 @@ func QueryUserCourses(userId int64) (models.POICourseInfos, error) {
 		} else {
 			course4User.UserToCourse = userToCourse
 		}
+		course4User.CurrentTime = time.Now()
+		course4User.JoinCount = models.GetCourseJoinCount(course.Id) + 555
 		courseInfos = append(courseInfos, &course4User)
 	}
 	return courseInfos, nil

@@ -61,6 +61,7 @@ type POICourse4User struct {
 	Course       *POICourse       `json:"courseBaseInfo"`
 	UserToCourse *POIUserToCourse `json:"courseStatusInfo"`
 	CurrentTime  time.Time        `json:"currentTime"`
+	JoinCount    int64            `json:"joinCount"`
 }
 
 type POICourseInfos []*POICourse4User
@@ -245,4 +246,13 @@ func IsUserFree4Session(userId int64) bool {
 		return true
 	}
 	return false
+}
+
+func GetCourseJoinCount(courseId int64) int64 {
+	o := orm.NewOrm()
+	count, err := o.QueryTable("user_to_course").Filter("course_id", courseId).Count()
+	if err != nil {
+		return 0
+	}
+	return count
 }

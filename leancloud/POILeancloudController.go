@@ -14,6 +14,7 @@ const (
 	USER_WOLAI_SUPPORT  = 1001
 	USER_TRADE_RECORD   = 1002
 	USER_WOLAI_TEAM     = 1003
+	USER_WOLAI_TUTOR    = 2001
 
 	LC_SEND_MSG  = "https://leancloud.cn/1.1/rtm/messages"
 	LC_QUERY_API = "https://api.leancloud.cn/1.1/classes/_Conversation"
