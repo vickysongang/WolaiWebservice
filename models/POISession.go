@@ -43,6 +43,8 @@ type POIOrderInSession struct {
 	TotalCoat        int64       `json:"totalCost"`
 	HasEvaluated     bool        `json:"hasEvaluated"`
 	Identity         string      `json:"identity"`
+	Free             bool        `json:"free"`
+	CourseId         int64       `json:"-"`
 	Tutor            int64       `json:"-"`
 	Creator          int64       `json:"-"`
 	PlanTime         string      `json:"-"`
@@ -131,7 +133,7 @@ func QueryOrderInSession(sessionId int64) (*POIOrderInSession, error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
 	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
-		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour").
+		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour,orders.course_id").
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
 		Where("sessions.id = ?").OrderBy("sessions.create_time")
 	sql := qb.String()
@@ -148,7 +150,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) (POIOrder
 	start := pageNum * pageCount
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
 	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
-		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour").
+		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour,orders.course_id").
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
 		Where("sessions.creator = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
@@ -179,6 +181,11 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) (POIOrder
 			orderInSession.TotalCoat = orderInSession.PricePerHour * orderInSession.EstimateLength / 60
 		}
 		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId)
+		if orderInSession.CourseId == 0 {
+			orderInSession.Free = false
+		} else {
+			orderInSession.Free = true
+		}
 		orderInSession.Identity = "student"
 	}
 	return orderInSessions, nil
@@ -190,7 +197,7 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) (POIOrder
 	start := pageNum * pageCount
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
 	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
-		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour").
+		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour,orders.course_id").
 		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
 		Where("sessions.tutor = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
@@ -248,6 +255,12 @@ func QueryOrderInSession4Both(userId int64, pageNum, pageCount int) (POIOrderInS
 		if userId == orderInSession.Creator {
 			teacher := QueryTeacher(orderInSession.Tutor)
 			orderInSession.UserInfo = teacher
+			if orderInSession.CourseId == 0 {
+				orderInSession.Free = false
+			} else {
+				orderInSession.Free = true
+			}
+
 			orderInSession.Identity = "student"
 		} else if userId == orderInSession.Tutor {
 			user := *(QueryUserById(orderInSession.Creator))

@@ -689,6 +689,71 @@ var routes = Routes{
 		handlers.V1CheckUserHasBindWithInvitationCode,
 	},
 
+	// 12.1 GetCourses
+	Route{
+		"V1GetCoursesPOST",
+		"POST",
+		"/v1/course/list",
+		handlers.V1GetCourses,
+	},
+	Route{
+		"V1GetCoursesGET",
+		"GET",
+		"/v1/course/list",
+		handlers.V1GetCourses,
+	},
+	// 12.2 Join course
+	Route{
+		"V1JoinCoursesPOST",
+		"POST",
+		"/v1/course/join",
+		handlers.V1JoinCourse,
+	},
+	Route{
+		"V1JoinCoursesGET",
+		"GET",
+		"/v1/course/join",
+		handlers.V1JoinCourse,
+	},
+	// 12.3 Active course
+	Route{
+		"V1ActiveCoursesPOST",
+		"POST",
+		"/v1/course/active",
+		handlers.V1ActiveCourse,
+	},
+	Route{
+		"V1ActiveCourseGET",
+		"GET",
+		"/v1/course/active",
+		handlers.V1ActiveCourse,
+	},
+	// 12.4 User Renew course
+	Route{
+		"V1RenewCoursePOST",
+		"POST",
+		"/v1/course/renew",
+		handlers.V1RenewCourse,
+	},
+	Route{
+		"V1RenewCoursesGET",
+		"GET",
+		"/v1/course/renew",
+		handlers.V1RenewCourse,
+	},
+	// 12.5 Support Renew course
+	Route{
+		"V1SupportRenewCoursePOST",
+		"POST",
+		"/v1/course/support/renew",
+		handlers.V1SupportRenewCourse,
+	},
+	Route{
+		"V1SupportRenewCourseGET",
+		"GET",
+		"/v1/course/support/renew",
+		handlers.V1SupportRenewCourse,
+	},
 	Route{
 		"V1BannerPOST",
 		"POST",
@@ -735,13 +800,13 @@ var routes = Routes{
 		handlers.V1SendAdvMessage,
 	},
 	Route{
-		"V1GetHelpCheatsPOST",
+		"V1GetHelpItemsPOST",
 		"POST",
 		"/v1/help/get",
 		handlers.V1GetHelpItems,
 	},
 	Route{
-		"V1GetHelpCheatsGET",
+		"V1GetHelpItemsGET",
 		"GET",
 		"/v1/help/get",
 		handlers.V1GetHelpItems,

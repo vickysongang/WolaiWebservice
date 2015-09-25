@@ -27,6 +27,7 @@ type POIOrder struct {
 	PricePerHour     int64     `json:"pricePerHour"`
 	RealPricePerHour int64     `json:"realPricePerHour"`
 	TeacherId        int64     `json:"teacherId"` //一对一辅导时导师的用户id
+	CourseId         int64     `json:"courseId"`
 }
 
 type POIOrderDispatch struct {
@@ -136,7 +137,7 @@ func QueryOrderById(orderId int64) *POIOrder {
 	order := POIOrder{}
 	o := orm.NewOrm()
 	db, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	db.Select("id,creator,grade_id,subject_id,date,period_id,length,type,status,price_per_hour,real_price_per_hour,teacher_id").
+	db.Select("id,creator,grade_id,subject_id,date,period_id,length,type,status,price_per_hour,real_price_per_hour,teacher_id,course_id").
 		From("orders").Where("id = ?")
 	sql := db.String()
 	err := o.Raw(sql, orderId).QueryRow(&order)
