@@ -136,7 +136,7 @@ func QueryDefaultCourseId() (int64, error) {
 func QueryCourse4User(userId int64) int64 {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("id").From("user_to_course").Where("user_id = ? and status = 'serving'").Limit(1)
+	qb.Select("course_id").From("user_to_course").Where("user_id = ? and status = 'serving'").Limit(1)
 	sql := qb.String()
 	var courseId int64
 	err := o.Raw(sql, userId).QueryRow(&courseId)
