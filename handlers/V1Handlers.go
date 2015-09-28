@@ -890,9 +890,17 @@ func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
 
 	_ = vars["subjectId"][0]
 	_ = vars["gradeId"][0]
-	userIdStr := vars["userId"][0]
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-	date := vars["date"][0]
+	var userId int64
+	if len(vars["userId"]) > 0 {
+		userIdStr := vars["userId"][0]
+		userId, _ = strconv.ParseInt(userIdStr, 10, 64)
+	}
+	var date string
+	if len(vars["date"]) > 0 {
+		date = vars["date"][0]
+	} else {
+		date = time.Now().Format(time.RFC3339)
+	}
 	t, _ := time.Parse(time.RFC3339, date)
 	freeFlag := models.IsUserFree4Session(userId, t.Format(utils.TIME_FORMAT))
 	if freeFlag {
