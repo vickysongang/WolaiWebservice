@@ -7,7 +7,10 @@ import (
 	seelog "github.com/cihub/seelog"
 )
 
-const DB_TYPE = "mysql"
+const (
+	DB_TYPE     = "mysql"
+	TIME_FORMAT = "2006-01-02 15:04:05"
+)
 
 type POIConfig struct {
 	Title     string

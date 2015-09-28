@@ -13,13 +13,37 @@ import (
 	"github.com/cihub/seelog"
 )
 
+func CheckCourseValid4Order(timeTo time.Time, date string) error {
+	orderStartTime, _ := time.Parse(time.RFC3339, date)
+	interval := orderStartTime.Sub(timeTo)
+	if interval >= 0 {
+		err := errors.New("预约时间超出课程包有效期啦")
+		return err
+	}
+	return nil
+}
+
 func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int64,
-	date string, periodId int64, length int64, orderType int64) (int64, *models.POIOrder, error) {
+	date string, periodId int64, length int64, orderType int64, ignoreCourseFlag string) (int64, *models.POIOrder, error) {
 	var err error
 	creator := models.QueryUserById(creatorId)
 
 	if creator == nil {
 		return 2, nil, errors.New("User " + strconv.Itoa(int(creatorId)) + " doesn't exist!")
+	}
+
+	var courseId int64
+	course, err := models.QueryCourse4User(creator.UserId)
+	if err != nil {
+		courseId = 0
+	} else {
+		if ignoreCourseFlag == "N" {
+			err = CheckCourseValid4Order(course.TimeTo, date)
+			if err != nil {
+				return 5004, nil, err
+			}
+		}
+		courseId = course.CourseId
 	}
 
 	if creator.Balance <= 0 {
@@ -32,7 +56,6 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		return 2, nil, nil
 	}
 
-	courseId := models.QueryCourse4User(creator.UserId)
 	order := models.POIOrder{
 		Creator:   creator,
 		GradeId:   gradeId,

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"POIWolaiWebService/controllers"
+	"POIWolaiWebService/utils"
 
 	"POIWolaiWebService/controllers/trade"
 
@@ -57,7 +58,7 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	content := leancloud.QueryConversationParticipants("55de838f60b291d7941db3e7")
+	content := models.IsUserFree4Session(10656, time.Now().Format(utils.TIME_FORMAT))
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 }
 
@@ -831,8 +832,15 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 	orderTypeStr := vars["orderType"][0]
 	orderType, _ := strconv.ParseInt(orderTypeStr, 10, 64)
 
+	var ignoreCourseFlag string //value is Y or N
+	if len(vars["ignoreCourseFlag"]) > 0 {
+		ignoreCourseFlag = vars["ignoreCourseFlag"][0]
+	} else {
+		ignoreCourseFlag = "N"
+	}
+
 	status, content, err := controllers.OrderCreate(userId, teacherId, gradeId, subjectId, date,
-		periodId, length, orderType)
+		periodId, length, orderType, ignoreCourseFlag)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
@@ -884,8 +892,9 @@ func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
 	_ = vars["gradeId"][0]
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-
-	freeFlag := models.IsUserFree4Session(userId)
+	date := vars["date"][0]
+	t, _ := time.Parse(time.RFC3339, date)
+	freeFlag := models.IsUserFree4Session(userId, t.Format(utils.TIME_FORMAT))
 	if freeFlag {
 		content := map[string]interface{}{
 			"price":     4000,
