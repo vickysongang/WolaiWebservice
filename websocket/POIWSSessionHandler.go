@@ -287,7 +287,9 @@ func POIWSSessionHandler(sessionId int64) {
 						creatorChan <- finishMsg
 					}
 
-					length = length + (timestamp - lastSync)
+					if !isPaused && isServing {
+						length = length + (timestamp - lastSync)
+					}
 
 					timeTo := time.Now()
 					sessionInfo := map[string]interface{}{
@@ -315,7 +317,7 @@ func POIWSSessionHandler(sessionId int64) {
 					return
 
 				case models.WS_SESSION_BREAK:
-					if isPaused || !isServing {
+					if isPaused {
 						break
 					}
 
