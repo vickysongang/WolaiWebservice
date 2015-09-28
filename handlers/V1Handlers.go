@@ -1366,8 +1366,8 @@ func V1JoinCourse(w http.ResponseWriter, r *http.Request) {
 		courseIdStr := vars["courseId"][0]
 		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
 	} else {
-		defaultCourseId, _ := models.QueryDefaultCourseId()
-		courseId = defaultCourseId
+		giveCourse, _ := models.QueryGiveCourse()
+		courseId = giveCourse.Id
 	}
 	content, err := controllers.JoinCourse(userId, courseId)
 	if err != nil {
@@ -1394,8 +1394,8 @@ func V1ActiveCourse(w http.ResponseWriter, r *http.Request) {
 		courseIdStr := vars["courseId"][0]
 		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
 	} else {
-		defaultCourseId, _ := models.QueryDefaultCourseId()
-		courseId = defaultCourseId
+		giveCourse, _ := models.QueryGiveCourse()
+		courseId = giveCourse.Id
 	}
 	content, err := controllers.ActiveUserCourse(userId, courseId)
 	if err != nil {
@@ -1422,8 +1422,8 @@ func V1RenewCourse(w http.ResponseWriter, r *http.Request) {
 		courseIdStr := vars["courseId"][0]
 		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
 	} else {
-		defaultCourseId, _ := models.QueryDefaultCourseId()
-		courseId = defaultCourseId
+		course, _ := models.QueryUserToCourseByUserId(userId)
+		courseId = course.CourseId
 	}
 	content, err := controllers.UserRenewCourse(userId, courseId)
 	if err != nil {
@@ -1450,8 +1450,8 @@ func V1SupportRenewCourse(w http.ResponseWriter, r *http.Request) {
 		courseIdStr := vars["courseId"][0]
 		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
 	} else {
-		defaultCourseId, _ := models.QueryDefaultCourseId()
-		courseId = defaultCourseId
+		course, _ := models.QueryUserToCourseByUserId(userId)
+		courseId = course.CourseId
 	}
 	var renewCount int64
 	if len(vars["renewCount"]) > 0 {

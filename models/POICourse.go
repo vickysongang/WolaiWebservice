@@ -3,7 +3,7 @@ package models
 
 import (
 	"POIWolaiWebService/utils"
-	"fmt"
+
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -16,11 +16,15 @@ const (
 	COURSE_SERVING = "serving"
 	COURSE_EXPIRED = "expired"
 
-	COURSE_JOIN  = "join"
-	COURSE_RENEW = "renew"
+	COURSE_JOIN    = "join"
+	COURSE_RENEW   = "renew"
+	COURSE_UPGRADE = "upgrade"
 
 	COURSE_PURCHASE_PENDING   = "pending"
 	COURSE_PURCHASE_COMPLETED = "completed"
+
+	COURSE_GIVE_TYPE   = 0
+	COURSE_COMMON_TYPE = 1
 )
 
 type POICourse struct {
@@ -113,7 +117,7 @@ func QueryCourseById(courseId int64) (*POICourse, error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
 	qb.Select("id,title,subtitle,intro,price,banner,length,time_unit").
-		From("courses").Where("id = ? and type = 1")
+		From("courses").Where("id = ?")
 	sql := qb.String()
 	course := POICourse{}
 	err := o.Raw(sql, courseId).QueryRow(&course)
@@ -134,19 +138,6 @@ func QueryDefaultCourseId() (int64, error) {
 		return 0, err
 	}
 	return courseId, nil
-}
-
-func QueryCourse4User(userId int64) (*POIUserToCourse, error) {
-	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	course4User := POIUserToCourse{}
-	qb.Select("course_id,user_id,status,time_from,time_to").From("user_to_course").Where("user_id = ? and status = 'serving'").Limit(1)
-	sql := qb.String()
-	err := o.Raw(sql, userId).QueryRow(&course4User)
-	if err != nil {
-		return nil, err
-	}
-	return &course4User, nil
 }
 
 /*
@@ -176,6 +167,20 @@ func InsertUserToCourse(userToCourse *POIUserToCourse) (*POIUserToCourse, error)
 	return userToCourse, nil
 }
 
+func QueryUserToCourseByUserId(userId int64) (*POIUserToCourse, error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb.Select("id,user_id,course_id,status,time_from,time_to,create_time").
+		From("user_to_course").Where("user_id = ?").Limit(1)
+	sql := qb.String()
+	userToCourse := POIUserToCourse{}
+	err := o.Raw(sql, userId).QueryRow(&userToCourse)
+	if err != nil {
+		return nil, err
+	}
+	return &userToCourse, nil
+}
+
 func QueryUserToCourse(courseId, userId int64) (*POIUserToCourse, error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
@@ -188,6 +193,52 @@ func QueryUserToCourse(courseId, userId int64) (*POIUserToCourse, error) {
 		return nil, err
 	}
 	return &userToCourse, nil
+}
+
+func QueryServingCourse4User(userId int64) (*POIUserToCourse, error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	course4User := POIUserToCourse{}
+	qb.Select("course_id,user_id,status,time_from,time_to").From("user_to_course").Where("user_id = ? and status = 'serving'").Limit(1)
+	sql := qb.String()
+	err := o.Raw(sql, userId).QueryRow(&course4User)
+	if err != nil {
+		return nil, err
+	}
+	return &course4User, nil
+}
+
+func IsUserJoinCourse(userId int64) bool {
+	o := orm.NewOrm()
+	return o.QueryTable("user_to_course").Filter("user_id", userId).Exist()
+}
+
+func QueryGiveCourse4User(userId int64) (*POIUserToCourse, error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	course4User := POIUserToCourse{}
+	qb.Select("user_to_course.course_id,user_to_course.user_id,user_to_course.status,user_to_course.time_from,user_to_course.time_to").
+		From("user_to_course").InnerJoin("courses").On("user_to_course.course_id = courses.id").
+		Where("user_id = ? and type = 0").Limit(1)
+	sql := qb.String()
+	err := o.Raw(sql, userId).QueryRow(&course4User)
+	if err != nil {
+		return nil, err
+	}
+	return &course4User, nil
+}
+
+func QueryExpiredCourses(processTime string) (POIUserToCourses, error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb.Select("id,user_id,course_id,status,time_from,time_to").From("user_to_course").Where("status = 'serving' and time_to < ?")
+	sql := qb.String()
+	userToCourses := make(POIUserToCourses, 0)
+	_, err := o.Raw(sql, processTime).QueryRows(&userToCourses)
+	if err != nil {
+		return nil, err
+	}
+	return userToCourses, nil
 }
 
 func UpdateUserCourseInfo(userId int64, courseId int64, updateInfo map[string]interface{}) {
@@ -212,20 +263,6 @@ func UpdateUserCourseInfoById(userToCourseId int64, updateInfo map[string]interf
 	if err != nil {
 		seelog.Error("userToCourseId:", userToCourseId, " updateInfo:", updateInfo, " ", err.Error())
 	}
-}
-
-func QueryExpiredCourses(processTime string) (POIUserToCourses, error) {
-	fmt.Println("processTime:", processTime)
-	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("id,user_id,course_id,status,time_from,time_to").From("user_to_course").Where("status = 'serving' and time_to < ?")
-	sql := qb.String()
-	userToCourses := make(POIUserToCourses, 0)
-	_, err := o.Raw(sql, processTime).QueryRows(&userToCourses)
-	if err != nil {
-		return nil, err
-	}
-	return userToCourses, nil
 }
 
 func InsertCoursePurchaseRecord(purchaseRecord *POICoursePurchaseRecord) (*POICoursePurchaseRecord, error) {
@@ -266,7 +303,6 @@ func UpdatePurchaseRecord(userId int64, courseId int64, updateInfo map[string]in
 }
 
 func IsUserFree4Session(userId int64, endTime string) bool {
-	fmt.Println("endTime:", endTime)
 	o := orm.NewOrm()
 	count, err := o.QueryTable("user_to_course").Filter("user_id", userId).Filter("status", "serving").Filter("time_to__gte", endTime).Count()
 	if err != nil {
@@ -278,9 +314,9 @@ func IsUserFree4Session(userId int64, endTime string) bool {
 	return false
 }
 
-func GetCourseJoinCount(courseId int64) int64 {
+func GetCourseJoinCount() int64 {
 	o := orm.NewOrm()
-	count, err := o.QueryTable("user_to_course").Filter("course_id", courseId).Count()
+	count, err := o.QueryTable("user_to_course").Count()
 	if err != nil {
 		return 0
 	}

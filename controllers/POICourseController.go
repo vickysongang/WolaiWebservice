@@ -10,9 +10,23 @@ const (
 	TIME_FORMAT = "2006-01-02 00:00:00"
 )
 
+/*
+ * 获取课程列表
+ */
 func QueryUserCourses(userId int64) (models.POICourseInfos, error) {
 	courseInfos := make(models.POICourseInfos, 0)
-	courses, _ := models.QueryCourses(0)
+	var courseType int64
+	if models.IsUserJoinCourse(userId) {
+		_, err := models.QueryGiveCourse4User(userId)
+		if err == nil {
+			courseType = 0
+		} else {
+			courseType = 1
+		}
+	} else {
+		courseType = 0
+	}
+	courses, _ := models.QueryCourses(courseType)
 	for _, course := range courses {
 		course4User := models.POICourse4User{Course: course, CurrentTime: time.Now()}
 		userToCourse, _ := models.QueryUserToCourse(course.Id, userId)
@@ -26,12 +40,15 @@ func QueryUserCourses(userId int64) (models.POICourseInfos, error) {
 			course4User.UserToCourse = userToCourse
 		}
 		course4User.CurrentTime = time.Now()
-		course4User.JoinCount = models.GetCourseJoinCount(course.Id) + 555
+		course4User.JoinCount = models.GetCourseJoinCount() + 555
 		courseInfos = append(courseInfos, &course4User)
 	}
 	return courseInfos, nil
 }
 
+/*
+ * 获取课程信息
+ */
 func QueryUserCourse(userId, courseId int64) (models.POICourse4User, error) {
 	course, _ := models.QueryCourseById(courseId)
 	course4User := models.POICourse4User{Course: course}
@@ -45,11 +62,14 @@ func QueryUserCourse(userId, courseId int64) (models.POICourse4User, error) {
 	} else {
 		course4User.UserToCourse = userToCourse
 	}
-	course4User.JoinCount = models.GetCourseJoinCount(course.Id) + 555
+	course4User.JoinCount = models.GetCourseJoinCount() + 555
 	course4User.CurrentTime = time.Now()
 	return course4User, nil
 }
 
+/*
+ * 加入课程
+ */
 func JoinCourse(userId, courseId int64) (models.POICourse4User, error) {
 	userToCourse := models.POIUserToCourse{UserId: userId, CourseId: courseId, Status: models.COURSE_OPENING}
 	models.InsertUserToCourse(&userToCourse)
@@ -61,10 +81,21 @@ func JoinCourse(userId, courseId int64) (models.POICourse4User, error) {
 	return course4User, nil
 }
 
+/*
+ * 客服通过用户的加入课程申请
+ */
 func ActiveUserCourse(userId, courseId int64) (models.POICourse4User, error) {
 	now := time.Now()
-	giveCourse, _ := models.QueryGiveCourse()
-	timeTo := now.AddDate(0, 0, int(giveCourse.Length)+1)
+	course, _ := models.QueryCourseById(courseId)
+	var timeTo time.Time
+	if course.TimeUnit == "D" {
+		timeTo = now.AddDate(0, 0, int(course.Length)+1)
+	} else if course.TimeUnit == "M" {
+		timeTo = now.AddDate(0, int(course.Length), 1)
+	} else if course.TimeUnit == "Y" {
+		timeTo = now.AddDate(int(course.Length), 0, 1)
+	}
+
 	updateInfo := map[string]interface{}{
 		"Status":   models.COURSE_SERVING,
 		"TimeFrom": now.Format(TIME_FORMAT),
@@ -82,16 +113,29 @@ func ActiveUserCourse(userId, courseId int64) (models.POICourse4User, error) {
 	return course4User, nil
 }
 
+/*
+ * 用户续期课程
+ */
 func UserRenewCourse(userId, courseId int64) (models.POICourse4User, error) {
 	purchaseRecord, _ := models.QueryPendingPurchaseRecord(userId, courseId)
 	if purchaseRecord == nil {
-		newPurchaseRecord := models.POICoursePurchaseRecord{UserId: userId, CourseId: courseId, Type: models.COURSE_RENEW, Status: models.COURSE_PURCHASE_PENDING}
+		var purchaseType string
+		course, _ := models.QueryCourseById(courseId)
+		if course.Type == models.COURSE_GIVE_TYPE {
+			purchaseType = models.COURSE_UPGRADE
+		} else {
+			purchaseType = models.COURSE_RENEW
+		}
+		newPurchaseRecord := models.POICoursePurchaseRecord{UserId: userId, CourseId: courseId, Type: purchaseType, Status: models.COURSE_PURCHASE_PENDING}
 		models.InsertCoursePurchaseRecord(&newPurchaseRecord)
 	}
 	course4User, _ := QueryUserCourse(userId, courseId)
 	return course4User, nil
 }
 
+/*
+ * 客服处理用户的续期申请
+ */
 func SupportRenewUserCourse(userId, courseId int64, renewCount int64) (models.POICourse4User, error) {
 	now := time.Now()
 	course, _ := models.QueryCourseById(courseId)
@@ -105,15 +149,22 @@ func SupportRenewUserCourse(userId, courseId int64, renewCount int64) (models.PO
 	} else {
 		timeFrom = userToCourse.TimeFrom
 	}
+	newCourseId := courseId
 	var timeTo time.Time
-	if timeUnit == "D" {
-		timeTo = userToCourse.TimeTo.AddDate(0, 0, int(length+1))
-	} else if timeUnit == "M" {
-		timeTo = userToCourse.TimeTo.AddDate(0, int(length), 1)
-	} else if timeUnit == "Y" {
-		timeTo = userToCourse.TimeTo.AddDate(int(length), 0, 1)
+	if course.Type == models.COURSE_GIVE_TYPE {
+		timeTo = timeFrom.AddDate(0, 1, 1)
+		newCourseId, _ = models.QueryDefaultCourseId()
+	} else {
+		if timeUnit == "D" {
+			timeTo = userToCourse.TimeTo.AddDate(0, 0, int(length+1))
+		} else if timeUnit == "M" {
+			timeTo = userToCourse.TimeTo.AddDate(0, int(length), 1)
+		} else if timeUnit == "Y" {
+			timeTo = userToCourse.TimeTo.AddDate(int(length), 0, 1)
+		}
 	}
 	updateInfo := map[string]interface{}{
+		"CourseId": newCourseId,
 		"Status":   models.COURSE_SERVING,
 		"TimeFrom": timeFrom.Format(TIME_FORMAT),
 		"TimeTo":   timeTo.Format(TIME_FORMAT),

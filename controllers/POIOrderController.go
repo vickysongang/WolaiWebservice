@@ -33,7 +33,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 	}
 
 	var courseId int64
-	course, err := models.QueryCourse4User(creator.UserId)
+	course, err := models.QueryServingCourse4User(creator.UserId)
 	if err != nil {
 		courseId = 0
 	} else {
