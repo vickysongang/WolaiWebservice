@@ -111,6 +111,7 @@ func POIWSSessionHandler(sessionId int64) {
 					breakChan := managers.WsManager.GetUserChan(breakMsg.UserId)
 					breakChan <- breakMsg
 				}
+				waitingTimer = time.NewTimer(time.Minute * 20)
 				isPaused = true
 				break
 			}
@@ -124,6 +125,7 @@ func POIWSSessionHandler(sessionId int64) {
 					breakChan := managers.WsManager.GetUserChan(breakMsg.UserId)
 					breakChan <- breakMsg
 				}
+				waitingTimer = time.NewTimer(time.Minute * 20)
 				isPaused = true
 				break
 			}
