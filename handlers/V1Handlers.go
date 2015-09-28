@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -902,6 +903,7 @@ func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
 		date = time.Now().Format(time.RFC3339)
 	}
 	t, _ := time.Parse(time.RFC3339, date)
+	fmt.Println(time.Now().Format(time.RFC3339))
 	freeFlag := models.IsUserFree4Session(userId, t.Format(utils.TIME_FORMAT))
 	if freeFlag {
 		content := map[string]interface{}{
@@ -942,6 +944,7 @@ func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "用户充值", "用户充值", comment)
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
@@ -970,6 +973,7 @@ func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_EXPENSE, "用户提现", "用户提现", comment)
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
@@ -998,6 +1002,7 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "导师奖励", "导师奖励", comment)
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
@@ -1026,6 +1031,7 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "活动赠送", "活动赠送", comment)
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }

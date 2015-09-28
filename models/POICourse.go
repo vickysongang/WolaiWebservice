@@ -265,9 +265,10 @@ func UpdatePurchaseRecord(userId int64, courseId int64, updateInfo map[string]in
 	}
 }
 
-func IsUserFree4Session(userId int64, currTime string) bool {
+func IsUserFree4Session(userId int64, endTime string) bool {
+	fmt.Println("endTime:", endTime)
 	o := orm.NewOrm()
-	count, err := o.QueryTable("user_to_course").Filter("user_id", userId).Filter("status", "serving").Filter("time_to__gte", currTime).Count()
+	count, err := o.QueryTable("user_to_course").Filter("user_id", userId).Filter("status", "serving").Filter("time_to__gte", endTime).Count()
 	if err != nil {
 		return false
 	}
