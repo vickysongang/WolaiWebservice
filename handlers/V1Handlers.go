@@ -843,7 +843,7 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 	status, content, err := controllers.OrderCreate(userId, teacherId, gradeId, subjectId, date,
 		periodId, length, orderType, ignoreCourseFlag)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(models.NewPOIResponse(status, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
 	}

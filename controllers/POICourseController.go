@@ -12,7 +12,7 @@ const (
 
 func QueryUserCourses(userId int64) (models.POICourseInfos, error) {
 	courseInfos := make(models.POICourseInfos, 0)
-	courses, _ := models.QueryCourses()
+	courses, _ := models.QueryCourses(0)
 	for _, course := range courses {
 		course4User := models.POICourse4User{Course: course, CurrentTime: time.Now()}
 		userToCourse, _ := models.QueryUserToCourse(course.Id, userId)

@@ -95,14 +95,14 @@ func InsertCourse(course *POICourse) (*POICourse, error) {
 	return course, nil
 }
 
-func QueryCourses() (POICourses, error) {
+func QueryCourses(courseType int64) (POICourses, error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
 	qb.Select("id,title,subtitle,intro,price,banner,length,time_unit").
-		From("courses").Where("type = 1")
+		From("courses").Where("type = ?")
 	sql := qb.String()
 	courses := make(POICourses, 0)
-	_, err := o.Raw(sql).QueryRows(&courses)
+	_, err := o.Raw(sql, courseType).QueryRows(&courses)
 	if err != nil {
 		return nil, err
 	}
