@@ -36,6 +36,7 @@ func main() {
 
 	go handlers.POISessionTickerHandler()
 	go handlers.POILeanCloudTickerHandler()
+	go handlers.POICourseExpiredHandler()
 
 	router := routers.NewRouter()
 	seelog.Critical(http.ListenAndServe(utils.Config.Server.Port, router))

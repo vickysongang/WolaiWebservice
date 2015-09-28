@@ -7,6 +7,7 @@ import (
 
 	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/utils"
 )
 
 const (
@@ -185,7 +186,7 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 	}
 	LCSendTypedMessage(USER_TRADE_RECORD, teacherId, &teacherTMsg, false)
 
-	freeFlag := models.IsUserFree4Session(student.UserId)
+	freeFlag := models.IsUserFree4Session(student.UserId, time.Now().Format(utils.TIME_FORMAT))
 	attrStudent := map[string]string{
 		"type":      LC_TRADE_TYPE_STUDENT,
 		"title":     "交易提醒",
@@ -404,7 +405,7 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &teacherTMsg, false)
 
 	attr["price"] = strconv.FormatInt(studentPrice, 10)
-	freeFlag := models.IsUserFree4Session(student.UserId)
+	freeFlag := models.IsUserFree4Session(student.UserId, time.Now().Format(utils.TIME_FORMAT))
 	if freeFlag {
 		attr["free"] = "1"
 	} else {

@@ -3,6 +3,7 @@ package models
 
 import (
 	"POIWolaiWebService/utils"
+	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -45,6 +46,8 @@ type POIUserToCourse struct {
 	TimeTo     time.Time `json:"timeTo"`
 	CreateTime time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
 }
+
+type POIUserToCourses []*POIUserToCourse
 
 type POICoursePurchaseRecord struct {
 	Id         int64     `json:"-" orm:"pk"`
@@ -133,17 +136,17 @@ func QueryDefaultCourseId() (int64, error) {
 	return courseId, nil
 }
 
-func QueryCourse4User(userId int64) int64 {
+func QueryCourse4User(userId int64) (*POIUserToCourse, error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("course_id").From("user_to_course").Where("user_id = ? and status = 'serving'").Limit(1)
+	course4User := POIUserToCourse{}
+	qb.Select("course_id,user_id,status,time_from,time_to").From("user_to_course").Where("user_id = ? and status = 'serving'").Limit(1)
 	sql := qb.String()
-	var courseId int64
-	err := o.Raw(sql, userId).QueryRow(&courseId)
+	err := o.Raw(sql, userId).QueryRow(&course4User)
 	if err != nil {
-		return 0
+		return nil, err
 	}
-	return courseId
+	return &course4User, nil
 }
 
 /*
@@ -199,6 +202,32 @@ func UpdateUserCourseInfo(userId int64, courseId int64, updateInfo map[string]in
 	}
 }
 
+func UpdateUserCourseInfoById(userToCourseId int64, updateInfo map[string]interface{}) {
+	o := orm.NewOrm()
+	var params orm.Params = make(orm.Params)
+	for k, v := range updateInfo {
+		params[k] = v
+	}
+	_, err := o.QueryTable("user_to_course").Filter("id", userToCourseId).Update(params)
+	if err != nil {
+		seelog.Error("userToCourseId:", userToCourseId, " updateInfo:", updateInfo, " ", err.Error())
+	}
+}
+
+func QueryExpiredCourses(processTime string) (POIUserToCourses, error) {
+	fmt.Println("processTime:", processTime)
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb.Select("id,user_id,course_id,status,time_from,time_to").From("user_to_course").Where("status = 'serving' and time_to < ?")
+	sql := qb.String()
+	userToCourses := make(POIUserToCourses, 0)
+	_, err := o.Raw(sql, processTime).QueryRows(&userToCourses)
+	if err != nil {
+		return nil, err
+	}
+	return userToCourses, nil
+}
+
 func InsertCoursePurchaseRecord(purchaseRecord *POICoursePurchaseRecord) (*POICoursePurchaseRecord, error) {
 	o := orm.NewOrm()
 	id, err := o.Insert(purchaseRecord)
@@ -236,9 +265,10 @@ func UpdatePurchaseRecord(userId int64, courseId int64, updateInfo map[string]in
 	}
 }
 
-func IsUserFree4Session(userId int64) bool {
+func IsUserFree4Session(userId int64, endTime string) bool {
+	fmt.Println("endTime:", endTime)
 	o := orm.NewOrm()
-	count, err := o.QueryTable("user_to_course").Filter("user_id", userId).Filter("status", "serving").Count()
+	count, err := o.QueryTable("user_to_course").Filter("user_id", userId).Filter("status", "serving").Filter("time_to__gte", endTime).Count()
 	if err != nil {
 		return false
 	}

@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"POIWolaiWebService/controllers"
+	"POIWolaiWebService/utils"
 
 	"POIWolaiWebService/controllers/trade"
 
@@ -57,7 +59,7 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	content := leancloud.QueryConversationParticipants("55de838f60b291d7941db3e7")
+	content := models.IsUserFree4Session(10656, time.Now().Format(utils.TIME_FORMAT))
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 }
 
@@ -831,8 +833,15 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 	orderTypeStr := vars["orderType"][0]
 	orderType, _ := strconv.ParseInt(orderTypeStr, 10, 64)
 
+	var ignoreCourseFlag string //value is Y or N
+	if len(vars["ignoreCourseFlag"]) > 0 {
+		ignoreCourseFlag = vars["ignoreCourseFlag"][0]
+	} else {
+		ignoreCourseFlag = "N"
+	}
+
 	status, content, err := controllers.OrderCreate(userId, teacherId, gradeId, subjectId, date,
-		periodId, length, orderType)
+		periodId, length, orderType, ignoreCourseFlag)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
@@ -882,10 +891,20 @@ func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
 
 	_ = vars["subjectId"][0]
 	_ = vars["gradeId"][0]
-	userIdStr := vars["userId"][0]
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-
-	freeFlag := models.IsUserFree4Session(userId)
+	var userId int64
+	if len(vars["userId"]) > 0 {
+		userIdStr := vars["userId"][0]
+		userId, _ = strconv.ParseInt(userIdStr, 10, 64)
+	}
+	var date string
+	if len(vars["date"]) > 0 {
+		date = vars["date"][0]
+	} else {
+		date = time.Now().Format(time.RFC3339)
+	}
+	t, _ := time.Parse(time.RFC3339, date)
+	fmt.Println(time.Now().Format(time.RFC3339))
+	freeFlag := models.IsUserFree4Session(userId, t.Format(utils.TIME_FORMAT))
 	if freeFlag {
 		content := map[string]interface{}{
 			"price":     4000,
@@ -925,6 +944,7 @@ func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "用户充值", "用户充值", comment)
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
@@ -953,6 +973,7 @@ func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_EXPENSE, "用户提现", "用户提现", comment)
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
@@ -981,6 +1002,7 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "导师奖励", "导师奖励", comment)
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
@@ -1009,6 +1031,7 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "活动赠送", "活动赠送", comment)
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
