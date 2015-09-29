@@ -178,6 +178,6 @@ func SupportRenewUserCourse(userId, courseId int64, renewCount int64) (models.PO
 	}
 	models.UpdatePurchaseRecord(userId, courseId, purchaseRecordInfo)
 
-	course4User, _ := QueryUserCourse(userId, courseId)
+	course4User, _ := QueryUserCourse(userId, newCourseId)
 	return course4User, nil
 }
