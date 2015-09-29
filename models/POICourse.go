@@ -116,7 +116,7 @@ func QueryCourses(courseType int64) (POICourses, error) {
 func QueryCourseById(courseId int64) (*POICourse, error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("id,title,subtitle,intro,price,banner,length,time_unit").
+	qb.Select("id,title,subtitle,intro,price,banner,length,time_unit,type").
 		From("courses").Where("id = ?")
 	sql := qb.String()
 	course := POICourse{}
