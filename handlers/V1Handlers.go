@@ -1468,6 +1468,34 @@ func V1SupportRenewCourse(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+ * 12.6 support reject Course apply
+ */
+func V1SupportRejectCourse(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	var courseId int64
+	if len(vars["courseId"]) > 0 {
+		courseIdStr := vars["courseId"][0]
+		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
+	} else {
+		course, _ := models.QueryUserToCourseByUserId(userId)
+		courseId = course.CourseId
+	}
+	content, err := controllers.SupportRenewUserCourse(userId, courseId, 0)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
 func V1Banner(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	content, err := models.QueryBannerList()

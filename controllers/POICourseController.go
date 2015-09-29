@@ -183,3 +183,11 @@ func SupportRenewUserCourse(userId, courseId int64, renewCount int64) (models.PO
 	course4User, _ := QueryUserCourse(userId, newCourseId)
 	return course4User, nil
 }
+
+/*
+ * 客服拒绝用户的续期申请
+ */
+func SupportRejectUserCourse(userId, courseId int64) (models.POICourse4User, error) {
+	course4User, _ := QueryUserCourse(userId, courseId)
+	return course4User, nil
+}

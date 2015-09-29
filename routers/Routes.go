@@ -754,6 +754,20 @@ var routes = Routes{
 		"/v1/course/support/renew",
 		handlers.V1SupportRenewCourse,
 	},
+	// 12.6 Support reject course apply
+	Route{
+		"V1SupportRejectCoursePOST",
+		"POST",
+		"/v1/course/support/reject",
+		handlers.V1SupportRejectCourse,
+	},
+	Route{
+		"V1SupportRejectCourseGET",
+		"GET",
+		"/v1/course/support/reject",
+		handlers.V1SupportRejectCourse,
+	},
+
 	Route{
 		"V1BannerPOST",
 		"POST",
