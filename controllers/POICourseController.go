@@ -188,6 +188,11 @@ func SupportRenewUserCourse(userId, courseId int64, renewCount int64) (models.PO
  * 客服拒绝用户的续期申请
  */
 func SupportRejectUserCourse(userId, courseId int64) (models.POICourse4User, error) {
+	purchaseRecord, _ := models.QueryPendingPurchaseRecord(userId, courseId)
+	models.DeletePendingPurchaseRecord(userId, courseId)
+	if purchaseRecord.Type == models.COURSE_JOIN {
+		models.DeleteUserToCourse(userId, courseId)
+	}
 	course4User, _ := QueryUserCourse(userId, courseId)
 	return course4User, nil
 }

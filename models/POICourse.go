@@ -167,6 +167,12 @@ func InsertUserToCourse(userToCourse *POIUserToCourse) (*POIUserToCourse, error)
 	return userToCourse, nil
 }
 
+func DeleteUserToCourse(userId, courseId int64) error {
+	o := orm.NewOrm()
+	_, err := o.QueryTable("user_to_course").Filter("user_id", userId).Filter("course_id", courseId).Delete()
+	return err
+}
+
 func QueryUserToCourseByUserId(userId int64) (*POIUserToCourse, error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
@@ -287,6 +293,12 @@ func QueryPendingPurchaseRecord(userId, courseId int64) (*POICoursePurchaseRecor
 		return nil, err
 	}
 	return &purchaseRecord, nil
+}
+
+func DeletePendingPurchaseRecord(userId, courseId int64) error {
+	o := orm.NewOrm()
+	_, err := o.QueryTable("course_purchase_record").Filter("user_id", userId).Filter("course_id", courseId).Filter("status", "pending").Delete()
+	return err
 }
 
 func UpdatePurchaseRecord(userId int64, courseId int64, updateInfo map[string]interface{}) {

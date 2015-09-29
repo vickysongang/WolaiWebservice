@@ -1488,7 +1488,7 @@ func V1SupportRejectCourse(w http.ResponseWriter, r *http.Request) {
 		course, _ := models.QueryUserToCourseByUserId(userId)
 		courseId = course.CourseId
 	}
-	content, err := controllers.SupportRenewUserCourse(userId, courseId, 0)
+	content, err := controllers.SupportRejectUserCourse(userId, courseId)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
