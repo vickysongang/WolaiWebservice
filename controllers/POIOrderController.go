@@ -166,20 +166,20 @@ func parseAppointmentTime(date string, period int64) (int64, int64, error) {
 	switch period {
 	case models.ORDER_PERIOD_MORNING:
 		startHour = 7
-		endHour = 13
+		endHour = 12
 	case models.ORDER_PERIOD_AFTERNOON:
 		startHour = 13
-		endHour = 18
+		endHour = 17
 	case models.ORDER_PERIOD_EVENING:
 		startHour = 18
-		endHour = 23
+		endHour = 22
 	default:
 		err := errors.New("Invalid period")
 		return 0, 0, err
 	}
 
-	startTime := time.Date(year, month, day, startHour, startMin, 0, 0, loc)
-	endTime := time.Date(year, month, day, endHour, endMin, 0, 0, loc)
+	startTime := time.Date(year, month, day, startHour, startMin, 30, 0, loc)
+	endTime := time.Date(year, month, day, endHour, endMin, 30, 0, loc)
 
 	timestampFrom := startTime.Unix()
 	timestampTo := endTime.Unix()
