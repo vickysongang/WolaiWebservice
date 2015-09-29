@@ -17,7 +17,7 @@ func CheckCourseValid4Order(timeTo time.Time, date string) error {
 	orderStartTime, _ := time.Parse(time.RFC3339, date)
 	interval := orderStartTime.Sub(timeTo)
 	if interval >= 0 {
-		err := errors.New("预约时间超出课程包有效期啦")
+		err := errors.New("约课时间超出免费课程包时长\n该课程将需支付辅导费用")
 		return err
 	}
 	return nil
