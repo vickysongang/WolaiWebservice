@@ -517,7 +517,7 @@ func InitSessionMonitor(sessionId int64) bool {
 		alertMsg.OperationCode, session.Teacher.UserId))
 
 	course, err := models.QueryServingCourse4User(session.Creator.UserId)
-	if err != nil {
+	if err == nil {
 		orderInfo := map[string]interface{}{
 			"CourseId": course.Id,
 		}
