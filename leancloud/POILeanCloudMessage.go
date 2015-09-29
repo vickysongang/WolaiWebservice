@@ -90,6 +90,7 @@ func LCSendMessage(lcMsg *LCMessage) {
 	//seelog.Debug("URL:>", url)
 
 	query, _ := json.Marshal(lcMsg)
+	seelog.Debug("[LCSendMessage]: ", string(query))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
 	if err != nil {
