@@ -3,11 +3,13 @@ package controllers
 
 import (
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/utils"
 	"time"
 )
 
 const (
-	TIME_FORMAT = "2006-01-02 00:00:00"
+	TIME_TO_FORMAT = "2006-01-02"
+	TIME_HHMMSS    = " 23:59:59"
 )
 
 /*
@@ -89,23 +91,23 @@ func ActiveUserCourse(userId, courseId int64) (models.POICourse4User, error) {
 	course, _ := models.QueryCourseById(courseId)
 	var timeTo time.Time
 	if course.TimeUnit == "D" {
-		timeTo = now.AddDate(0, 0, int(course.Length)+1)
+		timeTo = now.AddDate(0, 0, int(course.Length))
 	} else if course.TimeUnit == "M" {
-		timeTo = now.AddDate(0, int(course.Length), 1)
+		timeTo = now.AddDate(0, int(course.Length), 0)
 	} else if course.TimeUnit == "Y" {
-		timeTo = now.AddDate(int(course.Length), 0, 1)
+		timeTo = now.AddDate(int(course.Length), 0, 0)
 	}
 
 	updateInfo := map[string]interface{}{
 		"Status":   models.COURSE_SERVING,
-		"TimeFrom": now.Format(TIME_FORMAT),
-		"TimeTo":   timeTo.Format(TIME_FORMAT),
+		"TimeFrom": now.Format(utils.TIME_FORMAT),
+		"TimeTo":   timeTo.Format(TIME_TO_FORMAT) + TIME_HHMMSS,
 	}
 	models.UpdateUserCourseInfo(userId, courseId, updateInfo)
 
 	purchaseRecordInfo := map[string]interface{}{
 		"Status": models.COURSE_PURCHASE_COMPLETED,
-		"TimeTo": timeTo.Format(TIME_FORMAT),
+		"TimeTo": timeTo.Format(TIME_TO_FORMAT) + TIME_HHMMSS,
 	}
 	models.UpdatePurchaseRecord(userId, courseId, purchaseRecordInfo)
 	course4User, _ := QueryUserCourse(userId, courseId)
@@ -152,28 +154,28 @@ func SupportRenewUserCourse(userId, courseId int64, renewCount int64) (models.PO
 	newCourseId := courseId
 	var timeTo time.Time
 	if course.Type == models.COURSE_GIVE_TYPE {
-		timeTo = timeFrom.AddDate(0, 1, 1)
+		timeTo = timeFrom.AddDate(0, 1, 0)
 		newCourseId, _ = models.QueryDefaultCourseId()
 	} else {
 		if timeUnit == "D" {
-			timeTo = userToCourse.TimeTo.AddDate(0, 0, int(length+1))
+			timeTo = userToCourse.TimeTo.AddDate(0, 0, int(length))
 		} else if timeUnit == "M" {
-			timeTo = userToCourse.TimeTo.AddDate(0, int(length), 1)
+			timeTo = userToCourse.TimeTo.AddDate(0, int(length), 0)
 		} else if timeUnit == "Y" {
-			timeTo = userToCourse.TimeTo.AddDate(int(length), 0, 1)
+			timeTo = userToCourse.TimeTo.AddDate(int(length), 0, 0)
 		}
 	}
 	updateInfo := map[string]interface{}{
 		"CourseId": newCourseId,
 		"Status":   models.COURSE_SERVING,
-		"TimeFrom": timeFrom.Format(TIME_FORMAT),
-		"TimeTo":   timeTo.Format(TIME_FORMAT),
+		"TimeFrom": timeFrom.Format(utils.TIME_FORMAT),
+		"TimeTo":   timeTo.Format(TIME_TO_FORMAT) + TIME_HHMMSS,
 	}
 	models.UpdateUserCourseInfo(userId, courseId, updateInfo)
 
 	purchaseRecordInfo := map[string]interface{}{
 		"Status": models.COURSE_PURCHASE_COMPLETED,
-		"TimeTo": timeTo.Format(TIME_FORMAT),
+		"TimeTo": timeTo.Format(TIME_TO_FORMAT) + TIME_HHMMSS,
 		"Count":  renewCount,
 	}
 	models.UpdatePurchaseRecord(userId, courseId, purchaseRecordInfo)
