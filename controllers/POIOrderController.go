@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -38,7 +37,6 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 	if err != nil {
 		courseId = 0
 	} else {
-		fmt.Println("sssssssssssssssss:", ignoreCourseFlag)
 		if ignoreCourseFlag == "N" {
 			err = CheckCourseValid4Order(course.TimeTo, date)
 			if err != nil {
@@ -47,7 +45,6 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		}
 		courseId = course.CourseId
 	}
-	fmt.Println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$:", courseId)
 	if creator.Balance <= 0 {
 		err = errors.New("余额不足")
 		seelog.Error(err.Error())
