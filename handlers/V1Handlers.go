@@ -59,7 +59,7 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	content := models.IsUserFree4Session(10656, time.Now().Format(utils.TIME_FORMAT))
+	content, _ := models.QueryServingCourse4User(10656)
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 }
 
