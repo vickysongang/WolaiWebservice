@@ -516,6 +516,14 @@ func InitSessionMonitor(sessionId int64) bool {
 	go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
 		alertMsg.OperationCode, session.Teacher.UserId))
 
+	course, err := models.QueryServingCourse4User(session.Creator.UserId)
+	if err != nil {
+		orderInfo := map[string]interface{}{
+			"CourseId": course.Id,
+		}
+		models.UpdateOrderInfo(order.Id, orderInfo)
+	}
+
 	if order.Type != models.ORDER_TYPE_GENERAL_APPOINTMENT {
 		if managers.WsManager.HasUserChan(session.Creator.UserId) {
 			alertMsg.UserId = session.Creator.UserId

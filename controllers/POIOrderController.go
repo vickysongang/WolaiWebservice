@@ -66,7 +66,8 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		Type:      orderType,
 		Status:    models.ORDER_STATUS_CREATED,
 		TeacherId: teacherId,
-		CourseId:  courseId}
+		CourseId:  courseId,
+	}
 
 	switch orderType {
 	case models.ORDER_TYPE_GENERAL_INSTANT:
