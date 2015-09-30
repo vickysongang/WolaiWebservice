@@ -938,13 +938,13 @@ func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
 	if len(vars["comment"]) > 0 {
 		comment = vars["comment"][0]
 	} else {
-		comment = "用户充值"
+		comment = "充值"
 	}
 	content, err := trade.HandleSystemTrade(userId, amount, models.TRADE_CHARGE, "S", comment)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
-		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "用户充值", "用户充值", comment)
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "交易提醒", "用户充值", "")
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
@@ -967,13 +967,13 @@ func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 	if len(vars["comment"]) > 0 {
 		comment = vars["comment"][0]
 	} else {
-		comment = "用户提现"
+		comment = "提现"
 	}
 	content, err := trade.HandleSystemTrade(userId, amount, models.TRADE_WITHDRAW, "S", comment)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
-		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_EXPENSE, "用户提现", "用户提现", comment)
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_EXPENSE, "交易提醒", "用户提现", "")
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
@@ -1002,7 +1002,7 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
-		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "导师奖励", "导师奖励", comment)
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "交易提醒", "导师奖励", "")
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
@@ -1025,13 +1025,13 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 	if len(vars["comment"]) > 0 {
 		comment = vars["comment"][0]
 	} else {
-		comment = "活动赠送"
+		comment = "活动奖励"
 	}
 	content, err := trade.HandleSystemTrade(userId, amount, models.TRADE_PROMOTION, "S", comment)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
-		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "活动赠送", "活动赠送", comment)
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "交易提醒", "活动赠送", "")
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
