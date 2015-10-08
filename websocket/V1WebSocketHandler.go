@@ -47,6 +47,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 	// 读取Websocket初始化消息
 	_, p, err := conn.ReadMessage()
+	seelog.Debug("111111111111111111111111111111:", string(p))
 	if err != nil {
 		seelog.Error("V1WebSocketHandler:", err.Error())
 		//暂时注释掉，用于debug websocket
