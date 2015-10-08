@@ -944,7 +944,7 @@ func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
-		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "交易提醒", "用户充值", "")
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "交易提醒", "用户充值", "你已充值成功")
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
@@ -973,7 +973,7 @@ func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
-		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_EXPENSE, "交易提醒", "用户提现", "")
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_EXPENSE, "交易提醒", "用户提现", "你已提现成功")
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
@@ -1002,7 +1002,7 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
-		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "交易提醒", "导师奖励", "")
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "交易提醒", "导师奖励", "系统充值成功")
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
@@ -1031,7 +1031,7 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
-		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "交易提醒", "活动赠送", "")
+		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "交易提醒", "活动赠送", "系统充值成功")
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
