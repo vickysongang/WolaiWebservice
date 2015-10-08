@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"encoding/json"
-	"io"
 	"math"
 	"net/http"
 	"strconv"
@@ -128,14 +127,15 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			errMsg := err.Error()
 			seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId, " ErrorInfo:", errMsg)
-			errUnexpectedEOF := &websocket.CloseError{Code: websocket.CloseAbnormalClosure, Text: io.ErrUnexpectedEOF.Error()}
-			if errMsg != errUnexpectedEOF.Error() {
-				if managers.WsManager.GetUserOnlineStatus(userId) == loginTS {
-					WSUserLogout(userId)
-					close(userChan)
-				}
-				return
+			//			errUnexpectedEOF := &websocket.CloseError{Code: websocket.CloseAbnormalClosure, Text: io.ErrUnexpectedEOF.Error()}
+			//			if errMsg != errUnexpectedEOF.Error() {
+
+			//			}
+			if managers.WsManager.GetUserOnlineStatus(userId) == loginTS {
+				WSUserLogout(userId)
+				close(userChan)
 			}
+			//			return
 		}
 
 		// 信息反序列化
