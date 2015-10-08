@@ -45,7 +45,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	// 读取Websocket初始化消息
-	_, p, err := conn.ReadMessage()
+	messageType, p, err := conn.ReadMessage()
 	if err != nil {
 		seelog.Error("V1WebSocketHandler:", err.Error())
 		return
@@ -65,7 +65,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	seelog.Debug("V1WSHandler: recieved: ", string(p))
+	seelog.Debug("V1WSHandler: recieved:  messageType: ", messageType, "  content:", string(p))
 
 	// 比对客户端时间和系统时间
 	timestamp := time.Now().Unix()
@@ -121,7 +121,8 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	loginTS := managers.WsManager.GetUserOnlineStatus(userId)
 	for {
 		// 读取Websocket信息
-		_, p, err = conn.ReadMessage()
+		messageType, p, err = conn.ReadMessage()
+		seelog.Debug("messageType:", messageType)
 		seelog.Debug("111111111111111111111111111111:", string(p))
 		if err != nil {
 			errMsg := err.Error()
