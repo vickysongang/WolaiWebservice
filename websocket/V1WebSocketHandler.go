@@ -291,7 +291,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan mod
 		select {
 		// 发送心跳
 		case <-pingTicker.C:
-			//			conn.SetWriteDeadline(time.Now().Add(writeWait))
+			conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 				if managers.WsManager.GetUserOnlineStatus(userId) == loginTS {
@@ -304,7 +304,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan mod
 		// 处理向用户发送消息
 		case msg, ok := <-userChan:
 			if ok {
-				//				conn.SetWriteDeadline(time.Now().Add(writeWait))
+				conn.SetWriteDeadline(time.Now().Add(writeWait))
 				err := conn.WriteJSON(msg)
 				if err != nil {
 					seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
