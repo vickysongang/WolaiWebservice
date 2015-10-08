@@ -47,7 +47,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 	// 读取Websocket初始化消息
 	_, p, err := conn.ReadMessage()
-	seelog.Debug("111111111111111111111111111111:", string(p))
 	if err != nil {
 		seelog.Error("V1WebSocketHandler:", err.Error())
 		//暂时注释掉，用于debug websocket
@@ -125,6 +124,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 		// 读取Websocket信息
 		_, p, err = conn.ReadMessage()
+		seelog.Debug("111111111111111111111111111111:", string(p))
 		if err != nil {
 			errMsg := err.Error()
 			seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId, " ErrorInfo:", errMsg)
