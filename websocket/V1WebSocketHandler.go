@@ -48,8 +48,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	_, p, err := conn.ReadMessage()
 	if err != nil {
 		seelog.Error("V1WebSocketHandler:", err.Error())
-		//暂时注释掉，用于debug websocket
-		//		return
+		return
 	}
 
 	// 消息反序列化
@@ -127,15 +126,11 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			errMsg := err.Error()
 			seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId, " ErrorInfo:", errMsg)
-			//			errUnexpectedEOF := &websocket.CloseError{Code: websocket.CloseAbnormalClosure, Text: io.ErrUnexpectedEOF.Error()}
-			//			if errMsg != errUnexpectedEOF.Error() {
-
-			//			}
 			if managers.WsManager.GetUserOnlineStatus(userId) == loginTS {
 				WSUserLogout(userId)
 				close(userChan)
 			}
-			//			return
+			return
 		}
 
 		// 信息反序列化
@@ -296,7 +291,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan mod
 		select {
 		// 发送心跳
 		case <-pingTicker.C:
-			conn.SetWriteDeadline(time.Now().Add(writeWait))
+			//			conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 				seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 				if managers.WsManager.GetUserOnlineStatus(userId) == loginTS {
@@ -309,7 +304,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan mod
 		// 处理向用户发送消息
 		case msg, ok := <-userChan:
 			if ok {
-				conn.SetWriteDeadline(time.Now().Add(writeWait))
+				//				conn.SetWriteDeadline(time.Now().Add(writeWait))
 				err := conn.WriteJSON(msg)
 				if err != nil {
 					seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
