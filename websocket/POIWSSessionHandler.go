@@ -555,8 +555,9 @@ func CheckSessionBreak(userId int64) {
 		}
 	}()
 	seelog.Debug("session break sleep begin:", userId)
-	time.Sleep(20 * time.Second)
-	if managers.WsManager.HasUserChan(userId) {
+	time.Sleep(10 * time.Second)
+	userLoginTime := managers.WsManager.GetUserOnlineStatus(userId)
+	if userLoginTime != -1 {
 		seelog.Debug("user ", userId, " reconnect success!")
 		return
 	}
