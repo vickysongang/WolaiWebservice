@@ -106,8 +106,8 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	go RecoverUserSession(userId)
 
 	conn.SetReadDeadline(time.Now().Add(pongWait))
-	conn.SetPongHandler(func(string) error {
-		seelog.Debug("@@@@@@@@@@@@@@@Recieve pong message:", msg.UserId)
+	conn.SetPongHandler(func(appData string) error {
+		seelog.Debug("@@@@@@@@@@@@@@@Recieve pong message:", msg.UserId, "  appData:", appData)
 		err := conn.SetReadDeadline(time.Now().Add(pongWait))
 		if err != nil {
 			seelog.Error(err.Error())
