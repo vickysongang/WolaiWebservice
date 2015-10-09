@@ -21,6 +21,7 @@ type POIWSManager struct {
 	SessionLiveMap     map[int64]int64          // sessionId to timestamp
 	UserSessionLiveMap map[int64]map[int64]bool // userId to sessionId
 	UserSessionLockMap map[int64]POISessionLock // userId to sessionLock
+
 }
 
 var WsManager POIWSManager

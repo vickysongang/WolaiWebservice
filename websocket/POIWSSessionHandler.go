@@ -554,7 +554,13 @@ func CheckSessionBreak(userId int64) {
 			seelog.Error(r)
 		}
 	}()
-
+	seelog.Debug("session break sleep begin:", userId)
+	time.Sleep(20 * time.Second)
+	if managers.WsManager.HasUserChan(userId) {
+		seelog.Debug("user ", userId, " reconnect success!")
+		return
+	}
+	seelog.Debug("send session break message:", userId)
 	if _, ok := managers.WsManager.UserSessionLiveMap[userId]; !ok {
 		return
 	}
