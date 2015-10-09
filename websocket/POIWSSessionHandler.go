@@ -322,7 +322,7 @@ func POIWSSessionHandler(sessionId int64) {
 					if isPaused {
 						break
 					}
-
+					seelog.Debug("WS_SESSION_BREAKWS_SESSION_BREAKWS_SESSION_BREAK:", session.Creator.UserId)
 					length = length + (timestamp - lastSync)
 					lastSync = timestamp
 					isPaused = true

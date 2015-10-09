@@ -34,7 +34,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	// 将HTTP请求升级为Websocket连接
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		seelog.Error("V1WebSocketHandler:", err.Error())
+		seelog.Error("V1WebSocketHandler build connection error:", err.Error())
 		return
 	}
 	defer func() {
@@ -60,7 +60,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp.Attribute["errCode"] = "2"
 		resp.Attribute["errMsg"] = "unstructed message"
 		err = conn.WriteJSON(resp)
-		//		conn.Close()
 		seelog.Debug("V1WSHandler: unstructed message")
 		return
 	}
@@ -75,7 +74,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp.Attribute["errCode"] = "3"
 		resp.Attribute["errMsg"] = "local time not accepted"
 		err = conn.WriteJSON(resp)
-		//		conn.Close()
 		seelog.Debug("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
 		return
 	}
@@ -88,7 +86,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp.Attribute["errCode"] = "4"
 		resp.Attribute["errMsg"] = "illegal websocket login"
 		err = conn.WriteJSON(resp)
-		//		conn.Close()
 		seelog.Debug("V1WSHandler: illegal websocket login; UserId: ", msg.UserId)
 		return
 	} else {
