@@ -105,6 +105,11 @@ func LCSendMessage(lcMsg *LCMessage) {
 		seelog.Error(err.Error())
 	}
 
+	defer func() {
+		if x := recover(); x != nil {
+			seelog.Error(x)
+		}
+	}()
 	defer resp.Body.Close()
 	return
 }
@@ -120,6 +125,11 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 		seelog.Error(err.Error())
 		return ""
 	}
+	defer func() {
+		if x := recover(); x != nil {
+			seelog.Error(x)
+		}
+	}()
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	content := string(body)

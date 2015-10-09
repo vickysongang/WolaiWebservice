@@ -172,6 +172,11 @@ func LCPushNotification(lcReq *map[string]interface{}) {
 	if err != nil {
 		seelog.Error(err.Error())
 	}
+	defer func() {
+		if x := recover(); x != nil {
+			seelog.Error(x)
+		}
+	}()
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)

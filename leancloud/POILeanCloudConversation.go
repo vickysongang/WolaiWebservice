@@ -52,6 +52,11 @@ func LCGetConversationId(member1, member2 string) string {
 	if err != nil {
 		seelog.Error(err.Error())
 	}
+	defer func() {
+		if x := recover(); x != nil {
+			seelog.Error(x)
+		}
+	}()
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
@@ -75,6 +80,11 @@ func QueryConversationParticipants(convId string) string {
 		seelog.Error(err.Error())
 		return ""
 	}
+	defer func() {
+		if x := recover(); x != nil {
+			seelog.Error(x)
+		}
+	}()
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 	var objs interface{}
