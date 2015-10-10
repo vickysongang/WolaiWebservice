@@ -52,6 +52,8 @@ func NewPOIWSManager() POIWSManager {
 		SessionLiveMap:     make(map[int64]int64),
 		UserSessionLiveMap: make(map[int64]map[int64]bool),
 		UserSessionLockMap: make(map[int64]POISessionLock),
+
+		SessionServingMap: make(map[int64]bool),
 	}
 }
 
