@@ -22,6 +22,7 @@ type POIWSManager struct {
 	UserSessionLiveMap map[int64]map[int64]bool // userId to sessionId
 	UserSessionLockMap map[int64]POISessionLock // userId to sessionLock
 
+	SessionServingMap map[int64]bool //sessionId to serving status(bool)
 }
 
 var WsManager POIWSManager
@@ -282,6 +283,17 @@ func (wsm *POIWSManager) HasSessionWithOther(userId int64) bool {
 		if len(sessionLiveMap) > 0 {
 			return true
 		}
+	}
+	return false
+}
+
+func (wsm *POIWSManager) SetSessionServingMap(sessionId int64, status bool) {
+	wsm.SessionServingMap[sessionId] = status
+}
+
+func (wsm *POIWSManager) GetSessionServingMap(sessionId int64) bool {
+	if _, ok := wsm.SessionServingMap[sessionId]; ok {
+		return wsm.SessionServingMap[sessionId]
 	}
 	return false
 }

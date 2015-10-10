@@ -33,6 +33,8 @@ func POIWSSessionHandler(sessionId int64) {
 	isServing := false
 	isPaused := false
 
+	managers.WsManager.SetSessionServingMap(sessionId, isServing)
+
 	syncTicker := time.NewTicker(time.Second * 60)
 	waitingTimer := time.NewTimer(time.Minute * 20)
 	countdownTimer := time.NewTimer(time.Second * 10)
@@ -91,6 +93,7 @@ func POIWSSessionHandler(sessionId int64) {
 			seelog.Debug("sessionId:", sessionId, " count down...")
 			lastSync = cur.Unix()
 			isServing = true
+			managers.WsManager.SetSessionServingMap(sessionId, isServing)
 
 			sessionInfo := map[string]interface{}{
 				"Status":   models.SESSION_STATUS_SERVING,
@@ -113,6 +116,7 @@ func POIWSSessionHandler(sessionId int64) {
 				}
 				waitingTimer = time.NewTimer(time.Minute * 20)
 				isPaused = true
+				managers.WsManager.SetSessionServingMap(sessionId, !isPaused)
 				break
 			}
 			if !studentOnline {
@@ -127,6 +131,7 @@ func POIWSSessionHandler(sessionId int64) {
 				}
 				waitingTimer = time.NewTimer(time.Minute * 20)
 				isPaused = true
+				managers.WsManager.SetSessionServingMap(sessionId, !isPaused)
 				break
 			}
 
@@ -238,7 +243,10 @@ func POIWSSessionHandler(sessionId int64) {
 						break
 					} else if acceptStr == "1" {
 						lastSync = timestamp
+
 						isServing = true
+						managers.WsManager.SetSessionServingMap(sessionId, isServing)
+
 						syncTicker = time.NewTicker(time.Second * 60)
 						waitingTimer.Stop()
 
@@ -325,6 +333,8 @@ func POIWSSessionHandler(sessionId int64) {
 					length = length + (timestamp - lastSync)
 					lastSync = timestamp
 					isPaused = true
+					managers.WsManager.SetSessionServingMap(sessionId, !isPaused)
+
 					waitingTimer = time.NewTimer(time.Minute * 5)
 
 					breakMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_BREAK)
@@ -377,6 +387,7 @@ func POIWSSessionHandler(sessionId int64) {
 					length = length + (timestamp - lastSync)
 					lastSync = timestamp
 					isPaused = true
+					managers.WsManager.SetSessionServingMap(sessionId, !isPaused)
 
 					pauseMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_PAUSE)
 					pauseMsg.Attribute["sessionId"] = sessionIdStr
@@ -464,6 +475,7 @@ func POIWSSessionHandler(sessionId int64) {
 					} else if acceptStr == "1" {
 						lastSync = timestamp
 						isServing = true
+						managers.WsManager.SetSessionServingMap(sessionId, isServing)
 						isPaused = false
 						syncTicker = time.NewTicker(time.Second * 60)
 						waitingTimer.Stop()
@@ -554,16 +566,27 @@ func CheckSessionBreak(userId int64) {
 			seelog.Error(r)
 		}
 	}()
-	seelog.Debug("session break sleep begin:", userId)
-	time.Sleep(10 * time.Second)
-	userLoginTime := managers.WsManager.GetUserOnlineStatus(userId)
-	if userLoginTime != -1 {
-		seelog.Debug("user ", userId, " reconnect success!")
+
+	if _, ok := managers.WsManager.UserSessionLiveMap[userId]; !ok {
 		return
 	}
 	seelog.Debug("send session break message:", userId)
-	if _, ok := managers.WsManager.UserSessionLiveMap[userId]; !ok {
-		return
+	time.Sleep(10 * time.Second)
+	userLoginTime := managers.WsManager.GetUserOnlineStatus(userId)
+	if userLoginTime != -1 && managers.WsManager.HasUserChan(userId) {
+		seelog.Debug("user ", userId, " reconnect success!")
+		userChan := managers.WsManager.GetUserChan(userId)
+		for sessionId, _ := range managers.WsManager.UserSessionLiveMap[userId] {
+			if !managers.WsManager.HasSessionChan(sessionId) {
+				continue
+			}
+			if managers.WsManager.GetSessionServingMap(sessionId) {
+				seelog.Debug("send session:", sessionId, " live status message to user:", userId)
+				sessionStatusMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
+				userChan <- sessionStatusMsg
+				return
+			}
+		}
 	}
 
 	for sessionId, _ := range managers.WsManager.UserSessionLiveMap[userId] {
