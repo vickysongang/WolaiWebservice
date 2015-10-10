@@ -71,6 +71,7 @@ func POIUserOauthLogin(openId string) (int64, *models.POIUser) {
 	}
 
 	user := LoadPOIUser(userId)
+
 	if user != nil {
 		//如果老师是第一次登陆，则修改老师的status字段为0，0代表不是第一次登陆，1代表从未登陆过
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER &&
@@ -81,6 +82,7 @@ func POIUserOauthLogin(openId string) (int64, *models.POIUser) {
 			leancloud.SendWelcomeMessageTeacher(user.UserId)
 		}
 	}
+
 	models.UpdateUserInfo(userId, map[string]interface{}{"LastLoginTime": time.Now()})
 	return 0, user
 }
@@ -107,6 +109,17 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 			go leancloud.SendTradeNotificationSystem(user.UserId, activity.Amount, leancloud.LC_TRADE_STATUS_INCOME,
 				activity.Title, activity.Subtitle, activity.Extra)
 			managers.RedisManager.SetActivityNotification(userId, activity.Id, activity.MediaId)
+		}
+	}
+
+	if user != nil {
+		//如果老师是第一次登陆，则修改老师的status字段为0，0代表不是第一次登陆，1代表从未登陆过
+		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER &&
+			user.Status == models.USER_STATUS_INACTIVE {
+			userInfo := make(map[string]interface{})
+			userInfo["Status"] = 0
+			models.UpdateUserInfo(user.UserId, userInfo)
+			leancloud.SendWelcomeMessageTeacher(user.UserId)
 		}
 	}
 
