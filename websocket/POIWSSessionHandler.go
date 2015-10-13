@@ -335,7 +335,7 @@ func POIWSSessionHandler(sessionId int64) {
 					isPaused = true
 					managers.WsManager.SetSessionServingMap(sessionId, !isPaused)
 
-					waitingTimer = time.NewTimer(time.Minute * 5)
+					waitingTimer = time.NewTimer(time.Minute * 1)
 
 					breakMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_BREAK)
 					if msg.UserId == session.Creator.UserId {
