@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"POIWolaiWebService/leancloud"
+	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
 )
 
@@ -114,9 +115,9 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 
 	go leancloud.SendSessionReportNotification(session.Id, teacherAmount, studentAmount)
 	//课程超时时，如果老师不在线，则给老师补发课程超时消息
-	//	if expireFlag && !managers.WsManager.HasUserChan(session.Teacher.UserId) {
-	//		go leancloud.SendSessionExpireNotification(session.Id, teacherAmount)
-	//	}
+	if expireFlag && !managers.WsManager.HasUserChan(session.Teacher.UserId) {
+		go leancloud.SendSessionExpireNotification(session.Id, teacherAmount)
+	}
 	go leancloud.SendTradeNotificationSession(teacher.UserId, student.UserId,
 		parentGrade.Name+grade.Name+subject.Name, studentAmount, teacherAmount,
 		session.TimeFrom.Format(time.RFC3339), session.TimeTo.Format(time.RFC3339))
