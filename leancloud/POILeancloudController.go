@@ -448,7 +448,7 @@ func SendSessionExpireNotification(sessionId int64, teacherPrice int64) {
 		Text:      "您有一堂课已超时",
 		Attribute: attr,
 	}
-	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &teacherTMsg, false)
+	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &teacherTMsg, false)
 }
 
 func SendAdvertisementMessage(title, desc, mediaId, url string, userId int64) {
