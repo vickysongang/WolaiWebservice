@@ -399,6 +399,13 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 	attr["teacherInfo"] = string(teacherStr)
 	attr["studentInfo"] = string(studentStr)
 
+	freeFlag := models.IsUserFree4Session(student.UserId, time.Now().Format(utils.TIME_FORMAT))
+	if freeFlag {
+		attr["free"] = "1"
+	} else {
+		attr["free"] = "0"
+	}
+
 	teacherTMsg := LCTypedMessage{
 		Type:      LC_MSG_SESSION,
 		Text:      "您有一条结算提醒",
@@ -407,12 +414,6 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &teacherTMsg, false)
 
 	attr["price"] = strconv.FormatInt(studentPrice, 10)
-	freeFlag := models.IsUserFree4Session(student.UserId, time.Now().Format(utils.TIME_FORMAT))
-	if freeFlag {
-		attr["free"] = "1"
-	} else {
-		attr["free"] = "0"
-	}
 
 	studentTMsg := LCTypedMessage{
 		Type:      LC_MSG_SESSION,
