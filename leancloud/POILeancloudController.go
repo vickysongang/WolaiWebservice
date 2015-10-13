@@ -420,6 +420,37 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &studentTMsg, false)
 }
 
+func SendSessionExpireNotification(sessionId int64, teacherPrice int64) {
+	session := models.QuerySessionById(sessionId)
+	if session == nil {
+		return
+	}
+
+	teacher := models.QueryTeacher(session.Teacher.UserId)
+	student := models.QueryUserById(session.Creator.UserId)
+	if teacher == nil || student == nil {
+		return
+	}
+
+	attr := make(map[string]string)
+	teacherStr, _ := json.Marshal(teacher)
+	studentStr, _ := json.Marshal(student)
+
+	attr["oprCode"] = LC_SESSION_EXPIRE
+	attr["sessionId"] = strconv.FormatInt(sessionId, 10)
+	attr["length"] = strconv.FormatInt(session.Length, 10)
+	attr["price"] = strconv.FormatInt(teacherPrice, 10)
+	attr["teacherInfo"] = string(teacherStr)
+	attr["studentInfo"] = string(studentStr)
+
+	teacherTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一堂课已超时",
+		Attribute: attr,
+	}
+	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &teacherTMsg, false)
+}
+
 func SendAdvertisementMessage(title, desc, mediaId, url string, userId int64) {
 	attr := map[string]string{
 		"title":       title,

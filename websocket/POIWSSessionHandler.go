@@ -51,15 +51,18 @@ func POIWSSessionHandler(sessionId int64) {
 		case <-waitingTimer.C:
 			expireMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_EXPIRE)
 			expireMsg.Attribute["sessionId"] = sessionIdStr
+			//如果学生在线，则给学生发送课程过时消息
 			if managers.WsManager.HasUserChan(session.Creator.UserId) {
 				userChan := managers.WsManager.GetUserChan(session.Creator.UserId)
 				userChan <- expireMsg
 			}
+			//如果老师在线，则给老师发送课程过时消息
 			if managers.WsManager.HasUserChan(session.Teacher.UserId) {
 				userChan := managers.WsManager.GetUserChan(session.Teacher.UserId)
 				expireMsg.UserId = session.Teacher.UserId
 				userChan <- expireMsg
 			}
+
 			seelog.Debug("POIWSSessionHandler: session expired: " + sessionIdStr)
 
 			if !isServing {
@@ -78,7 +81,7 @@ func POIWSSessionHandler(sessionId int64) {
 				//修改老师的辅导时长
 				models.UpdateTeacherServiceTime(session.Teacher.UserId, length)
 				session = models.QuerySessionById(sessionId)
-				trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS)
+				trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, true)
 			}
 			managers.WsManager.RemoveSessionLive(sessionId)
 			managers.WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
@@ -312,7 +315,7 @@ func POIWSSessionHandler(sessionId int64) {
 					//修改老师的辅导时长
 					models.UpdateTeacherServiceTime(session.Teacher.UserId, length)
 					session = models.QuerySessionById(sessionId)
-					trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS)
+					trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, false)
 
 					seelog.Debug("POIWSSessionHandler: session end: " + sessionIdStr)
 
