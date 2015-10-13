@@ -8,6 +8,8 @@ import (
 	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
 	"POIWolaiWebService/utils"
+
+	seelog "github.com/cihub/seelog"
 )
 
 const (
@@ -449,6 +451,7 @@ func SendSessionExpireNotification(sessionId int64, teacherPrice int64) {
 		Attribute: attr,
 	}
 	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &teacherTMsg, false)
+	seelog.Debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 }
 
 func SendAdvertisementMessage(title, desc, mediaId, url string, userId int64) {
