@@ -15,7 +15,7 @@ import (
 )
 
 func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, imageStr string,
-	originFeedId string, attributeStr string) (*models.POIFeed, error) {
+	originFeedId string, attributeStr string, plateType string) (*models.POIFeed, error) {
 	feed := models.POIFeed{}
 	var err error
 	user := models.QueryUserById(userId)
@@ -29,6 +29,7 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 	feed.CreateTimestamp = timestamp
 	feed.FeedType = feedType
 	feed.Text = text
+	feed.PlateType = plateType
 
 	tmpList := make([]string, 0)
 	err = json.Unmarshal([]byte(imageStr), &tmpList)
@@ -60,8 +61,18 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 		managers.RedisManager.SetFeed(&feed)
 		managers.RedisManager.PostFeed(&feed)
 	}
+
 	//异步持久化数据
-	go models.InsertPOIFeed(userId, feed.Id, feedType, text, imageStr, originFeedId, attributeStr)
+	feedModel := models.POIFeed{
+		Created:       userId,
+		FeedType:      feedType,
+		Text:          text,
+		ImageInfo:     imageStr,
+		AttributeInfo: attributeStr,
+		Id:            feed.Id,
+		OriginFeedId:  originFeedId,
+		PlateType:     plateType}
+	go models.InsertPOIFeed(&feedModel)
 	return &feed, nil
 }
 
@@ -103,7 +114,9 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) (*models.POIFee
 
 			managers.RedisManager.SetFeedLikeCount(feed.Id, userId)
 		}
-		go models.InsertPOIFeedLike(userId, feedId)
+
+		feedLike := models.POIFeedLike{UserId: userId, FeedId: feedId}
+		go models.InsertPOIFeedLike(&feedLike)
 	} else {
 		feed.DecreaseLike()
 		if managers.RedisManager.RedisError == nil {
@@ -172,6 +185,41 @@ func GetAtrium(userId int64, page int64, count int64) (models.POIFeeds, error) {
 		}
 	} else {
 		feeds, err = models.GetFeedFlowAtrium(int(start), int(count))
+		if err != nil {
+			return feeds, err
+		}
+		for i := range feeds {
+			feed := feeds[i]
+			feeds[i].HasLiked = models.HasLikedFeed(&feed, user)
+		}
+	}
+	return feeds, nil
+}
+
+func GetAtriumByPlateType(userId int64, page int64, count int64, plateType string) (models.POIFeeds, error) {
+	user := models.QueryUserById(userId)
+	var err error
+	if user == nil {
+		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")
+		seelog.Error(err.Error())
+		return nil, err
+	}
+	start := page * count
+	stop := page*count + (count - 1)
+	var feeds models.POIFeeds
+	if managers.RedisManager.RedisError != nil {
+		feeds = managers.RedisManager.GetFeedFlowAtriumByPlateType(start, stop, plateType)
+		for i := range feeds {
+			feed := feeds[i]
+			feeds[i].HasLiked = managers.RedisManager.HasLikedFeed(&feed, user)
+			feeds[i].HasFaved = managers.RedisManager.HasFavedFeed(&feed, user)
+		}
+	} else {
+		if plateType == "" {
+			feeds, err = models.GetFeedFlowAtrium(int(start), int(count))
+		} else {
+			feeds, err = models.GetFeedFlowAtriumByPlateType(int(start), int(count), plateType)
+		}
 		if err != nil {
 			return feeds, err
 		}

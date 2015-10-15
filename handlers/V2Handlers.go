@@ -23,7 +23,7 @@ import (
 /*
  * 1.1 Login
  */
-func V1Login(w http.ResponseWriter, r *http.Request) {
+func V2Login(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -36,7 +36,7 @@ func V1Login(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func V1LoginGETURL(w http.ResponseWriter, r *http.Request) {
+func V2LoginGETURL(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	vars := mux.Vars(r)
 	phone := vars["phone"]
@@ -47,7 +47,7 @@ func V1LoginGETURL(w http.ResponseWriter, r *http.Request) {
 /*
  * 1.2 Update Profile
  */
-func V1UpdateProfile(w http.ResponseWriter, r *http.Request) {
+func V2UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -66,7 +66,7 @@ func V1UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
 }
 
-func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
+func V2UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	vars := mux.Vars(r)
 	userIdStr := vars["userId"]
@@ -84,7 +84,7 @@ func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
 /*
  * 1.3 Oauth Login
  */
-func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
+func V2OauthLogin(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -103,7 +103,7 @@ func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
 /*
  * 1.4 Oauth Register
  */
-func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
+func V2OauthRegister(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -126,7 +126,7 @@ func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
 /*
  * 1.5 My Orders
  */
-func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
+func V2OrderInSession(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -177,7 +177,7 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 /*
  * 1.6 Teacher Recommendation
  */
-func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
+func V2TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -212,7 +212,7 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 /*
  * 1.7 Teacher Profile
  */
-func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
+func V2TeacherProfile(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -243,7 +243,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 /*
 * 1.8 Teacher Post
  */
-func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
+func V2TeacherPost(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -266,7 +266,7 @@ func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
 /*
  * 2.1 Atrium
  */
-func V1Atrium(w http.ResponseWriter, r *http.Request) {
+func V2Atrium(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -290,7 +290,11 @@ func V1Atrium(w http.ResponseWriter, r *http.Request) {
 	} else {
 		count = 10
 	}
-	content, err := controllers.GetAtrium(userId, page, count)
+	plateTypeStr := ""
+	if len(vars["plateType"]) > 0 {
+		plateTypeStr = vars["plateType"][0]
+	}
+	content, err := controllers.GetAtriumByPlateType(userId, page, count, plateTypeStr)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
@@ -301,7 +305,7 @@ func V1Atrium(w http.ResponseWriter, r *http.Request) {
 /*
  * 2.2 Feed Post
  */
-func V1FeedPost(w http.ResponseWriter, r *http.Request) {
+func V2FeedPost(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -336,8 +340,11 @@ func V1FeedPost(w http.ResponseWriter, r *http.Request) {
 	if len(vars["attribute"]) > 0 {
 		attributeStr = vars["attribute"][0]
 	}
-
-	content, err := controllers.PostPOIFeed(userId, timestamp, feedType, text, imageStr, originFeedId, attributeStr, "")
+	plateTypeStr := ""
+	if len(vars["plateType"]) > 0 {
+		plateTypeStr = vars["plateType"][0]
+	}
+	content, err := controllers.PostPOIFeed(userId, timestamp, feedType, text, imageStr, originFeedId, attributeStr, plateTypeStr)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
@@ -348,7 +355,7 @@ func V1FeedPost(w http.ResponseWriter, r *http.Request) {
 /*
  * 2.3 Feed Detail
  */
-func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
+func V2FeedDetail(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -373,7 +380,7 @@ func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
 /*
  * 2.4 Feed Like
  */
-func V1FeedLike(w http.ResponseWriter, r *http.Request) {
+func V2FeedLike(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -404,7 +411,7 @@ func V1FeedLike(w http.ResponseWriter, r *http.Request) {
 /*
  * 2.6 Feed Comment
  */
-func V1FeedComment(w http.ResponseWriter, r *http.Request) {
+func V2FeedComment(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -447,7 +454,7 @@ func V1FeedComment(w http.ResponseWriter, r *http.Request) {
 /*
  * 2.7 Feed Comment Like
  */
-func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
+func V2FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -476,7 +483,7 @@ func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 /*
  * 3.1 User MyProfile
  */
-func V1UserInfo(w http.ResponseWriter, r *http.Request) {
+func V2UserInfo(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -501,7 +508,7 @@ func V1UserInfo(w http.ResponseWriter, r *http.Request) {
  * 3.2 User MyWallet
  */
 
-func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
+func V2UserMyWallet(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -524,7 +531,7 @@ func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
 /*
  * 3.3 User MyFeed
  */
-func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
+func V2UserMyFeed(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -561,7 +568,7 @@ func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
 /*
  * 3.4 User MyFollowing
  */
-func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
+func V2UserMyFollowing(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -597,7 +604,7 @@ func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
 /*
  * 3.5 User MyLike
  */
-func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
+func V2UserMyLike(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -633,7 +640,7 @@ func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
 /*
  * 3.6 User Follow
  */
-func V1UserFollow(w http.ResponseWriter, r *http.Request) {
+func V2UserFollow(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -656,7 +663,7 @@ func V1UserFollow(w http.ResponseWriter, r *http.Request) {
 /*
  * 3.7 User UnFollow
  */
-func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
+func V2UserUnfollow(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -679,7 +686,7 @@ func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
 /*
  * 4.1 Get Conversation ID
  */
-func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
+func V2GetConversationID(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -702,7 +709,7 @@ func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
 /*
  * 5.1 Grade List
  */
-func V1GradeList(w http.ResponseWriter, r *http.Request) {
+func V2GradeList(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	content, err := models.QueryGradeList()
 	if err != nil {
@@ -715,7 +722,7 @@ func V1GradeList(w http.ResponseWriter, r *http.Request) {
 /*
  *
  */
-func V1SubjectList(w http.ResponseWriter, r *http.Request) {
+func V2SubjectList(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -747,7 +754,7 @@ func V1SubjectList(w http.ResponseWriter, r *http.Request) {
 /*
  * 5.3 Order Create
  */
-func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
+func V2OrderCreate(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -801,7 +808,7 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 /*
  * 5.4 Personal Order Confirm
  */
-func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
+func V2OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -829,7 +836,7 @@ func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
 /*
  * 5.5 Teacher Expect Price
  */
-func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
+func V2TeacherExpect(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -872,7 +879,7 @@ func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
 /*
  * 6.1 Trade Charge
  */
-func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
+func V2TradeCharge(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -901,7 +908,7 @@ func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
 /*
  * 6.2 Trade Withdraw
  */
-func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
+func V2TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -930,7 +937,7 @@ func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 /*
  * 6.3 Trade Award
  */
-func V1TradeAward(w http.ResponseWriter, r *http.Request) {
+func V2TradeAward(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -959,7 +966,7 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 /*
  * 6.4 Trade Promotion
  */
-func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
+func V2TradePromotion(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -988,7 +995,7 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 /*
  * 6.5 Get User TradeRecord
  */
-func V1TradeRecord(w http.ResponseWriter, r *http.Request) {
+func V2TradeRecord(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1022,7 +1029,7 @@ func V1TradeRecord(w http.ResponseWriter, r *http.Request) {
 /*
  * 7.1 Student Complain
  */
-func V1Complain(w http.ResponseWriter, r *http.Request) {
+func V2Complain(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1053,7 +1060,7 @@ func V1Complain(w http.ResponseWriter, r *http.Request) {
 /*
  * 7.2 Handle Complaint
  */
-func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
+func V2HandleComplaint(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1078,7 +1085,7 @@ func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
 /*
  *  8.1 Search  Teacher
  */
-func V1SearchTeacher(w http.ResponseWriter, r *http.Request) {
+func V2SearchTeacher(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1117,7 +1124,7 @@ func V1SearchTeacher(w http.ResponseWriter, r *http.Request) {
 /*
  * 9.1 Insert Evaluation
  */
-func V1Evaluate(w http.ResponseWriter, r *http.Request) {
+func V2Evaluate(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1144,7 +1151,7 @@ func V1Evaluate(w http.ResponseWriter, r *http.Request) {
 /*
  * 9.2 Query Evaluation
  */
-func V1GetEvaluation(w http.ResponseWriter, r *http.Request) {
+func V2GetEvaluation(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1168,7 +1175,7 @@ func V1GetEvaluation(w http.ResponseWriter, r *http.Request) {
 /*
  * 9.3 Query Evaluation Labels
  */
-func V1GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
+func V2GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1198,7 +1205,7 @@ func V1GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
 /*
  * 10.1 Activities
  */
-func V1ActivityNotification(w http.ResponseWriter, r *http.Request) {
+func V2ActivityNotification(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1238,7 +1245,7 @@ func V1ActivityNotification(w http.ResponseWriter, r *http.Request) {
 /*
  * 11.1 Bind User with InvitationCode
  */
-func V1BindUserWithInvitationCode(w http.ResponseWriter, r *http.Request) {
+func V2BindUserWithInvitationCode(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1265,7 +1272,7 @@ func V1BindUserWithInvitationCode(w http.ResponseWriter, r *http.Request) {
 /*
  * 11.1 Check user has binded with InvitationCode
  */
-func V1CheckUserHasBindWithInvitationCode(w http.ResponseWriter, r *http.Request) {
+func V2CheckUserHasBindWithInvitationCode(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1281,7 +1288,7 @@ func V1CheckUserHasBindWithInvitationCode(w http.ResponseWriter, r *http.Request
 /*
  * 12.1 Get Courses
  */
-func V1GetCourses(w http.ResponseWriter, r *http.Request) {
+func V2GetCourses(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1301,7 +1308,7 @@ func V1GetCourses(w http.ResponseWriter, r *http.Request) {
 /*
  * 12.2 Join Course
  */
-func V1JoinCourse(w http.ResponseWriter, r *http.Request) {
+func V2JoinCourse(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1329,7 +1336,7 @@ func V1JoinCourse(w http.ResponseWriter, r *http.Request) {
 /*
  * 12.3 active Course
  */
-func V1ActiveCourse(w http.ResponseWriter, r *http.Request) {
+func V2ActiveCourse(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1357,7 +1364,7 @@ func V1ActiveCourse(w http.ResponseWriter, r *http.Request) {
 /*
  * 12.4 user renew Course
  */
-func V1RenewCourse(w http.ResponseWriter, r *http.Request) {
+func V2RenewCourse(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1385,7 +1392,7 @@ func V1RenewCourse(w http.ResponseWriter, r *http.Request) {
 /*
  * 12.5 support renew Course
  */
-func V1SupportRenewCourse(w http.ResponseWriter, r *http.Request) {
+func V2SupportRenewCourse(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1420,7 +1427,7 @@ func V1SupportRenewCourse(w http.ResponseWriter, r *http.Request) {
 /*
  * 12.6 support reject Course apply
  */
-func V1SupportRejectCourse(w http.ResponseWriter, r *http.Request) {
+func V2SupportRejectCourse(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1445,7 +1452,7 @@ func V1SupportRejectCourse(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func V1Banner(w http.ResponseWriter, r *http.Request) {
+func V2Banner(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	content, err := models.QueryBannerList()
 	if err != nil {
@@ -1455,7 +1462,7 @@ func V1Banner(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func V1StatusLive(w http.ResponseWriter, r *http.Request) {
+func V2StatusLive(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	liveUser := len(managers.WsManager.OnlineUserMap)
 	liveTeacher := len(managers.WsManager.OnlineTeacherMap)
@@ -1467,7 +1474,7 @@ func V1StatusLive(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 }
 
-func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
+func V2CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1483,7 +1490,7 @@ func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func V1GetConversationParticipants(w http.ResponseWriter, r *http.Request) {
+func V2GetConversationParticipants(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1499,7 +1506,7 @@ func V1GetConversationParticipants(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {
+func V2SendAdvMessage(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	err := r.ParseForm()
 	if err != nil {
@@ -1524,7 +1531,7 @@ func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func V1GetHelpItems(w http.ResponseWriter, r *http.Request) {
+func V2GetHelpItems(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
 	content, err := models.QueryHelpItems()
 	if err != nil {

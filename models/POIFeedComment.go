@@ -41,19 +41,12 @@ func (f *POIFeedComment) IncreaseLike() {
 	f.LikeCount = f.LikeCount + 1
 }
 
-func InsertPOIFeedComment(userId int64, commentId string, feedId string, text string, imageStr string, replyToId int64) *POIFeedComment {
+func InsertPOIFeedComment(feedComment *POIFeedComment) *POIFeedComment {
 	o := orm.NewOrm()
-	feedComment := POIFeedComment{
-		Created:   userId,
-		Id:        commentId,
-		FeedId:    feedId,
-		Text:      text,
-		ImageInfo: imageStr,
-		ReplyToId: replyToId}
-	_, err := o.Insert(&feedComment)
+	_, err := o.Insert(feedComment)
 	if err != nil {
 		seelog.Error(feedComment, " ", err.Error())
 		return nil
 	}
-	return &feedComment
+	return feedComment
 }

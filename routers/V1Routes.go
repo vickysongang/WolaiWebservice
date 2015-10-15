@@ -1,55 +1,12 @@
+// V1Routes
 package routers
 
 import (
-	"encoding/json"
-	"net/http"
-	"time"
-
 	"POIWolaiWebService/handlers"
 	"POIWolaiWebService/websocket"
-
-	seelog "github.com/cihub/seelog"
-	"github.com/gorilla/mux"
 )
 
-type Route struct {
-	Name        string
-	Method      string
-	Pattern     string
-	HandlerFunc http.HandlerFunc
-}
-
-type Routes []Route
-
-func NewRouter() *mux.Router {
-	router := mux.NewRouter().StrictSlash(true)
-	for _, route := range routes {
-		var handler http.Handler
-		handler = route.HandlerFunc
-		handler = WebLogger(handler, route.Name)
-
-		router.
-			Methods(route.Method).
-			Path(route.Pattern).
-			Name(route.Name).
-			Handler(handler)
-	}
-	return router
-}
-
-func WebLogger(inner http.Handler, name string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-
-		inner.ServeHTTP(w, r)
-
-		formData, _ := json.Marshal(r.Form)
-		seelog.Info("[", r.Method, "] ", r.RequestURI, "\t", name, "\t", time.Since(start),
-			"\t", string(formData))
-	})
-}
-
-var routes = Routes{
+var V1Routes = Routes{
 	// Websocket
 	Route{
 		"V1WebSocketHandler",

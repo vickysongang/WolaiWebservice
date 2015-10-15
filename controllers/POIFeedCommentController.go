@@ -56,7 +56,15 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 		managers.RedisManager.SetFeed(feed)
 	}
 	go leancloud.SendCommentNotification(feedComment.Id)
-	go models.InsertPOIFeedComment(userId, feedComment.Id, feedId, text, imageStr, replyToId)
+
+	feedCommentModel := models.POIFeedComment{
+		Created:   userId,
+		Id:        feedComment.Id,
+		FeedId:    feedId,
+		Text:      text,
+		ImageInfo: imageStr,
+		ReplyToId: replyToId}
+	go models.InsertPOIFeedComment(&feedCommentModel)
 	return &feedComment, nil
 }
 

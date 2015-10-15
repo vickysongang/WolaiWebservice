@@ -36,6 +36,7 @@ type POIFeed struct {
 	ImageInfo       string            `json:"-"`
 	AttributeInfo   string            `json:"-"`
 	OriginFeedId    string            `json:"-"`
+	PlateType       string            `json:"-"`
 }
 
 type POIFeedLike struct {
@@ -85,23 +86,14 @@ func (f *POIFeed) IncreaseRepost() {
 	f.RepostCount = f.RepostCount + 1
 }
 
-func InsertPOIFeed(userId int64, feedId string, feedType int64, text string, imageStr string,
-	originFeedId string, attributeStr string) (*POIFeed, error) {
-	feed := POIFeed{
-		Created:       userId,
-		FeedType:      feedType,
-		Text:          text,
-		ImageInfo:     imageStr,
-		AttributeInfo: attributeStr,
-		Id:            feedId,
-		OriginFeedId:  originFeedId}
+func InsertPOIFeed(feed *POIFeed) (*POIFeed, error) {
 	o := orm.NewOrm()
-	_, err := o.Insert(&feed)
+	_, err := o.Insert(feed)
 	if err != nil {
 		seelog.Error("feed:", feed, " ", err.Error())
 		return nil, err
 	}
-	return &feed, nil
+	return feed, nil
 }
 
 func GetFeed(feedId string) (*POIFeed, error) {
@@ -150,15 +142,14 @@ func GetFeed(feedId string) (*POIFeed, error) {
 	return &feed, nil
 }
 
-func InsertPOIFeedLike(userId int64, feedId string) *POIFeedLike {
+func InsertPOIFeedLike(feedLike *POIFeedLike) *POIFeedLike {
 	o := orm.NewOrm()
-	feedLike := POIFeedLike{UserId: userId, FeedId: feedId}
-	_, err := o.Insert(&feedLike)
+	_, err := o.Insert(feedLike)
 	if err != nil {
 		seelog.Error("feedLike:", feedLike, " ", err.Error())
 		return nil
 	}
-	return &feedLike
+	return feedLike
 }
 
 func DeletePOIFeedLike(userId int64, feedId string) *POIFeedLike {
@@ -282,6 +273,28 @@ func GetFeedFlowAtrium(start, pageCount int) (POIFeeds, error) {
 		OrderBy("feed.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
 	_, err := o.Raw(sql).QueryRows(&feedIds)
+	feeds := make(POIFeeds, len(feedIds))
+	if err != nil {
+		seelog.Error(err.Error())
+		return feeds, err
+	}
+	for i := range feedIds {
+		feed, err := GetFeed(feedIds[i])
+		if err == nil {
+			feeds[i] = *feed
+		}
+	}
+	return feeds, nil
+}
+
+func GetFeedFlowAtriumByPlateType(start, pageCount int, plateType string) (POIFeeds, error) {
+	o := orm.NewOrm()
+	var feedIds []string
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").Where("feed.plate_type like ?").
+		OrderBy("feed.create_time").Desc().Limit(pageCount).Offset(start)
+	sql := qb.String()
+	_, err := o.Raw(sql, "%"+plateType+"%").QueryRows(&feedIds)
 	feeds := make(POIFeeds, len(feedIds))
 	if err != nil {
 		seelog.Error(err.Error())

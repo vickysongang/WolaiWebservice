@@ -3,6 +3,7 @@ package managers
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 	"time"
 
 	"POIWolaiWebService/models"
@@ -106,6 +107,8 @@ func (rm *POIRedisManager) GetFeed(feedId string) *models.POIFeed {
 	tmpInt, _ = strconv.ParseInt(hashMap["repost_count"], 10, 64)
 	feed.RepostCount = tmpInt
 
+	feed.PlateType = hashMap["plate_type"]
+
 	return &feed
 }
 
@@ -147,7 +150,7 @@ func (rm *POIRedisManager) SetFeed(feed *models.POIFeed) {
 	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "create_timestamp", strconv.FormatFloat(feed.CreateTimestamp, 'f', 6, 64))
 	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "feed_type", strconv.FormatInt(feed.FeedType, 10))
 	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "text", feed.Text)
-
+	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "plate_type", feed.PlateType)
 	tmpBytes, _ := json.Marshal(feed.ImageList)
 	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "image_list", string(tmpBytes))
 
@@ -347,6 +350,20 @@ func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int64) models.POIFeeds 
 		str, _ := feedZs[i].Member.(string)
 		feed := *rm.GetFeed(str)
 		if feed.Creator != nil && models.CheckUserExist(feed.Creator.UserId) {
+			feeds = append(feeds, feed)
+		}
+	}
+	return feeds
+}
+
+func (rm *POIRedisManager) GetFeedFlowAtriumByPlateType(start, stop int64, plateType string) models.POIFeeds {
+	feedZs := rm.RedisClient.ZRevRangeWithScores(FEEDFLOW_ATRIUM, start, stop).Val()
+
+	feeds := make(models.POIFeeds, 0)
+	for i := range feedZs {
+		str, _ := feedZs[i].Member.(string)
+		feed := *rm.GetFeed(str)
+		if feed.Creator != nil && models.CheckUserExist(feed.Creator.UserId) && (plateType == "" || strings.Contains(feed.PlateType, plateType)) {
 			feeds = append(feeds, feed)
 		}
 	}
