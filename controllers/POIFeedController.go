@@ -207,7 +207,7 @@ func GetAtriumByPlateType(userId int64, page int64, count int64, plateType strin
 	start := page * count
 	stop := page*count + (count - 1)
 	var feeds models.POIFeeds
-	if managers.RedisManager.RedisError != nil {
+	if managers.RedisManager.RedisError == nil {
 		feeds = managers.RedisManager.GetFeedFlowAtriumByPlateType(start, stop, plateType)
 		for i := range feeds {
 			feed := feeds[i]
