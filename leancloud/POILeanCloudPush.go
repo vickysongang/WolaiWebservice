@@ -154,6 +154,43 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 	return &lcReq
 }
 
+func NewRealTimeOrderPushReq(orderId, targetId int64) *map[string]interface{} {
+	order := models.QueryOrderById(orderId)
+	user := models.QueryUserById(targetId)
+	if order == nil || user == nil {
+		return nil
+	}
+
+	objectId := managers.RedisManager.GetUserObjectId(targetId)
+	if objectId == "" {
+		return nil
+	}
+
+	titleStr := "您有一个来自" + order.Creator.Nickname + "同学的实时课堂"
+
+	lcReq := map[string]interface{}{
+		"where": map[string]interface{}{
+			"objectId": objectId,
+		},
+		"data": map[string]interface{}{
+			"ios": map[string]interface{}{
+				"alert":   titleStr,
+				"action":  "hahaha",
+				"miscStr": "111",
+				"miscNum": 111,
+			},
+			"android": map[string]interface{}{
+				"alert":  "您有一条约课提醒",
+				"title":  titleStr,
+				"action": "com.poi.POINT_TO_POINT_ORDER",
+			},
+		},
+		"prod": "dev",
+	}
+
+	return &lcReq
+}
+
 func LCPushNotification(lcReq *map[string]interface{}) {
 	url := LC_PUSH
 	//seelog.Info("URL:>", url)

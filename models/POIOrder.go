@@ -48,6 +48,7 @@ var (
 		2: "general_appointment",
 		3: "personal_instant",
 		4: "personal_appointment",
+		5: "realtime_session",
 	}
 
 	OrderTypeRevDict = map[string]int64{
@@ -55,6 +56,7 @@ var (
 		"general_appointment":  2,
 		"personal_instant":     3,
 		"personal_appointment": 4,
+		"realtime_session":     5,
 	}
 )
 
@@ -68,6 +70,7 @@ const (
 	ORDER_TYPE_GENERAL_APPOINTMENT   = 2
 	ORDER_TYPE_PERSONAL_INSTANT      = 3
 	ORDER_TYPE_PERSONAL_APPOINTEMENT = 4
+	ORDER_TYPE_REALTIME_SESSION      = 5
 
 	ORDER_PERIOD_MORNING   = 1
 	ORDER_PERIOD_AFTERNOON = 2

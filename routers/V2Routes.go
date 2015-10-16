@@ -441,6 +441,32 @@ var V2Routes = Routes{
 		"/v2/teacher/expect",
 		handlers.V2TeacherExpect,
 	},
+	// 5.6 Create RealTime Order
+	Route{
+		"V2RealTimeOrderCreatePOST",
+		"POST",
+		"/v2/order/realtime/create",
+		handlers.V2RealTimeOrderCreate,
+	},
+	Route{
+		"V2RealTimeOrderCreateGET",
+		"GET",
+		"/v2/order/realtime/create",
+		handlers.V2RealTimeOrderCreate,
+	},
+	//5.7 RealTime Order Confirm
+	Route{
+		"V2RealTimeOrderConfirmPOST",
+		"POST",
+		"/v2/order/realtime/confirm",
+		handlers.V2RealTimeOrderConfirm,
+	},
+	Route{
+		"V2RealTimeOrderConfirmGET",
+		"GET",
+		"/v2/order/realtime/confirm",
+		handlers.V2RealTimeOrderConfirm,
+	},
 
 	//6.1 Trade Charge
 	Route{

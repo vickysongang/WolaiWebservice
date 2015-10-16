@@ -32,6 +32,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		return 2, nil, errors.New("User " + strconv.Itoa(int(creatorId)) + " doesn't exist!")
 	}
 
+	//检查用户是否为包月用户
 	var courseId int64
 	course, err := models.QueryServingCourse4User(creatorId)
 	if err != nil {
@@ -45,6 +46,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		}
 		courseId = course.CourseId
 	}
+	//检查用户是否余额不足
 	if creator.Balance <= 0 {
 		err = errors.New("余额不足")
 		seelog.Error(err.Error())
@@ -69,13 +71,14 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 	}
 
 	switch orderType {
+	//马上辅导：检查用户是否可以发起马上辅导
 	case models.ORDER_TYPE_GENERAL_INSTANT:
 		if managers.WsManager.IsUserSessionLocked(creatorId) {
 			err = errors.New("你有一堂课马上就要开始啦！")
 			seelog.Error(err.Error())
 			return 5002, nil, err
 		}
-
+		//预约：检查预约的条件是否满足
 	case models.ORDER_TYPE_GENERAL_APPOINTMENT:
 		startTime, _ := time.Parse(time.RFC3339, order.Date)   //预计上课时间
 		dateDiff := startTime.YearDay() - time.Now().YearDay() //预计上课时间距离当前时间的天数
@@ -121,6 +124,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 			return 5003, nil, err
 		}
 
+		//点对点辅导：检查用户是否可以发起点对点申请
 	case models.ORDER_TYPE_PERSONAL_INSTANT:
 		if managers.WsManager.IsUserSessionLocked(creatorId) {
 			err = errors.New("你有一堂课马上就要开始啦！")
@@ -147,6 +151,71 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 			go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderPtr.Id, teacherId))
 		}
 	}
+	return 0, orderPtr, nil
+}
+
+func RealTimeOrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int64,
+	date string, periodId int64, length int64, orderType int64) (int64, *models.POIOrder, error) {
+	var err error
+	creator := models.QueryUserById(creatorId)
+
+	if creator == nil {
+		return 2, nil, errors.New("User " + strconv.Itoa(int(creatorId)) + " doesn't exist!")
+	}
+
+	//检查用户是否为包月用户
+	var courseId int64
+	course, err := models.QueryServingCourse4User(creatorId)
+	if err != nil {
+		courseId = 0
+	} else {
+		courseId = course.CourseId
+	}
+	//检查用户是否余额不足
+	if creator.Balance <= 0 {
+		err = errors.New("余额不足")
+		seelog.Error(err.Error())
+		return 5001, nil, err
+	}
+
+	if teacherId == 0 {
+		return 2, nil, nil
+	}
+
+	if managers.WsManager.IsUserSessionLocked(creatorId) {
+		err = errors.New("你有一堂课马上就要开始啦！")
+		seelog.Error(err.Error())
+		return 5002, nil, err
+	}
+
+	if managers.WsManager.IsUserSessionLocked(teacherId) {
+		err = errors.New("对方该段时间内有课或即将有课，将不能为您上课！")
+		seelog.Error(err.Error())
+		return 5002, nil, err
+	}
+
+	order := models.POIOrder{
+		Creator:   creator,
+		GradeId:   gradeId,
+		SubjectId: subjectId,
+		Date:      date,
+		PeriodId:  periodId,
+		Length:    length,
+		Type:      orderType,
+		Status:    models.ORDER_STATUS_CREATED,
+		TeacherId: teacherId,
+		CourseId:  courseId,
+	}
+
+	orderPtr, err := models.InsertOrder(&order)
+
+	if err != nil {
+		return 2, nil, err
+	}
+
+	go leancloud.SendPersonalOrderNotification(orderPtr.Id, teacherId)
+	go leancloud.LCPushNotification(leancloud.NewRealTimeOrderPushReq(orderPtr.Id, teacherId))
+
 	return 0, orderPtr, nil
 }
 
@@ -186,7 +255,57 @@ func parseAppointmentTime(date string, period int64) (int64, int64, error) {
 	return timestampFrom, timestampTo, nil
 }
 
-func OrderPersonalConfirm(userId int64, orderId int64, accept int64, timestamp float64) int64 {
+func OrderPersonalConfirm(userId int64, orderId int64, accept int64, timestamp1 float64) int64 {
+	order := models.QueryOrderById(orderId)
+	teacher := models.QueryTeacher(userId)
+	if order == nil || teacher == nil {
+		return 2
+	}
+
+	if accept == -1 {
+		orderInfo := map[string]interface{}{
+			"Status": models.ORDER_STATUS_CANCELLED,
+		}
+		models.UpdateOrderInfo(orderId, orderInfo)
+
+		go leancloud.SendPersonalOrderRejectNotification(orderId, userId)
+
+		return 0
+	} else if accept == 1 {
+		if managers.WsManager.IsUserSessionLocked(order.Creator.UserId) {
+			orderInfo := map[string]interface{}{
+				"Status": models.ORDER_STATUS_CANCELLED,
+			}
+			models.UpdateOrderInfo(orderId, orderInfo)
+
+			go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator.UserId, userId)
+
+			return 0
+		}
+
+		orderInfo := map[string]interface{}{
+			"Status":           models.ORDER_STATUS_CONFIRMED,
+			"PricePerHour":     teacher.PricePerHour,
+			"RealPricePerHour": teacher.RealPricePerHour,
+		}
+		models.UpdateOrderInfo(orderId, orderInfo)
+
+		session := models.NewPOISession(order.Id,
+			models.QueryUserById(order.Creator.UserId),
+			models.QueryUserById(userId),
+			order.Date)
+		sessionPtr := models.InsertSession(&session)
+
+		go leancloud.SendSessionCreatedNotification(sessionPtr.Id)
+		websocket.InitSessionMonitor(sessionPtr.Id)
+
+		return 0
+	}
+
+	return 2
+}
+
+func RealTimeOrderConfirm(userId int64, orderId int64, accept int64) int64 {
 	order := models.QueryOrderById(orderId)
 	teacher := models.QueryTeacher(userId)
 	if order == nil || teacher == nil {

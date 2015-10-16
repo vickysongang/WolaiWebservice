@@ -902,6 +902,75 @@ func V2TeacherExpect(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
+ * 5.6 RealTime Order Create
+ */
+func V2RealTimeOrderCreate(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	teacherIdStr := vars["teacherId"][0]
+	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
+
+	gradeIdStr := vars["gradeId"][0]
+	gradeId, _ := strconv.ParseInt(gradeIdStr, 10, 64)
+
+	subjectIdStr := vars["subjectId"][0]
+	subjectId, _ := strconv.ParseInt(subjectIdStr, 10, 64)
+
+	date := vars["date"][0]
+
+	periodIdStr := vars["periodId"][0]
+	periodId, _ := strconv.ParseInt(periodIdStr, 10, 64)
+
+	lengthStr := vars["length"][0]
+	length, _ := strconv.ParseInt(lengthStr, 10, 64)
+
+	orderTypeStr := vars["orderType"][0]
+	orderType, _ := strconv.ParseInt(orderTypeStr, 10, 64)
+
+	status, content, err := controllers.RealTimeOrderCreate(userId, teacherId, gradeId, subjectId, date,
+		periodId, length, orderType)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(status, err.Error(), NullObject))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
+	}
+}
+
+/*
+ * 5.7 RealTime Order Confirm
+ */
+func V2RealTimeOrderConfirm(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	orderIdStr := vars["orderId"][0]
+	orderId, _ := strconv.ParseInt(orderIdStr, 10, 64)
+
+	acceptStr := vars["accept"][0]
+	accept, _ := strconv.ParseInt(acceptStr, 10, 64)
+
+	status := controllers.RealTimeOrderConfirm(userId, orderId, accept)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", NullObject))
+}
+
+/*
  * 6.1 Trade Charge
  */
 func V2TradeCharge(w http.ResponseWriter, r *http.Request) {
