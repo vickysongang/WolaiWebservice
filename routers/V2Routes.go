@@ -539,6 +539,19 @@ var V2Routes = Routes{
 		"/v2/complaint/handle",
 		handlers.V2HandleComplaint,
 	},
+	// 7.3 Check Complaint Exsits
+	Route{
+		"V2CheckComplaintExsitsPOST",
+		"POST",
+		"/v2/complaint/check",
+		handlers.V2CheckComplaintExsits,
+	},
+	Route{
+		"V2CheckComplaintExsitsGET",
+		"GET",
+		"/v2/complaint/check",
+		handlers.V2CheckComplaintExsits,
+	},
 
 	// 8.1 Search Teachers
 	Route{

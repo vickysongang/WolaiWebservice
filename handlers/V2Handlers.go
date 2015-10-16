@@ -1108,6 +1108,28 @@ func V2HandleComplaint(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
+ * 7.3 Check Complaint Exsits
+ */
+func V2CheckComplaintExsits(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	sessionIdStr := vars["sessionId"][0]
+	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 60)
+	count := models.GetComplaintCount(userId, sessionId)
+	if count == 0 {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", false))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", true))
+	}
+}
+
+/*
  *  8.1 Search  Teacher
  */
 func V2SearchTeacher(w http.ResponseWriter, r *http.Request) {

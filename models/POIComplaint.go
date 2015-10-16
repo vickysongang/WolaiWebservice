@@ -51,3 +51,10 @@ func UpdateComplaintInfo(complaintId int64, complaintInfo map[string]interface{}
 	}
 	return nil
 }
+
+func GetComplaintCount(userId, sessionId int64) int64 {
+	o := orm.NewOrm()
+	count, _ := o.QueryTable("complaint").Filter("user_id", userId).Filter("session_id", sessionId).
+		Filter("status", "pending").Count()
+	return count
+}
