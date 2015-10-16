@@ -76,6 +76,23 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 	return &feed, nil
 }
 
+func MarkPOIFeed(feedId string, plateType string) (*models.POIFeed, error) {
+	var feed *models.POIFeed
+	if managers.RedisManager.RedisError == nil {
+		feed = managers.RedisManager.GetFeed(feedId)
+	} else {
+		feed, _ = models.GetFeed(feedId)
+	}
+	feed.PlateType = plateType
+	if managers.RedisManager.RedisError == nil {
+		managers.RedisManager.SetFeed(feed)
+		managers.RedisManager.PostFeed(feed)
+	}
+	feedInfo := map[string]interface{}{"PlateType": plateType}
+	go models.UpdateFeedInfo(feedId, feedInfo)
+	return feed, nil
+}
+
 func LikePOIFeed(userId int64, feedId string, timestamp float64) (*models.POIFeed, error) {
 	var feed *models.POIFeed
 	var err error
@@ -205,29 +222,21 @@ func GetAtriumByPlateType(userId int64, page int64, count int64, plateType strin
 		return nil, err
 	}
 	start := page * count
-	stop := page*count + (count - 1)
 	var feeds models.POIFeeds
-	if managers.RedisManager.RedisError == nil {
-		feeds = managers.RedisManager.GetFeedFlowAtriumByPlateType(start, stop, plateType)
-		for i := range feeds {
-			feed := feeds[i]
-			feeds[i].HasLiked = managers.RedisManager.HasLikedFeed(&feed, user)
-			feeds[i].HasFaved = managers.RedisManager.HasFavedFeed(&feed, user)
-		}
+
+	if plateType == "" {
+		feeds, err = models.GetFeedFlowAtrium(int(start), int(count))
 	} else {
-		if plateType == "" {
-			feeds, err = models.GetFeedFlowAtrium(int(start), int(count))
-		} else {
-			feeds, err = models.GetFeedFlowAtriumByPlateType(int(start), int(count), plateType)
-		}
-		if err != nil {
-			return feeds, err
-		}
-		for i := range feeds {
-			feed := feeds[i]
-			feeds[i].HasLiked = models.HasLikedFeed(&feed, user)
-		}
+		feeds, err = models.GetFeedFlowAtriumByPlateType(int(start), int(count), plateType)
 	}
+	if err != nil {
+		return feeds, err
+	}
+	for i := range feeds {
+		feed := feeds[i]
+		feeds[i].HasLiked = models.HasLikedFeed(&feed, user)
+	}
+
 	return feeds, nil
 }
 

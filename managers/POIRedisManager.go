@@ -3,7 +3,6 @@ package managers
 import (
 	"encoding/json"
 	"strconv"
-	"strings"
 	"time"
 
 	"POIWolaiWebService/models"
@@ -350,20 +349,6 @@ func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int64) models.POIFeeds 
 		str, _ := feedZs[i].Member.(string)
 		feed := *rm.GetFeed(str)
 		if feed.Creator != nil && models.CheckUserExist(feed.Creator.UserId) {
-			feeds = append(feeds, feed)
-		}
-	}
-	return feeds
-}
-
-func (rm *POIRedisManager) GetFeedFlowAtriumByPlateType(start, stop int64, plateType string) models.POIFeeds {
-	feedZs := rm.RedisClient.ZRevRangeWithScores(FEEDFLOW_ATRIUM, start, stop).Val()
-
-	feeds := make(models.POIFeeds, 0)
-	for i := range feedZs {
-		str, _ := feedZs[i].Member.(string)
-		feed := *rm.GetFeed(str)
-		if feed.Creator != nil && models.CheckUserExist(feed.Creator.UserId) && (plateType == "" || strings.Contains(feed.PlateType, plateType)) {
 			feeds = append(feeds, feed)
 		}
 	}

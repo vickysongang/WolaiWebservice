@@ -36,7 +36,7 @@ type POIFeed struct {
 	ImageInfo       string            `json:"-"`
 	AttributeInfo   string            `json:"-"`
 	OriginFeedId    string            `json:"-"`
-	PlateType       string            `json:"-"`
+	PlateType       string            `json:"plateType"`
 }
 
 type POIFeedLike struct {
@@ -94,6 +94,18 @@ func InsertPOIFeed(feed *POIFeed) (*POIFeed, error) {
 		return nil, err
 	}
 	return feed, nil
+}
+
+func UpdateFeedInfo(feedId string, feedInfo map[string]interface{}) {
+	o := orm.NewOrm()
+	var params orm.Params = make(orm.Params)
+	for k, v := range feedInfo {
+		params[k] = v
+	}
+	_, err := o.QueryTable("feed").Filter("feed_id", feedId).Update(params)
+	if err != nil {
+		seelog.Error("feedId:", feedId, " feedInfo:", feedInfo, " ", err.Error())
+	}
 }
 
 func GetFeed(feedId string) (*POIFeed, error) {

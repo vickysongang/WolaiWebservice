@@ -481,6 +481,31 @@ func V2FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
+ * 2.9 Feed Makr
+ */
+func V2FeedMark(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	feedIdStr := vars["feedId"][0]
+
+	plateType := vars["plateType"][0]
+
+	content, err := controllers.MarkPOIFeed(feedIdStr, plateType)
+
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
  * 3.1 User MyProfile
  */
 func V2UserInfo(w http.ResponseWriter, r *http.Request) {

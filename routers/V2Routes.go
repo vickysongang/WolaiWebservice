@@ -232,6 +232,19 @@ var V2Routes = Routes{
 			V2FeedCommentLike,
 		},
 	*/
+	// 2.8 Feed mark
+	Route{
+		"V2MarkFeedPOST",
+		"POST",
+		"/v2/feed/mark",
+		handlers.V2FeedMark,
+	},
+	Route{
+		"V2MarkFeedGET",
+		"GET",
+		"/v2/feed/mark",
+		handlers.V2FeedMark,
+	},
 
 	// 3.1 User Info
 	Route{
