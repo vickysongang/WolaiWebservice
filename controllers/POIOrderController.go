@@ -353,7 +353,7 @@ func RealTimeOrderConfirm(userId int64, orderId int64, accept int64) int64 {
 			order.Date)
 		sessionPtr := models.InsertSession(&session)
 
-		go leancloud.SendSessionCreatedNotification(sessionPtr.Id)
+		go leancloud.SendPersonalOrderNotification(sessionPtr.Id, order.TeacherId)
 		websocket.InitSessionMonitor(sessionPtr.Id)
 
 		return 0
