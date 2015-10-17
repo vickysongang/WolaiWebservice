@@ -26,6 +26,7 @@ func CheckCourseValid4Order(timeTo time.Time, date string) error {
 func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int64,
 	date string, periodId int64, length int64, orderType int64, ignoreCourseFlag string) (int64, *models.POIOrder, error) {
 	var err error
+	seelog.Debug("*****************************", date)
 	creator := models.QueryUserById(creatorId)
 
 	if creator == nil {
