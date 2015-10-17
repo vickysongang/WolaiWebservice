@@ -538,7 +538,7 @@ func InitSessionMonitor(sessionId int64) bool {
 		models.UpdateOrderInfo(order.Id, orderInfo)
 	}
 
-	if order.Type != models.ORDER_TYPE_GENERAL_APPOINTMENT {
+	if order.Type != models.ORDER_TYPE_GENERAL_APPOINTMENT && order.Type != models.ORDER_TYPE_REALTIME_SESSION {
 		if managers.WsManager.HasUserChan(session.Creator.UserId) {
 			alertMsg.UserId = session.Creator.UserId
 			studentChan := managers.WsManager.GetUserChan(session.Creator.UserId)
