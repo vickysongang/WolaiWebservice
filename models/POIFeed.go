@@ -37,6 +37,7 @@ type POIFeed struct {
 	AttributeInfo   string            `json:"-"`
 	OriginFeedId    string            `json:"-"`
 	PlateType       string            `json:"plateType"`
+	TopFlag         bool              `json:"topFlag"`
 }
 
 type POIFeedLike struct {
@@ -299,11 +300,35 @@ func GetFeedFlowAtrium(start, pageCount int) (POIFeeds, error) {
 	return feeds, nil
 }
 
+//获取置顶动态
+func GetTopFeedFlowAtrium(plateType string) (POIFeeds, error) {
+	o := orm.NewOrm()
+	var feedIds []string
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").Where("feed.plate_type like ? and feed.top_seq is not null")
+	sql := qb.String()
+	_, err := o.Raw(sql, "%"+plateType+"%").QueryRows(&feedIds)
+	feeds := make(POIFeeds, len(feedIds))
+	if err != nil {
+		seelog.Error(err.Error())
+		return feeds, err
+	}
+	for i := range feedIds {
+		feed, err := GetFeed(feedIds[i])
+		feed.TopFlag = true
+		if err == nil {
+			feeds[i] = *feed
+		}
+	}
+	return feeds, nil
+}
+
+//获取板块动态
 func GetFeedFlowAtriumByPlateType(start, pageCount int, plateType string) (POIFeeds, error) {
 	o := orm.NewOrm()
 	var feedIds []string
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").Where("feed.plate_type like ?").
+	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").Where("feed.plate_type like ? and feed.top_seq is null").
 		OrderBy("feed.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
 	_, err := o.Raw(sql, "%"+plateType+"%").QueryRows(&feedIds)
@@ -314,6 +339,7 @@ func GetFeedFlowAtriumByPlateType(start, pageCount int, plateType string) (POIFe
 	}
 	for i := range feedIds {
 		feed, err := GetFeed(feedIds[i])
+		feed.TopFlag = false
 		if err == nil {
 			feeds[i] = *feed
 		}
