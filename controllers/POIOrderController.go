@@ -26,7 +26,6 @@ func CheckCourseValid4Order(timeTo time.Time, date string) error {
 func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int64,
 	date string, periodId int64, length int64, orderType int64, ignoreCourseFlag string) (int64, *models.POIOrder, error) {
 	var err error
-	seelog.Debug("*****************************", date)
 	creator := models.QueryUserById(creatorId)
 
 	if creator == nil {
@@ -81,8 +80,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		}
 		//预约：检查预约的条件是否满足
 	case models.ORDER_TYPE_GENERAL_APPOINTMENT:
-		startTime, _ := time.Parse(time.RFC3339, order.Date) //预计上课时间
-		seelog.Debug("aaaaaaaaaaaaaaaaaaaaaaaaaaaa:", startTime, "  ", startTime.YearDay(), "  ", time.Now().YearDay())
+		startTime, _ := time.Parse(time.RFC3339, order.Date)   //预计上课时间
 		dateDiff := startTime.YearDay() - time.Now().YearDay() //预计上课时间距离当前时间的天数
 		if dateDiff < 0 {
 			err = errors.New("上课日期不能早于当前日期")
@@ -165,6 +163,17 @@ func RealTimeOrderCreate(creatorId int64, teacherId int64, gradeId int64, subjec
 		return 2, nil, errors.New("User " + strconv.Itoa(int(creatorId)) + " doesn't exist!")
 	}
 
+	if teacherId == 0 {
+		return 2, nil, nil
+	}
+
+	teacher := models.QueryUserById(teacherId)
+	if teacher.AccessRight != 2 {
+		err = errors.New("对方不是导师！")
+		seelog.Error(err.Error())
+		return 5002, nil, err
+	}
+
 	//检查用户是否为包月用户
 	var courseId int64
 	course, err := models.QueryServingCourse4User(creatorId)
@@ -178,10 +187,6 @@ func RealTimeOrderCreate(creatorId int64, teacherId int64, gradeId int64, subjec
 		err = errors.New("余额不足")
 		seelog.Error(err.Error())
 		return 5001, nil, err
-	}
-
-	if teacherId == 0 {
-		return 2, nil, nil
 	}
 
 	if managers.WsManager.IsUserSessionLocked(creatorId) {
