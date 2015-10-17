@@ -80,7 +80,8 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		}
 		//预约：检查预约的条件是否满足
 	case models.ORDER_TYPE_GENERAL_APPOINTMENT:
-		startTime, _ := time.Parse(time.RFC3339, order.Date)   //预计上课时间
+		startTime, _ := time.Parse(time.RFC3339, order.Date) //预计上课时间
+		seelog.Debug("aaaaaaaaaaaaaaaaaaaaaaaaaaaa:", startTime, "  ", startTime.YearDay(), "  ", time.Now().YearDay())
 		dateDiff := startTime.YearDay() - time.Now().YearDay() //预计上课时间距离当前时间的天数
 		if dateDiff < 0 {
 			err = errors.New("上课日期不能早于当前日期")
