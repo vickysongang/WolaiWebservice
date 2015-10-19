@@ -334,7 +334,6 @@ func RealTimeOrderConfirm(userId int64, orderId int64, accept int64) int64 {
 				"Status": models.ORDER_STATUS_CANCELLED,
 			}
 			models.UpdateOrderInfo(orderId, orderInfo)
-			seelog.Debug("qqqqqqqqqqqqqqqqqqqqqqqqq")
 			go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator.UserId, userId)
 
 			return 0
@@ -353,7 +352,7 @@ func RealTimeOrderConfirm(userId int64, orderId int64, accept int64) int64 {
 			order.Date)
 		sessionPtr := models.InsertSession(&session)
 
-		go leancloud.SendPersonalOrderNotification(sessionPtr.Id, order.TeacherId)
+		go leancloud.SendRealTimeSessionCreatedNotification(sessionPtr.Id)
 		websocket.InitSessionMonitor(sessionPtr.Id)
 
 		return 0

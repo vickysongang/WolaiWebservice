@@ -218,7 +218,6 @@ func SendPersonalOrderNotification(orderId int64, teacherId int64) {
 	if order == nil || teacher == nil {
 		return
 	}
-	seelog.Debug("bbbbbbbbbbbbbbb:", orderId)
 	attr := make(map[string]string)
 	teacherStr, _ := json.Marshal(teacher)
 	orderStr, _ := json.Marshal(order)
@@ -307,6 +306,33 @@ func SendSessionCreatedNotification(sessionId int64) {
 	orderStr, _ := json.Marshal(order)
 
 	attr["oprCode"] = LC_SESSION_CONFIRM
+	attr["orderInfo"] = string(orderStr)
+	attr["planTime"] = session.PlanTime
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SESSION,
+		Text:      "您有一条约课提醒",
+		Attribute: attr,
+	}
+
+	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg, true)
+}
+
+func SendRealTimeSessionCreatedNotification(sessionId int64) {
+	session := models.QuerySessionById(sessionId)
+	if session == nil {
+		return
+	}
+
+	order := models.QueryOrderById(session.OrderId)
+	if order == nil {
+		return
+	}
+
+	attr := make(map[string]string)
+	orderStr, _ := json.Marshal(order)
+
+	attr["oprCode"] = LC_SESSION_PERSONAL
 	attr["orderInfo"] = string(orderStr)
 	attr["planTime"] = session.PlanTime
 
