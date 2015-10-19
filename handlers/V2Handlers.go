@@ -481,7 +481,7 @@ func V2FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
- * 2.9 Feed Makr
+ * 2.9 Feed Mark
  */
 func V2FeedMark(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanic(w)
@@ -500,6 +500,29 @@ func V2FeedMark(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
+ * 2.10 GET TOP FEED
+ */
+func V2GETTopFeed(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanic(w)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	plateType := vars["plateType"][0]
+
+	content, err := models.GetTopFeedFlowAtrium(plateType)
+
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}

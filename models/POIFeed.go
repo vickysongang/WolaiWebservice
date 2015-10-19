@@ -305,7 +305,8 @@ func GetTopFeedFlowAtrium(plateType string) (POIFeeds, error) {
 	o := orm.NewOrm()
 	var feedIds []string
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").Where("feed.plate_type like ? and feed.top_seq is not null")
+	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").
+		Where("feed.plate_type like ? and feed.top_seq is not null").OrderBy("feed.top_seq").Desc()
 	sql := qb.String()
 	_, err := o.Raw(sql, "%"+plateType+"%").QueryRows(&feedIds)
 	feeds := make(POIFeeds, len(feedIds))

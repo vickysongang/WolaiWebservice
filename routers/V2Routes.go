@@ -246,6 +246,20 @@ var V2Routes = Routes{
 		handlers.V2FeedMark,
 	},
 
+	// 2.9 Top Feed
+	Route{
+		"V2TopFeedPOST",
+		"POST",
+		"/v2/feed/top",
+		handlers.V2GETTopFeed,
+	},
+	Route{
+		"V2TopFeedGET",
+		"GET",
+		"/v2/feed/top",
+		handlers.V2GETTopFeed,
+	},
+
 	// 3.1 User Info
 	Route{
 		"V2UserInfoPOST",
