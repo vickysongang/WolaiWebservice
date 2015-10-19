@@ -318,33 +318,6 @@ func SendSessionCreatedNotification(sessionId int64) {
 	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg, true)
 }
 
-func SendRealTimeSessionCreatedNotification(sessionId int64) {
-	session := models.QuerySessionById(sessionId)
-	if session == nil {
-		return
-	}
-
-	order := models.QueryOrderById(session.OrderId)
-	if order == nil {
-		return
-	}
-
-	attr := make(map[string]string)
-	orderStr, _ := json.Marshal(order)
-
-	attr["oprCode"] = LC_SESSION_PERSONAL
-	attr["orderInfo"] = string(orderStr)
-	attr["planTime"] = session.PlanTime
-
-	lcTMsg := LCTypedMessage{
-		Type:      LC_MSG_SESSION,
-		Text:      "您有一条实时课堂约课提醒",
-		Attribute: attr,
-	}
-
-	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg, true)
-}
-
 func SendSessionReminderNotification(sessionId int64, seconds int64) {
 	session := models.QuerySessionById(sessionId)
 	if session == nil {

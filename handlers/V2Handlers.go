@@ -980,6 +980,9 @@ func V2RealTimeOrderConfirm(w http.ResponseWriter, r *http.Request) {
 
 	vars := r.Form
 
+	timestampNano := time.Now().UnixNano()
+	timestamp := float64(timestampNano) / 1000000000.0
+
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
@@ -989,7 +992,7 @@ func V2RealTimeOrderConfirm(w http.ResponseWriter, r *http.Request) {
 	acceptStr := vars["accept"][0]
 	accept, _ := strconv.ParseInt(acceptStr, 10, 64)
 
-	status := controllers.RealTimeOrderConfirm(userId, orderId, accept)
+	status := controllers.OrderPersonalConfirm(userId, orderId, accept, timestamp)
 	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", NullObject))
 }
 
