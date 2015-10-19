@@ -33,8 +33,6 @@ func POIWSSessionHandler(sessionId int64) {
 	isServing := false
 	isPaused := false
 
-	managers.WsManager.SetSessionServingMap(sessionId, isServing)
-
 	syncTicker := time.NewTicker(time.Second * 60)
 	waitingTimer := time.NewTimer(time.Minute * 20)
 	countdownTimer := time.NewTimer(time.Second * 10)
@@ -119,7 +117,7 @@ func POIWSSessionHandler(sessionId int64) {
 				}
 				waitingTimer = time.NewTimer(time.Minute * 20)
 				isPaused = true
-				managers.WsManager.SetSessionServingMap(sessionId, !isPaused)
+				managers.WsManager.RemoveSessionServingMap(sessionId)
 				break
 			}
 			if !studentOnline {
@@ -134,7 +132,7 @@ func POIWSSessionHandler(sessionId int64) {
 				}
 				waitingTimer = time.NewTimer(time.Minute * 20)
 				isPaused = true
-				managers.WsManager.SetSessionServingMap(sessionId, !isPaused)
+				managers.WsManager.RemoveSessionServingMap(sessionId)
 				break
 			}
 
@@ -336,7 +334,7 @@ func POIWSSessionHandler(sessionId int64) {
 					length = length + (timestamp - lastSync)
 					lastSync = timestamp
 					isPaused = true
-					managers.WsManager.SetSessionServingMap(sessionId, !isPaused)
+					managers.WsManager.RemoveSessionServingMap(sessionId)
 
 					waitingTimer = time.NewTimer(time.Second * 30)
 
@@ -390,7 +388,7 @@ func POIWSSessionHandler(sessionId int64) {
 					length = length + (timestamp - lastSync)
 					lastSync = timestamp
 					isPaused = true
-					managers.WsManager.SetSessionServingMap(sessionId, !isPaused)
+					managers.WsManager.RemoveSessionServingMap(sessionId)
 
 					pauseMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_PAUSE)
 					pauseMsg.Attribute["sessionId"] = sessionIdStr

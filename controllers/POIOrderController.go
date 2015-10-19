@@ -154,6 +154,18 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 	return 0, orderPtr, nil
 }
 
+func IsUserServing(userId int64) bool {
+	for sessionId, servingStatus := range managers.WsManager.SessionServingMap {
+		if servingStatus {
+			session := models.QuerySessionById(sessionId)
+			if session.Creator.UserId == userId || session.Teacher.UserId == userId {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func RealTimeOrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int64,
 	date string, periodId int64, length int64, orderType int64) (int64, *models.POIOrder, error) {
 	var err error
@@ -191,6 +203,12 @@ func RealTimeOrderCreate(creatorId int64, teacherId int64, gradeId int64, subjec
 
 	if managers.WsManager.IsUserSessionLocked(creatorId) {
 		err = errors.New("你有一堂课马上就要开始啦！")
+		seelog.Error(err.Error())
+		return 5002, nil, err
+	}
+
+	if IsUserServing(creatorId) {
+		err = errors.New("你正在上课中！")
 		seelog.Error(err.Error())
 		return 5002, nil, err
 	}

@@ -299,3 +299,9 @@ func (wsm *POIWSManager) GetSessionServingMap(sessionId int64) bool {
 	}
 	return false
 }
+
+func (wsm *POIWSManager) RemoveSessionServingMap(sessionId int64) {
+	if _, ok := wsm.SessionServingMap[sessionId]; ok {
+		delete(wsm.SessionServingMap, sessionId)
+	}
+}
