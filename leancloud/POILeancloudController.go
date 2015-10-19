@@ -342,7 +342,7 @@ func SendRealTimeSessionCreatedNotification(sessionId int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &lcTMsg, true)
+	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &lcTMsg, false)
 }
 
 func SendSessionReminderNotification(sessionId int64, seconds int64) {
