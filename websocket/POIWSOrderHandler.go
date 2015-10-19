@@ -369,7 +369,7 @@ func POIWSOrderHandler(orderId int64) {
 
 					return
 
-				case models.WS_ORDER_RECOVER_TEACHER, models.WS_ORDER_RECOVER_TEACHER_REQ:
+				case models.WS_ORDER_RECOVER_TEACHER:
 					replyTs, ok := managers.WsManager.TeacherOrderDispatchMap[msg.UserId][orderId]
 					// seelog.Debug("In teacher order recover: ", msg.UserId, " orderId: ", orderId)
 					if !ok {
@@ -409,7 +409,7 @@ func POIWSOrderHandler(orderId int64) {
 					recoverTeacherMsg.Attribute["replied"] = strconv.FormatInt(hasReply, 10)
 					userChan <- recoverTeacherMsg
 
-				case models.WS_ORDER_RECOVER_STU, models.WS_ORDER_RECOVER_STU_REQ:
+				case models.WS_ORDER_RECOVER_STU:
 					if !managers.WsManager.HasUserChan(msg.UserId) {
 						break
 					}

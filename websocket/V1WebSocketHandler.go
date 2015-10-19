@@ -213,9 +213,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 订单相关信息，直接转发处理
 		case models.WS_ORDER_REPLY,
 			models.WS_ORDER_CONFIRM,
-			models.WS_ORDER_CANCEL,
-			models.WS_ORDER_RECOVER_STU_REQ,
-			models.WS_ORDER_RECOVER_TEACHER_REQ:
+			models.WS_ORDER_CANCEL:
 			resp := models.NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
 
 			orderIdStr, ok := msg.Attribute["orderId"]
