@@ -5,6 +5,7 @@ import (
 	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -18,6 +19,7 @@ type NullJsonObject struct {
 }
 
 func init() {
+	fmt.Println("init....")
 	NullSlice = make([]interface{}, 0)
 	NullObject = NullJsonObject{}
 }
