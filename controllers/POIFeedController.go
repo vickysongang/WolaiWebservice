@@ -229,7 +229,11 @@ func GetAtriumByPlateType(userId int64, page int64, count int64, plateType strin
 	} else {
 		feeds, err = models.GetTopFeedFlowAtrium(plateType)
 		feeds1, _ := models.GetFeedFlowAtriumByPlateType(int(start), int(count), plateType)
-		feeds = append(feeds, feeds1...)
+		if page == 0 {
+			feeds = append(feeds, feeds1...)
+		} else {
+			feeds = feeds1
+		}
 	}
 	if err != nil {
 		return feeds, err

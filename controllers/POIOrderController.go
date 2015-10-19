@@ -334,7 +334,7 @@ func RealTimeOrderConfirm(userId int64, orderId int64, accept int64) int64 {
 				"Status": models.ORDER_STATUS_CANCELLED,
 			}
 			models.UpdateOrderInfo(orderId, orderInfo)
-
+			seelog.Debug("qqqqqqqqqqqqqqqqqqqqqqqqq")
 			go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator.UserId, userId)
 
 			return 0

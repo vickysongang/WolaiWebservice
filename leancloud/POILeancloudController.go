@@ -218,7 +218,7 @@ func SendPersonalOrderNotification(orderId int64, teacherId int64) {
 	if order == nil || teacher == nil {
 		return
 	}
-
+	seelog.Debug("bbbbbbbbbbbbbbb:", orderId)
 	attr := make(map[string]string)
 	teacherStr, _ := json.Marshal(teacher)
 	orderStr, _ := json.Marshal(order)
