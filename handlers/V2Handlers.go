@@ -827,7 +827,6 @@ func V2OrderCreate(w http.ResponseWriter, r *http.Request) {
 	subjectId, _ := strconv.ParseInt(subjectIdStr, 10, 64)
 
 	date := vars["date"][0]
-	fmt.Println("datedatedatedatedatedatedatedatedatedatedatedatedate:", date)
 	periodIdStr := vars["periodId"][0]
 	periodId, _ := strconv.ParseInt(periodIdStr, 10, 64)
 
