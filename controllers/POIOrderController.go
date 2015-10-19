@@ -201,14 +201,14 @@ func RealTimeOrderCreate(creatorId int64, teacherId int64, gradeId int64, subjec
 		return 5001, nil, err
 	}
 
-	if managers.WsManager.IsUserSessionLocked(creatorId) {
-		err = errors.New("你有一堂课马上就要开始啦！")
+	if IsUserServing(creatorId) {
+		err = errors.New("你正在上课中！")
 		seelog.Error(err.Error())
 		return 5002, nil, err
 	}
 
-	if IsUserServing(creatorId) {
-		err = errors.New("你正在上课中！")
+	if managers.WsManager.IsUserSessionLocked(creatorId) {
+		err = errors.New("你有一堂课马上就要开始啦！")
 		seelog.Error(err.Error())
 		return 5002, nil, err
 	}
