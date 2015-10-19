@@ -338,11 +338,11 @@ func SendRealTimeSessionCreatedNotification(sessionId int64) {
 
 	lcTMsg := LCTypedMessage{
 		Type:      LC_MSG_SESSION,
-		Text:      "您有一条约课提醒",
+		Text:      "您有一条实时课堂约课提醒",
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &lcTMsg, false)
+	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg, true)
 }
 
 func SendSessionReminderNotification(sessionId int64, seconds int64) {

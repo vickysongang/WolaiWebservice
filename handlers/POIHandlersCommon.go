@@ -5,7 +5,6 @@ import (
 	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -19,7 +18,6 @@ type NullJsonObject struct {
 }
 
 func init() {
-	fmt.Println("init....")
 	NullSlice = make([]interface{}, 0)
 	NullObject = NullJsonObject{}
 }
@@ -29,6 +27,14 @@ func ThrowsPanic(w http.ResponseWriter) {
 		seelog.Error(x)
 		err, _ := x.(error)
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+	}
+}
+
+func ThrowsPanicException(w http.ResponseWriter, nullObject interface{}) {
+	if x := recover(); x != nil {
+		seelog.Error(x)
+		err, _ := x.(error)
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), nullObject))
 	}
 }
 
