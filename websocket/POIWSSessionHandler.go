@@ -322,7 +322,7 @@ func POIWSSessionHandler(sessionId int64) {
 					managers.WsManager.RemoveSessionChan(sessionId)
 					managers.WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
 					managers.WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
-
+					managers.WsManager.RemoveSessionServingMap(sessionId)
 					//					close(sessionChan)
 
 					return
