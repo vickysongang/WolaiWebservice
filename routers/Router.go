@@ -38,18 +38,18 @@ func NewRouter() *mux.Router {
 			Handler(handler)
 	}
 
-	//API V2
-	for _, v2route := range V2Routes {
-		var handler http.Handler
-		handler = v2route.HandlerFunc
-		//		handler = APIAuth(handler)
-		handler = WebLogger(handler, v2route.Name)
-		router.
-			Methods(v2route.Method).
-			Path(v2route.Pattern).
-			Name(v2route.Name).
-			Handler(handler)
-	}
+	//	//API V2
+	//	for _, v2route := range V2Routes {
+	//		var handler http.Handler
+	//		handler = v2route.HandlerFunc
+	//		//		handler = APIAuth(handler)
+	//		handler = WebLogger(handler, v2route.Name)
+	//		router.
+	//			Methods(v2route.Method).
+	//			Path(v2route.Pattern).
+	//			Name(v2route.Name).
+	//			Handler(handler)
+	//	}
 
 	return router
 }

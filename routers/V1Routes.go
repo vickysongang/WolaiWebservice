@@ -15,26 +15,6 @@ var V1Routes = Routes{
 		websocket.V1WebSocketHandler,
 	},
 
-	// Dummy
-	Route{
-		"Dummy",
-		"GET",
-		"/dummy",
-		handlers.Dummy,
-	},
-	Route{
-		"Dummy2",
-		"GET",
-		"/dummy2",
-		handlers.Dummy2,
-	},
-	Route{
-		"TestGET",
-		"GET",
-		"/test",
-		handlers.Test,
-	},
-
 	// 1.1 Login
 	Route{
 		"V1LoginPOST",
@@ -132,7 +112,7 @@ var V1Routes = Routes{
 	},
 	//1.8 Teacher post
 	Route{
-		"v1InsertTeacherPost",
+		"V1InsertTeacherPost",
 		"POST",
 		"/v1/teacher/insert",
 		handlers.V1TeacherPost,
@@ -145,7 +125,7 @@ var V1Routes = Routes{
 		handlers.V1CheckPhoneBindWithQQ,
 	},
 	Route{
-		"v1CheckPhonePost",
+		"V1CheckPhonePost",
 		"POST",
 		"/v1/oauth/qq/checkphone",
 		handlers.V1CheckPhoneBindWithQQ,
@@ -252,6 +232,33 @@ var V1Routes = Routes{
 			V1FeedCommentLike,
 		},
 	*/
+	// 2.8 Feed mark
+	Route{
+		"V1MarkFeedPOST",
+		"POST",
+		"/v1/feed/mark",
+		handlers.V1FeedMark,
+	},
+	Route{
+		"V1MarkFeedGET",
+		"GET",
+		"/v1/feed/mark",
+		handlers.V1FeedMark,
+	},
+
+	// 2.9 Top Feed
+	Route{
+		"V1TopFeedPOST",
+		"POST",
+		"/v1/feed/top",
+		handlers.V1GETTopFeed,
+	},
+	Route{
+		"V1TopFeedGET",
+		"GET",
+		"/v1/feed/top",
+		handlers.V1GETTopFeed,
+	},
 
 	// 3.1 User Info
 	Route{
@@ -353,13 +360,13 @@ var V1Routes = Routes{
 
 	// 3.8 User Order
 	Route{
-		"v1MyOrdersGET",
+		"V1MyOrdersGET",
 		"GET",
 		"/v1/user/myorders",
 		handlers.V1OrderInSession,
 	},
 	Route{
-		"v1MyOrdersPost",
+		"V1MyOrdersPost",
 		"POST",
 		"/v1/user/myorders",
 		handlers.V1OrderInSession,
@@ -448,6 +455,32 @@ var V1Routes = Routes{
 		"/v1/teacher/expect",
 		handlers.V1TeacherExpect,
 	},
+	// 5.6 Create RealTime Order
+	Route{
+		"V1RealTimeOrderCreatePOST",
+		"POST",
+		"/v1/order/realtime/create",
+		handlers.V1RealTimeOrderCreate,
+	},
+	Route{
+		"V1RealTimeOrderCreateGET",
+		"GET",
+		"/v1/order/realtime/create",
+		handlers.V1RealTimeOrderCreate,
+	},
+	//5.7 RealTime Order Confirm
+	Route{
+		"V1RealTimeOrderConfirmPOST",
+		"POST",
+		"/v1/order/realtime/confirm",
+		handlers.V1RealTimeOrderConfirm,
+	},
+	Route{
+		"V1RealTimeOrderConfirmGET",
+		"GET",
+		"/v1/order/realtime/confirm",
+		handlers.V1RealTimeOrderConfirm,
+	},
 
 	//6.1 Trade Charge
 	Route{
@@ -507,13 +540,13 @@ var V1Routes = Routes{
 
 	// 6.5 User Trade Record
 	Route{
-		"v1MyTradeRecordGET",
+		"V1MyTradeRecordGET",
 		"GET",
 		"/v1/trade/traderecord",
 		handlers.V1TradeRecord,
 	},
 	Route{
-		"v1MyTradeRecordPOST",
+		"V1MyTradeRecordPOST",
 		"POST",
 		"/v1/trade/traderecord",
 		handlers.V1TradeRecord,
@@ -545,6 +578,19 @@ var V1Routes = Routes{
 		"GET",
 		"/v1/complaint/handle",
 		handlers.V1HandleComplaint,
+	},
+	// 7.3 Check Complaint Exsits
+	Route{
+		"V1CheckComplaintExsitsPOST",
+		"POST",
+		"/v1/complaint/check",
+		handlers.V1CheckComplaintExsits,
+	},
+	Route{
+		"V1CheckComplaintExsitsGET",
+		"GET",
+		"/v1/complaint/check",
+		handlers.V1CheckComplaintExsits,
 	},
 
 	// 8.1 Search Teachers
@@ -807,5 +853,24 @@ var V1Routes = Routes{
 		"GET",
 		"/v1/monitor/order",
 		handlers.GetOrderMonitorInfo,
+	},
+	// Dummy
+	Route{
+		"Dummy",
+		"GET",
+		"/dummy",
+		handlers.Dummy,
+	},
+	Route{
+		"Dummy2",
+		"GET",
+		"/dummy2",
+		handlers.Dummy2,
+	},
+	Route{
+		"TestGET",
+		"GET",
+		"/test",
+		handlers.Test,
 	},
 }

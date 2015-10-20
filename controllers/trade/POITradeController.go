@@ -66,21 +66,31 @@ func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) 
 func HandleSessionTrade(session *models.POISession, result string, expireFlag bool) {
 	student := session.Creator
 	teacher := session.Teacher
-
+	gradeName := ""
+	parentGradeName := ""
+	subjectName := ""
 	order := models.QueryOrderById(session.OrderId)
-	grade := models.QueryGradeById(order.GradeId)
-	parentGrade := models.QueryGradeById(grade.Pid)
-	subject := models.QuerySubjectById(order.SubjectId)
+	if order.GradeId > 0 {
+		grade := models.QueryGradeById(order.GradeId)
+		gradeName = grade.Name
+		parentGrade := models.QueryGradeById(grade.Pid)
+		parentGradeName = parentGrade.Name
+	}
+	if order.SubjectId > 0 {
+		subject := models.QuerySubjectById(order.SubjectId)
+		subjectName = subject.Name
+	}
+
 	hour := session.Length / 3600
 	minute := (session.Length % 3600) / 60
 
 	var comment string
 	if hour != 0 && minute != 0 {
-		comment = fmt.Sprintf("%s%s%s %dh%dm", parentGrade.Name, grade.Name, subject.Name, hour, minute)
+		comment = fmt.Sprintf("%s%s%s %dh%dm", parentGradeName, gradeName, subjectName, hour, minute)
 	} else if hour == 0 && minute != 0 {
-		comment = fmt.Sprintf("%s%s%s %dm", parentGrade.Name, grade.Name, subject.Name, minute)
+		comment = fmt.Sprintf("%s%s%s %dm", parentGradeName, gradeName, subjectName, minute)
 	} else {
-		comment = fmt.Sprintf("%s%s%s %dh", parentGrade.Name, grade.Name, subject.Name, hour)
+		comment = fmt.Sprintf("%s%s%s %dh", parentGradeName, gradeName, subjectName, hour)
 	}
 
 	//学生付款,如果学生是包月用户，则不需要付款
@@ -118,6 +128,6 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 	//		go leancloud.SendSessionExpireNotification(session.Id, teacherAmount)
 	//	}
 	go leancloud.SendTradeNotificationSession(teacher.UserId, student.UserId,
-		parentGrade.Name+grade.Name+subject.Name, studentAmount, teacherAmount,
+		parentGradeName+gradeName+subjectName, studentAmount, teacherAmount,
 		session.TimeFrom.Format(time.RFC3339), session.TimeTo.Format(time.RFC3339))
 }
