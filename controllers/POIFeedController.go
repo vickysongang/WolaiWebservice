@@ -15,7 +15,7 @@ import (
 )
 
 func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, imageStr string,
-	originFeedId string, attributeStr string, plateType string) (*models.POIFeed, error) {
+	originFeedId string, attributeStr string) (*models.POIFeed, error) {
 	feed := models.POIFeed{}
 	var err error
 	user := models.QueryUserById(userId)
@@ -29,7 +29,6 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 	feed.CreateTimestamp = timestamp
 	feed.FeedType = feedType
 	feed.Text = text
-	feed.PlateType = plateType
 
 	tmpList := make([]string, 0)
 	err = json.Unmarshal([]byte(imageStr), &tmpList)
@@ -70,25 +69,28 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 		ImageInfo:     imageStr,
 		AttributeInfo: attributeStr,
 		Id:            feed.Id,
-		OriginFeedId:  originFeedId,
-		PlateType:     plateType}
+		OriginFeedId:  originFeedId}
 	go models.InsertPOIFeed(&feedModel)
 	return &feed, nil
 }
 
-func MarkPOIFeed(feedId string, plateType string) (*models.POIFeed, error) {
+//action:mark代表标记，unmark代表取消
+func MarkPOIFeed(feedId string, plateType string, action string) (*models.POIFeed, error) {
 	var feed *models.POIFeed
 	if managers.RedisManager.RedisError == nil {
 		feed = managers.RedisManager.GetFeed(feedId)
 	} else {
 		feed, _ = models.GetFeed(feedId)
 	}
-	feed.PlateType = plateType
-	if managers.RedisManager.RedisError == nil {
-		managers.RedisManager.SetFeed(feed)
-		managers.RedisManager.PostFeed(feed)
+	feedPlateType := ""
+	if action == "mark" {
+		feedPlateType = plateType
+		managers.RedisManager.PostPlateFeed(feed, plateType)
+	} else if action == "unmark" {
+		feedPlateType = ""
+		managers.RedisManager.DeleteFeed(feedId, plateType)
 	}
-	feedInfo := map[string]interface{}{"PlateType": plateType}
+	feedInfo := map[string]interface{}{"PlateType": feedPlateType}
 	go models.UpdateFeedInfo(feedId, feedInfo)
 	return feed, nil
 }
@@ -182,7 +184,7 @@ func GetFeedDetail(feedId string, userId int64) (*models.POIFeedDetail, error) {
 	return &feedDetail, nil
 }
 
-func GetAtrium(userId int64, page int64, count int64) (models.POIFeeds, error) {
+func GetAtrium(userId int64, page int64, count int64, plateType string) (models.POIFeeds, error) {
 	user := models.QueryUserById(userId)
 	var err error
 	if user == nil {
@@ -194,14 +196,18 @@ func GetAtrium(userId int64, page int64, count int64) (models.POIFeeds, error) {
 	stop := page*count + (count - 1)
 	var feeds models.POIFeeds
 	if managers.RedisManager.RedisError == nil {
-		feeds = managers.RedisManager.GetFeedFlowAtrium(start, stop)
+		feeds = managers.RedisManager.GetFeedFlowAtrium(start, stop, plateType)
 		for i := range feeds {
 			feed := feeds[i]
 			feeds[i].HasLiked = managers.RedisManager.HasLikedFeed(&feed, user)
 			feeds[i].HasFaved = managers.RedisManager.HasFavedFeed(&feed, user)
 		}
 	} else {
-		feeds, err = models.GetFeedFlowAtrium(int(start), int(count))
+		if plateType == "" {
+			feeds, err = models.GetFeedFlowAtrium(int(start), int(count))
+		} else {
+			feeds, err = models.GetFeedFlowAtriumByPlateType(int(start), int(count), plateType)
+		}
 		if err != nil {
 			return feeds, err
 		}
@@ -210,32 +216,6 @@ func GetAtrium(userId int64, page int64, count int64) (models.POIFeeds, error) {
 			feeds[i].HasLiked = models.HasLikedFeed(&feed, user)
 		}
 	}
-	return feeds, nil
-}
-
-func GetAtriumByPlateType(userId int64, page int64, count int64, plateType string) (models.POIFeeds, error) {
-	user := models.QueryUserById(userId)
-	var err error
-	if user == nil {
-		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")
-		seelog.Error(err.Error())
-		return nil, err
-	}
-	start := page * count
-	var feeds models.POIFeeds
-	if plateType == "" {
-		feeds, err = models.GetFeedFlowAtrium(int(start), int(count))
-	} else {
-		feeds, err = models.GetFeedFlowAtriumByPlateType(int(start), int(count), plateType)
-	}
-	if err != nil {
-		return feeds, err
-	}
-	for i := range feeds {
-		feed := feeds[i]
-		feeds[i].HasLiked = models.HasLikedFeed(&feed, user)
-	}
-
 	return feeds, nil
 }
 

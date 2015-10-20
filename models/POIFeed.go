@@ -37,7 +37,8 @@ type POIFeed struct {
 	AttributeInfo   string            `json:"-"`
 	OriginFeedId    string            `json:"-"`
 	PlateType       string            `json:"plateType"`
-	TopFlag         bool              `json:"topFlag"`
+	TopFlag         bool              `json:"topFlag" orm:"-"`
+	DeleteFlag      string            `json:"-"`
 }
 
 type POIFeedLike struct {
@@ -163,6 +164,12 @@ func InsertPOIFeedLike(feedLike *POIFeedLike) *POIFeedLike {
 		return nil
 	}
 	return feedLike
+}
+
+//物理删除Feed
+func DeletePOIFeed(feedId string) {
+	o := orm.NewOrm()
+	o.QueryTable("feed").Filter("feed_id", feedId).Delete()
 }
 
 func DeletePOIFeedLike(userId int64, feedId string) *POIFeedLike {

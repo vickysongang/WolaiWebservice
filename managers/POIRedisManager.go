@@ -28,6 +28,7 @@ const (
 	CACHE_FEEDCOMMENT = "cache:feed_comment:"
 
 	FEEDFLOW_ATRIUM = "feed_flow:atrium"
+	FEEDFLOW_GANHUO = "feed_flow:ganhuo" //干货
 
 	FEED_LIKE       = "feed:like:"
 	FEED_COMMENT    = "feed:comment:"
@@ -106,8 +107,6 @@ func (rm *POIRedisManager) GetFeed(feedId string) *models.POIFeed {
 	tmpInt, _ = strconv.ParseInt(hashMap["repost_count"], 10, 64)
 	feed.RepostCount = tmpInt
 
-	feed.PlateType = hashMap["plate_type"]
-
 	return &feed
 }
 
@@ -149,7 +148,6 @@ func (rm *POIRedisManager) SetFeed(feed *models.POIFeed) {
 	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "create_timestamp", strconv.FormatFloat(feed.CreateTimestamp, 'f', 6, 64))
 	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "feed_type", strconv.FormatInt(feed.FeedType, 10))
 	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "text", feed.Text)
-	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "plate_type", feed.PlateType)
 	tmpBytes, _ := json.Marshal(feed.ImageList)
 	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "image_list", string(tmpBytes))
 
@@ -201,6 +199,24 @@ func (rm *POIRedisManager) PostFeed(feed *models.POIFeed) {
 
 	if feed.FeedType == models.FEEDTYPE_REPOST {
 		_ = rm.RedisClient.ZAdd(FEED_REPOST+userIdStr, feedZ)
+	}
+}
+
+func (rm *POIRedisManager) DeleteFeed(feedId string, plateType string) {
+	feedFlowType := FEEDFLOW_ATRIUM
+	if plateType == "1001" {
+		feedFlowType = FEEDFLOW_GANHUO
+	}
+	_ = rm.RedisClient.ZRem(feedFlowType, feedId)
+}
+
+func (rm *POIRedisManager) PostPlateFeed(feed *models.POIFeed, plateType string) {
+	if feed == nil {
+		return
+	}
+	if plateType == "1001" {
+		feedZ := redis.Z{Member: feed.Id, Score: feed.CreateTimestamp}
+		rm.RedisClient.ZAdd(FEEDFLOW_GANHUO, feedZ)
 	}
 }
 
@@ -340,8 +356,12 @@ func (rm *POIRedisManager) GetFeedLikeList(feedId string) models.POIUsers {
 	return users
 }
 
-func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int64) models.POIFeeds {
-	feedZs := rm.RedisClient.ZRevRangeWithScores(FEEDFLOW_ATRIUM, start, stop).Val()
+func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int64, plateType string) models.POIFeeds {
+	feedflowType := FEEDFLOW_ATRIUM
+	if plateType == "1001" {
+		feedflowType = FEEDFLOW_GANHUO
+	}
+	feedZs := rm.RedisClient.ZRevRangeWithScores(feedflowType, start, stop).Val()
 
 	feeds := make(models.POIFeeds, 0)
 

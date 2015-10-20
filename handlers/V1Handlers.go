@@ -294,7 +294,7 @@ func V1Atrium(w http.ResponseWriter, r *http.Request) {
 	if len(vars["plateType"]) > 0 {
 		plateTypeStr = vars["plateType"][0]
 	}
-	content, err := controllers.GetAtriumByPlateType(userId, page, count, plateTypeStr)
+	content, err := controllers.GetAtrium(userId, page, count, plateTypeStr)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
@@ -340,11 +340,7 @@ func V1FeedPost(w http.ResponseWriter, r *http.Request) {
 	if len(vars["attribute"]) > 0 {
 		attributeStr = vars["attribute"][0]
 	}
-	plateTypeStr := ""
-	if len(vars["plateType"]) > 0 {
-		plateTypeStr = vars["plateType"][0]
-	}
-	content, err := controllers.PostPOIFeed(userId, timestamp, feedType, text, imageStr, originFeedId, attributeStr, plateTypeStr)
+	content, err := controllers.PostPOIFeed(userId, timestamp, feedType, text, imageStr, originFeedId, attributeStr)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
@@ -496,7 +492,9 @@ func V1FeedMark(w http.ResponseWriter, r *http.Request) {
 
 	plateType := vars["plateType"][0]
 
-	content, err := controllers.MarkPOIFeed(feedIdStr, plateType)
+	action := vars["action"][0]
+
+	content, err := controllers.MarkPOIFeed(feedIdStr, plateType, action)
 
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
@@ -516,6 +514,7 @@ func V1GETTopFeed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vars := r.Form
+	_ = vars["userId"][0]
 
 	plateType := vars["plateType"][0]
 
@@ -526,6 +525,45 @@ func V1GETTopFeed(w http.ResponseWriter, r *http.Request) {
 	} else {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
+}
+
+/*
+ * 2.11 Delete Feed
+ */
+func V1FeedDelete(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	feedIdStr := vars["feedId"][0]
+	managers.RedisManager.DeleteFeed(feedIdStr, "")
+	updateInfo := map[string]interface{}{
+		"DeleteFlag": "Y",
+	}
+	models.UpdateFeedInfo(feedIdStr, updateInfo)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+}
+
+/*
+ * 2.12 Recover Feed
+ */
+func V1FeedRecover(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	feedIdStr := vars["feedId"][0]
+	feed := managers.RedisManager.GetFeed(feedIdStr)
+	managers.RedisManager.PostFeed(feed)
+	updateInfo := map[string]interface{}{
+		"DeleteFlag": "",
+	}
+	models.UpdateFeedInfo(feedIdStr, updateInfo)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
 }
 
 /*
