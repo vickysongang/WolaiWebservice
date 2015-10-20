@@ -39,6 +39,7 @@ type POIFeed struct {
 	PlateType       string            `json:"plateType"`
 	TopFlag         bool              `json:"topFlag" orm:"-"`
 	DeleteFlag      string            `json:"-"`
+	TopSeq          string            `json:"-"`
 }
 
 type POIFeedLike struct {

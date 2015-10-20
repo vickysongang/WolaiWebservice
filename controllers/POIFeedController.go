@@ -74,7 +74,7 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 	return &feed, nil
 }
 
-//action:mark代表标记，unmark代表取消
+//action:mark代表标记，undo代表取消
 func MarkPOIFeed(feedId string, plateType string, action string) (*models.POIFeed, error) {
 	var feed *models.POIFeed
 	if managers.RedisManager.RedisError == nil {
@@ -86,7 +86,7 @@ func MarkPOIFeed(feedId string, plateType string, action string) (*models.POIFee
 	if action == "mark" {
 		feedPlateType = plateType
 		managers.RedisManager.PostPlateFeed(feed, plateType)
-	} else if action == "unmark" {
+	} else if action == "undo" {
 		feedPlateType = ""
 		managers.RedisManager.DeleteFeed(feedId, plateType)
 	}
@@ -246,6 +246,81 @@ func GetUserFeed(userId int64, page int64, count int64) (models.POIFeeds, error)
 		}
 	}
 	return feeds, nil
+}
+
+func GetTopFeed(userId int64, plateType string) (models.POIFeeds, error) {
+	user := models.QueryUserById(userId)
+	var err error
+	if user == nil {
+		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")
+		seelog.Error(err.Error())
+		return nil, err
+	}
+	var feeds models.POIFeeds
+	if managers.RedisManager.RedisError == nil {
+		feeds = managers.RedisManager.GetTopFeeds(plateType)
+		for i := range feeds {
+			feed := feeds[i]
+			feeds[i].HasLiked = managers.RedisManager.HasLikedFeed(&feed, user)
+		}
+	} else {
+		feeds, err = models.GetTopFeedFlowAtrium(plateType)
+		if err != nil {
+			return nil, err
+		}
+		for i := range feeds {
+			feed := feeds[i]
+			feeds[i].HasLiked = models.HasLikedFeed(&feed, user)
+		}
+	}
+	return feeds, nil
+}
+
+func DeleteFeed(feedId string) {
+	if feedId == "" {
+		return
+	}
+
+	managers.RedisManager.DeleteFeed(feedId, "")
+	managers.RedisManager.DeleteFeed(feedId, "1001")
+	managers.RedisManager.DeleteTopFeed(feedId, "1001")
+	updateInfo := map[string]interface{}{
+		"DeleteFlag": "Y",
+		"PlateType":  "",
+		"TopSeq":     "",
+	}
+	go models.UpdateFeedInfo(feedId, updateInfo)
+}
+
+func RecoverFeed(feedId string) {
+	if feedId == "" {
+		return
+	}
+	feed := managers.RedisManager.GetFeed(feedId)
+	managers.RedisManager.PostFeed(feed)
+	updateInfo := map[string]interface{}{
+		"DeleteFlag": "",
+	}
+	go models.UpdateFeedInfo(feedId, updateInfo)
+}
+
+func TopFeed(feedId string, plateType string, action string) {
+	if feedId == "" {
+		return
+	}
+	topSeq := ""
+	feed := managers.RedisManager.GetFeed(feedId)
+	if action == "top" {
+		topSeq = "1"
+		managers.RedisManager.TopFeed(feed, plateType)
+	} else if action == "undo" {
+		topSeq = ""
+		managers.RedisManager.UndoTopFeed(feed, plateType)
+	}
+	updateInfo := map[string]interface{}{
+		"TopSeq": topSeq,
+	}
+	go models.UpdateFeedInfo(feedId, updateInfo)
 }
 
 func GetUserLike(userId int64, page int64, count int64) (models.POIFeeds, error) {

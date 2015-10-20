@@ -506,7 +506,7 @@ func V1FeedMark(w http.ResponseWriter, r *http.Request) {
 /*
  * 2.10 GET TOP FEED
  */
-func V1GETTopFeed(w http.ResponseWriter, r *http.Request) {
+func V1GetTopFeed(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanicException(w, NullSlice)
 	err := r.ParseForm()
 	if err != nil {
@@ -514,11 +514,12 @@ func V1GETTopFeed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vars := r.Form
-	_ = vars["userId"][0]
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
 	plateType := vars["plateType"][0]
 
-	content, err := models.GetTopFeedFlowAtrium(plateType)
+	content, err := controllers.GetTopFeed(userId, plateType)
 
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
@@ -531,18 +532,14 @@ func V1GETTopFeed(w http.ResponseWriter, r *http.Request) {
  * 2.11 Delete Feed
  */
 func V1FeedDelete(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer ThrowsPanicException(w, NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
 	}
 	vars := r.Form
 	feedIdStr := vars["feedId"][0]
-	managers.RedisManager.DeleteFeed(feedIdStr, "")
-	updateInfo := map[string]interface{}{
-		"DeleteFlag": "Y",
-	}
-	models.UpdateFeedInfo(feedIdStr, updateInfo)
+	controllers.DeleteFeed(feedIdStr)
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
 }
 
@@ -550,19 +547,31 @@ func V1FeedDelete(w http.ResponseWriter, r *http.Request) {
  * 2.12 Recover Feed
  */
 func V1FeedRecover(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer ThrowsPanicException(w, NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
 	}
 	vars := r.Form
 	feedIdStr := vars["feedId"][0]
-	feed := managers.RedisManager.GetFeed(feedIdStr)
-	managers.RedisManager.PostFeed(feed)
-	updateInfo := map[string]interface{}{
-		"DeleteFlag": "",
+	controllers.RecoverFeed(feedIdStr)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+}
+
+/*
+ * 2.13 Top Feed
+ */
+func V1FeedTop(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
 	}
-	models.UpdateFeedInfo(feedIdStr, updateInfo)
+	vars := r.Form
+	feedIdStr := vars["feedId"][0]
+	plateType := vars["plateType"][0]
+	action := vars["action"][0]
+	controllers.TopFeed(feedIdStr, plateType, action)
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
 }
 

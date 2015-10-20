@@ -27,8 +27,9 @@ const (
 	CACHE_FEED        = "cache:feed:"
 	CACHE_FEEDCOMMENT = "cache:feed_comment:"
 
-	FEEDFLOW_ATRIUM = "feed_flow:atrium"
-	FEEDFLOW_GANHUO = "feed_flow:ganhuo" //干货
+	FEEDFLOW_ATRIUM     = "feed_flow:atrium"
+	FEEDFLOW_GANHUO     = "feed_flow:ganhuo"
+	FEEDFLOW_GANHUO_TOP = "feed_flow:ganhuo_top"
 
 	FEED_LIKE       = "feed:like:"
 	FEED_COMMENT    = "feed:comment:"
@@ -218,6 +219,50 @@ func (rm *POIRedisManager) PostPlateFeed(feed *models.POIFeed, plateType string)
 		feedZ := redis.Z{Member: feed.Id, Score: feed.CreateTimestamp}
 		rm.RedisClient.ZAdd(FEEDFLOW_GANHUO, feedZ)
 	}
+}
+
+//置顶
+func (rm *POIRedisManager) TopFeed(feed *models.POIFeed, plateType string) {
+	if plateType == "1001" {
+		_ = rm.RedisClient.ZRem(FEEDFLOW_GANHUO, feed.Id)
+		feedZ := redis.Z{Member: feed.Id, Score: feed.CreateTimestamp}
+		rm.RedisClient.ZAdd(FEEDFLOW_GANHUO_TOP, feedZ)
+	}
+}
+
+//取消置顶
+func (rm *POIRedisManager) UndoTopFeed(feed *models.POIFeed, plateType string) {
+	if plateType == "1001" {
+		_ = rm.RedisClient.ZRem(FEEDFLOW_GANHUO_TOP, feed.Id)
+		feedZ := redis.Z{Member: feed.Id, Score: feed.CreateTimestamp}
+		rm.RedisClient.ZAdd(FEEDFLOW_GANHUO, feedZ)
+	}
+}
+
+func (rm *POIRedisManager) DeleteTopFeed(feedId string, plateType string) {
+	if plateType == "1001" {
+		_ = rm.RedisClient.ZRem(FEEDFLOW_GANHUO_TOP, feedId)
+	}
+}
+
+func (rm *POIRedisManager) GetTopFeeds(plateType string) models.POIFeeds {
+	feedflowType := ""
+	if plateType == "1001" {
+		feedflowType = FEEDFLOW_GANHUO_TOP
+	}
+	feedZs := rm.RedisClient.ZRevRangeWithScores(feedflowType, 0, -1).Val()
+
+	feeds := make(models.POIFeeds, 0)
+
+	for i := range feedZs {
+		str, _ := feedZs[i].Member.(string)
+		feed := *rm.GetFeed(str)
+		feed.TopFlag = true
+		if feed.Creator != nil && models.CheckUserExist(feed.Creator.UserId) {
+			feeds = append(feeds, feed)
+		}
+	}
+	return feeds
 }
 
 func (rm *POIRedisManager) PostFeedComment(feedComment *models.POIFeedComment) {

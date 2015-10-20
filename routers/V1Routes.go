@@ -250,14 +250,14 @@ var V1Routes = Routes{
 	Route{
 		"V1TopFeedPOST",
 		"POST",
-		"/v1/feed/top",
-		handlers.V1GETTopFeed,
+		"/v1/feed/top/get",
+		handlers.V1GetTopFeed,
 	},
 	Route{
 		"V1TopFeedGET",
 		"GET",
-		"/v1/feed/top",
-		handlers.V1GETTopFeed,
+		"/v1/feed/top/get",
+		handlers.V1GetTopFeed,
 	},
 	// 2.10 Delete Feed
 	Route{
@@ -284,6 +284,19 @@ var V1Routes = Routes{
 		"GET",
 		"/v1/feed/recover",
 		handlers.V1FeedRecover,
+	},
+	// 2.12 Top Feed
+	Route{
+		"V1TopFeedPOST",
+		"POST",
+		"/v1/feed/top",
+		handlers.V1FeedTop,
+	},
+	Route{
+		"V1TopFeedGET",
+		"GET",
+		"/v1/feed/top",
+		handlers.V1FeedTop,
 	},
 
 	// 3.1 User Info
