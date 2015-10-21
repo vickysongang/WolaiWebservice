@@ -111,6 +111,13 @@ func UpdateFeedInfo(feedId string, feedInfo map[string]interface{}) {
 	}
 }
 
+func UpdateFeedTopSeq() {
+	o := orm.NewOrm()
+	var params orm.Params = make(orm.Params)
+	params["top_seq"] = ""
+	o.QueryTable("feed").Filter("top_seq__isnull", false).Update(params)
+}
+
 func GetFeed(feedId string) (*POIFeed, error) {
 	feed := POIFeed{}
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)

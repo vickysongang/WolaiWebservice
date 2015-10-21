@@ -317,10 +317,15 @@ func TopFeed(feedId string, plateType string, action string) {
 		topSeq = ""
 		managers.RedisManager.UndoTopFeed(feed, plateType)
 	}
+	go UpdateFeedTopSeq(feedId, topSeq)
+}
+
+func UpdateFeedTopSeq(feedId, topSeq string) {
+	models.UpdateFeedTopSeq()
 	updateInfo := map[string]interface{}{
 		"TopSeq": topSeq,
 	}
-	go models.UpdateFeedInfo(feedId, updateInfo)
+	models.UpdateFeedInfo(feedId, updateInfo)
 }
 
 func GetUserLike(userId int64, page int64, count int64) (models.POIFeeds, error) {

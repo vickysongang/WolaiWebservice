@@ -224,6 +224,16 @@ func (rm *POIRedisManager) PostPlateFeed(feed *models.POIFeed, plateType string)
 //置顶
 func (rm *POIRedisManager) TopFeed(feed *models.POIFeed, plateType string) {
 	if plateType == "1001" {
+		//将已经置顶的干货还原到干货中
+		ganhuoFeedZs := rm.RedisClient.ZRangeWithScores(FEEDFLOW_GANHUO_TOP, 0, -1).Val()
+		for i := range ganhuoFeedZs {
+			str, _ := ganhuoFeedZs[i].Member.(string)
+			rm.RedisClient.ZRem(FEEDFLOW_GANHUO_TOP, str)
+			oldTopFeed := rm.GetFeed(str)
+			oldTopFeedZ := redis.Z{Member: oldTopFeed.Id, Score: oldTopFeed.CreateTimestamp}
+			rm.RedisClient.ZAdd(FEEDFLOW_GANHUO, oldTopFeedZ)
+		}
+		//将需要置顶的干货从干货中移到置顶中
 		_ = rm.RedisClient.ZRem(FEEDFLOW_GANHUO, feed.Id)
 		feedZ := redis.Z{Member: feed.Id, Score: feed.CreateTimestamp}
 		rm.RedisClient.ZAdd(FEEDFLOW_GANHUO_TOP, feedZ)

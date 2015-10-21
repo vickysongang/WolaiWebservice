@@ -300,6 +300,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 					if !isPaused && isServing {
 						length = length + (timestamp - lastSync)
+						seelog.Debug("Length:", length, " timestamp:", timestamp, " lastSync:", lastSync)
 					}
 
 					timeTo := time.Now()
