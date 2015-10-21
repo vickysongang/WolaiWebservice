@@ -14,18 +14,22 @@ func LoadPOIUser(userId int64) *models.POIUser {
 	return models.QueryUserById(userId)
 }
 
+func UpdateTeacherStatusAfterLogin(user *models.POIUser) {
+	//如果老师是第一次登陆，则修改老师的status字段为0，0代表不是第一次登陆，1代表从未登陆过
+	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER &&
+		user.Status == models.USER_STATUS_INACTIVE {
+		userInfo := make(map[string]interface{})
+		userInfo["Status"] = 0
+		models.UpdateUserInfo(user.UserId, userInfo)
+		leancloud.SendWelcomeMessageTeacher(user.UserId)
+	}
+	models.UpdateUserInfo(user.UserId, map[string]interface{}{"LastLoginTime": time.Now()})
+}
+
 func POIUserLogin(phone string) (int64, *models.POIUser) {
 	user := models.QueryUserByPhone(phone)
 	if user != nil {
-		//如果老师是第一次登陆，则修改老师的status字段为0，0代表不是第一次登陆，1代表从未登陆过
-		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER &&
-			user.Status == models.USER_STATUS_INACTIVE {
-			userInfo := make(map[string]interface{})
-			userInfo["Status"] = 0
-			models.UpdateUserInfo(user.UserId, userInfo)
-			leancloud.SendWelcomeMessageTeacher(user.UserId)
-		}
-		models.UpdateUserInfo(user.UserId, map[string]interface{}{"LastLoginTime": time.Now()})
+		UpdateTeacherStatusAfterLogin(user)
 		return 0, user
 	}
 	u := models.POIUser{}
@@ -73,14 +77,7 @@ func POIUserOauthLogin(openId string) (int64, *models.POIUser) {
 	user := LoadPOIUser(userId)
 
 	if user != nil {
-		//如果老师是第一次登陆，则修改老师的status字段为0，0代表不是第一次登陆，1代表从未登陆过
-		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER &&
-			user.Status == models.USER_STATUS_INACTIVE {
-			userInfo := make(map[string]interface{})
-			userInfo["Status"] = 0
-			models.UpdateUserInfo(user.UserId, userInfo)
-			leancloud.SendWelcomeMessageTeacher(user.UserId)
-		}
+		UpdateTeacherStatusAfterLogin(user)
 	}
 
 	models.UpdateUserInfo(userId, map[string]interface{}{"LastLoginTime": time.Now()})
@@ -91,6 +88,7 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 	user := models.QueryUserByPhone(phone)
 	if user != nil {
 		models.InsertUserOauth(user.UserId, openId)
+		UpdateTeacherStatusAfterLogin(user)
 		return 0, user
 	}
 
@@ -113,14 +111,7 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 	}
 
 	if user != nil {
-		//如果老师是第一次登陆，则修改老师的status字段为0，0代表不是第一次登陆，1代表从未登陆过
-		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER &&
-			user.Status == models.USER_STATUS_INACTIVE {
-			userInfo := make(map[string]interface{})
-			userInfo["Status"] = 0
-			models.UpdateUserInfo(user.UserId, userInfo)
-			leancloud.SendWelcomeMessageTeacher(user.UserId)
-		}
+		UpdateTeacherStatusAfterLogin(user)
 	}
 
 	return 1003, user
