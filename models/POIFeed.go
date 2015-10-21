@@ -3,7 +3,6 @@ package models
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"POIWolaiWebService/utils"
@@ -348,7 +347,6 @@ func GetFeedFlowAtriumByPlateType(start, pageCount int, plateType string) (POIFe
 	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").Where("feed.plate_type like ? and (feed.top_seq is null or feed.top_seq='')").
 		OrderBy("feed.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
-	fmt.Println(sql)
 	_, err := o.Raw(sql, "%"+plateType+"%").QueryRows(&feedIds)
 	feeds := make(POIFeeds, len(feedIds))
 	if err != nil {
