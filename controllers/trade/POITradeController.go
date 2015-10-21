@@ -127,7 +127,11 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 	//	if expireFlag && !managers.WsManager.HasUserChan(session.Teacher.UserId) {
 	//		go leancloud.SendSessionExpireNotification(session.Id, teacherAmount)
 	//	}
+	tradeSubjectDisplayName := parentGradeName + gradeName + subjectName
+	if order.Type == models.ORDER_TYPE_REALTIME_SESSION {
+		tradeSubjectDisplayName = "实时课堂"
+	}
 	go leancloud.SendTradeNotificationSession(teacher.UserId, student.UserId,
-		parentGradeName+gradeName+subjectName, studentAmount, teacherAmount,
+		tradeSubjectDisplayName, studentAmount, teacherAmount,
 		session.TimeFrom.Format(time.RFC3339), session.TimeTo.Format(time.RFC3339))
 }
