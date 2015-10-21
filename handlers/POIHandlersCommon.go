@@ -66,6 +66,6 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	content, _ := models.QueryServingCourse4User(10656)
+	content, _ := models.GetFeedFlowAtriumByPlateType(0, 10, "1001")
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 }

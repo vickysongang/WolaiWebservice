@@ -3,6 +3,7 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"POIWolaiWebService/utils"
@@ -321,7 +322,7 @@ func GetTopFeedFlowAtrium(plateType string) (POIFeeds, error) {
 	var feedIds []string
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
 	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").
-		Where("feed.plate_type like ? and feed.top_seq is not null").OrderBy("feed.top_seq").Desc()
+		Where("feed.plate_type like ? and feed.top_seq is not null and feed.top_seq <> ''").OrderBy("feed.top_seq").Desc()
 	sql := qb.String()
 	_, err := o.Raw(sql, "%"+plateType+"%").QueryRows(&feedIds)
 	feeds := make(POIFeeds, len(feedIds))
@@ -344,9 +345,10 @@ func GetFeedFlowAtriumByPlateType(start, pageCount int, plateType string) (POIFe
 	o := orm.NewOrm()
 	var feedIds []string
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").Where("feed.plate_type like ? and feed.top_seq is null").
+	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").Where("feed.plate_type like ? and (feed.top_seq is null or feed.top_seq='')").
 		OrderBy("feed.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
+	fmt.Println(sql)
 	_, err := o.Raw(sql, "%"+plateType+"%").QueryRows(&feedIds)
 	feeds := make(POIFeeds, len(feedIds))
 	if err != nil {
