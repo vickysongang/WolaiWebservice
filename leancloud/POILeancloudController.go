@@ -161,7 +161,7 @@ func SendTradeNotificationSystem(userId int64, amount int64, status, title, subt
 }
 
 func SendTradeNotificationSession(teacherId int64, studentId int64, subject string,
-	studentAmount int64, teacherAmount int64, timeStart, timeEnd string) {
+	studentAmount int64, teacherAmount int64, timeStart, timeEnd string, length string) {
 	teacher := models.QueryUserById(teacherId)
 	student := models.QueryUserById(studentId)
 	if teacher == nil || student == nil {
@@ -180,6 +180,7 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 		"subject":   subject,
 		"timeStart": timeStart,
 		"timeEnd":   timeEnd,
+		"length":    length,
 	}
 	teacherTMsg := LCTypedMessage{
 		Type:      LC_MSG_TRADE,
@@ -201,6 +202,7 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 		"subject":   subject,
 		"timeStart": timeStart,
 		"timeEnd":   timeEnd,
+		"length":    length,
 	}
 	studentTMsg := LCTypedMessage{
 		Type:      LC_MSG_TRADE,

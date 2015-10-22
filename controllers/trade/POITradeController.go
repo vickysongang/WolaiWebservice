@@ -4,6 +4,7 @@ package trade
 import (
 	"fmt"
 	"math"
+	"strconv"
 	"time"
 
 	"POIWolaiWebService/leancloud"
@@ -133,5 +134,5 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 	}
 	go leancloud.SendTradeNotificationSession(teacher.UserId, student.UserId,
 		tradeSubjectDisplayName, studentAmount, teacherAmount,
-		session.TimeFrom.Format(time.RFC3339), session.TimeTo.Format(time.RFC3339))
+		session.TimeFrom.Format(time.RFC3339), session.TimeTo.Format(time.RFC3339), strconv.Itoa(int(session.Length)))
 }
