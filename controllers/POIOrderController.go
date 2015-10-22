@@ -181,7 +181,7 @@ func RealTimeOrderCreate(creatorId int64, teacherId int64, gradeId int64, subjec
 
 	teacher := models.QueryUserById(teacherId)
 	if teacher.AccessRight != 2 {
-		err = errors.New("对方不是导师！")
+		err = errors.New("对方不是老师，不能发起约课请求")
 		seelog.Error(err.Error())
 		return 5002, nil, err
 	}
