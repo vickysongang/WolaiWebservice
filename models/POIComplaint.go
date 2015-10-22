@@ -2,6 +2,7 @@
 package models
 
 import (
+	"POIWolaiWebService/utils"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -52,9 +53,12 @@ func UpdateComplaintInfo(complaintId int64, complaintInfo map[string]interface{}
 	return nil
 }
 
-func GetComplaintCount(userId, sessionId int64) int64 {
+func GetComplaintStatus(userId, sessionId int64) string {
 	o := orm.NewOrm()
-	count, _ := o.QueryTable("complaint").Filter("user_id", userId).Filter("session_id", sessionId).
-		Filter("status", "pending").Count()
-	return count
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	status := ""
+	qb.Select("status").From("complaint").Where("user_id = ? and session_id = ?")
+	sql := qb.String()
+	o.Raw(sql, userId, sessionId).QueryRow(&status)
+	return status
 }

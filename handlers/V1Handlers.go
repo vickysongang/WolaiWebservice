@@ -1262,12 +1262,8 @@ func V1CheckComplaintExsits(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	sessionIdStr := vars["sessionId"][0]
 	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 60)
-	count := models.GetComplaintCount(userId, sessionId)
-	if count == 0 {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", false))
-	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", true))
-	}
+	status := models.GetComplaintStatus(userId, sessionId)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", status))
 }
 
 /*
