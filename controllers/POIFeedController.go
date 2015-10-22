@@ -88,6 +88,7 @@ func MarkPOIFeed(feedId string, plateType string, action string) (*models.POIFee
 		managers.RedisManager.PostPlateFeed(feed, plateType)
 	} else if action == "undo" {
 		feedPlateType = ""
+		managers.RedisManager.DeleteTopFeed(feedId, plateType)
 		managers.RedisManager.DeleteFeed(feedId, plateType)
 	}
 	feedInfo := map[string]interface{}{"PlateType": feedPlateType}
