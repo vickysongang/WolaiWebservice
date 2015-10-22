@@ -15,6 +15,8 @@ type POIMonitorUser struct {
 }
 
 type POIMonitorUsers struct {
+	LiveUsers      []POIMonitorUser
+	LiveTeachers   []POIMonitorUser
 	OnlineUsers    []POIMonitorUser
 	OnlineTeachers []POIMonitorUser
 }
@@ -35,8 +37,18 @@ type POIMonitorOrders struct {
 	UserOrderDispatchInfo    []POIOrderDispatchMaster
 }
 
+type POIMonitorSession struct {
+	SessionId     int64
+	TimeStamp     int64
+	ServingStatus bool
+}
+
+type POIMonitorSessions []POIMonitorSession
+
 func NewPOIMonitorUsers() POIMonitorUsers {
 	users := POIMonitorUsers{
+		LiveUsers:      make([]POIMonitorUser, 0),
+		LiveTeachers:   make([]POIMonitorUser, 0),
 		OnlineUsers:    make([]POIMonitorUser, 0),
 		OnlineTeachers: make([]POIMonitorUser, 0),
 	}
@@ -53,21 +65,30 @@ func NewPOIMonitorOrders() POIMonitorOrders {
 }
 
 func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanic(w)
+	defer ThrowsPanicException(w, NullObject)
 	users := NewPOIMonitorUsers()
-	for k, v := range managers.WsManager.OnlineUserMap {
-		locked := managers.WsManager.IsUserSessionLocked(k)
-		users.OnlineUsers = append(users.OnlineUsers, POIMonitorUser{User: models.QueryUserById(k), LoginTime: v, Locked: locked})
+	for userId, timestamp := range managers.WsManager.OnlineUserMap {
+		locked := managers.WsManager.IsUserSessionLocked(userId)
+		users.LiveUsers = append(users.LiveUsers, POIMonitorUser{User: models.QueryUserById(userId), LoginTime: timestamp, Locked: locked})
 	}
-	for k, v := range managers.WsManager.OnlineTeacherMap {
-		locked := managers.WsManager.IsUserSessionLocked(k)
-		users.OnlineTeachers = append(users.OnlineTeachers, POIMonitorUser{User: models.QueryUserById(k), LoginTime: v, Locked: locked})
+	for userId, timestamp := range managers.WsManager.OnlineTeacherMap {
+		locked := managers.WsManager.IsUserSessionLocked(userId)
+		users.LiveTeachers = append(users.LiveTeachers, POIMonitorUser{User: models.QueryUserById(userId), LoginTime: timestamp, Locked: locked})
+	}
+	for userId, timestamp := range managers.WsManager.OnlineUserMap {
+		user := models.QueryUserById(userId)
+		locked := managers.WsManager.IsUserSessionLocked(userId)
+		if user.AccessRight == 2 {
+			users.OnlineTeachers = append(users.OnlineTeachers, POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
+		} else {
+			users.OnlineUsers = append(users.OnlineUsers, POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
+		}
 	}
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", users))
 }
 
 func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanic(w)
+	defer ThrowsPanicException(w, NullObject)
 	orders := NewPOIMonitorOrders()
 	for orderId, teacherMap := range managers.WsManager.OrderDispatchMap {
 		master := POIOrderDispatchMaster{MasterId: orderId, Slaves: make([]POIOrderDispatchSlave, 0)}
@@ -102,4 +123,14 @@ func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", orders))
+}
+
+func GetSessionMonitorInfo(w http.ResponseWriter, r *http.Request) {
+	sessions := make(POIMonitorSessions, 0)
+	for sessionId, timestamp := range managers.WsManager.SessionLiveMap {
+		servingStatus := managers.WsManager.GetSessionServingMap(sessionId)
+		session := POIMonitorSession{SessionId: sessionId, TimeStamp: timestamp, ServingStatus: servingStatus}
+		sessions = append(sessions, session)
+	}
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", sessions))
 }

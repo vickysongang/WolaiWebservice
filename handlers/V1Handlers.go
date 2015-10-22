@@ -1653,10 +1653,21 @@ func V1Banner(w http.ResponseWriter, r *http.Request) {
 func V1StatusLive(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanicException(w, NullObject)
 	liveUser := len(managers.WsManager.OnlineUserMap)
+	onlineUserCount := 0
+	onlineTeacherCount := 0
+	for userId, _ := range managers.WsManager.OnlineUserMap {
+		user := models.QueryUserById(userId)
+		if user.AccessRight == 2 {
+			onlineTeacherCount++
+		}
+	}
+	onlineUserCount = liveUser - onlineTeacherCount
 	liveTeacher := len(managers.WsManager.OnlineTeacherMap)
 	content := map[string]interface{}{
-		"liveUser":    liveUser,
-		"liveTeacher": liveTeacher,
+		"liveUser":           liveUser,
+		"liveTeacher":        liveTeacher,
+		"onlineUserCount":    onlineUserCount,
+		"onlineTeacherCount": onlineTeacherCount,
 	}
 
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))

@@ -893,6 +893,18 @@ var V1Routes = Routes{
 		"/v1/monitor/order",
 		handlers.GetOrderMonitorInfo,
 	},
+	Route{
+		"V1MonitorSessionPOST",
+		"POST",
+		"/v1/monitor/session",
+		handlers.GetSessionMonitorInfo,
+	},
+	Route{
+		"V1MonitorSessionGET",
+		"GET",
+		"/v1/monitor/session",
+		handlers.GetSessionMonitorInfo,
+	},
 	// Dummy
 	Route{
 		"Dummy",
