@@ -577,15 +577,15 @@ func CheckSessionBreak(userId int64) {
 	userLoginTime := managers.WsManager.GetUserOnlineStatus(userId)
 	if userLoginTime != -1 && managers.WsManager.HasUserChan(userId) {
 		seelog.Debug("user ", userId, " reconnect success!")
-		userChan := managers.WsManager.GetUserChan(userId)
+		//		userChan := managers.WsManager.GetUserChan(userId)
 		for sessionId, _ := range managers.WsManager.UserSessionLiveMap[userId] {
 			if !managers.WsManager.HasSessionChan(sessionId) {
 				continue
 			}
 			if managers.WsManager.GetSessionServingMap(sessionId) {
-				seelog.Debug("send session:", sessionId, " live status message to user:", userId)
-				sessionStatusMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
-				userChan <- sessionStatusMsg
+				//				seelog.Debug("send session:", sessionId, " live status message to user:", userId)
+				//				sessionStatusMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
+				//				userChan <- sessionStatusMsg
 				return
 			}
 		}
@@ -616,6 +616,8 @@ func RecoverUserSession(userId int64) {
 		return
 	}
 
+	userChan := managers.WsManager.GetUserChan(userId)
+
 	for sessionId, _ := range managers.WsManager.UserSessionLiveMap[userId] {
 		session := models.QuerySessionById(sessionId)
 		if session == nil {
@@ -624,6 +626,12 @@ func RecoverUserSession(userId int64) {
 
 		if !managers.WsManager.HasSessionChan(sessionId) {
 			continue
+		}
+
+		if managers.WsManager.GetSessionServingMap(sessionId) {
+			seelog.Debug("send session:", sessionId, " live status message to user:", userId)
+			sessionStatusMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
+			userChan <- sessionStatusMsg
 		}
 
 		recoverMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_RECOVER_STU)
