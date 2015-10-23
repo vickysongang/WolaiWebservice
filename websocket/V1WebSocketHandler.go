@@ -107,7 +107,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	conn.SetReadDeadline(time.Now().Add(pongWait))
 	conn.SetPongHandler(func(appData string) error {
-		seelog.Debug("@@@@@@@@@@@@@@@Recieve pong message:", msg.UserId, "  appData:", appData)
 		err := conn.SetReadDeadline(time.Now().Add(pongWait))
 		if err != nil {
 			seelog.Error(err.Error())
@@ -297,7 +296,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan mod
 				}
 				return
 			}
-			seelog.Debug("&&&&&&&&&&&&Send ping message:", userId)
 		// 处理向用户发送消息
 		case msg, ok := <-userChan:
 			if ok {
