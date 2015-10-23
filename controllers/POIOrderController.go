@@ -179,13 +179,6 @@ func RealTimeOrderCreate(creatorId int64, teacherId int64, gradeId int64, subjec
 		return 2, nil, nil
 	}
 
-	teacher := models.QueryUserById(teacherId)
-	if teacher.AccessRight != 2 {
-		err = errors.New("对方不是老师，不能发起约课请求")
-		seelog.Error(err.Error())
-		return 5002, nil, err
-	}
-
 	//检查用户是否为包月用户
 	var courseId int64
 	course, err := models.QueryServingCourse4User(creatorId)
@@ -194,6 +187,13 @@ func RealTimeOrderCreate(creatorId int64, teacherId int64, gradeId int64, subjec
 	} else {
 		courseId = course.CourseId
 	}
+
+	if IsUserServing(creatorId) {
+		err = errors.New("你正在上课中！")
+		seelog.Error(err.Error())
+		return 5002, nil, err
+	}
+
 	//检查用户是否余额不足
 	if creator.Balance <= 0 {
 		err = errors.New("余额不足")
@@ -201,8 +201,9 @@ func RealTimeOrderCreate(creatorId int64, teacherId int64, gradeId int64, subjec
 		return 5001, nil, err
 	}
 
-	if IsUserServing(creatorId) {
-		err = errors.New("你正在上课中！")
+	teacher := models.QueryUserById(teacherId)
+	if teacher.AccessRight != 2 {
+		err = errors.New("对方不是老师，不能发起约课请求")
 		seelog.Error(err.Error())
 		return 5002, nil, err
 	}
