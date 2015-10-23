@@ -628,17 +628,17 @@ func RecoverUserSession(userId int64) {
 			continue
 		}
 
-		if managers.WsManager.GetSessionServingMap(sessionId) {
-			seelog.Debug("send session:", sessionId, " live status message to user:", userId)
-			sessionStatusMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
-			userChan <- sessionStatusMsg
-		}
-
 		recoverMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_RECOVER_STU)
 		if session.Teacher.UserId == userId {
 			recoverMsg.OperationCode = models.WS_SESSION_RECOVER_TEACHER
 		}
 		sessionChan := managers.WsManager.GetSessionChan(sessionId)
 		sessionChan <- recoverMsg
+
+		if managers.WsManager.GetSessionServingMap(sessionId) {
+			seelog.Debug("send session:", sessionId, " live status message to user:", userId)
+			sessionStatusMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
+			userChan <- sessionStatusMsg
+		}
 	}
 }
