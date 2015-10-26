@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"POIWolaiWebService/utils"
@@ -64,6 +65,9 @@ func NewPOIUser(userId int64, nickname string, avatar string, gender int64, acce
 
 func InsertPOIUser(user *POIUser) (int64, error) {
 	o := orm.NewOrm()
+	if user.Nickname == "" && user.Phone != "" {
+		user.Nickname = fmt.Sprintf("%s%s", "我来", user.Phone[len(user.Phone)-4:len(user.Phone)])
+	}
 	id, err := o.Insert(user)
 	if err != nil {
 		seelog.Error("user:", user, " ", err.Error())

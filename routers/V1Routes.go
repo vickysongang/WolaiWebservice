@@ -424,6 +424,13 @@ var V1Routes = Routes{
 		"/v1/conversation/get",
 		handlers.V1GetConversationID,
 	},
+	// 4.2 Get Conversation Participants
+	Route{
+		"V1ConversationParticipantsPOST",
+		"POST",
+		"/v1/conversation/participant",
+		handlers.V1GetConversationParticipants,
+	},
 
 	//5.1 Grade List
 	Route{
@@ -834,13 +841,6 @@ var V1Routes = Routes{
 		"GET",
 		"/v1/status/live",
 		handlers.V1StatusLive,
-	},
-
-	Route{
-		"V1ConversationParticipantsPOST",
-		"POST",
-		"/v1/conversation/participant",
-		handlers.V1GetConversationParticipants,
 	},
 
 	Route{
