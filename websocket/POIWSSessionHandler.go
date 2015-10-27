@@ -364,6 +364,12 @@ func POIWSSessionHandler(sessionId int64) {
 					teacherChan := managers.WsManager.GetUserChan(session.Teacher.UserId)
 					teacherChan <- recoverTeacherMsg
 
+					if managers.WsManager.GetSessionServingMap(sessionId) {
+						seelog.Debug("send session:", sessionId, " live status message to teacher:", session.Teacher.UserId)
+						sessionStatusMsg := models.NewPOIWSMessage("", session.Teacher.UserId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
+						teacherChan <- sessionStatusMsg
+					}
+
 				case models.WS_SESSION_RECOVER_STU:
 					recoverStuMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_RECOVER_STU)
 					recoverStuMsg.Attribute["sessionId"] = sessionIdStr
@@ -375,6 +381,12 @@ func POIWSSessionHandler(sessionId int64) {
 					}
 					studentChan := managers.WsManager.GetUserChan(session.Creator.UserId)
 					studentChan <- recoverStuMsg
+
+					if managers.WsManager.GetSessionServingMap(sessionId) {
+						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator.UserId)
+						sessionStatusMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
+						studentChan <- sessionStatusMsg
+					}
 
 				case models.WS_SESSION_PAUSE:
 					pauseResp := models.NewPOIWSMessage(msg.MessageId, msg.UserId, models.WS_SESSION_PAUSE_RESP)
@@ -616,7 +628,7 @@ func RecoverUserSession(userId int64) {
 		return
 	}
 
-	userChan := managers.WsManager.GetUserChan(userId)
+	//	userChan := managers.WsManager.GetUserChan(userId)
 
 	for sessionId, _ := range managers.WsManager.UserSessionLiveMap[userId] {
 		session := models.QuerySessionById(sessionId)
@@ -635,10 +647,10 @@ func RecoverUserSession(userId int64) {
 		sessionChan := managers.WsManager.GetSessionChan(sessionId)
 		sessionChan <- recoverMsg
 
-		if managers.WsManager.GetSessionServingMap(sessionId) {
-			seelog.Debug("send session:", sessionId, " live status message to user:", userId)
-			sessionStatusMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
-			userChan <- sessionStatusMsg
-		}
+		//		if managers.WsManager.GetSessionServingMap(sessionId) {
+		//			seelog.Debug("send session:", sessionId, " live status message to user:", userId)
+		//			sessionStatusMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
+		//			userChan <- sessionStatusMsg
+		//		}
 	}
 }
