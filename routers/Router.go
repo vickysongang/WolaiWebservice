@@ -61,7 +61,7 @@ func WebLogger(inner http.Handler, name string) http.Handler {
 		inner.ServeHTTP(w, r)
 
 		formData, _ := json.Marshal(r.Form)
-		seelog.Info("[", r.Method, "] ", r.RequestURI, "\t", name, "\t", time.Since(start),
+		seelog.Info("[", r.Method, "] ", r.RequestURI, "|", name, "|", r.UserAgent(), "\t", time.Since(start),
 			"\t", string(formData))
 	})
 }
