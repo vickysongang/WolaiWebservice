@@ -39,16 +39,7 @@ func ThrowsPanicException(w http.ResponseWriter, nullObject interface{}) {
 }
 
 func Dummy(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanic(w)
-	err := r.ParseForm()
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-
-	//vars := r.Form
-
-	userIds := models.QueryUserAllId()
-	json.NewEncoder(w).Encode(userIds)
+	json.NewEncoder(w).Encode(r.RemoteAddr)
 }
 
 func Dummy2(w http.ResponseWriter, r *http.Request) {
