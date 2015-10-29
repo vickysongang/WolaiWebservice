@@ -90,20 +90,20 @@ func POIWSSessionHandler(sessionId int64) {
 				trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, true)
 			}
 
-			managers.WsManager.RemoveSessionLive(sessionId)
-			managers.WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
-			managers.WsManager.RemoveSessionChan(sessionId)
+			WsManager.RemoveSessionLive(sessionId)
+			WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
+			WsManager.RemoveSessionChan(sessionId)
 
 			//将老师和学生从内存中解锁
-			managers.WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
-			managers.WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
+			WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
+			WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
 
 			return
 
 		case cur := <-countdownTimer.C:
 
-			teacherOnline := managers.WsManager.HasUserChan(session.Teacher.UserId)
-			studentOnline := managers.WsManager.HasUserChan(session.Creator.UserId)
+			teacherOnline := WsManager.HasUserChan(session.Teacher.UserId)
+			studentOnline := WsManager.HasUserChan(session.Creator.UserId)
 			//如果老师不在线，学生在线，则向学生发送课程中断消息
 			if !teacherOnline {
 				if studentOnline {
@@ -142,7 +142,7 @@ func POIWSSessionHandler(sessionId int64) {
 			lastSync = cur.Unix()
 			//将课程标记为上课中，并将该状态存在内存中
 			isServing = true
-			managers.WsManager.SetSessionServingMap(sessionId, isServing)
+			WsManager.SetSessionServingMap(sessionId, isServing)
 
 			//设置课程的开始时间并更改课程的状态
 			sessionInfo := map[string]interface{}{
