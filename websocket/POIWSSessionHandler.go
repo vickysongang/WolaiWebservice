@@ -6,7 +6,6 @@ import (
 
 	"POIWolaiWebService/controllers/trade"
 	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
 
 	seelog "github.com/cihub/seelog"
@@ -22,7 +21,7 @@ func POIWSSessionHandler(sessionId int64) {
 	session := models.QuerySessionById(sessionId)
 	order := models.QueryOrderById(session.OrderId)
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
-	sessionChan := managers.WsManager.GetSessionChan(sessionId)
+	sessionChan := WsManager.GetSessionChan(sessionId)
 
 	timestamp := time.Now().Unix()
 
@@ -47,16 +46,16 @@ func POIWSSessionHandler(sessionId int64) {
 	for {
 		select {
 		case <-waitingTimer.C:
-			expireMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_EXPIRE)
+			expireMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_EXPIRE)
 			expireMsg.Attribute["sessionId"] = sessionIdStr
 			//如果学生在线，则给学生发送课程过时消息
-			if managers.WsManager.HasUserChan(session.Creator.UserId) {
-				userChan := managers.WsManager.GetUserChan(session.Creator.UserId)
+			if WsManager.HasUserChan(session.Creator.UserId) {
+				userChan := WsManager.GetUserChan(session.Creator.UserId)
 				userChan <- expireMsg
 			}
 			//如果老师在线，则给老师发送课程过时消息
-			if managers.WsManager.HasUserChan(session.Teacher.UserId) {
-				userChan := managers.WsManager.GetUserChan(session.Teacher.UserId)
+			if WsManager.HasUserChan(session.Teacher.UserId) {
+				userChan := WsManager.GetUserChan(session.Teacher.UserId)
 				expireMsg.UserId = session.Teacher.UserId
 				userChan <- expireMsg
 			}
@@ -81,11 +80,11 @@ func POIWSSessionHandler(sessionId int64) {
 				session = models.QuerySessionById(sessionId)
 				trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, true)
 			}
-			managers.WsManager.RemoveSessionLive(sessionId)
-			managers.WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
-			managers.WsManager.RemoveSessionChan(sessionId)
-			managers.WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
-			managers.WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
+			WsManager.RemoveSessionLive(sessionId)
+			WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
+			WsManager.RemoveSessionChan(sessionId)
+			WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
+			WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
 			//			close(sessionChan)
 
 			return
@@ -94,7 +93,7 @@ func POIWSSessionHandler(sessionId int64) {
 			seelog.Debug("sessionId:", sessionId, " count down...")
 			lastSync = cur.Unix()
 			isServing = true
-			managers.WsManager.SetSessionServingMap(sessionId, isServing)
+			WsManager.SetSessionServingMap(sessionId, isServing)
 
 			sessionInfo := map[string]interface{}{
 				"Status":   models.SESSION_STATUS_SERVING,
@@ -102,48 +101,48 @@ func POIWSSessionHandler(sessionId int64) {
 			}
 			models.UpdateSessionInfo(sessionId, sessionInfo)
 
-			teacherOnline := managers.WsManager.HasUserChan(session.Teacher.UserId)
-			studentOnline := managers.WsManager.HasUserChan(session.Creator.UserId)
+			teacherOnline := WsManager.HasUserChan(session.Teacher.UserId)
+			studentOnline := WsManager.HasUserChan(session.Creator.UserId)
 
 			if !teacherOnline {
 				if studentOnline {
-					breakMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_BREAK)
+					breakMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK)
 					breakMsg.Attribute["sessionId"] = sessionIdStr
 					breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
 					breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 					breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-					breakChan := managers.WsManager.GetUserChan(breakMsg.UserId)
+					breakChan := WsManager.GetUserChan(breakMsg.UserId)
 					breakChan <- breakMsg
 				}
 				waitingTimer = time.NewTimer(time.Minute * 20)
 				isPaused = true
-				managers.WsManager.RemoveSessionServingMap(sessionId)
+				WsManager.RemoveSessionServingMap(sessionId)
 				break
 			}
 			if !studentOnline {
 				if teacherOnline {
-					breakMsg := models.NewPOIWSMessage("", session.Teacher.UserId, models.WS_SESSION_BREAK)
+					breakMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_BREAK)
 					breakMsg.Attribute["sessionId"] = sessionIdStr
 					breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
 					breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 					breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-					breakChan := managers.WsManager.GetUserChan(breakMsg.UserId)
+					breakChan := WsManager.GetUserChan(breakMsg.UserId)
 					breakChan <- breakMsg
 				}
 				waitingTimer = time.NewTimer(time.Minute * 20)
 				isPaused = true
-				managers.WsManager.RemoveSessionServingMap(sessionId)
+				WsManager.RemoveSessionServingMap(sessionId)
 				break
 			}
 
-			startMsg := models.NewPOIWSMessage("", session.Teacher.UserId, models.WS_SESSION_INSTANT_START)
+			startMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_START)
 			startMsg.Attribute["sessionId"] = sessionIdStr
 			startMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
 			startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-			teacherChan := managers.WsManager.GetUserChan(session.Teacher.UserId)
+			teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
 			teacherChan <- startMsg
 			startMsg.UserId = session.Creator.UserId
-			studentChan := managers.WsManager.GetUserChan(session.Creator.UserId)
+			studentChan := WsManager.GetUserChan(session.Creator.UserId)
 			studentChan <- startMsg
 
 			syncTicker = time.NewTicker(time.Second * 60)
@@ -160,29 +159,29 @@ func POIWSSessionHandler(sessionId int64) {
 			length = length + (timestamp - lastSync)
 			lastSync = timestamp
 
-			syncMsg := models.NewPOIWSMessage("", session.Teacher.UserId, models.WS_SESSION_SYNC)
+			syncMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_SYNC)
 			syncMsg.Attribute["sessionId"] = sessionIdStr
 			syncMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 
-			if managers.WsManager.HasUserChan(session.Teacher.UserId) {
-				teacherChan := managers.WsManager.GetUserChan(session.Teacher.UserId)
+			if WsManager.HasUserChan(session.Teacher.UserId) {
+				teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
 				teacherChan <- syncMsg
 			}
-			if managers.WsManager.HasUserChan(session.Creator.UserId) {
+			if WsManager.HasUserChan(session.Creator.UserId) {
 				syncMsg.UserId = session.Creator.UserId
-				stuChan := managers.WsManager.GetUserChan(session.Creator.UserId)
+				stuChan := WsManager.GetUserChan(session.Creator.UserId)
 				stuChan <- syncMsg
 			}
 
 		case msg, ok := <-sessionChan:
 			if ok {
 				timestamp = time.Now().Unix()
-				userChan := managers.WsManager.GetUserChan(msg.UserId)
+				userChan := WsManager.GetUserChan(msg.UserId)
 				session = models.QuerySessionById(sessionId)
 
 				switch msg.OperationCode {
-				case models.WS_SESSION_START:
-					startResp := models.NewPOIWSMessage(msg.MessageId, msg.UserId, models.WS_SESSION_START_RESP)
+				case WS_SESSION_START:
+					startResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_START_RESP)
 					if msg.UserId != session.Teacher.UserId {
 						startResp.Attribute["errCode"] = "2"
 						startResp.Attribute["errMsg"] = "You are not the teacher of this session"
@@ -192,20 +191,20 @@ func POIWSSessionHandler(sessionId int64) {
 					startResp.Attribute["errCode"] = "0"
 					userChan <- startResp
 
-					if managers.WsManager.HasUserChan(session.Creator.UserId) {
-						startMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_START)
+					if WsManager.HasUserChan(session.Creator.UserId) {
+						startMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_START)
 						startMsg.Attribute["sessionId"] = sessionIdStr
 						startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-						creatorChan := managers.WsManager.GetUserChan(session.Creator.UserId)
+						creatorChan := WsManager.GetUserChan(session.Creator.UserId)
 						creatorChan <- startMsg
 					}
 					go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-						models.WS_SESSION_START, session.Creator.UserId))
+						WS_SESSION_START, session.Creator.UserId))
 
 					isCalling = true
 
-				case models.WS_SESSION_ACCEPT:
-					acceptResp := models.NewPOIWSMessage(msg.MessageId, msg.UserId, models.WS_SESSION_ACCEPT_RESP)
+				case WS_SESSION_ACCEPT:
+					acceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_ACCEPT_RESP)
 					if msg.UserId != session.Creator.UserId {
 						acceptResp.Attribute["errCode"] = "2"
 						acceptResp.Attribute["errMsg"] = "You are not the creator of this session"
@@ -232,11 +231,11 @@ func POIWSSessionHandler(sessionId int64) {
 					userChan <- acceptResp
 
 					isCalling = false
-					acceptMsg := models.NewPOIWSMessage("", session.Teacher.UserId, models.WS_SESSION_ACCEPT)
+					acceptMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_ACCEPT)
 					acceptMsg.Attribute["sessionId"] = sessionIdStr
 					acceptMsg.Attribute["accept"] = acceptStr
-					if managers.WsManager.HasUserChan(session.Teacher.UserId) {
-						teacherChan := managers.WsManager.GetUserChan(session.Teacher.UserId)
+					if WsManager.HasUserChan(session.Teacher.UserId) {
+						teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
 						teacherChan <- acceptMsg
 					}
 
@@ -246,7 +245,7 @@ func POIWSSessionHandler(sessionId int64) {
 						lastSync = timestamp
 
 						isServing = true
-						managers.WsManager.SetSessionServingMap(sessionId, isServing)
+						WsManager.SetSessionServingMap(sessionId, isServing)
 
 						syncTicker = time.NewTicker(time.Second * 60)
 						waitingTimer.Stop()
@@ -260,8 +259,8 @@ func POIWSSessionHandler(sessionId int64) {
 						seelog.Debug("POIWSSessionHandler: session start: " + sessionIdStr)
 					}
 
-				case models.WS_SESSION_CANCEL:
-					cancelResp := models.NewPOIWSMessage(msg.MessageId, msg.UserId, models.WS_SESSION_CANCEL_RESP)
+				case WS_SESSION_CANCEL:
+					cancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_CANCEL_RESP)
 					if msg.UserId != session.Teacher.UserId {
 						cancelResp.Attribute["errCode"] = "2"
 						cancelResp.Attribute["errMsg"] = "You are not the teacher of this session"
@@ -272,16 +271,16 @@ func POIWSSessionHandler(sessionId int64) {
 					userChan <- cancelResp
 
 					isCalling = false
-					cancelMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_CANCEL)
+					cancelMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_CANCEL)
 					cancelMsg.Attribute["sessionId"] = sessionIdStr
 					cancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-					if managers.WsManager.HasUserChan(session.Creator.UserId) {
-						creatorChan := managers.WsManager.GetUserChan(session.Creator.UserId)
+					if WsManager.HasUserChan(session.Creator.UserId) {
+						creatorChan := WsManager.GetUserChan(session.Creator.UserId)
 						creatorChan <- cancelMsg
 					}
 
-				case models.WS_SESSION_FINISH:
-					finishResp := models.NewPOIWSMessage(msg.MessageId, msg.UserId, models.WS_SESSION_FINISH_RESP)
+				case WS_SESSION_FINISH:
+					finishResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_FINISH_RESP)
 					if msg.UserId != session.Teacher.UserId {
 						finishResp.Attribute["errCode"] = "2"
 						finishResp.Attribute["errMsg"] = "You are not the teacher of this session"
@@ -291,10 +290,10 @@ func POIWSSessionHandler(sessionId int64) {
 					finishResp.Attribute["errCode"] = "0"
 					userChan <- finishResp
 
-					finishMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_FINISH)
+					finishMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_FINISH)
 					finishMsg.Attribute["sessionId"] = sessionIdStr
-					if managers.WsManager.HasUserChan(session.Creator.UserId) {
-						creatorChan := managers.WsManager.GetUserChan(session.Creator.UserId)
+					if WsManager.HasUserChan(session.Creator.UserId) {
+						creatorChan := WsManager.GetUserChan(session.Creator.UserId)
 						creatorChan <- finishMsg
 					}
 
@@ -318,28 +317,28 @@ func POIWSSessionHandler(sessionId int64) {
 
 					seelog.Debug("POIWSSessionHandler: session end: " + sessionIdStr)
 
-					managers.WsManager.RemoveSessionLive(sessionId)
-					managers.WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
-					managers.WsManager.RemoveSessionChan(sessionId)
-					managers.WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
-					managers.WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
-					managers.WsManager.RemoveSessionServingMap(sessionId)
+					WsManager.RemoveSessionLive(sessionId)
+					WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
+					WsManager.RemoveSessionChan(sessionId)
+					WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
+					WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
+					WsManager.RemoveSessionServingMap(sessionId)
 					//					close(sessionChan)
 
 					return
 
-				case models.WS_SESSION_BREAK:
+				case WS_SESSION_BREAK:
 					if isPaused {
 						break
 					}
 					length = length + (timestamp - lastSync)
 					lastSync = timestamp
 					isPaused = true
-					managers.WsManager.RemoveSessionServingMap(sessionId)
+					WsManager.RemoveSessionServingMap(sessionId)
 
 					waitingTimer = time.NewTimer(time.Minute * 5)
 
-					breakMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_BREAK)
+					breakMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK)
 					if msg.UserId == session.Creator.UserId {
 						breakMsg.UserId = session.Teacher.UserId
 					}
@@ -347,49 +346,49 @@ func POIWSSessionHandler(sessionId int64) {
 					breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
 					breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 					breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-					if managers.WsManager.HasUserChan(breakMsg.UserId) {
-						breakChan := managers.WsManager.GetUserChan(breakMsg.UserId)
+					if WsManager.HasUserChan(breakMsg.UserId) {
+						breakChan := WsManager.GetUserChan(breakMsg.UserId)
 						breakChan <- breakMsg
 					}
 
-				case models.WS_SESSION_RECOVER_TEACHER:
-					recoverTeacherMsg := models.NewPOIWSMessage("", session.Teacher.UserId, models.WS_SESSION_RECOVER_TEACHER)
+				case WS_SESSION_RECOVER_TEACHER:
+					recoverTeacherMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_RECOVER_TEACHER)
 					recoverTeacherMsg.Attribute["sessionId"] = sessionIdStr
 					recoverTeacherMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
 					recoverTeacherMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 
-					if !managers.WsManager.HasUserChan(session.Teacher.UserId) {
+					if !WsManager.HasUserChan(session.Teacher.UserId) {
 						break
 					}
-					teacherChan := managers.WsManager.GetUserChan(session.Teacher.UserId)
+					teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
 					teacherChan <- recoverTeacherMsg
 
-					if managers.WsManager.GetSessionServingMap(sessionId) {
+					if WsManager.GetSessionServingMap(sessionId) {
 						seelog.Debug("send session:", sessionId, " live status message to teacher:", session.Teacher.UserId)
-						sessionStatusMsg := models.NewPOIWSMessage("", session.Teacher.UserId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
+						sessionStatusMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						teacherChan <- sessionStatusMsg
 					}
 
-				case models.WS_SESSION_RECOVER_STU:
-					recoverStuMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_RECOVER_STU)
+				case WS_SESSION_RECOVER_STU:
+					recoverStuMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_RECOVER_STU)
 					recoverStuMsg.Attribute["sessionId"] = sessionIdStr
 					recoverStuMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 					recoverStuMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 
-					if !managers.WsManager.HasUserChan(session.Creator.UserId) {
+					if !WsManager.HasUserChan(session.Creator.UserId) {
 						break
 					}
-					studentChan := managers.WsManager.GetUserChan(session.Creator.UserId)
+					studentChan := WsManager.GetUserChan(session.Creator.UserId)
 					studentChan <- recoverStuMsg
 
-					if managers.WsManager.GetSessionServingMap(sessionId) {
+					if WsManager.GetSessionServingMap(sessionId) {
 						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator.UserId)
-						sessionStatusMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
+						sessionStatusMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						studentChan <- sessionStatusMsg
 					}
 
-				case models.WS_SESSION_PAUSE:
-					pauseResp := models.NewPOIWSMessage(msg.MessageId, msg.UserId, models.WS_SESSION_PAUSE_RESP)
+				case WS_SESSION_PAUSE:
+					pauseResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_PAUSE_RESP)
 					if isPaused || !isServing {
 						pauseResp.Attribute["errCode"] = "2"
 						userChan <- pauseResp
@@ -401,21 +400,21 @@ func POIWSSessionHandler(sessionId int64) {
 					length = length + (timestamp - lastSync)
 					lastSync = timestamp
 					isPaused = true
-					managers.WsManager.RemoveSessionServingMap(sessionId)
+					WsManager.RemoveSessionServingMap(sessionId)
 
-					pauseMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_PAUSE)
+					pauseMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_PAUSE)
 					pauseMsg.Attribute["sessionId"] = sessionIdStr
 					pauseMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 					pauseMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 
-					if !managers.WsManager.HasUserChan(session.Creator.UserId) {
+					if !WsManager.HasUserChan(session.Creator.UserId) {
 						break
 					}
-					studentChan := managers.WsManager.GetUserChan(session.Creator.UserId)
+					studentChan := WsManager.GetUserChan(session.Creator.UserId)
 					studentChan <- pauseMsg
 
-				case models.WS_SESSION_RESUME:
-					resumeResp := models.NewPOIWSMessage(msg.MessageId, msg.UserId, models.WS_SESSION_RESUME_RESP)
+				case WS_SESSION_RESUME:
+					resumeResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_RESP)
 					if !isPaused || !isServing {
 						resumeResp.Attribute["errCode"] = "2"
 						userChan <- resumeResp
@@ -424,20 +423,20 @@ func POIWSSessionHandler(sessionId int64) {
 					resumeResp.Attribute["errCode"] = "0"
 					userChan <- resumeResp
 
-					resumeMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_RESUME)
+					resumeMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_RESUME)
 					resumeMsg.Attribute["sessionId"] = sessionIdStr
 					resumeMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-					if managers.WsManager.HasUserChan(session.Creator.UserId) {
-						studentChan := managers.WsManager.GetUserChan(session.Creator.UserId)
+					if WsManager.HasUserChan(session.Creator.UserId) {
+						studentChan := WsManager.GetUserChan(session.Creator.UserId)
 						studentChan <- resumeMsg
 					}
 					go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-						models.WS_SESSION_RESUME, session.Creator.UserId))
+						WS_SESSION_RESUME, session.Creator.UserId))
 
 					isCalling = true
 
-				case models.WS_SESSION_RESUME_CANCEL:
-					resCancelResp := models.NewPOIWSMessage(msg.MessageId, msg.UserId, models.WS_SESSION_RESUME_CANCEL_RESP)
+				case WS_SESSION_RESUME_CANCEL:
+					resCancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_CANCEL_RESP)
 					if !isCalling {
 						resCancelResp.Attribute["errCode"] = "2"
 						resCancelResp.Attribute["errMsg"] = "nobody is calling"
@@ -447,18 +446,18 @@ func POIWSSessionHandler(sessionId int64) {
 					resCancelResp.Attribute["errCode"] = "0"
 					userChan <- resCancelResp
 
-					resCancelMsg := models.NewPOIWSMessage("", msg.UserId, models.WS_SESSION_RESUME_CANCEL)
+					resCancelMsg := NewPOIWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
 					resCancelMsg.Attribute["sessionId"] = sessionIdStr
 					resCancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-					if !managers.WsManager.HasUserChan(session.Creator.UserId) {
+					if !WsManager.HasUserChan(session.Creator.UserId) {
 						break
 					}
-					studentChan := managers.WsManager.GetUserChan(session.Creator.UserId)
+					studentChan := WsManager.GetUserChan(session.Creator.UserId)
 					studentChan <- resCancelMsg
 					isCalling = false
 
-				case models.WS_SESSION_RESUME_ACCEPT:
-					resAcceptResp := models.NewPOIWSMessage(msg.MessageId, msg.UserId, models.WS_SESSION_RESUME_ACCEPT_RESP)
+				case WS_SESSION_RESUME_ACCEPT:
+					resAcceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_ACCEPT_RESP)
 					acceptStr, ok := msg.Attribute["accept"]
 					if !ok {
 						resAcceptResp.Attribute["errCode"] = "2"
@@ -476,11 +475,11 @@ func POIWSSessionHandler(sessionId int64) {
 					userChan <- resAcceptResp
 
 					isCalling = false
-					resAcceptMsg := models.NewPOIWSMessage("", session.Teacher.UserId, models.WS_SESSION_RESUME_ACCEPT)
+					resAcceptMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_RESUME_ACCEPT)
 					resAcceptMsg.Attribute["sessionId"] = sessionIdStr
 					resAcceptMsg.Attribute["accept"] = acceptStr
-					if managers.WsManager.HasUserChan(session.Teacher.UserId) {
-						teacherChan := managers.WsManager.GetUserChan(session.Teacher.UserId)
+					if WsManager.HasUserChan(session.Teacher.UserId) {
+						teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
 						teacherChan <- resAcceptMsg
 					}
 
@@ -489,7 +488,7 @@ func POIWSSessionHandler(sessionId int64) {
 					} else if acceptStr == "1" {
 						lastSync = timestamp
 						isServing = true
-						managers.WsManager.SetSessionServingMap(sessionId, isServing)
+						WsManager.SetSessionServingMap(sessionId, isServing)
 						isPaused = false
 						syncTicker = time.NewTicker(time.Second * 60)
 						waitingTimer.Stop()
@@ -524,9 +523,9 @@ func InitSessionMonitor(sessionId int64) bool {
 		return false
 	}
 
-	alertMsg := models.NewPOIWSMessage("", session.Teacher.UserId, models.WS_SESSION_INSTANT_ALERT)
+	alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_ALERT)
 	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT {
-		alertMsg.OperationCode = models.WS_SESSION_ALERT
+		alertMsg.OperationCode = WS_SESSION_ALERT
 	}
 	alertMsg.Attribute["sessionId"] = sessionIdStr
 	alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
@@ -534,8 +533,8 @@ func InitSessionMonitor(sessionId int64) bool {
 	alertMsg.Attribute["countdown"] = "10"
 	alertMsg.Attribute["planTime"] = session.PlanTime
 
-	if managers.WsManager.HasUserChan(session.Teacher.UserId) {
-		teacherChan := managers.WsManager.GetUserChan(session.Teacher.UserId)
+	if WsManager.HasUserChan(session.Teacher.UserId) {
+		teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
 		teacherChan <- alertMsg
 	}
 	go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
@@ -550,9 +549,9 @@ func InitSessionMonitor(sessionId int64) bool {
 	}
 
 	if order.Type != models.ORDER_TYPE_GENERAL_APPOINTMENT {
-		if managers.WsManager.HasUserChan(session.Creator.UserId) {
+		if WsManager.HasUserChan(session.Creator.UserId) {
 			alertMsg.UserId = session.Creator.UserId
-			studentChan := managers.WsManager.GetUserChan(session.Creator.UserId)
+			studentChan := WsManager.GetUserChan(session.Creator.UserId)
 			studentChan <- alertMsg
 		}
 		go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
@@ -560,14 +559,14 @@ func InitSessionMonitor(sessionId int64) bool {
 
 	}
 
-	sessionChan := make(chan models.POIWSMessage)
-	managers.WsManager.SetSessionChan(sessionId, sessionChan)
+	sessionChan := make(chan POIWSMessage)
+	WsManager.SetSessionChan(sessionId, sessionChan)
 
 	timestamp := time.Now().Unix()
-	managers.WsManager.SetSessionLive(sessionId, timestamp)
-	managers.WsManager.SetUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
-	managers.WsManager.SetUserSessionLock(session.Creator.UserId, true, timestamp)
-	managers.WsManager.SetUserSessionLock(session.Teacher.UserId, true, timestamp)
+	WsManager.SetSessionLive(sessionId, timestamp)
+	WsManager.SetUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
+	WsManager.SetUserSessionLock(session.Creator.UserId, true, timestamp)
+	WsManager.SetUserSessionLock(session.Teacher.UserId, true, timestamp)
 
 	go POIWSSessionHandler(sessionId)
 
@@ -581,34 +580,34 @@ func CheckSessionBreak(userId int64) {
 		}
 	}()
 
-	if _, ok := managers.WsManager.UserSessionLiveMap[userId]; !ok {
+	if _, ok := WsManager.UserSessionLiveMap[userId]; !ok {
 		return
 	}
 	seelog.Debug("send session break message:", userId)
 	time.Sleep(10 * time.Second)
-	userLoginTime := managers.WsManager.GetUserOnlineStatus(userId)
-	if userLoginTime != -1 && managers.WsManager.HasUserChan(userId) {
+	userLoginTime := WsManager.GetUserOnlineStatus(userId)
+	if userLoginTime != -1 && WsManager.HasUserChan(userId) {
 		seelog.Debug("user ", userId, " reconnect success!")
-		//		userChan := managers.WsManager.GetUserChan(userId)
-		for sessionId, _ := range managers.WsManager.UserSessionLiveMap[userId] {
-			if !managers.WsManager.HasSessionChan(sessionId) {
+		//		userChan := WsManager.GetUserChan(userId)
+		for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
+			if !WsManager.HasSessionChan(sessionId) {
 				continue
 			}
-			if managers.WsManager.GetSessionServingMap(sessionId) {
+			if WsManager.GetSessionServingMap(sessionId) {
 				//				seelog.Debug("send session:", sessionId, " live status message to user:", userId)
-				//				sessionStatusMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
+				//				sessionStatusMsg := NewPOIWSMessage("", userId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 				//				userChan <- sessionStatusMsg
 				return
 			}
 		}
 	}
 
-	for sessionId, _ := range managers.WsManager.UserSessionLiveMap[userId] {
-		if !managers.WsManager.HasSessionChan(sessionId) {
+	for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
+		if !WsManager.HasSessionChan(sessionId) {
 			continue
 		}
-		sessionChan := managers.WsManager.GetSessionChan(sessionId)
-		breakMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_BREAK)
+		sessionChan := WsManager.GetSessionChan(sessionId)
+		breakMsg := NewPOIWSMessage("", userId, WS_SESSION_BREAK)
 		sessionChan <- breakMsg
 	}
 }
@@ -620,36 +619,36 @@ func RecoverUserSession(userId int64) {
 		}
 	}()
 
-	if !managers.WsManager.HasUserChan(userId) {
+	if !WsManager.HasUserChan(userId) {
 		return
 	}
 
-	if _, ok := managers.WsManager.UserSessionLiveMap[userId]; !ok {
+	if _, ok := WsManager.UserSessionLiveMap[userId]; !ok {
 		return
 	}
 
-	//	userChan := managers.WsManager.GetUserChan(userId)
+	//	userChan := WsManager.GetUserChan(userId)
 
-	for sessionId, _ := range managers.WsManager.UserSessionLiveMap[userId] {
+	for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
 		session := models.QuerySessionById(sessionId)
 		if session == nil {
 			continue
 		}
 
-		if !managers.WsManager.HasSessionChan(sessionId) {
+		if !WsManager.HasSessionChan(sessionId) {
 			continue
 		}
 
-		recoverMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_RECOVER_STU)
+		recoverMsg := NewPOIWSMessage("", userId, WS_SESSION_RECOVER_STU)
 		if session.Teacher.UserId == userId {
-			recoverMsg.OperationCode = models.WS_SESSION_RECOVER_TEACHER
+			recoverMsg.OperationCode = WS_SESSION_RECOVER_TEACHER
 		}
-		sessionChan := managers.WsManager.GetSessionChan(sessionId)
+		sessionChan := WsManager.GetSessionChan(sessionId)
 		sessionChan <- recoverMsg
 
-		//		if managers.WsManager.GetSessionServingMap(sessionId) {
+		//		if WsManager.GetSessionServingMap(sessionId) {
 		//			seelog.Debug("send session:", sessionId, " live status message to user:", userId)
-		//			sessionStatusMsg := models.NewPOIWSMessage("", userId, models.WS_SESSION_BREAK_RECONNECT_SUCCESS)
+		//			sessionStatusMsg := NewPOIWSMessage("", userId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 		//			userChan <- sessionStatusMsg
 		//		}
 	}

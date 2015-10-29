@@ -15,6 +15,7 @@ import (
 	"POIWolaiWebService/leancloud"
 	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/websocket"
 
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/mux"
@@ -1648,17 +1649,17 @@ func V1Banner(w http.ResponseWriter, r *http.Request) {
 
 func V1StatusLive(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanicException(w, NullObject)
-	liveUser := len(managers.WsManager.OnlineUserMap)
+	liveUser := len(websocket.WsManager.OnlineUserMap)
 	onlineUserCount := 0
 	onlineTeacherCount := 0
-	for userId, _ := range managers.WsManager.OnlineUserMap {
+	for userId, _ := range websocket.WsManager.OnlineUserMap {
 		user := models.QueryUserById(userId)
 		if user.AccessRight == 2 {
 			onlineTeacherCount++
 		}
 	}
 	onlineUserCount = liveUser - onlineTeacherCount
-	liveTeacher := len(managers.WsManager.OnlineTeacherMap)
+	liveTeacher := len(websocket.WsManager.OnlineTeacherMap)
 	content := map[string]interface{}{
 		"liveUser":           liveUser,
 		"liveTeacher":        liveTeacher,
