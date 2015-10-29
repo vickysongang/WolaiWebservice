@@ -104,6 +104,20 @@ func POIWSSessionHandler(sessionId int64) {
 			return
 
 		case cur := <-countdownTimer.C:
+			seelog.Debug("sessionId:", sessionId, " count down...")
+			//将最后同步时间设置为倒计时结束的时间
+			lastSync = cur.Unix()
+			//将课程标记为上课中，并将该状态存在内存中
+			isServing = true
+			WsManager.SetSessionServingMap(sessionId, isServing)
+
+			//设置课程的开始时间并更改课程的状态
+			sessionInfo := map[string]interface{}{
+				"Status":   models.SESSION_STATUS_SERVING,
+				"TimeFrom": time.Now(),
+			}
+			models.UpdateSessionInfo(sessionId, sessionInfo)
+
 			teacherOnline := WsManager.HasUserChan(session.Teacher.UserId)
 			studentOnline := WsManager.HasUserChan(session.Creator.UserId)
 			//如果老师不在线，学生在线，则向学生发送课程中断消息
@@ -138,20 +152,6 @@ func POIWSSessionHandler(sessionId int64) {
 				WsManager.RemoveSessionServingMap(sessionId)
 				break
 			}
-
-			seelog.Debug("sessionId:", sessionId, " count down...")
-			//将最后同步时间设置为倒计时结束的时间
-			lastSync = cur.Unix()
-			//将课程标记为上课中，并将该状态存在内存中
-			isServing = true
-			WsManager.SetSessionServingMap(sessionId, isServing)
-
-			//设置课程的开始时间并更改课程的状态
-			sessionInfo := map[string]interface{}{
-				"Status":   models.SESSION_STATUS_SERVING,
-				"TimeFrom": time.Now(),
-			}
-			models.UpdateSessionInfo(sessionId, sessionInfo)
 
 			//向老师和学生发送课程开始消息
 			startMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_START)
@@ -409,6 +409,8 @@ func POIWSSessionHandler(sessionId int64) {
 
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
 					waitingTimer = time.NewTimer(time.Minute * 5)
+					//停止时间同步计时器
+					syncTicker.Stop()
 
 					//如果学生掉线，则向老师发送课程中断消息，如果老师掉线，则向学生发送课程中断消息
 					breakMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK)
@@ -507,6 +509,7 @@ func POIWSSessionHandler(sessionId int64) {
 					resumeResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_RESP)
 					if !isPaused || !isServing {
 						resumeResp.Attribute["errCode"] = "2"
+						resumeResp.Attribute["errMsg"] = "session is not serving"
 						userChan <- resumeResp
 						break
 					}
