@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"POIWolaiWebService/common"
 	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
 	"POIWolaiWebService/utils"
@@ -30,13 +31,13 @@ func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface
 
 	title := "您有一条上课提醒"
 	switch oprCode {
-	case models.WS_SESSION_ALERT:
+	case common.WS_SESSION_ALERT:
 		title = "您有一个与" + session.Creator.Nickname + "同学的预约辅导已到上课时间。请开始上课。"
-	case models.WS_SESSION_START:
+	case common.WS_SESSION_START:
 		title = session.Teacher.Nickname + "老师向您发起上课请求。"
-	case models.WS_SESSION_RESUME:
+	case common.WS_SESSION_RESUME:
 		title = session.Teacher.Nickname + "老师向您发起恢复课堂请求。"
-	case models.WS_SESSION_INSTANT_START:
+	case common.WS_SESSION_INSTANT_START:
 		title = "您有一个立即辅导即将开始上课"
 	}
 	lcReq := map[string]interface{}{

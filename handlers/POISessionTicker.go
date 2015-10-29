@@ -48,7 +48,7 @@ func POISessionTickerHandler() {
 			_ = json.Unmarshal([]byte(sessionLockTicks[i].Content), &tickInfo)
 
 			if tickInfo["lock"] == 1 {
-				managers.WsManager.SetUserSessionLock(tickInfo["userId"], true, sessionLockTicks[i].Timestamp)
+				websocket.WsManager.SetUserSessionLock(tickInfo["userId"], true, sessionLockTicks[i].Timestamp)
 			}
 			// } else if tickInfo["lock"] == 0 {
 			// 	WsManager.SetUserSessionLock(tickInfo["userId"], false, sessionLockTicks[i].Timestamp)

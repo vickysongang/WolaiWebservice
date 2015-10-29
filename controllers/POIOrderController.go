@@ -73,7 +73,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 	switch orderType {
 	//马上辅导：检查用户是否可以发起马上辅导
 	case models.ORDER_TYPE_GENERAL_INSTANT:
-		if managers.WsManager.IsUserSessionLocked(creatorId) {
+		if websocket.WsManager.IsUserSessionLocked(creatorId) {
 			err = errors.New("你有一堂课马上就要开始啦！")
 			seelog.Error(err.Error())
 			return 5002, nil, err
@@ -126,7 +126,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 
 		//点对点辅导：检查用户是否可以发起点对点申请
 	case models.ORDER_TYPE_PERSONAL_INSTANT:
-		if managers.WsManager.IsUserSessionLocked(creatorId) {
+		if websocket.WsManager.IsUserSessionLocked(creatorId) {
 			err = errors.New("你有一堂课马上就要开始啦！")
 			seelog.Error(err.Error())
 			return 5002, nil, err
@@ -140,7 +140,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 	}
 
 	if orderPtr.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
-		if managers.WsManager.IsUserSessionLocked(teacherId) {
+		if websocket.WsManager.IsUserSessionLocked(teacherId) {
 			orderInfo := map[string]interface{}{
 				"Status": models.ORDER_STATUS_CANCELLED,
 			}
@@ -155,7 +155,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 }
 
 func IsUserServing(userId int64) bool {
-	for sessionId, servingStatus := range managers.WsManager.SessionServingMap {
+	for sessionId, servingStatus := range websocket.WsManager.SessionServingMap {
 		if servingStatus {
 			session := models.QuerySessionById(sessionId)
 			if session.Creator.UserId == userId || session.Teacher.UserId == userId {
@@ -208,13 +208,13 @@ func RealTimeOrderCreate(creatorId int64, teacherId int64, gradeId int64, subjec
 		return 5002, nil, err
 	}
 
-	if managers.WsManager.IsUserSessionLocked(creatorId) {
+	if websocket.WsManager.IsUserSessionLocked(creatorId) {
 		err = errors.New("你有一堂课马上就要开始啦！")
 		seelog.Error(err.Error())
 		return 5002, nil, err
 	}
 
-	if managers.WsManager.IsUserSessionLocked(teacherId) {
+	if websocket.WsManager.IsUserSessionLocked(teacherId) {
 		err = errors.New("对方该段时间内有课或即将有课，将不能为您上课！")
 		seelog.Error(err.Error())
 		return 5002, nil, err
@@ -298,7 +298,7 @@ func OrderPersonalConfirm(userId int64, orderId int64, accept int64, timestamp1 
 
 		return 0
 	} else if accept == 1 {
-		if managers.WsManager.IsUserSessionLocked(order.Creator.UserId) {
+		if websocket.WsManager.IsUserSessionLocked(order.Creator.UserId) {
 			orderInfo := map[string]interface{}{
 				"Status": models.ORDER_STATUS_CANCELLED,
 			}

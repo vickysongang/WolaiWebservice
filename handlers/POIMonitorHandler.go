@@ -2,8 +2,8 @@
 package handlers
 
 import (
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/websocket"
 	"encoding/json"
 	"net/http"
 )
@@ -67,17 +67,17 @@ func NewPOIMonitorOrders() POIMonitorOrders {
 func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanicException(w, NullObject)
 	users := NewPOIMonitorUsers()
-	for userId, timestamp := range managers.WsManager.OnlineUserMap {
-		locked := managers.WsManager.IsUserSessionLocked(userId)
+	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
+		locked := websocket.WsManager.IsUserSessionLocked(userId)
 		users.LiveUsers = append(users.LiveUsers, POIMonitorUser{User: models.QueryUserById(userId), LoginTime: timestamp, Locked: locked})
 	}
-	for userId, timestamp := range managers.WsManager.OnlineTeacherMap {
-		locked := managers.WsManager.IsUserSessionLocked(userId)
+	for userId, timestamp := range websocket.WsManager.OnlineTeacherMap {
+		locked := websocket.WsManager.IsUserSessionLocked(userId)
 		users.LiveTeachers = append(users.LiveTeachers, POIMonitorUser{User: models.QueryUserById(userId), LoginTime: timestamp, Locked: locked})
 	}
-	for userId, timestamp := range managers.WsManager.OnlineUserMap {
+	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
 		user := models.QueryUserById(userId)
-		locked := managers.WsManager.IsUserSessionLocked(userId)
+		locked := websocket.WsManager.IsUserSessionLocked(userId)
 		if user.AccessRight == 2 {
 			users.OnlineTeachers = append(users.OnlineTeachers, POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
 		} else {
@@ -90,7 +90,7 @@ func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanicException(w, NullObject)
 	orders := NewPOIMonitorOrders()
-	for orderId, teacherMap := range managers.WsManager.OrderDispatchMap {
+	for orderId, teacherMap := range websocket.WsManager.OrderDispatchMap {
 		master := POIOrderDispatchMaster{MasterId: orderId, Slaves: make([]POIOrderDispatchSlave, 0)}
 		for teacherId, timestamp := range teacherMap {
 			slave := POIOrderDispatchSlave{SlaveId: teacherId, TimeStamp: timestamp}
@@ -101,7 +101,7 @@ func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for teacherId, orderMap := range managers.WsManager.TeacherOrderDispatchMap {
+	for teacherId, orderMap := range websocket.WsManager.TeacherOrderDispatchMap {
 		master := POIOrderDispatchMaster{MasterId: teacherId, Slaves: make([]POIOrderDispatchSlave, 0)}
 		for orderId, timestamp := range orderMap {
 			slave := POIOrderDispatchSlave{SlaveId: orderId, TimeStamp: timestamp}
@@ -112,7 +112,7 @@ func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for userId, orderMap := range managers.WsManager.UserOrderDispatchMap {
+	for userId, orderMap := range websocket.WsManager.UserOrderDispatchMap {
 		master := POIOrderDispatchMaster{MasterId: userId, Slaves: make([]POIOrderDispatchSlave, 0)}
 		for orderId, timestamp := range orderMap {
 			slave := POIOrderDispatchSlave{SlaveId: orderId, TimeStamp: timestamp}
@@ -127,8 +127,8 @@ func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
 
 func GetSessionMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	sessions := make(POIMonitorSessions, 0)
-	for sessionId, timestamp := range managers.WsManager.SessionLiveMap {
-		servingStatus := managers.WsManager.GetSessionServingMap(sessionId)
+	for sessionId, timestamp := range websocket.WsManager.SessionLiveMap {
+		servingStatus := websocket.WsManager.GetSessionServingMap(sessionId)
 		session := POIMonitorSession{SessionId: sessionId, TimeStamp: timestamp, ServingStatus: servingStatus}
 		sessions = append(sessions, session)
 	}
