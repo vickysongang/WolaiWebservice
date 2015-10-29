@@ -27,21 +27,28 @@ func POIWSSessionHandler(sessionId int64) {
 	timestamp := time.Now().Unix()
 
 	var length int64
+
+	//初始化最后同步时间为当前时间
 	var lastSync int64 = timestamp
 
 	isCalling := false
 	isServing := false
 	isPaused := false
 
+	//时间同步计时器，每60s向客户端同步服务器端的时间来校准客户端的计时
 	syncTicker := time.NewTicker(time.Second * 60)
+	//超时计时器，预约的课二十分钟内没有发起上课则二十分钟会课程自动超时结束，中断的课程在五分钟内如果没有重新恢复则五分钟后课程自动超时结束
 	waitingTimer := time.NewTimer(time.Minute * 20)
+	//课程开始前的倒计时
 	countdownTimer := time.NewTimer(time.Second * 10)
 
+	//如果是预约的单，则停止倒计时计时器，如果是马上辅导的单则停止超时计时器
 	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT {
 		countdownTimer.Stop()
 	} else {
 		waitingTimer.Stop()
 	}
+	//初始停止时间同步计时器，待正式上课的时候启动该计时器
 	syncTicker.Stop()
 
 	for {
@@ -63,6 +70,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 			seelog.Debug("POIWSSessionHandler: session expired: " + sessionIdStr)
 
+			//如果课程没有在进行，超时后该课自动被取消，否则课程自动被结束
 			if !isServing {
 				sessionInfo := map[string]interface{}{
 					"Status": models.SESSION_STATUS_CANCELLED,
@@ -79,32 +87,23 @@ func POIWSSessionHandler(sessionId int64) {
 				//修改老师的辅导时长
 				models.UpdateTeacherServiceTime(session.Teacher.UserId, length)
 				session = models.QuerySessionById(sessionId)
+				//课后结算，产生交易记录
 				trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, true)
 			}
 			managers.WsManager.RemoveSessionLive(sessionId)
 			managers.WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
 			managers.WsManager.RemoveSessionChan(sessionId)
+
+			//将老师和学生从内存中解锁
 			managers.WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
 			managers.WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
-			//			close(sessionChan)
 
 			return
 
 		case cur := <-countdownTimer.C:
-			seelog.Debug("sessionId:", sessionId, " count down...")
-			lastSync = cur.Unix()
-			isServing = true
-			managers.WsManager.SetSessionServingMap(sessionId, isServing)
-
-			sessionInfo := map[string]interface{}{
-				"Status":   models.SESSION_STATUS_SERVING,
-				"TimeFrom": time.Now(),
-			}
-			models.UpdateSessionInfo(sessionId, sessionInfo)
-
 			teacherOnline := managers.WsManager.HasUserChan(session.Teacher.UserId)
 			studentOnline := managers.WsManager.HasUserChan(session.Creator.UserId)
-
+			//如果老师不在线，学生在线，则向学生发送课程中断消息
 			if !teacherOnline {
 				if studentOnline {
 					breakMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_BREAK)
@@ -120,6 +119,7 @@ func POIWSSessionHandler(sessionId int64) {
 				managers.WsManager.RemoveSessionServingMap(sessionId)
 				break
 			}
+			//如果学生不在线老师在线，则向老师发送课程中断消息
 			if !studentOnline {
 				if teacherOnline {
 					breakMsg := models.NewPOIWSMessage("", session.Teacher.UserId, models.WS_SESSION_BREAK)
@@ -135,6 +135,20 @@ func POIWSSessionHandler(sessionId int64) {
 				managers.WsManager.RemoveSessionServingMap(sessionId)
 				break
 			}
+
+			seelog.Debug("sessionId:", sessionId, " count down...")
+			//将最后同步时间设置为倒计时结束的时间
+			lastSync = cur.Unix()
+			//将课程标记为上课中，并将该状态存在内存中
+			isServing = true
+			managers.WsManager.SetSessionServingMap(sessionId, isServing)
+
+			//设置课程的开始时间并更改课程的状态
+			sessionInfo := map[string]interface{}{
+				"Status":   models.SESSION_STATUS_SERVING,
+				"TimeFrom": time.Now(),
+			}
+			models.UpdateSessionInfo(sessionId, sessionInfo)
 
 			startMsg := models.NewPOIWSMessage("", session.Teacher.UserId, models.WS_SESSION_INSTANT_START)
 			startMsg.Attribute["sessionId"] = sessionIdStr

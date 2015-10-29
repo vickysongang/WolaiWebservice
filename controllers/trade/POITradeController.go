@@ -86,12 +86,16 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 	minute := (session.Length % 3600) / 60
 
 	var comment string
+	gradeSubjectDisplayName := fmt.Sprintf("%s%s%s", parentGradeName, gradeName, subjectName)
+	if models.OrderTypeRevDict[order.OrderType] == models.ORDER_TYPE_REALTIME_SESSION {
+		gradeSubjectDisplayName = "实时课堂"
+	}
 	if hour != 0 && minute != 0 {
-		comment = fmt.Sprintf("%s%s%s %dh%dm", parentGradeName, gradeName, subjectName, hour, minute)
+		comment = fmt.Sprintf("%s %dh%dm", gradeSubjectDisplayName, hour, minute)
 	} else if hour == 0 && minute != 0 {
-		comment = fmt.Sprintf("%s%s%s %dm", parentGradeName, gradeName, subjectName, minute)
+		comment = fmt.Sprintf("%s %dm", gradeSubjectDisplayName, minute)
 	} else {
-		comment = fmt.Sprintf("%s%s%s %dh", parentGradeName, gradeName, subjectName, hour)
+		comment = fmt.Sprintf("%s %dh", gradeSubjectDisplayName, hour)
 	}
 
 	//学生付款,如果学生是包月用户，则不需要付款
