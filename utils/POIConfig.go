@@ -19,6 +19,7 @@ type POIConfig struct {
 	Redis     redisConf
 	LeanCloud leancloudConf
 	Reminder  reminderConf
+	Pingpp    pingppConf
 }
 
 var Config POIConfig
@@ -58,6 +59,11 @@ type leancloudConf struct {
 
 type reminderConf struct {
 	Durations []duration
+}
+
+type pingppConf struct {
+	Key   string
+	AppId string
 }
 
 // Parse duration

@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"POIWolaiWebService/controllers"
@@ -17,8 +19,11 @@ import (
 	"POIWolaiWebService/models"
 	"POIWolaiWebService/websocket"
 
+	pingxx "POIWolaiWebService/pingpp"
+
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/mux"
+	"github.com/pingplusplus/pingpp-go/pingpp"
 )
 
 /*
@@ -1659,6 +1664,175 @@ func V1InsertExperience(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 		}
 	}
+}
+
+/*
+ * 14.1 pingpp pay
+ */
+func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	orderNo := vars["orderNo"][0]
+	amountStr := vars["amount"][0]
+	amount, _ := strconv.ParseUint(amountStr, 10, 64)
+	channel := vars["channel"][0]
+	currency := vars["currency"][0]
+	clientIp := vars["clientIp"][0]
+	subject := vars["subject"][0]
+	body := vars["body"][0]
+	content, err := pingxx.PayByPingpp(orderNo, amount, channel, currency, clientIp, subject, body)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
+ * 14.2 pingpp refund
+ */
+func V1RefundByPingpp(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	amountStr := vars["amount"][0]
+	amount, _ := strconv.ParseUint(amountStr, 10, 64)
+	description := vars["description"][0]
+	chargeId := vars["chargeId"][0]
+	content, err := pingxx.RefundByPingpp(amount, description, chargeId)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
+ * 14.3 pingpp query payment
+ */
+func V1QueryPaymentByPingpp(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	chargeId := vars["chargeId"][0]
+	content, err := pingxx.QueryPaymentByChargeId(chargeId)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
+ * 14.4 pingpp query payment list
+ */
+func V1QueryPaymentListByPingpp(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	var page string
+	if len(vars["page"]) > 0 {
+		page = vars["page"][0]
+	} else {
+		page = "0"
+	}
+	var limit string
+	if len(vars["count"]) > 0 {
+		limit = vars["count"][0]
+	} else {
+		limit = "10"
+	}
+	content := pingxx.QueryPaymentList(limit, page)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+}
+
+/*
+ * 14.5 pingpp query refund
+ */
+func V1QueryRefundByPingpp(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	chargeId := vars["chargeId"][0]
+	refundId := vars["refundId"][0]
+	content, err := pingxx.QueryRefundByChargeIdAndRefundId(chargeId, refundId)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
+ * 14.6 pingpp query refund list
+ */
+func V1QueryRefundListByPingpp(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	chargeId := vars["chargeId"][0]
+	var page string
+	if len(vars["page"]) > 0 {
+		page = vars["page"][0]
+	} else {
+		page = "0"
+	}
+	var limit string
+	if len(vars["count"]) > 0 {
+		limit = vars["count"][0]
+	} else {
+		limit = "10"
+	}
+	content := pingxx.QueryRefundList(chargeId, limit, page)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+}
+
+/*
+ * 14.7 pingpp webhook
+ */
+func V1WebhookByPingpp(w http.ResponseWriter, r *http.Request) {
+	if strings.ToUpper(r.Method) == "POST" {
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r.Body)
+		//		signature := r.Header.Get("x-pingplusplus-signature")
+		webhook, err := pingpp.ParseWebhooks(buf.Bytes())
+		fmt.Println(webhook.Type)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "fail")
+			return
+		}
+
+		if webhook.Type == "charge.succeeded" {
+			// TODO your code for charge
+			w.WriteHeader(http.StatusOK)
+		} else if webhook.Type == "refund.succeeded" {
+			// TODO your code for refund
+			w.WriteHeader(http.StatusOK)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}
+
 }
 
 func V1Banner(w http.ResponseWriter, r *http.Request) {

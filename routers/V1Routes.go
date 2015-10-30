@@ -831,6 +831,98 @@ var V1Routes = Routes{
 		handlers.V1InsertExperience,
 	},
 
+	// 14.1 pingpp pay
+	Route{
+		"V1PayByPingppPOST",
+		"POST",
+		"/v1/pingpp/pay",
+		handlers.V1PayByPingpp,
+	},
+	Route{
+		"V1PayByPingppGET",
+		"GET",
+		"/v1/pingpp/pay",
+		handlers.V1PayByPingpp,
+	},
+	// 14.2 pingpp refund
+	Route{
+		"V1RefundByPingppPOST",
+		"POST",
+		"/v1/pingpp/refund",
+		handlers.V1RefundByPingpp,
+	},
+	Route{
+		"V1RefundByPingppGET",
+		"GET",
+		"/v1/pingpp/refund",
+		handlers.V1RefundByPingpp,
+	},
+	// 14.3 pingpp query payment
+	Route{
+		"V1QueryPaymentByPingppPOST",
+		"POST",
+		"/v1/pingpp/pay/query",
+		handlers.V1QueryPaymentByPingpp,
+	},
+	Route{
+		"V1QueryPaymentByPingppGET",
+		"GET",
+		"/v1/pingpp/pay/query",
+		handlers.V1QueryPaymentByPingpp,
+	},
+	// 14.4 pingpp query payment list
+	Route{
+		"V1QueryPaymentListByPingppPOST",
+		"POST",
+		"/v1/pingpp/pay/list",
+		handlers.V1QueryPaymentListByPingpp,
+	},
+	Route{
+		"V1QueryPaymentListByPingppGET",
+		"GET",
+		"/v1/pingpp/pay/list",
+		handlers.V1QueryPaymentListByPingpp,
+	},
+	// 14.5 pingpp query refund
+	Route{
+		"V1QueryRefundByPingppPOST",
+		"POST",
+		"/v1/pingpp/refund/query",
+		handlers.V1QueryRefundByPingpp,
+	},
+	Route{
+		"V1QueryRefundByPingppGET",
+		"GET",
+		"/v1/pingpp/refund/query",
+		handlers.V1QueryRefundByPingpp,
+	},
+	// 14.6 pingpp query refund list
+	Route{
+		"V1QueryRefundListByPingppPOST",
+		"POST",
+		"/v1/pingpp/refund/list",
+		handlers.V1QueryRefundListByPingpp,
+	},
+	Route{
+		"V1QueryRefundListByPingppGET",
+		"GET",
+		"/v1/pingpp/refund/list",
+		handlers.V1QueryRefundListByPingpp,
+	},
+	// 14.7 pingpp webhook
+	Route{
+		"V1WebhookByPingppPOST",
+		"POST",
+		"/v1/pingpp/webhook",
+		handlers.V1WebhookByPingpp,
+	},
+	Route{
+		"V1WebhookByPingppGET",
+		"GET",
+		"/v1/pingpp/webhook",
+		handlers.V1WebhookByPingpp,
+	},
+
 	Route{
 		"V1BannerPOST",
 		"POST",
