@@ -32,7 +32,7 @@ func POIWSSessionHandler(sessionId int64) {
 	var lastSync int64 = timestamp
 
 	isCalling := false  //是否正在拨号中
-	isAccepted := false //预约课程时学生是否接受了老师的上课请求
+	isAccepted := false //学生是否接受了老师的上课请求
 
 	isServing := false //课程是否正在进行中
 	isPaused := false  //课程是否被暂停
@@ -427,6 +427,14 @@ func POIWSSessionHandler(sessionId int64) {
 					}
 
 				case WS_SESSION_RECOVER_TEACHER:
+					//如果老师所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
+					if WsManager.GetSessionServingMap(sessionId) {
+						//计算课程时长，已计时长＋（重连时间－上次同步时间）
+						length = length + (timestamp - lastSync)
+						//将中断时间设置为最后同步时间，用于下次时间的计算
+						lastSync = timestamp
+					}
+
 					//向老师发送恢复课程信息
 					recoverTeacherMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_RECOVER_TEACHER)
 					recoverTeacherMsg.Attribute["sessionId"] = sessionIdStr
@@ -450,6 +458,14 @@ func POIWSSessionHandler(sessionId int64) {
 					}
 
 				case WS_SESSION_RECOVER_STU:
+					//如果学生所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
+					if WsManager.GetSessionServingMap(sessionId) {
+						//计算课程时长，已计时长＋（重连时间－上次同步时间）
+						length = length + (timestamp - lastSync)
+						//将中断时间设置为最后同步时间，用于下次时间的计算
+						lastSync = timestamp
+					}
+
 					//向学生发送恢复课程信息
 					recoverStuMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_RECOVER_STU)
 					recoverStuMsg.Attribute["sessionId"] = sessionIdStr
