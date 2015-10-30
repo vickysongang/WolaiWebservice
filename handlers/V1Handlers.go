@@ -1637,6 +1637,30 @@ func V1SupportRejectCourse(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*
+ * 13.1 Insert experience
+ */
+func V1InsertExperience(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	nickname := vars["nickname"][0]
+	phone := vars["phone"][0]
+	content, err := controllers.InsertExperience(nickname, phone)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+	} else {
+		if content == nil {
+			json.NewEncoder(w).Encode(models.NewPOIResponse(2, "该号码已存在", NullObject))
+		} else {
+			json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		}
+	}
+}
+
 func V1Banner(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanicException(w, NullSlice)
 	content, err := models.QueryBannerList()

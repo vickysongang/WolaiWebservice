@@ -817,6 +817,20 @@ var V1Routes = Routes{
 		handlers.V1SupportRejectCourse,
 	},
 
+	// 13.1 Insert experience
+	Route{
+		"V1InsertExperiencePOST",
+		"POST",
+		"/v1/experience/insert",
+		handlers.V1InsertExperience,
+	},
+	Route{
+		"V1InsertExperienceGET",
+		"GET",
+		"/v1/experience/insert",
+		handlers.V1InsertExperience,
+	},
+
 	Route{
 		"V1BannerPOST",
 		"POST",
