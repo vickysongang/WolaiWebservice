@@ -261,7 +261,7 @@ func SendPersonalOrderAutoRejectNotification(studentId int64, teacherId int64) {
 	attr := make(map[string]string)
 	studentTMsg := LCTypedMessage{
 		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]老师正忙，暂时不能收到你的约课请求，建议换个时间再试试看噢！",
+		Text:      "[系统提示]导师正忙，暂时不能收到你的约课请求，建议换个时间再试试看噢！",
 		Attribute: attr,
 	}
 	teacherTMsg := LCTypedMessage{
@@ -278,7 +278,7 @@ func SendPersonalOrderAutoIgnoreNotification(studentId int64, teacherId int64) {
 	attr := make(map[string]string)
 	studentTMsg := LCTypedMessage{
 		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]老师回复了您的约课请求，但是你有课程正在进行中，暂时不能开始此次辅导，记得联系他换个时间再约喔！",
+		Text:      "[系统提示]导师回复了您的约课请求，但是你有课程正在进行中，暂时不能开始此次辅导，记得联系他换个时间再约喔！",
 		Attribute: attr,
 	}
 	teacherTMsg := LCTypedMessage{
