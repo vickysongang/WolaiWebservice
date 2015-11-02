@@ -34,6 +34,20 @@ func QueryGradeList() (POIGrades, error) {
 	return grades, nil
 }
 
+func QueryGradeListByPid(pid int64) (POIGrades, error) {
+	grades := make(POIGrades, 0)
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb.Select("id,name,pid").From("grade").Where("pid = ?")
+	sql := qb.String()
+	o := orm.NewOrm()
+	_, err := o.Raw(sql, pid).QueryRows(&grades)
+	if err != nil {
+		seelog.Error(err.Error())
+		return grades, err
+	}
+	return grades, nil
+}
+
 func QueryGradeById(gradeId int64) *POIGrade {
 	grade := POIGrade{}
 	o := orm.NewOrm()

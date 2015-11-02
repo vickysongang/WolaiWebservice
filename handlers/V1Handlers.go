@@ -812,11 +812,30 @@ func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
  */
 func V1GradeList(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanicException(w, NullSlice)
-	content, err := models.QueryGradeList()
+	err := r.ParseForm()
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	if len(vars["pid"]) > 0 {
+		pidStr := vars["pid"][0]
+		pid, _ := strconv.ParseInt(pidStr, 10, 64)
+
+		content, err := models.QueryGradeListByPid(pid)
+		if err != nil {
+			json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		} else {
+			json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		}
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		content, err := models.QueryGradeList()
+		if err != nil {
+			json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		} else {
+			json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		}
 	}
 }
 
