@@ -407,6 +407,8 @@ func POIWSSessionHandler(sessionId int64) {
 					isPaused = true
 					WsManager.RemoveSessionServingMap(sessionId)
 
+					isAccepted = false
+
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
 					waitingTimer = time.NewTimer(time.Minute * 5)
 					//停止时间同步计时器
@@ -507,6 +509,8 @@ func POIWSSessionHandler(sessionId int64) {
 					//课程暂停，从内存中移除课程正在进行当状态
 					isPaused = true
 					WsManager.RemoveSessionServingMap(sessionId)
+
+					isAccepted = false
 
 					//向学生发送课程暂停的消息
 					pauseMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_PAUSE)
