@@ -2027,3 +2027,42 @@ func V1GetHelpItems(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
 }
+
+func V1SetSeekHelp(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	convId := vars["convId"][0]
+	redis.RedisManager.SetSeekHelp(time.Now().Unix(), convId)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+}
+
+func V1GetSeekHelps(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+
+	var pageNum int64
+	if len(vars["page"]) == 0 {
+		pageNum = 0
+	} else {
+		pageNumStr := vars["page"][0]
+		pageNum, _ = strconv.ParseInt(pageNumStr, 10, 64)
+	}
+
+	var pageCount int64
+	if len(vars["count"]) == 0 {
+		pageCount = 10
+	} else {
+		pageCountStr := vars["count"][0]
+		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
+	}
+	content := redis.RedisManager.GetSeekHelps(pageNum, pageCount)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+}

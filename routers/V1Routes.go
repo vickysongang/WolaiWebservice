@@ -1037,6 +1037,31 @@ var V1Routes = Routes{
 		"/v1/monitor/session",
 		handlers.GetSessionMonitorInfo,
 	},
+	Route{
+		"V1PostSeekHelpPOST",
+		"POST",
+		"/v1/seekhelp/post",
+		handlers.V1SetSeekHelp,
+	},
+	Route{
+		"V1PostSeekHelpGET",
+		"GET",
+		"/v1/seekhelp/post",
+		handlers.V1SetSeekHelp,
+	},
+	Route{
+		"V1GetSeekHelpsPOST",
+		"POST",
+		"/v1/seekhelp/get",
+		handlers.V1GetSeekHelps,
+	},
+	Route{
+		"V1GetSeekHelpsGET",
+		"GET",
+		"/v1/seekhelp/get",
+		handlers.V1GetSeekHelps,
+	},
+
 	// Dummy
 	Route{
 		"Dummy",

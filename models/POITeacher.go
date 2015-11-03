@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	USER_WOLAI_SUPPORT = 1001
-	USER_WOLAI_TEAM    = 1003
+	USER_WOLAI_TEAM  = 1003
+	USER_WOLAI_TUTOR = 2001
 )
 
 type POITeacher struct {
@@ -193,7 +193,7 @@ func QuerySupportList() (POITeachers, error) {
 	sql := qb.String()
 	o := orm.NewOrm()
 	var teacherModels POITeacherModels
-	_, err := o.Raw(sql, USER_WOLAI_SUPPORT, USER_WOLAI_TEAM).QueryRows(&teacherModels)
+	_, err := o.Raw(sql, USER_WOLAI_TEAM, USER_WOLAI_TUTOR).QueryRows(&teacherModels)
 	if err != nil {
 		seelog.Error(err.Error())
 		return nil, err

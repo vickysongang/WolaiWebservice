@@ -60,6 +60,8 @@ const (
 	SESSION_USER_LOCK   = "session:user:"
 
 	ACTIVITY_NOTIFICATION = "activity:notification:"
+
+	SEEK_HELP_SUPPORT = "support:seek_help"
 )
 
 func NewPOIRedisManager() POIRedisManager {
@@ -782,4 +784,22 @@ func (rm *POIRedisManager) GetActivityNotification(userId int64) []string {
 	}
 
 	return result
+}
+
+func (rm *POIRedisManager) SetSeekHelp(timestamp int64, convId string) {
+	helpZ := redis.Z{Member: convId, Score: float64(timestamp)}
+	_ = RedisManager.RedisClient.ZAdd(SEEK_HELP_SUPPORT, helpZ)
+}
+
+func (rm *POIRedisManager) GetSeekHelps(page, count int64) []string {
+	helps := make([]string, 0)
+	start := page * count
+	stop := (page+1)*count - 1
+	helpZs := rm.RedisClient.ZRevRangeWithScores(SEEK_HELP_SUPPORT, start, stop).Val()
+
+	for i := range helpZs {
+		help, _ := helpZs[i].Member.(string)
+		helps = append(helps, help)
+	}
+	return helps
 }
