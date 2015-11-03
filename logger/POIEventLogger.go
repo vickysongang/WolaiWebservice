@@ -27,3 +27,13 @@ func InsertOrderEventLog(orderId, userId int64, action string, comment interface
 	}
 	go models.InsertOrderEventLog(&eventLog)
 }
+
+func InsertUserEventLog(userId int64, action string, comment interface{}) {
+	commentByte, _ := json.Marshal(comment)
+	eventLog := models.POIEventLogUser{
+		UserId:  userId,
+		Action:  action,
+		Comment: string(commentByte),
+	}
+	go models.InsertUserEventLog(&eventLog)
+}
