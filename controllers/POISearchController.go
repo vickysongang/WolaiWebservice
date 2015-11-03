@@ -19,11 +19,12 @@ func SearchTeachers(userId int64, keyword string, pageNum, pageCount int64) (*mo
 		teacherModel := teacherModels[i]
 		teacher := models.POITeacher{
 			POIUser: models.POIUser{
-				UserId:   teacherModel.Id,
-				Nickname: teacherModel.Nickname,
-				Phone:    teacherModel.Phone,
-				Avatar:   teacherModel.Avatar,
-				Gender:   teacherModel.Gender},
+				UserId:      teacherModel.Id,
+				Nickname:    teacherModel.Nickname,
+				Phone:       teacherModel.Phone,
+				Avatar:      teacherModel.Avatar,
+				AccessRight: teacherModel.AccessRight,
+				Gender:      teacherModel.Gender},
 			ServiceTime:      teacherModel.ServiceTime,
 			School:           teacherModel.SchoolName,
 			Department:       teacherModel.DeptName,
@@ -50,11 +51,12 @@ func SearchUsers(userId int64, keyword string, pageNum, pageCount int64) (*model
 		teacherModel := teacherModels[i]
 		teacher := models.POITeacher{
 			POIUser: models.POIUser{
-				UserId:   teacherModel.Id,
-				Nickname: teacherModel.Nickname,
-				Phone:    teacherModel.Phone,
-				Avatar:   teacherModel.Avatar,
-				Gender:   teacherModel.Gender},
+				UserId:      teacherModel.Id,
+				Nickname:    teacherModel.Nickname,
+				Phone:       teacherModel.Phone,
+				Avatar:      teacherModel.Avatar,
+				AccessRight: teacherModel.AccessRight,
+				Gender:      teacherModel.Gender},
 			ServiceTime:      teacherModel.ServiceTime,
 			School:           teacherModel.SchoolName,
 			Department:       teacherModel.DeptName,
