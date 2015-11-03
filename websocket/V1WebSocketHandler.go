@@ -95,7 +95,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		loginResp := NewPOIWSMessage(msg.MessageId, msg.UserId, msg.OperationCode+1)
 		err = conn.WriteJSON(loginResp)
 		if err == nil {
-			seelog.Debug("V1WSHandler:Send code 12 to user", msg.UserId)
+			seelog.Debug("V1WSHandler:Send code 12 to user ", msg.UserId)
 			logger.InsertUserEventLog(msg.UserId, "用户上线", msg)
 		} else {
 			seelog.Error("send login response to user ", msg.UserId, " fail")
@@ -128,7 +128,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		_, p, err = conn.ReadMessage()
 		if err != nil {
 			errMsg := err.Error()
-			seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId, " ErrorInfo:", errMsg)
+			seelog.Debug("WebSocketWriteHandler: socket disconnect; UserId: ", userId, "; ErrorInfo:", errMsg)
 			logger.InsertUserEventLog(userId, "用户掉线", errMsg)
 			if WsManager.GetUserOnlineStatus(userId) == loginTS {
 				WSUserLogout(userId)

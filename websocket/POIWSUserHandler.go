@@ -54,7 +54,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 				}
 			default:
 				if msg.OperationCode == WS_LOGIN || msg.OperationCode == WS_RECONNECT {
-					seelog.Debug("Send Force Logout message to ", msg.UserId, "when old chan doesn't exsits!")
+					seelog.Debug("Send Force Logout message to ", msg.UserId, " when old chan doesn't exsits!")
 					msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
 					oldChan <- msgFL
 				}
