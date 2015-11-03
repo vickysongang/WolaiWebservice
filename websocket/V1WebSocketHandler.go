@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"POIWolaiWebService/logger"
 	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
 
@@ -301,6 +302,13 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			if ok {
 				conn.SetWriteDeadline(time.Now().Add(writeWait))
 				err := conn.WriteJSON(msg)
+
+				//持久化跟Session相关的消息
+				if sessionIdStr, ok := msg.Attribute["sessionId"]; ok {
+					sessionId, _ := strconv.Atoi(sessionIdStr)
+					logger.InsertSessionEventLog(int64(sessionId), userId, "", msg)
+				}
+
 				if err != nil {
 					seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 					if WsManager.GetUserOnlineStatus(userId) == loginTS {
