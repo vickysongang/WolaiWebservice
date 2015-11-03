@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 	"POIWolaiWebService/utils"
 
 	seelog "github.com/cihub/seelog"
@@ -176,7 +176,7 @@ func POIWSOrderHandler(orderId int64) {
 						}
 
 						//判断是否有预约冲突
-						if !managers.RedisManager.IsUserAvailable(msg.UserId, timestampFrom, timestampTo) {
+						if !redis.RedisManager.IsUserAvailable(msg.UserId, timestampFrom, timestampTo) {
 							replyResp.Attribute["errCode"] = "1091"
 							replyResp.Attribute["errMsg"] = "该时间段内你已有其他课程！"
 							userChan <- replyResp
@@ -327,7 +327,7 @@ func POIWSOrderHandler(orderId int64) {
 					if order.Type == models.ORDER_TYPE_GENERAL_INSTANT {
 						_ = InitSessionMonitor(sessionPtr.Id)
 					} else if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT {
-						if managers.RedisManager.SetSessionUserTick(sessionPtr.Id) {
+						if redis.RedisManager.SetSessionUserTick(sessionPtr.Id) {
 							WsManager.SetUserSessionLock(sessionPtr.Teacher.UserId, true, timestamp)
 							WsManager.SetUserSessionLock(sessionPtr.Creator.UserId, true, timestamp)
 						}
@@ -339,7 +339,7 @@ func POIWSOrderHandler(orderId int64) {
 						sessionStart["type"] = leancloud.LC_MSG_SESSION_SYS
 						sessionStart["sessionId"] = sessionPtr.Id
 						jsonStart, _ := json.Marshal(sessionStart)
-						managers.RedisManager.SetSessionTicker(planTimeTS, string(jsonStart))
+						redis.RedisManager.SetSessionTicker(planTimeTS, string(jsonStart))
 
 						sessionReminder := make(map[string]int64)
 						sessionReminder["type"] = leancloud.LC_MSG_SESSION
@@ -351,7 +351,7 @@ func POIWSOrderHandler(orderId int64) {
 							sessionReminder["seconds"] = seconds
 							jsonReminder, _ := json.Marshal(sessionReminder)
 							if timestamp < planTimeTS-seconds {
-								managers.RedisManager.SetSessionTicker(planTimeTS-seconds, string(jsonReminder))
+								redis.RedisManager.SetSessionTicker(planTimeTS-seconds, string(jsonReminder))
 							}
 						}
 					}

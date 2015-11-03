@@ -7,8 +7,8 @@ import (
 	"strconv"
 
 	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 
 	"github.com/cihub/seelog"
 	"github.com/satori/go.uuid"
@@ -25,8 +25,8 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 		return nil, err
 	}
 	var feed *models.POIFeed
-	if managers.RedisManager.RedisError == nil {
-		feed = managers.RedisManager.GetFeed(feedId)
+	if redis.RedisManager.RedisError == nil {
+		feed = redis.RedisManager.GetFeed(feedId)
 	} else {
 		feed, err = models.GetFeed(feedId)
 		if err != nil {
@@ -50,10 +50,10 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	}
 
 	feed.IncreaseComment()
-	if managers.RedisManager.RedisError == nil {
-		managers.RedisManager.SetFeedComment(&feedComment)
-		managers.RedisManager.PostFeedComment(&feedComment)
-		managers.RedisManager.SetFeed(feed)
+	if redis.RedisManager.RedisError == nil {
+		redis.RedisManager.SetFeedComment(&feedComment)
+		redis.RedisManager.PostFeedComment(&feedComment)
+		redis.RedisManager.SetFeed(feed)
 	}
 	go leancloud.SendCommentNotification(feedComment.Id)
 
@@ -71,8 +71,8 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 func LikePOIFeedComment(userId int64, feedCommentId string, timestamp float64) (*models.POIFeedComment, error) {
 	var feedComment *models.POIFeedComment
 	var err error
-	if managers.RedisManager.RedisError == nil {
-		feedComment = managers.RedisManager.GetFeedComment(feedCommentId)
+	if redis.RedisManager.RedisError == nil {
+		feedComment = redis.RedisManager.GetFeedComment(feedCommentId)
 	} else {
 		feedComment, err = models.GetFeedComment(feedCommentId)
 		if err != nil {
@@ -86,11 +86,11 @@ func LikePOIFeedComment(userId int64, feedCommentId string, timestamp float64) (
 		seelog.Error(err.Error())
 		return nil, err
 	}
-	if managers.RedisManager.RedisError == nil {
-		if !managers.RedisManager.HasLikedFeedComment(feedComment, user) {
+	if redis.RedisManager.RedisError == nil {
+		if !redis.RedisManager.HasLikedFeedComment(feedComment, user) {
 			feedComment.IncreaseLike()
-			managers.RedisManager.SetFeedComment(feedComment)
-			managers.RedisManager.LikeFeedComment(feedComment, user, timestamp)
+			redis.RedisManager.SetFeedComment(feedComment)
+			redis.RedisManager.LikeFeedComment(feedComment, user, timestamp)
 		}
 	}
 	return feedComment, nil

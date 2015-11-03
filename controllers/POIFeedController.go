@@ -7,8 +7,8 @@ import (
 	"strconv"
 
 	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 
 	seelog "github.com/cihub/seelog"
 	"github.com/satori/go.uuid"
@@ -38,8 +38,8 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 	}
 	feed.ImageList = tmpList
 
-	if managers.RedisManager.RedisError == nil {
-		feed.OriginFeed = managers.RedisManager.GetFeed(originFeedId)
+	if redis.RedisManager.RedisError == nil {
+		feed.OriginFeed = redis.RedisManager.GetFeed(originFeedId)
 	} else {
 		originFeed, err := models.GetFeed(originFeedId)
 		if err != nil {
@@ -56,9 +56,9 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 		return nil, err
 	}
 	feed.Attribute = tmpMap
-	if managers.RedisManager.RedisError == nil {
-		managers.RedisManager.SetFeed(&feed)
-		managers.RedisManager.PostFeed(&feed)
+	if redis.RedisManager.RedisError == nil {
+		redis.RedisManager.SetFeed(&feed)
+		redis.RedisManager.PostFeed(&feed)
 	}
 
 	//异步持久化数据
@@ -77,19 +77,19 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 //action:mark代表标记，undo代表取消
 func MarkPOIFeed(feedId string, plateType string, action string) (*models.POIFeed, error) {
 	var feed *models.POIFeed
-	if managers.RedisManager.RedisError == nil {
-		feed = managers.RedisManager.GetFeed(feedId)
+	if redis.RedisManager.RedisError == nil {
+		feed = redis.RedisManager.GetFeed(feedId)
 	} else {
 		feed, _ = models.GetFeed(feedId)
 	}
 	feedPlateType := ""
 	if action == "mark" {
 		feedPlateType = plateType
-		managers.RedisManager.PostPlateFeed(feed, plateType)
+		redis.RedisManager.PostPlateFeed(feed, plateType)
 	} else if action == "undo" {
 		feedPlateType = ""
-		managers.RedisManager.DeleteTopFeed(feedId, plateType)
-		managers.RedisManager.DeleteFeed(feedId, plateType)
+		redis.RedisManager.DeleteTopFeed(feedId, plateType)
+		redis.RedisManager.DeleteFeed(feedId, plateType)
 	}
 	feedInfo := map[string]interface{}{"PlateType": feedPlateType}
 	go models.UpdateFeedInfo(feedId, feedInfo)
@@ -99,8 +99,8 @@ func MarkPOIFeed(feedId string, plateType string, action string) (*models.POIFee
 func LikePOIFeed(userId int64, feedId string, timestamp float64) (*models.POIFeed, error) {
 	var feed *models.POIFeed
 	var err error
-	if managers.RedisManager.RedisError == nil {
-		feed = managers.RedisManager.GetFeed(feedId)
+	if redis.RedisManager.RedisError == nil {
+		feed = redis.RedisManager.GetFeed(feedId)
 	} else {
 		feed, err = models.GetFeed(feedId)
 		if err != nil {
@@ -114,34 +114,34 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) (*models.POIFee
 		return nil, err
 	}
 	var likeFeedFlag bool
-	if managers.RedisManager.RedisError == nil {
-		likeFeedFlag = managers.RedisManager.HasLikedFeed(feed, user)
+	if redis.RedisManager.RedisError == nil {
+		likeFeedFlag = redis.RedisManager.HasLikedFeed(feed, user)
 	} else {
 		likeFeedFlag = models.HasLikedFeed(feed, user)
 	}
 
 	if !likeFeedFlag {
 		feed.IncreaseLike()
-		if managers.RedisManager.RedisError == nil {
-			managers.RedisManager.LikeFeed(feed, user, timestamp)
-			managers.RedisManager.SetFeed(feed)
+		if redis.RedisManager.RedisError == nil {
+			redis.RedisManager.LikeFeed(feed, user, timestamp)
+			redis.RedisManager.SetFeed(feed)
 
 			//Modified:20150909
-			count := managers.RedisManager.GetFeedLikeCount(feed.Id, userId)
+			count := redis.RedisManager.GetFeedLikeCount(feed.Id, userId)
 			if count == 0 {
 				go leancloud.SendLikeNotification(userId, timestamp, feedId)
 			}
 
-			managers.RedisManager.SetFeedLikeCount(feed.Id, userId)
+			redis.RedisManager.SetFeedLikeCount(feed.Id, userId)
 		}
 
 		feedLike := models.POIFeedLike{UserId: userId, FeedId: feedId}
 		go models.InsertPOIFeedLike(&feedLike)
 	} else {
 		feed.DecreaseLike()
-		if managers.RedisManager.RedisError == nil {
-			managers.RedisManager.UnlikeFeed(feed, user)
-			managers.RedisManager.SetFeed(feed)
+		if redis.RedisManager.RedisError == nil {
+			redis.RedisManager.UnlikeFeed(feed, user)
+			redis.RedisManager.SetFeed(feed)
 		}
 		go models.DeletePOIFeedLike(userId, feed.Id)
 	}
@@ -152,9 +152,9 @@ func GetFeedDetail(feedId string, userId int64) (*models.POIFeedDetail, error) {
 	var feed *models.POIFeed
 	var err error
 	var likedUserList models.POIUsers
-	if managers.RedisManager.RedisError == nil {
-		feed = managers.RedisManager.GetFeed(feedId)
-		likedUserList = managers.RedisManager.GetFeedLikeList(feedId)
+	if redis.RedisManager.RedisError == nil {
+		feed = redis.RedisManager.GetFeed(feedId)
+		likedUserList = redis.RedisManager.GetFeedLikeList(feedId)
 	} else {
 		feed, err = models.GetFeed(feedId)
 		if err != nil {
@@ -169,14 +169,14 @@ func GetFeedDetail(feedId string, userId int64) (*models.POIFeedDetail, error) {
 		return nil, err
 	}
 	var comments models.POIFeedComments
-	if managers.RedisManager.RedisError == nil {
-		comments = managers.RedisManager.GetFeedComments(feedId)
+	if redis.RedisManager.RedisError == nil {
+		comments = redis.RedisManager.GetFeedComments(feedId)
 		for i := range comments {
 			comment := comments[i]
-			comments[i].HasLiked = managers.RedisManager.HasLikedFeedComment(&comment, user)
+			comments[i].HasLiked = redis.RedisManager.HasLikedFeedComment(&comment, user)
 		}
-		feed.HasLiked = managers.RedisManager.HasLikedFeed(feed, user)
-		feed.HasFaved = managers.RedisManager.HasFavedFeed(feed, user)
+		feed.HasLiked = redis.RedisManager.HasLikedFeed(feed, user)
+		feed.HasFaved = redis.RedisManager.HasFavedFeed(feed, user)
 	} else {
 		comments = models.GetFeedComments(feedId)
 		feed.HasLiked = models.HasLikedFeed(feed, user)
@@ -196,12 +196,12 @@ func GetAtrium(userId int64, page int64, count int64, plateType string) (models.
 	start := page * count
 	stop := page*count + (count - 1)
 	var feeds models.POIFeeds
-	if managers.RedisManager.RedisError == nil {
-		feeds = managers.RedisManager.GetFeedFlowAtrium(start, stop, plateType)
+	if redis.RedisManager.RedisError == nil {
+		feeds = redis.RedisManager.GetFeedFlowAtrium(start, stop, plateType)
 		for i := range feeds {
 			feed := feeds[i]
-			feeds[i].HasLiked = managers.RedisManager.HasLikedFeed(&feed, user)
-			feeds[i].HasFaved = managers.RedisManager.HasFavedFeed(&feed, user)
+			feeds[i].HasLiked = redis.RedisManager.HasLikedFeed(&feed, user)
+			feeds[i].HasFaved = redis.RedisManager.HasFavedFeed(&feed, user)
 		}
 	} else {
 		if plateType == "" {
@@ -232,12 +232,12 @@ func GetUserFeed(userId int64, page int64, count int64) (models.POIFeeds, error)
 	start := page * count
 	stop := page*count + (count - 1)
 	var feeds models.POIFeeds
-	if managers.RedisManager.RedisError == nil {
-		feeds = managers.RedisManager.GetFeedFlowUserFeed(userId, start, stop)
+	if redis.RedisManager.RedisError == nil {
+		feeds = redis.RedisManager.GetFeedFlowUserFeed(userId, start, stop)
 		for i := range feeds {
 			feed := feeds[i]
-			feeds[i].HasLiked = managers.RedisManager.HasLikedFeed(&feed, user)
-			feeds[i].HasFaved = managers.RedisManager.HasFavedFeed(&feed, user)
+			feeds[i].HasLiked = redis.RedisManager.HasLikedFeed(&feed, user)
+			feeds[i].HasFaved = redis.RedisManager.HasFavedFeed(&feed, user)
 		}
 	} else {
 		feeds = models.GetFeedFlowUserFeed(userId, int(start), int(count))
@@ -258,11 +258,11 @@ func GetTopFeed(userId int64, plateType string) (models.POIFeeds, error) {
 		return nil, err
 	}
 	var feeds models.POIFeeds
-	if managers.RedisManager.RedisError == nil {
-		feeds = managers.RedisManager.GetTopFeeds(plateType)
+	if redis.RedisManager.RedisError == nil {
+		feeds = redis.RedisManager.GetTopFeeds(plateType)
 		for i := range feeds {
 			feed := feeds[i]
-			feeds[i].HasLiked = managers.RedisManager.HasLikedFeed(&feed, user)
+			feeds[i].HasLiked = redis.RedisManager.HasLikedFeed(&feed, user)
 		}
 	} else {
 		feeds, err = models.GetTopFeedFlowAtrium(plateType)
@@ -282,9 +282,9 @@ func DeleteFeed(feedId string) {
 		return
 	}
 
-	managers.RedisManager.DeleteFeed(feedId, "")
-	managers.RedisManager.DeleteFeed(feedId, "1001")
-	managers.RedisManager.DeleteTopFeed(feedId, "1001")
+	redis.RedisManager.DeleteFeed(feedId, "")
+	redis.RedisManager.DeleteFeed(feedId, "1001")
+	redis.RedisManager.DeleteTopFeed(feedId, "1001")
 	updateInfo := map[string]interface{}{
 		"DeleteFlag": "Y",
 		"PlateType":  "",
@@ -297,8 +297,8 @@ func RecoverFeed(feedId string) {
 	if feedId == "" {
 		return
 	}
-	feed := managers.RedisManager.GetFeed(feedId)
-	managers.RedisManager.PostFeed(feed)
+	feed := redis.RedisManager.GetFeed(feedId)
+	redis.RedisManager.PostFeed(feed)
 	updateInfo := map[string]interface{}{
 		"DeleteFlag": "",
 	}
@@ -310,13 +310,13 @@ func TopFeed(feedId string, plateType string, action string) {
 		return
 	}
 	topSeq := ""
-	feed := managers.RedisManager.GetFeed(feedId)
+	feed := redis.RedisManager.GetFeed(feedId)
 	if action == "top" {
 		topSeq = "1"
-		managers.RedisManager.TopFeed(feed, plateType)
+		redis.RedisManager.TopFeed(feed, plateType)
 	} else if action == "undo" {
 		topSeq = ""
-		managers.RedisManager.UndoTopFeed(feed, plateType)
+		redis.RedisManager.UndoTopFeed(feed, plateType)
 	}
 	go UpdateFeedTopSeq(feedId, topSeq)
 }
@@ -341,12 +341,12 @@ func GetUserLike(userId int64, page int64, count int64) (models.POIFeeds, error)
 	start := page * count
 	stop := page*count + (count - 1)
 	var feeds models.POIFeeds
-	if managers.RedisManager.RedisError == nil {
-		feeds = managers.RedisManager.GetFeedFlowUserFeedLike(userId, start, stop)
+	if redis.RedisManager.RedisError == nil {
+		feeds = redis.RedisManager.GetFeedFlowUserFeedLike(userId, start, stop)
 		for i := range feeds {
 			feed := feeds[i]
-			feeds[i].HasLiked = managers.RedisManager.HasLikedFeed(&feed, user)
-			feeds[i].HasFaved = managers.RedisManager.HasFavedFeed(&feed, user)
+			feeds[i].HasLiked = redis.RedisManager.HasLikedFeed(&feed, user)
+			feeds[i].HasFaved = redis.RedisManager.HasFavedFeed(&feed, user)
 		}
 	} else {
 		feeds = models.GetFeedFlowUserFeedLike(userId, int(start), int(count))

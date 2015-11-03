@@ -2,8 +2,8 @@
 package controllers
 
 import (
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 
 	"github.com/cihub/seelog"
 )
@@ -31,8 +31,8 @@ func SearchTeacher(userId int64, keyword string, pageNum, pageCount int64) (*mod
 			RealPricePerHour: teacherModel.RealPricePerHour}
 		lablList := models.QueryTeacherLabelByUserId(teacherModel.Id)
 		teacher.LabelList = lablList
-		if managers.RedisManager.RedisError == nil {
-			teacher.HasFollowed = managers.RedisManager.HasFollowedUser(0, teacherModel.Id)
+		if redis.RedisManager.RedisError == nil {
+			teacher.HasFollowed = redis.RedisManager.HasFollowedUser(0, teacherModel.Id)
 		}
 		teachers = append(teachers, teacher)
 	}

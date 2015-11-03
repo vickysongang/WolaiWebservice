@@ -2,8 +2,8 @@
 package handlers
 
 import (
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -53,7 +53,7 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 
 	activityIdStr := vars["id"][0]
 	activityId, _ := strconv.ParseInt(activityIdStr, 10, 64)
-	managers.RedisManager.SetActivityNotification(10001, activityId, "promo_1.png")
+	redis.RedisManager.SetActivityNotification(10001, activityId, "promo_1.png")
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {

@@ -15,8 +15,8 @@ import (
 	"POIWolaiWebService/controllers/trade"
 
 	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 	"POIWolaiWebService/websocket"
 
 	pingxx "POIWolaiWebService/pingpp"
@@ -1424,7 +1424,7 @@ func V1ActivityNotification(w http.ResponseWriter, r *http.Request) {
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
-	content := managers.RedisManager.GetActivityNotification(userId)
+	content := redis.RedisManager.GetActivityNotification(userId)
 
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	// activityType := vars["type"][0]

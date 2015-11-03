@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 
 	"github.com/cihub/seelog"
 )
@@ -17,7 +17,7 @@ func GetTeacherRecommendationList(userId, pageNum, pageCount int64) (models.POIT
 	}
 	for i := range teachers {
 		teachers[i].LabelList = models.QueryTeacherLabelByUserId(teachers[i].UserId)
-		teachers[i].HasFollowed = managers.RedisManager.HasFollowedUser(userId, teachers[i].UserId)
+		teachers[i].HasFollowed = redis.RedisManager.HasFollowedUser(userId, teachers[i].UserId)
 	}
 	return teachers, nil
 }
@@ -29,8 +29,8 @@ func GetTeacherProfile(userId, teacherId int64) (*models.POITeacherProfile, erro
 	}
 	teacherProfile.Rating = 5.0
 
-	if managers.RedisManager.RedisError == nil {
-		teacherProfile.HasFollowed = managers.RedisManager.HasFollowedUser(userId, teacherId)
+	if redis.RedisManager.RedisError == nil {
+		teacherProfile.HasFollowed = redis.RedisManager.HasFollowedUser(userId, teacherId)
 	}
 	return teacherProfile, err
 }

@@ -3,8 +3,8 @@ package websocket
 import (
 	"time"
 
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 
 	seelog "github.com/cihub/seelog"
 )
@@ -55,7 +55,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 
 	WsManager.SetUserChan(msg.UserId, userChan)
 	WsManager.SetUserOnline(msg.UserId, time.Now().Unix())
-	managers.RedisManager.SetUserObjectId(msg.UserId, objectId)
+	redis.RedisManager.SetUserObjectId(msg.UserId, objectId)
 
 	return userChan, true
 }

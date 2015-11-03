@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"POIWolaiWebService/logger"
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/websocket"
@@ -171,7 +171,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
 			userChan <- resp
 			WSUserLogout(userId)
-			managers.RedisManager.RemoveUserObjectId(userId)
+			redis.RedisManager.RemoveUserObjectId(userId)
 			close(userChan)
 
 		// 订单中心老师上线信息

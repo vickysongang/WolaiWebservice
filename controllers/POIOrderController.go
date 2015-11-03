@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 	"POIWolaiWebService/websocket"
 
 	"github.com/cihub/seelog"
@@ -118,7 +118,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		}
 
 		// 判断用户时间是否冲突
-		if !managers.RedisManager.IsUserAvailable(creatorId, timestampFrom, timestampTo) {
+		if !redis.RedisManager.IsUserAvailable(creatorId, timestampFrom, timestampTo) {
 			err := errors.New("该时间段内你已有其他课程！")
 			seelog.Error(err.Error())
 			return 5003, nil, err

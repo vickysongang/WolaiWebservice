@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 	"POIWolaiWebService/utils"
 
 	seelog "github.com/cihub/seelog"
@@ -159,11 +159,11 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 		count++
 		if !hasFlag {
 			models.InsertLCMessageLog(&messageLog)
-			if managers.RedisManager.RedisError == nil {
+			if redis.RedisManager.RedisError == nil {
 				//如果是客服消息，则将该消息存入客服消息表
-				if managers.RedisManager.IsSupportMessage(USER_WOLAI_SUPPORT, toStr) ||
-					managers.RedisManager.IsSupportMessage(USER_WOLAI_TEAM, toStr) ||
-					managers.RedisManager.IsSupportMessage(USER_WOLAI_TUTOR, toStr) {
+				if redis.RedisManager.IsSupportMessage(USER_WOLAI_SUPPORT, toStr) ||
+					redis.RedisManager.IsSupportMessage(USER_WOLAI_TEAM, toStr) ||
+					redis.RedisManager.IsSupportMessage(USER_WOLAI_TUTOR, toStr) {
 					//此处对新用户注册通知图片的处理不是合适的，需要完善
 					if !strings.Contains(messageLog.Data, "student_welcome_1.jpg") {
 						supportMessageLog := models.LCSupportMessageLog{}
@@ -175,9 +175,9 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 						supportMessageLog.Data = messageLog.Data
 						supportMessageLog.Timestamp = messageLog.Timestamp
 						supportMessageLog.CreateTime = messageLog.CreateTime
-						if managers.RedisManager.IsSupportMessage(USER_WOLAI_TEAM, toStr) {
+						if redis.RedisManager.IsSupportMessage(USER_WOLAI_TEAM, toStr) {
 							supportMessageLog.Type = "team"
-						} else if managers.RedisManager.IsSupportMessage(USER_WOLAI_TUTOR, toStr) {
+						} else if redis.RedisManager.IsSupportMessage(USER_WOLAI_TUTOR, toStr) {
 							supportMessageLog.Type = "tutor"
 						} else {
 							supportMessageLog.Type = "support"

@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 	"POIWolaiWebService/utils"
 )
 
@@ -48,9 +48,9 @@ func SendWelcomeMessageStudent(userId int64) {
 func SendCommentNotification(feedCommentId string) {
 	var feedComment *models.POIFeedComment
 	var feed *models.POIFeed
-	if managers.RedisManager.RedisError == nil {
-		feedComment = managers.RedisManager.GetFeedComment(feedCommentId)
-		feed = managers.RedisManager.GetFeed(feedComment.FeedId)
+	if redis.RedisManager.RedisError == nil {
+		feedComment = redis.RedisManager.GetFeedComment(feedCommentId)
+		feed = redis.RedisManager.GetFeed(feedComment.FeedId)
 	} else {
 		feedComment, _ = models.GetFeedComment(feedCommentId)
 		feed, _ = models.GetFeed(feedComment.FeedId)
@@ -96,8 +96,8 @@ func SendCommentNotification(feedCommentId string) {
 func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 	user := models.QueryUserById(userId)
 	var feed *models.POIFeed
-	if managers.RedisManager.RedisError == nil {
-		feed = managers.RedisManager.GetFeed(feedId)
+	if redis.RedisManager.RedisError == nil {
+		feed = redis.RedisManager.GetFeed(feedId)
 	} else {
 		feed, _ = models.GetFeed(feedId)
 	}
@@ -496,11 +496,11 @@ func GetConversationParticipants(conversationInfo string) (*POIConversationParti
 		return nil, err
 	}
 	participants := make(POIConversationParticipants, 0)
-	if managers.RedisManager.RedisError == nil {
+	if redis.RedisManager.RedisError == nil {
 		for i := range convIds {
 			convId := convIds[i]
 			conversationParticipant := POIConversationParticipant{}
-			participant := managers.RedisManager.GetConversationParticipant(convId)
+			participant := redis.RedisManager.GetConversationParticipant(convId)
 			//Modified:20150909
 			if participant == "" {
 				participant = QueryConversationParticipants(convId)
@@ -511,7 +511,7 @@ func GetConversationParticipants(conversationInfo string) (*POIConversationParti
 			participants = append(participants, conversationParticipant)
 		}
 	} else {
-		return nil, managers.RedisManager.RedisError
+		return nil, redis.RedisManager.RedisError
 	}
 	return &participants, nil
 }
@@ -525,14 +525,14 @@ func GetUserConversation(userId1, userId2 int64) (int64, string) {
 		return 2, ""
 	}
 	var convId string
-	if managers.RedisManager.RedisError == nil {
-		convId = managers.RedisManager.GetConversation(userId1, userId2)
+	if redis.RedisManager.RedisError == nil {
+		convId = redis.RedisManager.GetConversation(userId1, userId2)
 		if convId == "" {
 			convId2 := LCGetConversationId(strconv.FormatInt(userId1, 10), strconv.FormatInt(userId2, 10))
-			convId = managers.RedisManager.GetConversation(userId1, userId2)
+			convId = redis.RedisManager.GetConversation(userId1, userId2)
 			if convId == "" {
 				convId = convId2
-				managers.RedisManager.SetConversation(convId, userId1, userId2)
+				redis.RedisManager.SetConversation(convId, userId1, userId2)
 			}
 		}
 	}

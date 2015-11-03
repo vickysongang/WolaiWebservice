@@ -6,8 +6,8 @@ import (
 
 	"POIWolaiWebService/controllers/trade"
 	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 )
 
 func LoadPOIUser(userId int64) *models.POIUser {
@@ -47,7 +47,7 @@ func POIUserLogin(phone string) (int64, *models.POIUser) {
 			trade.HandleSystemTrade(newUser.UserId, activity.Amount, models.TRADE_PROMOTION, models.TRADE_RESULT_SUCCESS, activity.Theme)
 			go leancloud.SendTradeNotificationSystem(newUser.UserId, activity.Amount, leancloud.LC_TRADE_STATUS_INCOME,
 				activity.Title, activity.Subtitle, activity.Extra)
-			managers.RedisManager.SetActivityNotification(id, activity.Id, activity.MediaId)
+			redis.RedisManager.SetActivityNotification(id, activity.Id, activity.MediaId)
 		}
 	}
 	// HandleSystemTrade(newUser.UserId, WOLAI_GIVE_AMOUNT, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, "新用户注册奖励")
@@ -106,7 +106,7 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 			trade.HandleSystemTrade(user.UserId, activity.Amount, models.TRADE_PROMOTION, models.TRADE_RESULT_SUCCESS, activity.Theme)
 			go leancloud.SendTradeNotificationSystem(user.UserId, activity.Amount, leancloud.LC_TRADE_STATUS_INCOME,
 				activity.Title, activity.Subtitle, activity.Extra)
-			managers.RedisManager.SetActivityNotification(userId, activity.Id, activity.MediaId)
+			redis.RedisManager.SetActivityNotification(userId, activity.Id, activity.MediaId)
 		}
 	}
 
@@ -127,12 +127,12 @@ func POIUserFollow(userId, followId int64) (int64, bool) {
 	if follow.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
 		return 2, false
 	}
-	if managers.RedisManager.RedisError == nil {
-		if managers.RedisManager.HasFollowedUser(userId, followId) {
-			managers.RedisManager.RemoveUserFollow(userId, followId)
+	if redis.RedisManager.RedisError == nil {
+		if redis.RedisManager.HasFollowedUser(userId, followId) {
+			redis.RedisManager.RemoveUserFollow(userId, followId)
 			return 0, false
 		}
-		managers.RedisManager.SetUserFollow(userId, followId)
+		redis.RedisManager.SetUserFollow(userId, followId)
 	}
 	return 0, true
 }
@@ -143,12 +143,12 @@ func POIUserUnfollow(userId, followId int64) (int64, bool) {
 	if user == nil || follow == nil {
 		return 2, false
 	}
-	if managers.RedisManager.RedisError == nil {
-		if !managers.RedisManager.HasFollowedUser(userId, followId) {
+	if redis.RedisManager.RedisError == nil {
+		if !redis.RedisManager.HasFollowedUser(userId, followId) {
 			return 2, false
 		}
 
-		managers.RedisManager.RemoveUserFollow(userId, followId)
+		redis.RedisManager.RemoveUserFollow(userId, followId)
 	}
 
 	return 0, false
@@ -160,8 +160,8 @@ func GetUserFollowing(userId, pageNum, pageCount int64) models.POITeachers {
 		return nil
 	}
 	var teachers models.POITeachers
-	if managers.RedisManager.RedisError == nil {
-		teachers = managers.RedisManager.GetUserFollowList(userId, pageNum, pageCount)
+	if redis.RedisManager.RedisError == nil {
+		teachers = redis.RedisManager.GetUserFollowList(userId, pageNum, pageCount)
 	}
 	return teachers
 }
@@ -174,14 +174,14 @@ func GetUserConversation(userId1, userId2 int64) (int64, string) {
 		return 2, ""
 	}
 	var convId string
-	if managers.RedisManager.RedisError == nil {
-		convId = managers.RedisManager.GetConversation(userId1, userId2)
+	if redis.RedisManager.RedisError == nil {
+		convId = redis.RedisManager.GetConversation(userId1, userId2)
 		if convId == "" {
 			convId2 := leancloud.LCGetConversationId(strconv.FormatInt(userId1, 10), strconv.FormatInt(userId2, 10))
-			convId = managers.RedisManager.GetConversation(userId1, userId2)
+			convId = redis.RedisManager.GetConversation(userId1, userId2)
 			if convId == "" {
 				convId = convId2
-				managers.RedisManager.SetConversation(convId, userId1, userId2)
+				redis.RedisManager.SetConversation(convId, userId1, userId2)
 			}
 		}
 	}

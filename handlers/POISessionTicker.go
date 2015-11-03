@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 	"POIWolaiWebService/websocket"
 
 	seelog "github.com/cihub/seelog"
@@ -20,7 +20,7 @@ func init() {
 
 func POISessionTickerHandler() {
 	for t := range SessionTicker.C {
-		sessionTicks := managers.RedisManager.GetSessionTicks(t.Unix())
+		sessionTicks := redis.RedisManager.GetSessionTicks(t.Unix())
 
 		for i := range sessionTicks {
 			seelog.Debug("POISessionTickerHandler: @", t.Unix(), " SessionTicks: "+sessionTicks[i])
@@ -41,7 +41,7 @@ func POISessionTickerHandler() {
 			}
 		}
 
-		sessionLockTicks := managers.RedisManager.GetSessionUserTicks(t.Unix())
+		sessionLockTicks := redis.RedisManager.GetSessionUserTicks(t.Unix())
 		for i := range sessionLockTicks {
 			seelog.Debug("POISessionTickerHandler: @", t.Unix(), " LockTicks: "+sessionLockTicks[i].Content)
 			var tickInfo map[string]int64

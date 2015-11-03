@@ -8,8 +8,8 @@ import (
 	"strconv"
 
 	"POIWolaiWebService/common"
-	"POIWolaiWebService/managers"
 	"POIWolaiWebService/models"
+	"POIWolaiWebService/redis"
 	"POIWolaiWebService/utils"
 
 	seelog "github.com/cihub/seelog"
@@ -24,7 +24,7 @@ func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface
 		return nil
 	}
 
-	objectId := managers.RedisManager.GetUserObjectId(targetId)
+	objectId := redis.RedisManager.GetUserObjectId(targetId)
 	if objectId == "" {
 		return nil
 	}
@@ -69,7 +69,7 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 		return nil
 	}
 
-	objectId := managers.RedisManager.GetUserObjectId(targetId)
+	objectId := redis.RedisManager.GetUserObjectId(targetId)
 	if objectId == "" {
 		return nil
 	}
@@ -117,7 +117,7 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 		return nil
 	}
 
-	objectId := managers.RedisManager.GetUserObjectId(targetId)
+	objectId := redis.RedisManager.GetUserObjectId(targetId)
 	if objectId == "" {
 		return nil
 	}
@@ -162,7 +162,7 @@ func NewRealTimeOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 		return nil
 	}
 
-	objectId := managers.RedisManager.GetUserObjectId(targetId)
+	objectId := redis.RedisManager.GetUserObjectId(targetId)
 	if objectId == "" {
 		return nil
 	}
