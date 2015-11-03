@@ -22,6 +22,22 @@ func GetTeacherRecommendationList(userId, pageNum, pageCount int64) (models.POIT
 	return teachers, nil
 }
 
+func GetSupportAndTeacherList(userId, pageNum, pageCount int64) (models.POITeachers, error) {
+	teachers, err := models.QueryTeacherList(pageNum, pageCount)
+	if err != nil {
+		return nil, err
+	}
+	if pageNum == 0 {
+		supports, _ := models.QuerySupportList()
+		teachers = append(supports, teachers...)
+	}
+	for i := range teachers {
+		teachers[i].LabelList = models.QueryTeacherLabelByUserId(teachers[i].UserId)
+		teachers[i].HasFollowed = redis.RedisManager.HasFollowedUser(userId, teachers[i].UserId)
+	}
+	return teachers, nil
+}
+
 func GetTeacherProfile(userId, teacherId int64) (*models.POITeacherProfile, error) {
 	teacherProfile, err := models.QueryTeacherProfile(teacherId)
 	if err != nil {

@@ -130,6 +130,19 @@ var V1Routes = Routes{
 		"/v1/oauth/qq/checkphone",
 		handlers.V1CheckPhoneBindWithQQ,
 	},
+	// 1.10 support and teacher list
+	Route{
+		"V1SupportAndTeacherListPOST",
+		"POST",
+		"/v1/support/teacher/list",
+		handlers.V1SupportAndTeacherList,
+	},
+	Route{
+		"V1TSupportAndTeacherListGET",
+		"GET",
+		"/v1/support/teacher/list",
+		handlers.V1SupportAndTeacherList,
+	},
 
 	// 2.1 Atrium
 	Route{
@@ -641,16 +654,29 @@ var V1Routes = Routes{
 
 	// 8.1 Search Teachers
 	Route{
-		"V1SearchTeacherPOST",
+		"V1SearchTeachersPOST",
 		"POST",
 		"/v1/search/teacher",
-		handlers.V1SearchTeacher,
+		handlers.V1SearchTeachers,
 	},
 	Route{
-		"V1SearchTeacherGET",
+		"V1SearchTeachersGET",
 		"GET",
 		"/v1/search/teacher",
-		handlers.V1SearchTeacher,
+		handlers.V1SearchTeachers,
+	},
+	// 8.2 Search Users
+	Route{
+		"V1SearchUsersPOST",
+		"POST",
+		"/v1/search/user",
+		handlers.V1SearchUsers,
+	},
+	Route{
+		"V1SearchUsersGET",
+		"GET",
+		"/v1/search/user",
+		handlers.V1SearchUsers,
 	},
 
 	// 9.1 Insert Evaluation
