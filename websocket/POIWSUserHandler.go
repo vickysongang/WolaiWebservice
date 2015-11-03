@@ -18,11 +18,14 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	}()
 	userChan := make(chan POIWSMessage, 10)
 
+	//如果用户不是登陆或重连，则直接返回新的userChan
 	if msg.OperationCode != WS_LOGIN && msg.OperationCode != WS_RECONNECT {
 		return userChan, false
 	}
+
 	objectId, oko := msg.Attribute["objectId"]
 
+	//如果用户信息里不带objectId，则返回新的userChan
 	if !oko {
 		return userChan, false
 	}
@@ -30,31 +33,45 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	if user := models.QueryUserById(msg.UserId); user == nil {
 		return userChan, false
 	}
+
+	//如果用户已经登陆了，则先判断是否在同一设备上登陆的，若不是在同一设备上登陆的，则将另一设备上的该用户踢出
+	oldObjectId := redis.RedisManager.GetUserObjectId(msg.UserId)
 	if WsManager.HasUserChan(msg.UserId) {
-		seelog.Debug("UserId:", msg.UserId, " Force Logout!")
 		oldChan := WsManager.GetUserChan(msg.UserId)
-		WSUserLogout(msg.UserId)
-		select {
-		case _, ok := <-oldChan:
-			if ok {
+		//如果不是在同一设备上登陆的，则踢出
+		if objectId != oldObjectId {
+			seelog.Debug("Force logout old user:", msg.UserId)
+			WSUserLogout(msg.UserId)
+			select {
+			case _, ok := <-oldChan:
+				if ok {
+					if msg.OperationCode == WS_LOGIN || msg.OperationCode == WS_RECONNECT {
+						seelog.Debug("Send Force Logout message to ", msg.UserId, " when old chan exsits!")
+						msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
+						oldChan <- msgFL
+					}
+					close(oldChan)
+				}
+			default:
 				if msg.OperationCode == WS_LOGIN || msg.OperationCode == WS_RECONNECT {
-					seelog.Debug("Send Force Logout message1 to ", msg.UserId)
+					seelog.Debug("Send Force Logout message to ", msg.UserId, "when old chan doesn't exsits!")
 					msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
 					oldChan <- msgFL
 				}
-				close(oldChan)
 			}
-		default:
-			if msg.OperationCode == WS_LOGIN || msg.OperationCode == WS_RECONNECT {
-				seelog.Debug("Send Force Logout message2 to ", msg.UserId)
-				msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
-				oldChan <- msgFL
-			}
+			WsManager.SetUserChan(msg.UserId, userChan)
+		} else {
+			//在同一设备上登陆的，则继续使用原来的userChan
+			userChan = oldChan
 		}
+	} else {
+		//用户没有登陆，则返回一个新的userChan
+		WsManager.SetUserChan(msg.UserId, userChan)
 	}
-
-	WsManager.SetUserChan(msg.UserId, userChan)
+	//设置用户的上线状态
 	WsManager.SetUserOnline(msg.UserId, time.Now().Unix())
+
+	//保存用户的objectId
 	redis.RedisManager.SetUserObjectId(msg.UserId, objectId)
 
 	return userChan, true
@@ -69,5 +86,6 @@ func WSUserLogout(userId int64) {
 
 	go CheckSessionBreak(userId)
 	WsManager.RemoveUserChan(userId)
+	//设置用户的下线状态
 	WsManager.SetUserOffline(userId)
 }

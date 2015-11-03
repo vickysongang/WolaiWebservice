@@ -38,17 +38,11 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		seelog.Error("V1WebSocketHandler build connection error:", err.Error())
 		return
 	}
-	defer func() {
-		conn.Close()
-		seelog.Debug("V1WebSocketHandler close websocket connection ......")
-		if r := recover(); r != nil {
-			seelog.Error(r)
-		}
-	}()
+
 	// 读取Websocket初始化消息
-	messageType, p, err := conn.ReadMessage()
+	_, p, err := conn.ReadMessage()
 	if err != nil {
-		seelog.Error("V1WebSocketHandler:", err.Error())
+		seelog.Error("V1WebSocketHandler init message:", err.Error())
 		return
 	}
 
@@ -65,7 +59,15 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	seelog.Debug("V1WSHandler: recieved:  messageType: ", messageType, "  content:", string(p))
+	seelog.Debug("V1WSHandler: recieved content: ", string(p))
+
+	defer func() {
+		conn.Close()
+		seelog.Debug("V1WebSocketHandler close websocket connection:", msg.UserId)
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
 
 	// 比对客户端时间和系统时间
 	timestamp := time.Now().Unix()
@@ -93,8 +95,10 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		loginResp := NewPOIWSMessage(msg.MessageId, msg.UserId, msg.OperationCode+1)
 		err = conn.WriteJSON(loginResp)
 		if err == nil {
-			seelog.Debug("V1WSHandler:Send Code 12 to ", msg.UserId)
+			seelog.Debug("V1WSHandler:Send code 12 to user", msg.UserId)
 			logger.InsertUserEventLog(msg.UserId, "用户上线", msg)
+		} else {
+			seelog.Error("send login response to user ", msg.UserId, " fail")
 		}
 	}
 
@@ -107,6 +111,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	go RecoverStudentOrder(userId)
 	go RecoverUserSession(userId)
 
+	//处理心跳的pong消息
 	conn.SetReadDeadline(time.Now().Add(pongWait))
 	conn.SetPongHandler(func(appData string) error {
 		err := conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -116,11 +121,11 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return nil
 	})
+
 	loginTS := WsManager.GetUserOnlineStatus(userId)
 	for {
 		// 读取Websocket信息
-		messageType, p, err = conn.ReadMessage()
-		seelog.Debug("messageType:", messageType)
+		_, p, err = conn.ReadMessage()
 		if err != nil {
 			errMsg := err.Error()
 			seelog.Debug("WebSocketWriteHandler: user timed out; UserId: ", userId, " ErrorInfo:", errMsg)
@@ -167,7 +172,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 用户登出信息
 		case WS_LOGOUT:
-			seelog.Debug("User:", userId, " COMMON LOGOUT!!!!!")
+			seelog.Debug("User:", userId, "logout correctly!")
 			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
 			userChan <- resp
 			WSUserLogout(userId)
@@ -278,7 +283,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 	defer func() {
 		pingTicker.Stop()
 		conn.Close()
-		seelog.Debug("WebSocketWriteHandler close websocket connection")
+		seelog.Debug("WebSocketWriteHandler close websocket connection:", userId)
 		if r := recover(); r != nil {
 			seelog.Error(r)
 		}
@@ -331,7 +336,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					if WsManager.GetUserOnlineStatus(userId) == loginTS {
 						WSUserLogout(userId)
 						close(userChan)
-						seelog.Debug("quit or logout .....")
+						seelog.Debug("WebSocketWriter:User ", userId, " quit or logout!")
 					}
 					return
 				}

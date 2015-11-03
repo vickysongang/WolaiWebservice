@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"POIWolaiWebService/logger"
 	"POIWolaiWebService/models"
 	"POIWolaiWebService/redis"
 	"encoding/json"
@@ -57,6 +58,5 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	content, _ := models.GetFeedFlowAtriumByPlateType(0, 10, "1001")
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	logger.InsertUserEventLog(1, "aaa", "sd")
 }

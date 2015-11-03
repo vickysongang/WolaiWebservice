@@ -675,6 +675,7 @@ func InitSessionMonitor(sessionId int64) bool {
 		return false
 	}
 
+	//提示课程即将开始，给客户端发送倒计时消息
 	alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_ALERT)
 	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT {
 		alertMsg.OperationCode = WS_SESSION_ALERT
@@ -736,8 +737,10 @@ func CheckSessionBreak(userId int64) {
 		return
 	}
 	seelog.Debug("send session break message:", userId)
+	//延迟10秒判断用户是否重连上，给客户端10s的重连时间
 	time.Sleep(10 * time.Second)
 	userLoginTime := WsManager.GetUserOnlineStatus(userId)
+	//如果用户重连上了且用户有正在进行的课，则不给对方发送课程中断的消息
 	if userLoginTime != -1 && WsManager.HasUserChan(userId) {
 		seelog.Debug("user ", userId, " reconnect success!")
 		for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
@@ -750,6 +753,7 @@ func CheckSessionBreak(userId int64) {
 		}
 	}
 
+	//给对方发送课程中断的消息
 	for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
 		if !WsManager.HasSessionChan(sessionId) {
 			continue
@@ -757,6 +761,7 @@ func CheckSessionBreak(userId int64) {
 		sessionChan := WsManager.GetSessionChan(sessionId)
 		breakMsg := NewPOIWSMessage("", userId, WS_SESSION_BREAK)
 		sessionChan <- breakMsg
+		seelog.Debug("send break message when user", userId, " offline!")
 	}
 }
 
