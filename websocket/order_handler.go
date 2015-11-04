@@ -323,6 +323,7 @@ func initOrderDispatch(msg POIWSMessage, timestamp int64) bool {
 	orderChan := make(chan POIWSMessage)
 	WsManager.SetOrderChan(orderId, orderChan)
 
+	OrderManager.SetOnline(orderId)
 	go orderHandler(orderId)
 
 	return true
