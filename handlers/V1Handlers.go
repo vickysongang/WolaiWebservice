@@ -230,14 +230,13 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
 
 	teacher := models.QueryUserById(teacherId)
-	if teacher.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
+	if teacher.AccessRight == models.USER_ACCESSRIGHT_STUDENT {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, "", NullObject))
 		return
 	}
 
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-
 	content, err := controllers.GetTeacherProfile(userId, teacherId)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
@@ -934,11 +933,18 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 	subjectId, _ := strconv.ParseInt(subjectIdStr, 10, 64)
 
 	date := vars["date"][0]
-	periodIdStr := vars["periodId"][0]
-	periodId, _ := strconv.ParseInt(periodIdStr, 10, 64)
 
-	lengthStr := vars["length"][0]
-	length, _ := strconv.ParseInt(lengthStr, 10, 64)
+	var periodId int64
+	if len(vars["periodId"]) > 0 {
+		periodIdStr := vars["periodId"][0]
+		periodId, _ = strconv.ParseInt(periodIdStr, 10, 64)
+	}
+
+	var length int64
+	if len(vars["length"]) > 0 {
+		lengthStr := vars["length"][0]
+		length, _ = strconv.ParseInt(lengthStr, 10, 64)
+	}
 
 	orderTypeStr := vars["orderType"][0]
 	orderType, _ := strconv.ParseInt(orderTypeStr, 10, 64)
@@ -1501,28 +1507,6 @@ func V1ActivityNotification(w http.ResponseWriter, r *http.Request) {
 	content := redis.RedisManager.GetActivityNotification(userId)
 
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
-	// activityType := vars["type"][0]
-	// activities, err := QueryEffectiveActivities(activityType)
-	// if err == nil {
-	// 	mediaIds := make([]string, 0)
-	// 	for _, activity := range activities {
-	// 		if !CheckUserHasParticipatedInActivity(userId, activity.Id) {
-	// 			userToActivity := POIUserToActivity{UserId: userId, ActivityId: activity.Id}
-	// 			InsertUserToActivity(&userToActivity)
-	// 			if activity.MediaId != "" {
-	// 				mediaIds = append(mediaIds, activity.MediaId)
-	// 			}
-	// 			if activityType == REGISTER_ACTIVITY {
-	// 				HandleSystemTrade(userId, activity.Amount, TRADE_PROMOTION, TRADE_RESULT_SUCCESS, activity.Theme)
-	// 				go SendTradeNotificationSystem(userId, activity.Amount, LC_TRADE_STATUS_INCOME,
-	// 					activity.Title, activity.Subtitle, activity.Extra)
-	// 			}
-	// 		}
-	// 	}
-	// 	json.NewEncoder(w).Encode(NewPOIResponse(0, "", mediaIds))
-	// } else {
-	// 	json.NewEncoder(w).Encode(NewPOIResponse(2, err.Error(), NullSlice))
-	// }
 }
 
 /*

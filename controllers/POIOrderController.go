@@ -53,7 +53,8 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		return 5001, nil, err
 	}
 
-	if orderType == models.ORDER_TYPE_PERSONAL_INSTANT && teacherId == 0 {
+	//如果是点对点的单，则老师不能为空
+	if (orderType == models.ORDER_TYPE_PERSONAL_INSTANT || orderType == models.ORDER_TYPE_PERSONAL_APPOINTEMENT) && teacherId == 0 {
 		return 2, nil, nil
 	}
 
@@ -71,14 +72,14 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 	}
 
 	switch orderType {
-	//马上辅导：检查用户是否可以发起马上辅导
+	//抢单马上辅导：检查用户是否可以发起马上辅导
 	case models.ORDER_TYPE_GENERAL_INSTANT:
 		if websocket.WsManager.IsUserSessionLocked(creatorId) {
 			err = errors.New("你有一堂课马上就要开始啦！")
 			seelog.Error(err.Error())
 			return 5002, nil, err
 		}
-		//预约：检查预约的条件是否满足
+		//抢单预约：检查预约的条件是否满足
 	case models.ORDER_TYPE_GENERAL_APPOINTMENT:
 		startTime, _ := time.Parse(time.RFC3339, order.Date)   //预计上课时间
 		dateDiff := startTime.YearDay() - time.Now().YearDay() //预计上课时间距离当前时间的天数
@@ -124,12 +125,46 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 			return 5003, nil, err
 		}
 
-		//点对点辅导：检查用户是否可以发起点对点申请
+		//点对点马上辅导：检查用户是否可以发起点对点申请
 	case models.ORDER_TYPE_PERSONAL_INSTANT:
 		if websocket.WsManager.IsUserSessionLocked(creatorId) {
 			err = errors.New("你有一堂课马上就要开始啦！")
 			seelog.Error(err.Error())
 			return 5002, nil, err
+		}
+
+	case models.ORDER_TYPE_PERSONAL_APPOINTEMENT:
+		startTime, _ := time.Parse(time.RFC3339, order.Date)   //预计上课时间
+		dateDiff := startTime.YearDay() - time.Now().YearDay() //预计上课时间距离当前时间的天数
+		if dateDiff < 0 {
+			err = errors.New("上课日期不能早于当前日期")
+			seelog.Error(err.Error())
+			return 2, nil, err
+		}
+		if dateDiff > 6 {
+			err = errors.New("上课日期不能晚于当前日期一个星期")
+			seelog.Error(err.Error())
+			return 2, nil, err
+		}
+
+		// 根据用户输入的预约时间信息获取冲突时间段
+		timestampFrom, timestampTo, err := parseAppointmentTime(date, periodId)
+		if err != nil {
+			return 2, nil, err
+		}
+
+		// 判断用户时间是否冲突
+		if !redis.RedisManager.IsUserAvailable(creatorId, timestampFrom, timestampTo) {
+			err := errors.New("该时间段内您已有其他课程！")
+			seelog.Error(err.Error())
+			return 5003, nil, err
+		}
+
+		// 判断导师时间是否冲突
+		if !redis.RedisManager.IsUserAvailable(teacherId, timestampFrom, timestampTo) {
+			err := errors.New("该时间段内导师已有其他课程！")
+			seelog.Error(err.Error())
+			return 5003, nil, err
 		}
 	}
 
