@@ -933,11 +933,18 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 	subjectId, _ := strconv.ParseInt(subjectIdStr, 10, 64)
 
 	date := vars["date"][0]
-	periodIdStr := vars["periodId"][0]
-	periodId, _ := strconv.ParseInt(periodIdStr, 10, 64)
 
-	lengthStr := vars["length"][0]
-	length, _ := strconv.ParseInt(lengthStr, 10, 64)
+	var periodId int64
+	if len(vars["periodId"]) > 0 {
+		periodIdStr := vars["periodId"][0]
+		periodId, _ = strconv.ParseInt(periodIdStr, 10, 64)
+	}
+
+	var length int64
+	if len(vars["length"]) > 0 {
+		lengthStr := vars["length"][0]
+		length, _ = strconv.ParseInt(lengthStr, 10, 64)
+	}
 
 	orderTypeStr := vars["orderType"][0]
 	orderType, _ := strconv.ParseInt(orderTypeStr, 10, 64)
