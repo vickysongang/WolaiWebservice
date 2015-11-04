@@ -330,6 +330,7 @@ func initOrderDispatch(msg POIWSMessage, timestamp int64) bool {
 
 func assignNextTeacher(orderId int64) int64 {
 	for teacherId, _ := range TeacherManager.teacherMap {
+		seelog.Debug("TeacherId: ", teacherId, " assignOpen: ", TeacherManager.IsTeacherAssignOpen(teacherId), " assignLocked: ", TeacherManager.IsTeacherAssignLocked(teacherId))
 		if TeacherManager.IsTeacherAssignOpen(teacherId) &&
 			!TeacherManager.IsTeacherAssignLocked(teacherId) {
 			if err := OrderManager.SetAssignTarget(orderId, teacherId); err == nil {
