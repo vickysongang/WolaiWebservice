@@ -1,6 +1,7 @@
 package websocket
 
 import (
+/*
 	"encoding/json"
 	"strconv"
 	"time"
@@ -11,8 +12,10 @@ import (
 	"POIWolaiWebService/utils"
 
 	seelog "github.com/cihub/seelog"
+*/
 )
 
+/*
 func POIWSOrderHandler(orderId int64) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -466,7 +469,7 @@ func parseReplyTime(replyTimeStr string, lengthMin int64) (int64, int64, error) 
 	return timeStart.Unix(), timeEnd.Unix(), nil
 }
 
-func InitOrderDispatch(msg POIWSMessage, userId int64, timestamp int64) bool {
+func InitOrderDispatch_d(msg POIWSMessage, userId int64, timestamp int64) bool {
 	defer func() {
 		if r := recover(); r != nil {
 			seelog.Error(r)
@@ -556,3 +559,4 @@ func RecoverStudentOrder(userId int64) {
 		orderChan <- recoverMsg
 	}
 }
+*/
