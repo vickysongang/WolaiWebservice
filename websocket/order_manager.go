@@ -32,10 +32,11 @@ func init() {
 	OrderManager = NewOrderStatusManager()
 }
 
-func NewOrderStatus(order *models.POIOrder) *OrderStatus {
+func NewOrderStatus(orderId int64) *OrderStatus {
 	timestamp := time.Now().Unix()
+	order := models.QueryOrderById(orderId)
 	orderStatus := OrderStatus{
-		orderId:         order.Id,
+		orderId:         orderId,
 		orderInfo:       order,
 		onlineTimestamp: timestamp,
 		isDispatching:   false,
@@ -73,6 +74,15 @@ func (osm *OrderStatusManager) IsOrderAssigning(orderId int64) bool {
 		return false
 	}
 	return (status.currentAssign != -1)
+}
+
+func (osm *OrderStatusManager) SetOnline(orderId int64) {
+	if osm.IsOrderOnline(orderId) {
+		return
+	}
+
+	osm.orderMap[orderId] = NewOrderStatus(orderId)
+	return
 }
 
 func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) error {
