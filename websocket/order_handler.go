@@ -337,6 +337,8 @@ func assignNextTeacher(orderId int64) int64 {
 				TeacherManager.SetAssignLock(teacherId)
 				seelog.Debug("orderHandler|orderAssign: ", orderId, " to teacher: ", teacherId) // 更新老师发单记录
 				return teacherId
+			} else {
+				seelog.Debug("orderHandler|assign error: ", err.Error())
 			}
 		}
 	}
