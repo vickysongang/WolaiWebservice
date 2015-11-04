@@ -48,7 +48,7 @@ func GetTeacherProfile(userId, teacherId int64) (*models.POITeacherProfile, erro
 	if redis.RedisManager.RedisError == nil {
 		teacherProfile.HasFollowed = redis.RedisManager.HasFollowedUser(userId, teacherId)
 	}
-	return teacherProfile, err
+	return teacherProfile, nil
 }
 
 //teacherInfo为json格式
