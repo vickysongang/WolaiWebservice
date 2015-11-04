@@ -108,7 +108,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	go WebSocketWriteHandler(conn, userId, userChan)
 
 	// 恢复可能存在的用户被中断的发单请求
-	go RecoverStudentOrder(userId)
+	//go RecoverStudentOrder(userId)
 	go RecoverUserSession(userId)
 
 	//处理心跳的pong消息
@@ -179,69 +179,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			redis.RedisManager.RemoveUserObjectId(userId)
 			close(userChan)
 
-		// 订单中心老师上线信息
-		case WS_ORDER_TEACHER_ONLINE:
-			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_TEACHER_RESP)
-			if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-				WsManager.SetTeacherOnline(userId, timestamp)
-				go RecoverTeacherOrder(userId)
-				resp.Attribute["errCode"] = "0"
-			} else {
-				resp.Attribute["errCode"] = "2"
-				resp.Attribute["errMsg"] = "You are not a teacher"
-			}
-			userChan <- resp
-
-		// 订单中心老师下线信息
-		case WS_ORDER_TEACHER_OFFLINE:
-			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_TEACHER_OFFLINE_RESP)
-			if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-				WsManager.SetTeacherOffline(userId)
-				resp.Attribute["errCode"] = "0"
-			} else {
-				resp.Attribute["errCode"] = "2"
-				resp.Attribute["errMsg"] = "You are not a teacher"
-			}
-			userChan <- resp
-
-		// 创建发单请求信息
-		case WS_ORDER_CREATE:
-			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_CREATE_RESP)
-			if InitOrderDispatch(msg, userId, timestamp) {
-				resp.Attribute["errCode"] = "0"
-				resp.Attribute["countdown"] = "120"
-			} else {
-				resp.Attribute["errCode"] = "2"
-				resp.Attribute["errMsg"] = "Error on order creation"
-			}
-			userChan <- resp
-
-		// 订单相关信息，直接转发处理
-		case WS_ORDER_REPLY,
-			WS_ORDER_CONFIRM,
-			WS_ORDER_CANCEL:
-			resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
-
-			orderIdStr, ok := msg.Attribute["orderId"]
-			if !ok {
-				resp.Attribute["errCode"] = "2"
-				userChan <- resp
-				break
-			}
-
-			orderId, err := strconv.ParseInt(orderIdStr, 10, 64)
-			if err != nil {
-				resp.Attribute["errCode"] = "2"
-				userChan <- resp
-				break
-			}
-
-			if !WsManager.HasOrderChan(orderId) {
-				break
-			}
-			orderChan := WsManager.GetOrderChan(orderId)
-			orderChan <- msg
-
 		// 上课相关信息，直接转发处理
 		case WS_SESSION_START,
 			WS_SESSION_ACCEPT,
@@ -273,7 +210,169 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			sessionChan := WsManager.GetSessionChan(sessionId)
 			sessionChan <- msg
 
+		case WS_ORDER2_TEACHER_ONLINE:
+			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_ONLINE_RESP)
+			if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+				WsManager.SetTeacherOnline(userId, timestamp)
+				//go RecoverTeacherOrder(userId)
+				resp.Attribute["errCode"] = "0"
+			} else {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "You are not a teacher"
+			}
+			userChan <- resp
+			TeacherManager.SetOnline(userId)
+
+		case WS_ORDER2_TEACHER_OFFLINE:
+			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_OFFLINE_RESP)
+			if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+				WsManager.SetTeacherOnline(userId, timestamp)
+				//go RecoverTeacherOrder(userId)
+				resp.Attribute["errCode"] = "0"
+			} else {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "You are not a teacher"
+			}
+			if err := TeacherManager.SetOffline(userId); err != nil {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "You are not online"
+			}
+			userChan <- resp
+
+		case WS_ORDER2_TEACHER_ASSIGNON:
+			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_ASSIGNON_RESP)
+			if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+				WsManager.SetTeacherOnline(userId, timestamp)
+				//go RecoverTeacherOrder(userId)
+				resp.Attribute["errCode"] = "0"
+			} else {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "You are not a teacher"
+			}
+			if err := TeacherManager.SetAssignOn(userId); err != nil {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "You are not online"
+			}
+			userChan <- resp
+
+		case WS_ORDER2_TEACHER_ASSIGNOFF:
+			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_ASSIGNOFF_RESP)
+			if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+				WsManager.SetTeacherOnline(userId, timestamp)
+				//go RecoverTeacherOrder(userId)
+				resp.Attribute["errCode"] = "0"
+			} else {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "You are not a teacher"
+			}
+			if err := TeacherManager.SetAssignOff(userId); err != nil {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "You are not online"
+			}
+			userChan <- resp
+
+		case WS_ORDER2_CREATE:
+			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_CREATE_RESP)
+			if initOrderDispatch(msg, timestamp) {
+				resp.Attribute["errCode"] = "0"
+				resp.Attribute["countdown"] = "120"
+			} else {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "Error on order creation"
+			}
+			userChan <- resp
+
+		case WS_ORDER2_CANCEL,
+			WS_ORDER2_ACCEPT,
+			WS_ORDER2_ASSIGN:
+			resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
+
+			orderIdStr, ok := msg.Attribute["orderId"]
+			if !ok {
+				resp.Attribute["errCode"] = "2"
+				userChan <- resp
+				break
+			}
+
+			orderId, err := strconv.ParseInt(orderIdStr, 10, 64)
+			if err != nil {
+				resp.Attribute["errCode"] = "2"
+				userChan <- resp
+				break
+			}
+
+			if !WsManager.HasOrderChan(orderId) {
+				break
+			}
+			orderChan := WsManager.GetOrderChan(orderId)
+			orderChan <- msg
 		}
+
+		//blocking old order
+		/*
+			// 订单中心老师上线信息
+			case WS_ORDER_TEACHER_ONLINE:
+				resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_TEACHER_RESP)
+				if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+					WsManager.SetTeacherOnline(userId, timestamp)
+					//go RecoverTeacherOrder(userId)
+					resp.Attribute["errCode"] = "0"
+				} else {
+					resp.Attribute["errCode"] = "2"
+					resp.Attribute["errMsg"] = "You are not a teacher"
+				}
+				userChan <- resp
+
+			// 订单中心老师下线信息
+			case WS_ORDER_TEACHER_OFFLINE:
+				resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_TEACHER_OFFLINE_RESP)
+				if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+					WsManager.SetTeacherOffline(userId)
+					resp.Attribute["errCode"] = "0"
+				} else {
+					resp.Attribute["errCode"] = "2"
+					resp.Attribute["errMsg"] = "You are not a teacher"
+				}
+				userChan <- resp
+
+			// 创建发单请求信息
+			case WS_ORDER_CREATE:
+				resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_CREATE_RESP)
+				if InitOrderDispatch(msg, userId, timestamp) {
+					resp.Attribute["errCode"] = "0"
+					resp.Attribute["countdown"] = "120"
+				} else {
+					resp.Attribute["errCode"] = "2"
+					resp.Attribute["errMsg"] = "Error on order creation"
+				}
+				userChan <- resp
+
+			// 订单相关信息，直接转发处理
+			case WS_ORDER_REPLY,
+				WS_ORDER_CONFIRM,
+				WS_ORDER_CANCEL:
+				resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
+
+				orderIdStr, ok := msg.Attribute["orderId"]
+				if !ok {
+					resp.Attribute["errCode"] = "2"
+					userChan <- resp
+					break
+				}
+
+				orderId, err := strconv.ParseInt(orderIdStr, 10, 64)
+				if err != nil {
+					resp.Attribute["errCode"] = "2"
+					userChan <- resp
+					break
+				}
+
+				if !WsManager.HasOrderChan(orderId) {
+					break
+				}
+				orderChan := WsManager.GetOrderChan(orderId)
+				orderChan <- msg
+		*/
 	}
 }
 
