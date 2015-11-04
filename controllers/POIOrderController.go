@@ -7,7 +7,6 @@ import (
 
 	"POIWolaiWebService/leancloud"
 	"POIWolaiWebService/models"
-	"POIWolaiWebService/redis"
 	"POIWolaiWebService/websocket"
 
 	"github.com/cihub/seelog"
@@ -93,37 +92,37 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 			seelog.Error(err.Error())
 			return 2, nil, err
 		}
-		if dateDiff == 0 {
-			hour := time.Now().Hour()
-			if hour > 12 && periodId == 1 {
-				err = errors.New("不能选择上午")
-				seelog.Error(err.Error())
-				return 2, nil, err
-			}
-			if hour > 18 && (periodId == 1 || periodId == 2) {
-				err = errors.New("不能选择上午和下午")
-				seelog.Error(err.Error())
-				return 2, nil, err
-			}
-			if hour > 22 && (periodId == 1 || periodId == 2 || periodId == 3) {
-				err = errors.New("只能选择现在")
-				seelog.Error(err.Error())
-				return 2, nil, err
-			}
-		}
+		//		if dateDiff == 0 {
+		//			hour := time.Now().Hour()
+		//			if hour > 12 && periodId == 1 {
+		//				err = errors.New("不能选择上午")
+		//				seelog.Error(err.Error())
+		//				return 2, nil, err
+		//			}
+		//			if hour > 18 && (periodId == 1 || periodId == 2) {
+		//				err = errors.New("不能选择上午和下午")
+		//				seelog.Error(err.Error())
+		//				return 2, nil, err
+		//			}
+		//			if hour > 22 && (periodId == 1 || periodId == 2 || periodId == 3) {
+		//				err = errors.New("只能选择现在")
+		//				seelog.Error(err.Error())
+		//				return 2, nil, err
+		//			}
+		//		}
 
-		// 根据用户输入的预约时间信息获取冲突时间段
-		timestampFrom, timestampTo, err := parseAppointmentTime(date, periodId)
-		if err != nil {
-			return 2, nil, err
-		}
+		//		// 根据用户输入的预约时间信息获取冲突时间段
+		//		timestampFrom, timestampTo, err := parseAppointmentTime(date, periodId)
+		//		if err != nil {
+		//			return 2, nil, err
+		//		}
 
-		// 判断用户时间是否冲突
-		if !redis.RedisManager.IsUserAvailable(creatorId, timestampFrom, timestampTo) {
-			err := errors.New("该时间段内你已有其他课程！")
-			seelog.Error(err.Error())
-			return 5003, nil, err
-		}
+		//		// 判断用户时间是否冲突
+		//		if !redis.RedisManager.IsUserAvailable(creatorId, timestampFrom, timestampTo) {
+		//			err := errors.New("该时间段内你已有其他课程！")
+		//			seelog.Error(err.Error())
+		//			return 5003, nil, err
+		//		}
 
 		//点对点马上辅导：检查用户是否可以发起点对点申请
 	case models.ORDER_TYPE_PERSONAL_INSTANT:
@@ -148,24 +147,24 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		}
 
 		// 根据用户输入的预约时间信息获取冲突时间段
-		timestampFrom, timestampTo, err := parseAppointmentTime(date, periodId)
-		if err != nil {
-			return 2, nil, err
-		}
+		//		timestampFrom, timestampTo, err := parseAppointmentTime(date, periodId)
+		//		if err != nil {
+		//			return 2, nil, err
+		//		}
 
-		// 判断用户时间是否冲突
-		if !redis.RedisManager.IsUserAvailable(creatorId, timestampFrom, timestampTo) {
-			err := errors.New("该时间段内您已有其他课程！")
-			seelog.Error(err.Error())
-			return 5003, nil, err
-		}
+		//		// 判断用户时间是否冲突
+		//		if !redis.RedisManager.IsUserAvailable(creatorId, timestampFrom, timestampTo) {
+		//			err := errors.New("该时间段内您已有其他课程！")
+		//			seelog.Error(err.Error())
+		//			return 5003, nil, err
+		//		}
 
-		// 判断导师时间是否冲突
-		if !redis.RedisManager.IsUserAvailable(teacherId, timestampFrom, timestampTo) {
-			err := errors.New("该时间段内导师已有其他课程！")
-			seelog.Error(err.Error())
-			return 5003, nil, err
-		}
+		//		// 判断导师时间是否冲突
+		//		if !redis.RedisManager.IsUserAvailable(teacherId, timestampFrom, timestampTo) {
+		//			err := errors.New("该时间段内导师已有其他课程！")
+		//			seelog.Error(err.Error())
+		//			return 5003, nil, err
+		//		}
 	}
 
 	orderPtr, err := models.InsertOrder(&order)

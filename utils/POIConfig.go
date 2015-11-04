@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	DB_TYPE     = "mysql"
-	TIME_FORMAT = "2006-01-02 15:04:05"
+	DB_TYPE              = "mysql"
+	TIME_FORMAT          = "2006-01-02 15:04:05"
+	EARLIEST_TIME_FORMAT = "0001-01-01 00:00:00"
 )
 
 type POIConfig struct {
