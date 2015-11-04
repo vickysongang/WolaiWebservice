@@ -235,7 +235,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			if err := TeacherManager.SetOffline(userId); err != nil {
 				resp.Attribute["errCode"] = "2"
-				resp.Attribute["errMsg"] = "You are not online"
+				resp.Attribute["errMsg"] = err.Error()
 			}
 			userChan <- resp
 
@@ -251,7 +251,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			if err := TeacherManager.SetAssignOn(userId); err != nil {
 				resp.Attribute["errCode"] = "2"
-				resp.Attribute["errMsg"] = "You are not online"
+				resp.Attribute["errMsg"] = err.Error()
 			}
 			userChan <- resp
 
@@ -267,7 +267,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			if err := TeacherManager.SetAssignOff(userId); err != nil {
 				resp.Attribute["errCode"] = "2"
-				resp.Attribute["errMsg"] = "You are not online"
+				resp.Attribute["errMsg"] = err.Error()
 			}
 			userChan <- resp
 
@@ -284,7 +284,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		case WS_ORDER2_CANCEL,
 			WS_ORDER2_ACCEPT,
-			WS_ORDER2_ASSIGN:
+			WS_ORDER2_ASSIGN_ACCEPT:
 			resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
 
 			orderIdStr, ok := msg.Attribute["orderId"]
