@@ -270,6 +270,41 @@ func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
+ * 1.9 support and teacher list
+ */
+func V1SupportAndTeacherList(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+	content, err := controllers.GetSupportAndTeacherList(userId, page, count)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
  * 2.1 Atrium
  */
 func V1Atrium(w http.ResponseWriter, r *http.Request) {
@@ -1292,9 +1327,9 @@ func V1CheckComplaintExsits(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
- *  8.1 Search  Teacher
+ *  8.1 Search Teachers
  */
-func V1SearchTeacher(w http.ResponseWriter, r *http.Request) {
+func V1SearchTeachers(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanicException(w, NullSlice)
 	err := r.ParseForm()
 	if err != nil {
@@ -1322,7 +1357,46 @@ func V1SearchTeacher(w http.ResponseWriter, r *http.Request) {
 		pageCountStr := vars["count"][0]
 		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
 	}
-	content, err := controllers.SearchTeacher(userId, keyword, pageNum, pageCount)
+	content, err := controllers.SearchTeachers(userId, keyword, pageNum, pageCount)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
+ *  8.2 Search Userss
+ */
+func V1SearchUsers(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	var keyword string
+	if len(vars["keyword"]) > 0 {
+		keyword = vars["keyword"][0]
+	}
+	var pageNum int64
+	if len(vars["page"]) == 0 {
+		pageNum = 0
+	} else {
+		pageNumStr := vars["page"][0]
+		pageNum, _ = strconv.ParseInt(pageNumStr, 10, 64)
+	}
+
+	var pageCount int64
+	if len(vars["count"]) == 0 {
+		pageCount = 10
+	} else {
+		pageCountStr := vars["count"][0]
+		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
+	}
+	content, err := controllers.SearchUsers(userId, keyword, pageNum, pageCount)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
 	} else {
@@ -1952,4 +2026,43 @@ func V1GetHelpItems(w http.ResponseWriter, r *http.Request) {
 	} else {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
+}
+
+func V1SetSeekHelp(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	convId := vars["convId"][0]
+	redis.RedisManager.SetSeekHelp(time.Now().Unix(), convId)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+}
+
+func V1GetSeekHelps(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+
+	var pageNum int64
+	if len(vars["page"]) == 0 {
+		pageNum = 0
+	} else {
+		pageNumStr := vars["page"][0]
+		pageNum, _ = strconv.ParseInt(pageNumStr, 10, 64)
+	}
+
+	var pageCount int64
+	if len(vars["count"]) == 0 {
+		pageCount = 10
+	} else {
+		pageCountStr := vars["count"][0]
+		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
+	}
+	content := redis.RedisManager.GetSeekHelps(pageNum, pageCount)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 }

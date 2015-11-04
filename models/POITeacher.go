@@ -8,6 +8,11 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+const (
+	USER_WOLAI_TEAM  = 1003
+	USER_WOLAI_TUTOR = 2001
+)
+
 type POITeacher struct {
 	POIUser
 	School           string   `json:"school"`
@@ -152,6 +157,43 @@ func QueryTeacherList(pageNum, pageCount int64) (POITeachers, error) {
 	o := orm.NewOrm()
 	var teacherModels POITeacherModels
 	_, err := o.Raw(sql).QueryRows(&teacherModels)
+	if err != nil {
+		seelog.Error(err.Error())
+		return nil, err
+	}
+	for i := range teacherModels {
+		teacher := teacherModels[i]
+		teachers = append(teachers, POITeacher{
+			POIUser: POIUser{
+				UserId:      teacher.Id,
+				Nickname:    teacher.Nickname,
+				Avatar:      teacher.Avatar,
+				AccessRight: teacher.AccessRight,
+				Gender:      teacher.Gender},
+			ServiceTime:      teacher.ServiceTime,
+			School:           teacher.SchoolName,
+			Department:       teacher.DeptName,
+			PricePerHour:     teacher.PricePerHour,
+			RealPricePerHour: teacher.RealPricePerHour})
+	}
+	return teachers, nil
+}
+
+/*
+ * 查询我来客服和我来团队
+ */
+func QuerySupportList() (POITeachers, error) {
+	teachers := make(POITeachers, 0)
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb.Select("users.id, users.nickname, users.avatar, users.gender,users.access_right,teacher_profile.service_time,teacher_profile.price_per_hour," +
+		"teacher_profile.real_price_per_hour,school.name school_name, department.name dept_name").
+		From("users").LeftJoin("teacher_profile").On("users.id = teacher_profile.user_id").LeftJoin("school").
+		On("teacher_profile.school_id = school.id").LeftJoin("department").On("teacher_profile.department_id = department.id").
+		Where("users.id in (?,?)")
+	sql := qb.String()
+	o := orm.NewOrm()
+	var teacherModels POITeacherModels
+	_, err := o.Raw(sql, USER_WOLAI_TEAM, USER_WOLAI_TUTOR).QueryRows(&teacherModels)
 	if err != nil {
 		seelog.Error(err.Error())
 		return nil, err
@@ -398,14 +440,35 @@ func InsertTeacherProfile(profile *POITeacherProfileModel) int64 {
 	return id
 }
 
+//搜索老师
 func QueryTeachersByCond(userId int64, keyword string, pageNum, pageCount int64) (POITeacherModels, error) {
 	start := pageNum * pageCount
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("users.id,users.nickname,users.phone,users.avatar, users.gender,teacher_profile.service_time, teacher_profile.price_per_hour,teacher_profile.real_price_per_hour,school.name school_name,department.name dept_name").
+	qb.Select("users.id,users.nickname,users.phone,users.access_right,users.avatar,users.gender,teacher_profile.service_time, teacher_profile.price_per_hour,teacher_profile.real_price_per_hour,school.name school_name,department.name dept_name").
 		From("users").InnerJoin("teacher_profile").On("users.id = teacher_profile.user_id").
 		InnerJoin("school").On("teacher_profile.school_id = school.id").
 		InnerJoin("department").On("teacher_profile.department_id = department.id").
 		Where("users.access_right = 2 and users.status = 0 and (users.nickname like ? or users.phone like ?)").Limit(int(pageCount)).Offset(int(start))
+	sql := qb.String()
+	o := orm.NewOrm()
+	var teacherModels POITeacherModels
+	_, err := o.Raw(sql, "%"+keyword+"%", "%"+keyword+"%").QueryRows(&teacherModels)
+	if err != nil {
+		seelog.Error("keyword:", keyword, " ", err.Error())
+		return teacherModels, err
+	}
+	return teacherModels, nil
+}
+
+//搜索老师和学生
+func QueryUsersByCond(userId int64, keyword string, pageNum, pageCount int64) (POITeacherModels, error) {
+	start := pageNum * pageCount
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb.Select("users.id,users.nickname,users.phone,users.avatar,users.gender,users.access_right,teacher_profile.service_time,teacher_profile.price_per_hour,teacher_profile.real_price_per_hour,school.name school_name,department.name dept_name").
+		From("users").LeftJoin("teacher_profile").On("users.id = teacher_profile.user_id").
+		LeftJoin("school").On("teacher_profile.school_id = school.id").
+		LeftJoin("department").On("teacher_profile.department_id = department.id").
+		Where("users.access_right in (2,3) and users.status = 0 and (users.nickname like ? or users.phone like ?)").Limit(int(pageCount)).Offset(int(start))
 	sql := qb.String()
 	o := orm.NewOrm()
 	var teacherModels POITeacherModels

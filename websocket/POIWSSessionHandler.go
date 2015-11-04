@@ -38,6 +38,8 @@ func POIWSSessionHandler(sessionId int64) {
 	isServing := false //课程是否正在进行中
 	isPaused := false  //课程是否被暂停
 
+	isCountdowning := false //判断是否正在倒计时
+
 	//时间同步计时器，每60s向客户端同步服务器端的时间来校准客户端的计时
 	syncTicker := time.NewTicker(time.Second * 60)
 	//超时计时器，预约的课二十分钟内没有发起上课则二十分钟会课程自动超时结束，中断的课程在五分钟内如果没有重新恢复则五分钟后课程自动超时结束
@@ -49,7 +51,9 @@ func POIWSSessionHandler(sessionId int64) {
 	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT {
 		countdownTimer.Stop()
 	} else {
+		//如果是马上辅导的单，则进入倒计时,停止超时计时器
 		waitingTimer.Stop()
+		isCountdowning = true
 	}
 	//初始停止时间同步计时器，待正式上课的时候启动该计时器
 	syncTicker.Stop()
@@ -107,6 +111,10 @@ func POIWSSessionHandler(sessionId int64) {
 
 		case cur := <-countdownTimer.C:
 			seelog.Debug("sessionId:", sessionId, " count down...")
+
+			//倒计时结束后，重置倒计时进行中标识
+			isCountdowning = false
+
 			//将最后同步时间设置为倒计时结束的时间
 			lastSync = cur.Unix()
 			//将课程标记为上课中，并将该状态存在内存中
@@ -403,6 +411,11 @@ func POIWSSessionHandler(sessionId int64) {
 						break
 					}
 
+					//如果课程正在倒计时，则暂不处理中断消息(如果用户在倒计时内切网导致掉线，然后又重连上了会使中断消息早于课程开始消息发送，即213要早于225)
+					if isCountdowning {
+						break
+					}
+
 					//计算课程时长，已计时长＋（中断时间－上次同步时间）
 					length = length + (timestamp - lastSync)
 					//将中断时间设置为最后同步时间，用于下次时间的计算
@@ -675,6 +688,7 @@ func InitSessionMonitor(sessionId int64) bool {
 		return false
 	}
 
+	//提示课程即将开始，给客户端发送倒计时消息
 	alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_ALERT)
 	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT {
 		alertMsg.OperationCode = WS_SESSION_ALERT
@@ -736,8 +750,10 @@ func CheckSessionBreak(userId int64) {
 		return
 	}
 	seelog.Debug("send session break message:", userId)
+	//延迟10秒判断用户是否重连上，给客户端10s的重连时间
 	time.Sleep(10 * time.Second)
 	userLoginTime := WsManager.GetUserOnlineStatus(userId)
+	//如果用户重连上了且用户有正在进行的课，则不给对方发送课程中断的消息
 	if userLoginTime != -1 && WsManager.HasUserChan(userId) {
 		seelog.Debug("user ", userId, " reconnect success!")
 		for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
@@ -750,6 +766,7 @@ func CheckSessionBreak(userId int64) {
 		}
 	}
 
+	//给对方发送课程中断的消息
 	for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
 		if !WsManager.HasSessionChan(sessionId) {
 			continue
@@ -757,6 +774,7 @@ func CheckSessionBreak(userId int64) {
 		sessionChan := WsManager.GetSessionChan(sessionId)
 		breakMsg := NewPOIWSMessage("", userId, WS_SESSION_BREAK)
 		sessionChan <- breakMsg
+		seelog.Debug("send break message when user", userId, " offline!")
 	}
 }
 
