@@ -21,6 +21,7 @@ func orderHandler(orderId int64) {
 	order := models.QueryOrderById(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan := WsManager.GetOrderChan(orderId)
+	orderByte, _ := json.Marshal(order)
 
 	orderInfo := map[string]interface{}{
 		"Status": models.ORDER_STATUS_DISPATHCING,
@@ -29,14 +30,15 @@ func orderHandler(orderId int64) {
 
 	orderLifespan := redis.RedisManager.GetConfigOrderLifespan()
 	orderDispatchLimit := redis.RedisManager.GetConfigOrderDispatchLimit()
-	//orderAssignCountdown := redis.RedisManager.GetConfigOrderAssignCountdown()
+	orderAssignCountdown := redis.RedisManager.GetConfigOrderAssignCountdown()
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 	dispatchTimer := time.NewTimer(time.Second * time.Duration(orderDispatchLimit))
 	dispatchTicker := time.NewTicker(time.Second * 3)
+	assignTimer := time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
+	assignTimer.Stop()
 
 	timestamp := time.Now().Unix()
-	//dispatchStart := timestamp
 	seelog.Debug("orderHandler|HandlerInit: ", orderId)
 
 	for {
@@ -76,10 +78,42 @@ func orderHandler(orderId int64) {
 				}
 			}
 
+			assignTarget := assignNextTeacher(orderId)
+			assignMsg := NewPOIWSMessage("", assignTarget, WS_ORDER2_ASSIGN)
+			assignMsg.Attribute["orderInfo"] = string(orderByte)
+			assignMsg.Attribute["countdown"] = strconv.FormatInt(orderAssignCountdown, 10)
+			if WsManager.HasUserChan(assignTarget) {
+				teacherChan := WsManager.GetUserChan(assignTarget)
+				teacherChan <- assignMsg
+			}
+			assignTimer = time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
+
+		case <-assignTimer.C:
+			assignTarget, err := OrderManager.GetCurrentAssign(orderId)
+			if err != nil {
+				break
+			}
+			expireMsg := NewPOIWSMessage("", assignTarget, WS_ORDER2_ASSIGN_EXPIRE)
+			expireMsg.Attribute["orderId"] = orderIdStr
+			if WsManager.HasUserChan(assignTarget) {
+				teacherChan := WsManager.GetUserChan(assignTarget)
+				teacherChan <- expireMsg
+			}
+			TeacherManager.SetAssignUnlock(assignTarget)
+
+			assignTarget = assignNextTeacher(orderId)
+			assignMsg := NewPOIWSMessage("", assignTarget, WS_ORDER2_ASSIGN)
+			assignMsg.Attribute["orderInfo"] = string(orderByte)
+			assignMsg.Attribute["countdown"] = strconv.FormatInt(orderAssignCountdown, 10)
+			if WsManager.HasUserChan(assignTarget) {
+				teacherChan := WsManager.GetUserChan(assignTarget)
+				teacherChan <- assignMsg
+			}
+			assignTimer = time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
+
 		case <-dispatchTicker.C:
 			// 组装派发信息
 			timestamp = time.Now().Unix()
-			orderByte, _ := json.Marshal(order)
 
 			dispatchMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER2_DISPATCH)
 			dispatchMsg.Attribute["orderInfo"] = string(orderByte)
@@ -144,6 +178,7 @@ func orderHandler(orderId int64) {
 
 					seelog.Debug("orderHandler|orderCancelled: ", orderId)
 					return
+
 				case WS_ORDER2_ACCEPT:
 					//发送反馈消息
 					acceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_ACCEPT_RESP)
@@ -208,6 +243,44 @@ func orderHandler(orderId int64) {
 					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 					WsManager.RemoveOrderChan(orderId)
 					return
+
+				case WS_ORDER2_ASSIGN_ACCEPT:
+					//发送反馈消息
+					acceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_ASSIGN_ACCEPT_RESP)
+					acceptResp.Attribute["errCode"] = "0"
+					userChan <- acceptResp
+
+					//向学生发送结果
+					teacher := models.QueryTeacher(msg.UserId)
+					teacher.LabelList = models.QueryTeacherLabelByUserId(msg.UserId)
+					teacherByte, _ := json.Marshal(teacher)
+					acceptMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER2_ASSIGN_ACCEPT)
+					acceptMsg.Attribute["orderId"] = orderIdStr
+					acceptMsg.Attribute["countdown"] = "10"
+					acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
+					if WsManager.HasUserChan(order.Creator.UserId) {
+						creatorChan := WsManager.GetUserChan(order.Creator.UserId)
+						creatorChan <- acceptMsg
+					}
+
+					resultMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RESULT)
+					resultMsg.Attribute["orderId"] = orderIdStr
+					resultMsg.Attribute["status"] = "0"
+					resultMsg.Attribute["countdown"] = "10"
+					userChan <- resultMsg
+
+					seelog.Debug("orderHandler|orderAssignAccept: ", orderId, " to teacher: ", teacher.UserId) // 更新老师发单记录
+
+					// 结束派单流程，记录结果
+					orderInfo := map[string]interface{}{
+						"Status":           models.ORDER_STATUS_CONFIRMED,
+						"PricePerHour":     teacher.PricePerHour,
+						"RealPricePerHour": teacher.RealPricePerHour,
+					}
+					models.UpdateOrderInfo(orderId, orderInfo)
+					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
+					WsManager.RemoveOrderChan(orderId)
+					return
 				}
 			}
 		}
@@ -253,4 +326,18 @@ func initOrderDispatch(msg POIWSMessage, timestamp int64) bool {
 	go orderHandler(orderId)
 
 	return true
+}
+
+func assignNextTeacher(orderId int64) int64 {
+	for teacherId, _ := range TeacherManager.teacherMap {
+		if TeacherManager.IsTeacherAssignOpen(teacherId) &&
+			!TeacherManager.IsTeacherAssignLocked(teacherId) {
+			if err := OrderManager.SetAssignTarget(orderId, teacherId); err == nil {
+				TeacherManager.SetAssignLock(teacherId)
+				seelog.Debug("orderHandler|orderAssign: ", orderId, " to teacher: ", teacherId) // 更新老师发单记录
+				return teacherId
+			}
+		}
+	}
+	return -1
 }
