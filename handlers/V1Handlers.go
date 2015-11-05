@@ -24,7 +24,6 @@ import (
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/mux"
 	"github.com/pingplusplus/pingpp-go/pingpp"
-	"github.com/satori/go.uuid"
 )
 
 /*
@@ -1782,7 +1781,7 @@ func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
 	if len(vars["orderNo"]) > 0 {
 		orderNo = vars["orderNo"][0]
 	} else {
-		orderNo = uuid.NewV4().String()
+		orderNo = strconv.Itoa(int(time.Now().UnixNano()))
 	}
 
 	amountStr := vars["amount"][0]

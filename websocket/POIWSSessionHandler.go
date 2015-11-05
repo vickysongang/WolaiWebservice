@@ -99,6 +99,7 @@ func POIWSSessionHandler(sessionId int64) {
 			syncTicker = time.NewTicker(time.Second * 60)
 
 			seelog.Debug("POIWSSessionHandler: instant session start: " + sessionIdStr)
+			logger.InsertSessionEventLog(sessionId, 0, "课程开始", "")
 		}
 	}
 
