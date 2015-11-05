@@ -76,13 +76,22 @@ func (osm *OrderStatusManager) IsOrderAssigning(orderId int64) bool {
 	return (status.currentAssign != -1)
 }
 
-func (osm *OrderStatusManager) SetOnline(orderId int64) {
+func (osm *OrderStatusManager) SetOnline(orderId int64) error {
 	if osm.IsOrderOnline(orderId) {
-		return
+		return nil
 	}
 
 	osm.orderMap[orderId] = NewOrderStatus(orderId)
-	return
+	return nil
+}
+
+func (osm *OrderStatusManager) SetOffline(orderId int64) error {
+	if !osm.IsOrderOnline(orderId) {
+		return ErrOrderNotFound
+	}
+
+	delete(osm.orderMap, orderId)
+	return nil
 }
 
 func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) error {
