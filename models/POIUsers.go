@@ -30,6 +30,16 @@ type POIOAuth struct {
 	OpenIdQq string
 }
 
+type POIUserLoginInfo struct {
+	Id        int64 `json:"-" orm:"pk"`
+	UserId    int64
+	ObjectId  string
+	Address   string
+	Ip        string
+	UserAgent string
+	Time      time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+}
+
 type POIUsers []POIUser
 
 const (
@@ -44,7 +54,7 @@ const (
 )
 
 func init() {
-	orm.RegisterModel(new(POIUser), new(POIOAuth))
+	orm.RegisterModel(new(POIUser), new(POIOAuth), new(POIUserLoginInfo))
 }
 
 /*
@@ -56,6 +66,10 @@ func (u *POIUser) TableName() string {
 
 func (a *POIOAuth) TableName() string {
 	return "user_oauth"
+}
+
+func (loginInfo *POIUserLoginInfo) TableName() string {
+	return "user_login_info"
 }
 
 func NewPOIUser(userId int64, nickname string, avatar string, gender int64, accessRight int64) POIUser {
@@ -182,4 +196,14 @@ func CheckUserExist(userId int64) bool {
 		return true
 	}
 	return false
+}
+
+func InsertUserLoginInfo(loginInfo *POIUserLoginInfo) (*POIUserLoginInfo, error) {
+	o := orm.NewOrm()
+	id, err := o.Insert(loginInfo)
+	if err != nil {
+		return nil, err
+	}
+	loginInfo.Id = id
+	return loginInfo, nil
 }

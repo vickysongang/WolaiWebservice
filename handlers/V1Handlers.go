@@ -304,6 +304,30 @@ func V1SupportAndTeacherList(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
+ * 1.10 Insert user loginInfo
+ */
+func V1InsertUserLoginInfo(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	objectId := vars["objectId"][0]
+	address := vars["address"][0]
+	ip := r.RemoteAddr
+	userAgent := r.UserAgent()
+	content, err := controllers.InsertUserLoginInfo(userId, objectId, address, ip, userAgent)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
+}
+
+/*
  * 2.1 Atrium
  */
 func V1Atrium(w http.ResponseWriter, r *http.Request) {
@@ -1753,7 +1777,13 @@ func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
 		seelog.Error(err.Error())
 	}
 	vars := r.Form
-	orderNo := vars["orderNo"][0]
+	var orderNo string
+	if len(vars["orderNo"]) > 0 {
+		orderNo = vars["orderNo"][0]
+	} else {
+		orderNo = strconv.Itoa(int(time.Now().UnixNano()))
+	}
+
 	amountStr := vars["amount"][0]
 	amount, _ := strconv.ParseUint(amountStr, 10, 64)
 	channel := vars["channel"][0]

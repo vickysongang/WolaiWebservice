@@ -143,6 +143,19 @@ var V1Routes = Routes{
 		"/v1/support/teacher/list",
 		handlers.V1SupportAndTeacherList,
 	},
+	// 1.11 user login info insert
+	Route{
+		"V1InsertUserLoginInfoPOST",
+		"POST",
+		"/v1/user/logininfo/insert",
+		handlers.V1InsertUserLoginInfo,
+	},
+	Route{
+		"V1InsertUserLoginInfoGET",
+		"GET",
+		"/v1/user/logininfo/insert",
+		handlers.V1InsertUserLoginInfo,
+	},
 
 	// 2.1 Atrium
 	Route{
