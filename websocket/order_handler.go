@@ -367,8 +367,7 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 	// 发起上课请求或者设置计时器
 	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
-		countdownTimer := time.NewTimer(time.Second * 10)
-		<-countdownTimer.C
+		time.Sleep(time.Second * 10)
 		_ = InitSessionMonitor(session.Id)
 
 	} else if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
