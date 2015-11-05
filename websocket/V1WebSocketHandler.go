@@ -273,12 +273,12 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		case WS_ORDER2_CREATE:
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_CREATE_RESP)
-			if initOrderDispatch(msg, timestamp) {
+			if err := initOrderDispatch(msg, timestamp); err == nil {
 				resp.Attribute["errCode"] = "0"
 				resp.Attribute["countdown"] = "120"
 			} else {
 				resp.Attribute["errCode"] = "2"
-				resp.Attribute["errMsg"] = "Error on order creation"
+				resp.Attribute["errMsg"] = err.Error()
 			}
 			userChan <- resp
 

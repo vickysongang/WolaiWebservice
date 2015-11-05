@@ -173,18 +173,18 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		return 2, nil, err
 	}
 
-	if orderPtr.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
-		if websocket.WsManager.IsUserSessionLocked(teacherId) {
-			orderInfo := map[string]interface{}{
-				"Status": models.ORDER_STATUS_CANCELLED,
-			}
-			models.UpdateOrderInfo(orderPtr.Id, orderInfo)
-			go leancloud.SendPersonalOrderAutoRejectNotification(creatorId, teacherId)
-		} else {
-			go leancloud.SendPersonalOrderNotification(orderPtr.Id, teacherId)
-			go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderPtr.Id, teacherId))
-		}
-	}
+	// if orderPtr.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+	// 	if websocket.WsManager.IsUserSessionLocked(teacherId) {
+	// 		orderInfo := map[string]interface{}{
+	// 			"Status": models.ORDER_STATUS_CANCELLED,
+	// 		}
+	// 		models.UpdateOrderInfo(orderPtr.Id, orderInfo)
+	// 		go leancloud.SendPersonalOrderAutoRejectNotification(creatorId, teacherId)
+	// 	} else {
+	// 		go leancloud.SendPersonalOrderNotification(orderPtr.Id, teacherId)
+	// 		go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderPtr.Id, teacherId))
+	// 	}
+	// }
 	return 0, orderPtr, nil
 }
 

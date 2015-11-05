@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
+	"errors"
 	"strconv"
 	"time"
 
@@ -29,9 +30,14 @@ func orderHandler(orderId int64) {
 	}
 	models.UpdateOrderInfo(orderId, orderInfo)
 
-	orderLifespan := redis.RedisManager.GetConfigOrderLifespan()
-	orderDispatchLimit := redis.RedisManager.GetConfigOrderDispatchLimit()
-	orderAssignCountdown := redis.RedisManager.GetConfigOrderAssignCountdown()
+	orderLifespan := redis.RedisManager.GetConfig(
+		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN)
+	orderDispatchLimit := redis.RedisManager.GetConfig(
+		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_DISPATCH_LIMIT)
+	orderAssignCountdown := redis.RedisManager.GetConfig(
+		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN)
+	orderSessionCountdown := redis.RedisManager.GetConfig(
+		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 	dispatchTimer := time.NewTimer(time.Second * time.Duration(orderDispatchLimit))
@@ -192,7 +198,7 @@ func orderHandler(orderId int64) {
 					teacherByte, _ := json.Marshal(teacher)
 					acceptMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER2_ACCEPT)
 					acceptMsg.Attribute["orderId"] = orderIdStr
-					acceptMsg.Attribute["countdown"] = "10"
+					acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 					acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
 					if WsManager.HasUserChan(order.Creator.UserId) {
 						creatorChan := WsManager.GetUserChan(order.Creator.UserId)
@@ -223,7 +229,7 @@ func orderHandler(orderId int64) {
 						dispatchChan := WsManager.GetUserChan(dispatchId)
 						resultMsg.UserId = dispatchId
 						resultMsg.Attribute["status"] = strconv.FormatInt(status, 10)
-						resultMsg.Attribute["countdown"] = "10"
+						resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 						dispatchChan <- resultMsg
 
 					}
@@ -259,7 +265,7 @@ func orderHandler(orderId int64) {
 					teacherByte, _ := json.Marshal(teacher)
 					acceptMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER2_ASSIGN_ACCEPT)
 					acceptMsg.Attribute["orderId"] = orderIdStr
-					acceptMsg.Attribute["countdown"] = "10"
+					acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 					acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
 					if WsManager.HasUserChan(order.Creator.UserId) {
 						creatorChan := WsManager.GetUserChan(order.Creator.UserId)
@@ -269,7 +275,7 @@ func orderHandler(orderId int64) {
 					resultMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RESULT)
 					resultMsg.Attribute["orderId"] = orderIdStr
 					resultMsg.Attribute["status"] = "0"
-					resultMsg.Attribute["countdown"] = "10"
+					resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 					userChan <- resultMsg
 
 					seelog.Debug("orderHandler|orderAssignAccept: ", orderId, " to teacher: ", teacher.UserId) // 更新老师发单记录
@@ -292,7 +298,7 @@ func orderHandler(orderId int64) {
 	}
 }
 
-func initOrderDispatch(msg POIWSMessage, timestamp int64) bool {
+func initOrderDispatch(msg POIWSMessage, timestamp int64) error {
 	defer func() {
 		if r := recover(); r != nil {
 			seelog.Error(r)
@@ -301,26 +307,26 @@ func initOrderDispatch(msg POIWSMessage, timestamp int64) bool {
 
 	orderIdStr, ok := msg.Attribute["orderId"]
 	if !ok {
-		return false
+		return errors.New("Must have order Id in attribute")
 	}
 
 	orderId, err := strconv.ParseInt(orderIdStr, 10, 64)
 	if err != nil {
 		seelog.Error("InitOrderDispatch:", err.Error())
-		return false
+		return errors.New("Invalid orderId")
 	}
 
 	if WsManager.HasOrderChan(orderId) {
-		return false
+		return errors.New("The order is already dispatching")
 	}
 
 	order := models.QueryOrderById(orderId)
 	if msg.UserId != order.Creator.UserId {
-		return false
+		return errors.New("You are not the order creator")
 	}
 
 	if order.Type != models.ORDER_TYPE_GENERAL_INSTANT && order.Type != models.ORDER_TYPE_GENERAL_APPOINTMENT {
-		return false
+		return errors.New("sorry, not order type not allowed")
 	}
 
 	WsManager.SetOrderCreate(orderId, msg.UserId, timestamp)
@@ -331,7 +337,7 @@ func initOrderDispatch(msg POIWSMessage, timestamp int64) bool {
 	OrderManager.SetOnline(orderId)
 	go orderHandler(orderId)
 
-	return true
+	return nil
 }
 
 func assignNextTeacher(orderId int64) int64 {
@@ -354,6 +360,8 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 	//teacher := models.QueryTeacher(teacherId)
 	dispatchInfo := models.QueryOrderDispatch(orderId, teacherId)
 	planTime := dispatchInfo.PlanTime
+	orderSessionCountdown := redis.RedisManager.GetConfig(
+		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
 
 	sessionInfo := models.NewPOISession(order.Id,
 		models.QueryUserById(order.Creator.UserId),
@@ -367,7 +375,7 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 	// 发起上课请求或者设置计时器
 	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
-		time.Sleep(time.Second * 10)
+		time.Sleep(time.Second * time.Duration(orderSessionCountdown))
 		//_ = InitSessionMonitor(session.Id)
 
 	} else if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
