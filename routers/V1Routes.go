@@ -961,6 +961,20 @@ var V1Routes = Routes{
 		"/v1/pingpp/webhook",
 		handlers.V1WebhookByPingpp,
 	},
+	// 15.1 sendcloud smshook
+	Route{
+		"V1WSMSHookPOST",
+		"POST",
+		"/v1/sendcloud/smshook",
+		handlers.V1SmsHook,
+	},
+	// 15.2 senccloud sendmessage
+	Route{
+		"V1SCSendMessagePOST",
+		"POST",
+		"/v1/sendcloud/sendmessage",
+		handlers.V1SendMessage,
+	},
 
 	Route{
 		"V1BannerPOST",

@@ -803,3 +803,16 @@ func (rm *POIRedisManager) GetSeekHelps(page, count int64) []string {
 	}
 	return helps
 }
+
+func (rm *POIRedisManager) SetSendcloudRandCode(phone string, randCode string) {
+	_ = rm.RedisClient.Set(phone, randCode, time.Second*60*10)
+}
+
+func (rm *POIRedisManager) GetSendcloudRandCode(phone string) string {
+	result, err := rm.RedisClient.Get(phone).Result()
+	if err == redis.Nil {
+		return ""
+	}
+	rm.RedisClient.Del(phone)
+	return result
+}

@@ -21,6 +21,7 @@ type POIConfig struct {
 	LeanCloud leancloudConf
 	Reminder  reminderConf
 	Pingpp    pingppConf
+	SendCloud sendcloudConf
 }
 
 var Config POIConfig
@@ -65,6 +66,13 @@ type reminderConf struct {
 type pingppConf struct {
 	Key   string
 	AppId string
+}
+
+type sendcloudConf struct {
+	SmsUser    string
+	TemplateId string
+	SmsKey     string
+	AppKey     string
 }
 
 // Parse duration

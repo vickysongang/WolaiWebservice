@@ -21,6 +21,8 @@ import (
 
 	pingxx "POIWolaiWebService/pingpp"
 
+	"POIWolaiWebService/sendcloud"
+
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/mux"
 	"github.com/pingplusplus/pingpp-go/pingpp"
@@ -1940,6 +1942,44 @@ func V1WebhookByPingpp(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+}
+
+/*
+ * 15.1 send cloud smshook
+ */
+func V1SmsHook(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	token := vars["token"][0]
+	message := vars["message"][0]
+	signature := vars["signature"][0]
+	timestamp := vars["timestamp"][0]
+	phones := vars["phones"]
+	sendcloud.SMSHook(token, timestamp, signature, message, phones)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+}
+
+/*
+ * 15.2 sendcloud send message
+ */
+func V1SendMessage(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	phone := vars["phone"][0]
+	err = sendcloud.SendMessage(phone)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+	}
 }
 
 func V1Banner(w http.ResponseWriter, r *http.Request) {
