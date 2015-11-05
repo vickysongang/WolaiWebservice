@@ -700,8 +700,8 @@ func InitSessionMonitor(sessionId int64) bool {
 	timestamp := time.Now().Unix()
 	WsManager.SetSessionLive(sessionId, timestamp)
 	WsManager.SetUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
-	//WsManager.SetUserSessionLock(session.Creator.UserId, true, timestamp)
-	//WsManager.SetUserSessionLock(session.Teacher.UserId, true, timestamp)
+	WsManager.SetUserSessionLock(session.Creator.UserId, true, timestamp)
+	WsManager.SetUserSessionLock(session.Teacher.UserId, true, timestamp)
 
 	go POIWSSessionHandler(sessionId)
 

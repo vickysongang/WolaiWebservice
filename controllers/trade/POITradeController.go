@@ -74,8 +74,6 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 	if order.GradeId > 0 {
 		grade := models.QueryGradeById(order.GradeId)
 		gradeName = grade.Name
-		parentGrade := models.QueryGradeById(grade.Pid)
-		parentGradeName = parentGrade.Name
 	}
 	if order.SubjectId > 0 {
 		subject := models.QuerySubjectById(order.SubjectId)
@@ -86,7 +84,7 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 	minute := (session.Length % 3600) / 60
 
 	var comment string
-	gradeSubjectDisplayName := fmt.Sprintf("%s%s%s", parentGradeName, gradeName, subjectName)
+	gradeSubjectDisplayName := fmt.Sprintf("%s%s", gradeName, subjectName)
 	if models.OrderTypeRevDict[order.OrderType] == models.ORDER_TYPE_REALTIME_SESSION {
 		gradeSubjectDisplayName = "实时课堂"
 	}
