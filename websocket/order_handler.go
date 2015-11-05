@@ -146,6 +146,7 @@ func orderHandler(orderId int64) {
 					orderDispatch := models.POIOrderDispatch{
 						OrderId:   orderId,
 						TeacherId: teacherId,
+						PlanTime:  order.Date,
 					}
 					models.InsertOrderDispatch(&orderDispatch)
 					WsManager.SetOrderDispatch(orderId, teacherId, timestamp)
@@ -358,8 +359,7 @@ func assignNextTeacher(orderId int64) int64 {
 func handleSessionCreation(orderId int64, teacherId int64) {
 	order := models.QueryOrderById(orderId)
 	//teacher := models.QueryTeacher(teacherId)
-	dispatchInfo := models.QueryOrderDispatch(orderId, teacherId)
-	planTime := dispatchInfo.PlanTime
+	planTime := order.Date
 	orderSessionCountdown := redis.RedisManager.GetConfig(
 		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
 
