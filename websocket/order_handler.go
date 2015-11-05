@@ -7,6 +7,7 @@ import (
 
 	seelog "github.com/cihub/seelog"
 
+	"POIWolaiWebService/leancloud"
 	"POIWolaiWebService/models"
 	"POIWolaiWebService/redis"
 )
@@ -242,6 +243,8 @@ func orderHandler(orderId int64) {
 					models.UpdateOrderInfo(orderId, orderInfo)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 					WsManager.RemoveOrderChan(orderId)
+
+					handleSessionCreation(orderId, msg.UserId)
 					return
 
 				case WS_ORDER2_ASSIGN_ACCEPT:
@@ -280,6 +283,8 @@ func orderHandler(orderId int64) {
 					models.UpdateOrderInfo(orderId, orderInfo)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 					WsManager.RemoveOrderChan(orderId)
+
+					handleSessionCreation(orderId, msg.UserId)
 					return
 				}
 			}
@@ -342,4 +347,54 @@ func assignNextTeacher(orderId int64) int64 {
 		}
 	}
 	return -1
+}
+
+func handleSessionCreation(orderId int64, teacherId int64) {
+	order := models.QueryOrderById(orderId)
+	//teacher := models.QueryTeacher(teacherId)
+	dispatchInfo := models.QueryOrderDispatch(orderId, teacherId)
+	planTime := dispatchInfo.PlanTime
+
+	sessionInfo := models.NewPOISession(order.Id,
+		models.QueryUserById(order.Creator.UserId),
+		models.QueryUserById(teacherId),
+		planTime)
+	session := models.InsertSession(&sessionInfo)
+
+	// 发送Leancloud订单成功通知
+	go leancloud.SendSessionCreatedNotification(session.Id)
+
+	// 发起上课请求或者设置计时器
+	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
+		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+		countdownTimer := time.NewTimer(time.Second * 10)
+		<-countdownTimer.C
+		_ = InitSessionMonitor(session.Id)
+
+	} else if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
+		order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
+		// if redis.RedisManager.SetSessionUserTick(sessionPtr.Id) {
+		// 	WsManager.SetUserSessionLock(sessionPtr.Teacher.UserId, true, timestamp)
+		// 	WsManager.SetUserSessionLock(sessionPtr.Creator.UserId, true, timestamp)
+		// }
+		// planTime, _ := time.Parse(time.RFC3339, dispatchInfo.PlanTime)
+		// planTimeTS := planTime.Unix()
+		// sessionStart := make(map[string]int64)
+		// sessionStart["type"] = leancloud.LC_MSG_SESSION_SYS
+		// sessionStart["sessionId"] = sessionPtr.Id
+		// jsonStart, _ := json.Marshal(sessionStart)
+		// redis.RedisManager.SetSessionTicker(planTimeTS, string(jsonStart))
+		// sessionReminder := make(map[string]int64)
+		// sessionReminder["type"] = leancloud.LC_MSG_SESSION
+		// sessionReminder["sessionId"] = sessionPtr.Id
+		// for d := range utils.Config.Reminder.Durations {
+		// 	duration := utils.Config.Reminder.Durations[d]
+		// 	seconds := int64(duration.Seconds())
+		// 	sessionReminder["seconds"] = seconds
+		// 	jsonReminder, _ := json.Marshal(sessionReminder)
+		// 	if timestamp < planTimeTS-seconds {
+		// 		redis.RedisManager.SetSessionTicker(planTimeTS-seconds, string(jsonReminder))
+		// 	}
+		// }
+	}
 }

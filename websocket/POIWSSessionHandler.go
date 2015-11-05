@@ -38,25 +38,69 @@ func POIWSSessionHandler(sessionId int64) {
 	isServing := false //课程是否正在进行中
 	isPaused := false  //课程是否被暂停
 
-	isCountdowning := false //判断是否正在倒计时
-
 	//时间同步计时器，每60s向客户端同步服务器端的时间来校准客户端的计时
 	syncTicker := time.NewTicker(time.Second * 60)
-	//超时计时器，预约的课二十分钟内没有发起上课则二十分钟会课程自动超时结束，中断的课程在五分钟内如果没有重新恢复则五分钟后课程自动超时结束
-	waitingTimer := time.NewTimer(time.Minute * 20)
-	//课程开始前的倒计时
-	countdownTimer := time.NewTimer(time.Second * 10)
-
-	//如果是预约的单，则停止倒计时计时器，如果是马上辅导的单则停止超时计时器
-	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT {
-		countdownTimer.Stop()
-	} else {
-		//如果是马上辅导的单，则进入倒计时,停止超时计时器
-		waitingTimer.Stop()
-		isCountdowning = true
-	}
 	//初始停止时间同步计时器，待正式上课的时候启动该计时器
 	syncTicker.Stop()
+
+	//超时计时器，预约的课二十分钟内没有发起上课则二十分钟会课程自动超时结束，中断的课程在五分钟内如果没有重新恢复则五分钟后课程自动超时结束
+	waitingTimer := time.NewTimer(time.Minute * 20)
+
+	//如果是预约的单，则停止倒计时计时器，如果是马上辅导的单则停止超时计时器
+	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
+		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+		//如果是马上辅导的单，则进入倒计时,停止超时计时器
+		waitingTimer.Stop()
+
+		//将课程标记为上课中，并将该状态存在内存中
+		isServing = true
+		WsManager.SetSessionServingMap(sessionId, isServing)
+
+		//设置课程的开始时间并更改课程的状态
+		sessionInfo := map[string]interface{}{
+			"Status":   models.SESSION_STATUS_SERVING,
+			"TimeFrom": time.Now(),
+		}
+		models.UpdateSessionInfo(sessionId, sessionInfo)
+
+		teacherOnline := WsManager.HasUserChan(session.Teacher.UserId)
+		studentOnline := WsManager.HasUserChan(session.Creator.UserId)
+
+		if !teacherOnline {
+			//如果老师不在线，学生在线，则向学生发送课程中断消息
+			if studentOnline {
+				breakMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK)
+				breakMsg.Attribute["sessionId"] = sessionIdStr
+				breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
+				breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+				breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+				breakChan := WsManager.GetUserChan(breakMsg.UserId)
+				breakChan <- breakMsg
+			}
+			waitingTimer = time.NewTimer(time.Minute * 5)
+			isPaused = true
+			WsManager.RemoveSessionServingMap(sessionId)
+		} else if !studentOnline {
+			//如果学生不在线老师在线，则向老师发送课程中断消息
+			if teacherOnline {
+				breakMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_BREAK)
+				breakMsg.Attribute["sessionId"] = sessionIdStr
+				breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
+				breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+				breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+				breakChan := WsManager.GetUserChan(breakMsg.UserId)
+				breakChan <- breakMsg
+			}
+			waitingTimer = time.NewTimer(time.Minute * 5)
+			isPaused = true
+			WsManager.RemoveSessionServingMap(sessionId)
+		} else {
+			//启动时间同步计时器
+			syncTicker = time.NewTicker(time.Second * 60)
+
+			seelog.Debug("POIWSSessionHandler: instant session start: " + sessionIdStr)
+		}
+	}
 
 	for {
 		select {
@@ -108,79 +152,6 @@ func POIWSSessionHandler(sessionId int64) {
 			WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
 
 			return
-
-		case cur := <-countdownTimer.C:
-			seelog.Debug("sessionId:", sessionId, " count down...")
-
-			//倒计时结束后，重置倒计时进行中标识
-			isCountdowning = false
-
-			//将最后同步时间设置为倒计时结束的时间
-			lastSync = cur.Unix()
-			//将课程标记为上课中，并将该状态存在内存中
-			isServing = true
-			WsManager.SetSessionServingMap(sessionId, isServing)
-
-			//设置课程的开始时间并更改课程的状态
-			sessionInfo := map[string]interface{}{
-				"Status":   models.SESSION_STATUS_SERVING,
-				"TimeFrom": time.Now(),
-			}
-			models.UpdateSessionInfo(sessionId, sessionInfo)
-
-			teacherOnline := WsManager.HasUserChan(session.Teacher.UserId)
-			studentOnline := WsManager.HasUserChan(session.Creator.UserId)
-			//如果老师不在线，学生在线，则向学生发送课程中断消息
-			if !teacherOnline {
-				if studentOnline {
-					breakMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK)
-					breakMsg.Attribute["sessionId"] = sessionIdStr
-					breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
-					breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-					breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-					breakChan := WsManager.GetUserChan(breakMsg.UserId)
-					breakChan <- breakMsg
-				}
-				waitingTimer = time.NewTimer(time.Minute * 20)
-				isPaused = true
-				WsManager.RemoveSessionServingMap(sessionId)
-				break
-			}
-			//如果学生不在线老师在线，则向老师发送课程中断消息
-			if !studentOnline {
-				if teacherOnline {
-					breakMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_BREAK)
-					breakMsg.Attribute["sessionId"] = sessionIdStr
-					breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
-					breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-					breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-					breakChan := WsManager.GetUserChan(breakMsg.UserId)
-					breakChan <- breakMsg
-				}
-				waitingTimer = time.NewTimer(time.Minute * 20)
-				isPaused = true
-				WsManager.RemoveSessionServingMap(sessionId)
-				break
-			}
-
-			//向老师和学生发送课程开始消息
-			startMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_START)
-			startMsg.Attribute["sessionId"] = sessionIdStr
-			startMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
-			startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-			teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
-			teacherChan <- startMsg
-			startMsg.UserId = session.Creator.UserId
-			studentChan := WsManager.GetUserChan(session.Creator.UserId)
-			studentChan <- startMsg
-
-			//启动时间同步计时器
-			syncTicker = time.NewTicker(time.Second * 60)
-			//停止超时计时器
-			waitingTimer.Stop()
-
-			seelog.Debug("POIWSSessionHandler: instant session start: " + sessionIdStr)
-			logger.InsertSessionEventLog(sessionId, 0, "课程倒计时结束，开始上课", "")
 
 		case cur := <-syncTicker.C:
 			//如果课程不在进行中或者被暂停，则停止同步时间
@@ -408,11 +379,6 @@ func POIWSSessionHandler(sessionId int64) {
 				case WS_SESSION_BREAK:
 					//如果课程被暂停，则退出
 					if isPaused {
-						break
-					}
-
-					//如果课程正在倒计时，则暂不处理中断消息(如果用户在倒计时内切网导致掉线，然后又重连上了会使中断消息早于课程开始消息发送，即213要早于225)
-					if isCountdowning {
 						break
 					}
 
@@ -689,22 +655,35 @@ func InitSessionMonitor(sessionId int64) bool {
 	}
 
 	//提示课程即将开始，给客户端发送倒计时消息
-	alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_ALERT)
-	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT {
+	alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_START)
+	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
+		order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
 		alertMsg.OperationCode = WS_SESSION_ALERT
 	}
 	alertMsg.Attribute["sessionId"] = sessionIdStr
 	alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
 	alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-	alertMsg.Attribute["countdown"] = "10"
 	alertMsg.Attribute["planTime"] = session.PlanTime
 
 	if WsManager.HasUserChan(session.Teacher.UserId) {
 		teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
 		teacherChan <- alertMsg
 	}
-	go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-		alertMsg.OperationCode, session.Teacher.UserId))
+
+	if WsManager.HasUserChan(session.Creator.UserId) {
+		alertMsg.UserId = session.Creator.UserId
+		studentChan := WsManager.GetUserChan(session.Creator.UserId)
+		studentChan <- alertMsg
+	}
+
+	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
+		order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
+		go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
+			alertMsg.OperationCode, session.Teacher.UserId))
+
+		go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
+			alertMsg.OperationCode, session.Creator.UserId))
+	}
 
 	course, err := models.QueryServingCourse4User(session.Creator.UserId)
 	if err == nil {
@@ -712,17 +691,6 @@ func InitSessionMonitor(sessionId int64) bool {
 			"CourseId": course.CourseId,
 		}
 		models.UpdateOrderInfo(order.Id, orderInfo)
-	}
-
-	if order.Type != models.ORDER_TYPE_GENERAL_APPOINTMENT {
-		if WsManager.HasUserChan(session.Creator.UserId) {
-			alertMsg.UserId = session.Creator.UserId
-			studentChan := WsManager.GetUserChan(session.Creator.UserId)
-			studentChan <- alertMsg
-		}
-		go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-			alertMsg.OperationCode, session.Creator.UserId))
-
 	}
 
 	sessionChan := make(chan POIWSMessage)
