@@ -376,7 +376,7 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 		time.Sleep(time.Second * time.Duration(orderSessionCountdown))
-		//_ = InitSessionMonitor(session.Id)
+		_ = InitSessionMonitor(session.Id)
 
 	} else if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
 		order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
