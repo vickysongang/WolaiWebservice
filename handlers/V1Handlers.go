@@ -24,6 +24,7 @@ import (
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/mux"
 	"github.com/pingplusplus/pingpp-go/pingpp"
+	"github.com/satori/go.uuid"
 )
 
 /*
@@ -1753,7 +1754,13 @@ func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
 		seelog.Error(err.Error())
 	}
 	vars := r.Form
-	orderNo := vars["orderNo"][0]
+	var orderNo string
+	if len(vars["orderNo"]) > 0 {
+		orderNo = vars["orderNo"][0]
+	} else {
+		orderNo = uuid.NewV4().String()
+	}
+
 	amountStr := vars["amount"][0]
 	amount, _ := strconv.ParseUint(amountStr, 10, 64)
 	channel := vars["channel"][0]
@@ -1910,6 +1917,30 @@ func V1WebhookByPingpp(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+}
+
+/*
+ * 15.1 Insert user location
+ */
+func V1InsertLocation(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	objectId := vars["objectId"][0]
+	address := vars["address"][0]
+	ip := r.RemoteAddr
+	userAgent := r.UserAgent()
+	content, err := controllers.InsertLocation(userId, objectId, address, ip, userAgent)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
 }
 
 func V1Banner(w http.ResponseWriter, r *http.Request) {

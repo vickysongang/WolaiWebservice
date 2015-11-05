@@ -949,6 +949,20 @@ var V1Routes = Routes{
 		handlers.V1WebhookByPingpp,
 	},
 
+	// 15.1 location insert
+	Route{
+		"V1InsertLocationPOST",
+		"POST",
+		"/v1/location/insert",
+		handlers.V1InsertLocation,
+	},
+	Route{
+		"V1InsertLocatoinGET",
+		"GET",
+		"/v1/location/insert",
+		handlers.V1InsertLocation,
+	},
+
 	Route{
 		"V1BannerPOST",
 		"POST",
