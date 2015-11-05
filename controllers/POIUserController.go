@@ -188,3 +188,15 @@ func GetUserConversation(userId1, userId2 int64) (int64, string) {
 
 	return 0, convId
 }
+
+func InsertUserLoginInfo(userId int64, objectId, address, ip, userAgent string) (*models.POIUserLoginInfo, error) {
+	loginInfo := models.POIUserLoginInfo{
+		UserId:    userId,
+		ObjectId:  objectId,
+		Address:   address,
+		Ip:        ip,
+		UserAgent: userAgent,
+	}
+	l, err := models.InsertUserLoginInfo(&loginInfo)
+	return l, err
+}

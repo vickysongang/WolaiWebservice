@@ -143,6 +143,19 @@ var V1Routes = Routes{
 		"/v1/support/teacher/list",
 		handlers.V1SupportAndTeacherList,
 	},
+	// 1.11 user login info insert
+	Route{
+		"V1InsertUserLoginInfoPOST",
+		"POST",
+		"/v1/user/logininfo/insert",
+		handlers.V1InsertUserLoginInfo,
+	},
+	Route{
+		"V1InsertUserLoginInfoGET",
+		"GET",
+		"/v1/user/logininfo/insert",
+		handlers.V1InsertUserLoginInfo,
+	},
 
 	// 2.1 Atrium
 	Route{
@@ -947,20 +960,6 @@ var V1Routes = Routes{
 		"GET",
 		"/v1/pingpp/webhook",
 		handlers.V1WebhookByPingpp,
-	},
-
-	// 15.1 location insert
-	Route{
-		"V1InsertLocationPOST",
-		"POST",
-		"/v1/location/insert",
-		handlers.V1InsertLocation,
-	},
-	Route{
-		"V1InsertLocatoinGET",
-		"GET",
-		"/v1/location/insert",
-		handlers.V1InsertLocation,
 	},
 
 	Route{
