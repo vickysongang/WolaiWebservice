@@ -1955,11 +1955,11 @@ func V1SmsHook(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := r.Form
 	token := vars["token"][0]
-	message := vars["message"][0]
+	event := vars["event"][0]
 	signature := vars["signature"][0]
 	timestamp := vars["timestamp"][0]
 	phones := vars["phones"]
-	sendcloud.SMSHook(token, timestamp, signature, message, phones)
+	sendcloud.SMSHook(token, timestamp, signature, event, phones)
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
 }
 

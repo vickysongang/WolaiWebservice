@@ -2,11 +2,13 @@
 package sendcloud
 
 import (
+	"POIWolaiWebService/redis"
 	"POIWolaiWebService/utils"
 	"bytes"
 	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -20,8 +22,22 @@ import (
 )
 
 const (
-	SC_SMS_URL = "http://sendcloud.sohu.com/smsapi/send"
+	SC_SMS_URL              = "http://sendcloud.sohu.com/smsapi/send"
+	SC_SMSHOOK_REQUEST      = "request"
+	SC_SMSHOOK_DELIVER      = "deliver"
+	SC_SMSHOOK_WORKERERROR  = "workererror"
+	SC_SMSHOOK_DELIVEREROOR = "delivererror"
 )
+
+var (
+	ErrMsgRepeatSend   = errors.New("不能在一分钟内多次获取验证码")
+	ErrRandCodeTimeout = errors.New("验证码已失效")
+)
+
+type RandInfoCode struct {
+	RandCode  string
+	Timestamp int64
+}
 
 type valSorter struct {
 	Keys []string
@@ -113,13 +129,29 @@ func verify(appKey, token, timestamp, signature string) bool {
 	return signature == signatureCal
 }
 
-func SMSHook(token, timestamp, signature, message string, phones []string) {
+func SMSHook(token, timestamp, signature, event string, phones []string) {
 	verify(utils.Config.SendCloud.AppKey, token, timestamp, signature)
-	fmt.Println("message:", message)
+	fmt.Println("event:", event)
+	fmt.Println("phones:", phones)
+	if event == SC_SMSHOOK_DELIVEREROOR || event == SC_SMSHOOK_WORKERERROR {
+		for _, phone := range phones {
+			redis.RedisManager.RemoveSendcloudRandCode(phone)
+		}
+	}
 }
 
 func SendMessage(phone string) error {
-	randCode := GenerateRandCode()
-	err := SCSendMessage(phone, randCode)
-	return err
+	oldRandCode, timestamp := redis.RedisManager.GetSendcloudRandCode(phone)
+	currTimeUnix := time.Now().Unix()
+	if oldRandCode != "" {
+		if currTimeUnix-timestamp <= 60 {
+			return ErrMsgRepeatSend
+		}
+	} else {
+		newRandCode := GenerateRandCode()
+		err := SCSendMessage(phone, newRandCode)
+		redis.RedisManager.SetSendcloudRandCode(phone, newRandCode)
+		return err
+	}
+	return nil
 }
