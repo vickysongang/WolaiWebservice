@@ -1938,7 +1938,7 @@ func V1WebhookByPingpp(w http.ResponseWriter, r *http.Request) {
 				"Result":  "fail",
 				"Comment": err.Error(),
 			}
-			models.UpdatePingppRecord(webhook.Id, recordInfo)
+			models.UpdatePingppRecord(webhook.Data.Object["id"].(string), recordInfo)
 			return
 		}
 
@@ -1946,7 +1946,7 @@ func V1WebhookByPingpp(w http.ResponseWriter, r *http.Request) {
 			recordInfo := map[string]interface{}{
 				"Result": "success",
 			}
-			models.UpdatePingppRecord(webhook.Id, recordInfo)
+			models.UpdatePingppRecord(webhook.Data.Object["id"].(string), recordInfo)
 			w.WriteHeader(http.StatusOK)
 		} else if webhook.Type == "refund.succeeded" {
 			recordInfo := map[string]interface{}{

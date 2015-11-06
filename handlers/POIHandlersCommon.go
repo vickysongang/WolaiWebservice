@@ -2,7 +2,6 @@
 package handlers
 
 import (
-	"POIWolaiWebService/logger"
 	"POIWolaiWebService/models"
 	"POIWolaiWebService/redis"
 	"encoding/json"
@@ -58,5 +57,8 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	logger.InsertUserEventLog(1, "aaa", "sd")
+	recordInfo := map[string]interface{}{
+		"Result": "success",
+	}
+	models.UpdatePingppRecord("ch_qfrHqPDOOibP54aXHCzPiDKO", recordInfo)
 }
