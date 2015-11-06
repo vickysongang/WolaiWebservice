@@ -76,7 +76,6 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 
 	grade := models.QueryGradeById(order.GradeId)
 	subject := models.QuerySubjectById(order.SubjectId)
-	parentGrade := models.QueryGradeById(grade.Pid)
 
 	titleStr := "您有一个来自" + order.Creator.Nickname + "同学的"
 	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT {
@@ -84,7 +83,7 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 	} else if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT {
 		titleStr = titleStr + "预约辅导"
 	}
-	titleStr = titleStr + "订单，辅导内容为" + parentGrade.Name + grade.Name + subject.Name + "。"
+	titleStr = titleStr + "订单，辅导内容为" + grade.Name + subject.Name + "。"
 
 	lcReq := map[string]interface{}{
 		"where": map[string]interface{}{
@@ -124,13 +123,12 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 
 	grade := models.QueryGradeById(order.GradeId)
 	subject := models.QuerySubjectById(order.SubjectId)
-	parentGrade := models.QueryGradeById(grade.Pid)
 
 	titleStr := "您有一个来自" + order.Creator.Nickname + "同学的"
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 		titleStr = titleStr + "私人辅导"
 	}
-	titleStr = titleStr + "订单，辅导内容为" + parentGrade.Name + grade.Name + subject.Name + "。"
+	titleStr = titleStr + "订单，辅导内容为" + grade.Name + subject.Name + "。"
 
 	lcReq := map[string]interface{}{
 		"where": map[string]interface{}{
