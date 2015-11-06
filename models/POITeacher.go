@@ -49,6 +49,7 @@ type POITeacherProfile struct {
 	SubjectList   POITeacherSubjects `json:"subjectList" orm:"-"`
 	EducationList POITeacherResumes  `json:"eduList" orm:"-"`
 	Intro         string             `json:"intro"`
+	Extra         string             `json:"extra"`
 	ServiceTime   int64              `json:"-"`
 }
 
@@ -58,6 +59,7 @@ type POITeacherProfileModel struct {
 	SchoolId         int64   `json:"schoolId"`
 	DepartmentId     int64   `json:"departmentId"`
 	Intro            string  `json:"intro"`
+	Extra            string  `json:"extra"`
 	PricePerHour     int64   `json:"pricePerHour"`
 	RealPricePerHour int64   `json:"realPricePerHour"`
 	ServiceTime      int64   `json:"serviceTime"`
@@ -106,6 +108,7 @@ type POITeacherModel struct {
 	SchoolName       string
 	DeptName         string
 	Intro            string
+	Extra            string
 	Rating           float64
 	Phone            string
 	AccessRight      int64
@@ -230,15 +233,24 @@ func QueryTeacher(userId int64) *POITeacher {
 		seelog.Error("userId:", userId, " ", err.Error())
 		return nil
 	}
-	teacher := POITeacher{POIUser: POIUser{UserId: teacherModel.Id, Nickname: teacherModel.Nickname, Avatar: teacherModel.Avatar, Gender: teacherModel.Gender},
-		ServiceTime: teacherModel.ServiceTime, School: teacherModel.SchoolName, Department: teacherModel.DeptName, PricePerHour: teacherModel.PricePerHour, RealPricePerHour: teacherModel.RealPricePerHour}
+	teacher := POITeacher{
+		POIUser: POIUser{
+			UserId:   teacherModel.Id,
+			Nickname: teacherModel.Nickname,
+			Avatar:   teacherModel.Avatar,
+			Gender:   teacherModel.Gender},
+		ServiceTime:      teacherModel.ServiceTime,
+		School:           teacherModel.SchoolName,
+		Department:       teacherModel.DeptName,
+		PricePerHour:     teacherModel.PricePerHour,
+		RealPricePerHour: teacherModel.RealPricePerHour}
 	return &teacher
 }
 
 func QueryTeacherProfile(userId int64) (*POITeacherProfile, error) {
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
 	qb.Select("users.id,users.nickname,users.avatar,users.access_right,users.gender,teacher_profile.service_time," +
-		"teacher_profile.intro, teacher_profile.price_per_hour,teacher_profile.real_price_per_hour," +
+		"teacher_profile.intro,teacher_profile.extra,teacher_profile.price_per_hour,teacher_profile.real_price_per_hour," +
 		"school.name school_name, department.name dept_name,teacher_profile.rating").
 		From("users").LeftJoin("teacher_profile").On("users.id = teacher_profile.user_id").
 		LeftJoin("school").On("teacher_profile.school_id = school.id").
@@ -266,6 +278,7 @@ func QueryTeacherProfile(userId int64) (*POITeacherProfile, error) {
 			PricePerHour:     teacherModel.PricePerHour,
 			RealPricePerHour: teacherModel.RealPricePerHour},
 		Intro:  teacherModel.Intro,
+		Extra:  teacherModel.Extra,
 		Rating: teacherModel.Rating}
 	teacherProfile.LabelList = QueryTeacherLabelByUserId(teacherModel.Id)
 	teacherProfile.SubjectList = QueryTeacherSubjectByUserId(teacherModel.Id)
@@ -275,7 +288,7 @@ func QueryTeacherProfile(userId int64) (*POITeacherProfile, error) {
 
 func QueryTeacherProfileByUserId(userId int64) *POITeacherProfileModel {
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("user_id,school_id,department_id,service_time,rating,intro,price_per_hour,real_price_per_hour").
+	qb.Select("user_id,school_id,department_id,service_time,rating,intro,extra,price_per_hour,real_price_per_hour").
 		From("teacher_profile").Where("user_id = ?")
 	sql := qb.String()
 	o := orm.NewOrm()
@@ -443,7 +456,8 @@ func InsertTeacherProfile(profile *POITeacherProfileModel) int64 {
 func QueryTeachersByCond(userId int64, keyword string, pageNum, pageCount int64) (POITeacherModels, error) {
 	start := pageNum * pageCount
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("users.id,users.nickname,users.phone,users.access_right,users.avatar,users.gender,teacher_profile.service_time, teacher_profile.price_per_hour,teacher_profile.real_price_per_hour,school.name school_name,department.name dept_name").
+	qb.Select("users.id,users.nickname,users.phone,users.access_right,users.avatar,users.gender,teacher_profile.service_time, " +
+		"teacher_profile.price_per_hour,teacher_profile.real_price_per_hour,school.name school_name,department.name dept_name").
 		From("users").InnerJoin("teacher_profile").On("users.id = teacher_profile.user_id").
 		InnerJoin("school").On("teacher_profile.school_id = school.id").
 		InnerJoin("department").On("teacher_profile.department_id = department.id").
@@ -463,7 +477,8 @@ func QueryTeachersByCond(userId int64, keyword string, pageNum, pageCount int64)
 func QueryUsersByCond(userId int64, keyword string, pageNum, pageCount int64) (POITeacherModels, error) {
 	start := pageNum * pageCount
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("users.id,users.nickname,users.phone,users.avatar,users.gender,users.access_right,teacher_profile.service_time,teacher_profile.price_per_hour,teacher_profile.real_price_per_hour,school.name school_name,department.name dept_name").
+	qb.Select("users.id,users.nickname,users.phone,users.avatar,users.gender,users.access_right,teacher_profile.service_time," +
+		"teacher_profile.price_per_hour,teacher_profile.real_price_per_hour,school.name school_name,department.name dept_name").
 		From("users").LeftJoin("teacher_profile").On("users.id = teacher_profile.user_id").
 		LeftJoin("school").On("teacher_profile.school_id = school.id").
 		LeftJoin("department").On("teacher_profile.department_id = department.id").
