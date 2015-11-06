@@ -1941,19 +1941,11 @@ func V1WebhookByPingpp(w http.ResponseWriter, r *http.Request) {
 			models.UpdatePingppRecord(webhook.Data.Object["id"].(string), recordInfo)
 			return
 		}
-
 		if webhook.Type == "charge.succeeded" {
-			recordInfo := map[string]interface{}{
-				"Result": "success",
-			}
-			models.UpdatePingppRecord(webhook.Data.Object["id"].(string), recordInfo)
+			pingxx.ChargeSuccessEvent(webhook.Data.Object["id"].(string))
 			w.WriteHeader(http.StatusOK)
 		} else if webhook.Type == "refund.succeeded" {
-			recordInfo := map[string]interface{}{
-				"Result":   "success",
-				"RefundId": webhook.Data.Object["id"],
-			}
-			models.UpdatePingppRecord(webhook.Id, recordInfo)
+			pingxx.RefundSuccessEvent(webhook.Data.Object["charge"].(string), webhook.Data.Object["id"].(string))
 			w.WriteHeader(http.StatusOK)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
