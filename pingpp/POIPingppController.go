@@ -36,7 +36,7 @@ func PayByPingpp(orderNo string, amount uint64, channel, currency, clientIp, sub
 		Subject:   subject,
 		Body:      body}
 	ch, err := charge.New(params)
-	if err != nil {
+	if err == nil {
 		record := models.POIPingppRecord{
 			Phone:    phone,
 			ChargeId: ch.ID,
