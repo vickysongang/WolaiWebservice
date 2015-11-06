@@ -93,9 +93,20 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		loginResp := NewPOIWSMessage(msg.MessageId, msg.UserId, msg.OperationCode+1)
+		if TeacherManager.IsTeacherOnline(msg.UserId) {
+			loginResp.Attribute["online"] = "on"
+			if TeacherManager.IsTeacherAssignOpen(msg.UserId) {
+				loginResp.Attribute["assign"] = "on"
+			} else {
+				loginResp.Attribute["assign"] = "off"
+			}
+		} else {
+			loginResp.Attribute["online"] = "off"
+			loginResp.Attribute["assign"] = "off"
+		}
 		err = conn.WriteJSON(loginResp)
 		if err == nil {
-			seelog.Debug("V1WSHandler:Send code 12 to user ", msg.UserId)
+			//seelog.Debug("V1WSHandler:Send code 12 to user ", msg.UserId)
 			logger.InsertUserEventLog(msg.UserId, "用户上线", msg)
 		} else {
 			seelog.Error("send login response to user ", msg.UserId, " fail")
