@@ -1790,7 +1790,7 @@ func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
 	amount, _ := strconv.ParseUint(amountStr, 10, 64)
 	channel := vars["channel"][0]
 	currency := vars["currency"][0]
-	clientIp := r.RemoteAddr
+	clientIp := strings.Split(r.RemoteAddr, ":")[0]
 	subject := vars["subject"][0]
 	body := vars["body"][0]
 	phone := vars["phone"][0]
