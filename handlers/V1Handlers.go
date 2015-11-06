@@ -1783,17 +1783,18 @@ func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
 	if len(vars["orderNo"]) > 0 {
 		orderNo = vars["orderNo"][0]
 	} else {
-		orderNo = strconv.Itoa(int(time.Now().UnixNano()))
+		orderNo = "No_" + strconv.Itoa(int(time.Now().UnixNano()))
 	}
 
 	amountStr := vars["amount"][0]
 	amount, _ := strconv.ParseUint(amountStr, 10, 64)
 	channel := vars["channel"][0]
 	currency := vars["currency"][0]
-	clientIp := vars["clientIp"][0]
+	clientIp := r.RemoteAddr
 	subject := vars["subject"][0]
 	body := vars["body"][0]
-	content, err := pingxx.PayByPingpp(orderNo, amount, channel, currency, clientIp, subject, body)
+	phone := vars["phone"][0]
+	content, err := pingxx.PayByPingpp(orderNo, amount, channel, currency, clientIp, subject, body, phone)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
@@ -1924,24 +1925,55 @@ func V1WebhookByPingpp(w http.ResponseWriter, r *http.Request) {
 		buf.ReadFrom(r.Body)
 		//		signature := r.Header.Get("x-pingplusplus-signature")
 		webhook, err := pingpp.ParseWebhooks(buf.Bytes())
-		fmt.Println(webhook.Type)
+		seelog.Debug("webhookType:", webhook.Type)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, "fail")
+			recordInfo := map[string]interface{}{
+				"Result":  "fail",
+				"Comment": err.Error(),
+			}
+			models.UpdatePingppRecord(webhook.Id, recordInfo)
 			return
 		}
 
 		if webhook.Type == "charge.succeeded" {
-			// TODO your code for charge
+			recordInfo := map[string]interface{}{
+				"Result": "success",
+			}
+			models.UpdatePingppRecord(webhook.Id, recordInfo)
 			w.WriteHeader(http.StatusOK)
 		} else if webhook.Type == "refund.succeeded" {
-			// TODO your code for refund
+			recordInfo := map[string]interface{}{
+				"Result":   "success",
+				"RefundId": webhook.Data.Object["id"],
+			}
+			models.UpdatePingppRecord(webhook.Id, recordInfo)
 			w.WriteHeader(http.StatusOK)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}
 
+}
+
+/*
+ * 14.8 pingpp charge or refund result
+ */
+func V1GetPingppResult(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	chargeId := vars["chargeId"][0]
+	content, err := models.QueryPingppRecordByChargeId(chargeId)
+	if err != nil {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	}
 }
 
 /*
@@ -1958,7 +1990,7 @@ func V1SmsHook(w http.ResponseWriter, r *http.Request) {
 	event := vars["event"][0]
 	signature := vars["signature"][0]
 	timestamp := vars["timestamp"][0]
-	phones := vars["phones"]
+	phones := vars["phones"][0]
 	sendcloud.SMSHook(token, timestamp, signature, event, phones)
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
 }

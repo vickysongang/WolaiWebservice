@@ -821,8 +821,6 @@ func (rm *POIRedisManager) GetSendcloudRandCode(phone string) (randCode string, 
 		timestampTmp, _ := strconv.Atoi(timestampStr)
 		timestamp = int64(timestampTmp)
 	}
-	rm.RedisClient.HDel(SC_RAND_CODE+phone, "randCode")
-	rm.RedisClient.HDel(SC_RAND_CODE+phone, "timestamp")
 	return
 }
 

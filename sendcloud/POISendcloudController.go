@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	seelog "github.com/cihub/seelog"
@@ -129,12 +130,13 @@ func verify(appKey, token, timestamp, signature string) bool {
 	return signature == signatureCal
 }
 
-func SMSHook(token, timestamp, signature, event string, phones []string) {
+func SMSHook(token, timestamp, signature, event string, phones string) {
 	verify(utils.Config.SendCloud.AppKey, token, timestamp, signature)
 	fmt.Println("event:", event)
 	fmt.Println("phones:", phones)
+	phones = phones[1 : len(phones)-1]
 	if event == SC_SMSHOOK_DELIVEREROOR || event == SC_SMSHOOK_WORKERERROR {
-		for _, phone := range phones {
+		for _, phone := range strings.Split(phones, ",") {
 			redis.RedisManager.RemoveSendcloudRandCode(phone)
 		}
 	}

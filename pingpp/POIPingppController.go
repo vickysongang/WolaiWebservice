@@ -2,6 +2,7 @@
 package pingpp
 
 import (
+	"POIWolaiWebService/models"
 	"POIWolaiWebService/utils"
 	"strconv"
 
@@ -24,7 +25,7 @@ func init() {
  * @param subject:主题，示例：Your Subject
  * @param body:内容，示例：Your Body
  */
-func PayByPingpp(orderNo string, amount uint64, channel string, currency string, clientIp string, subject string, body string) (*pingpp.Charge, error) {
+func PayByPingpp(orderNo string, amount uint64, channel, currency, clientIp, subject, body, phone string) (*pingpp.Charge, error) {
 	params := &pingpp.ChargeParams{
 		Order_no:  orderNo,
 		App:       pingpp.App{Id: utils.Config.Pingpp.AppId},
@@ -35,6 +36,19 @@ func PayByPingpp(orderNo string, amount uint64, channel string, currency string,
 		Subject:   subject,
 		Body:      body}
 	ch, err := charge.New(params)
+	if err != nil {
+		record := models.POIPingppRecord{
+			Phone:    phone,
+			ChargeId: ch.ID,
+			OrderNo:  orderNo,
+			Amount:   amount,
+			Channel:  channel,
+			Currency: currency,
+			Subject:  subject,
+			Body:     body,
+		}
+		models.InsertPingppRecord(&record)
+	}
 	return ch, err
 }
 

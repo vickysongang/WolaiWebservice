@@ -961,6 +961,19 @@ var V1Routes = Routes{
 		"/v1/pingpp/webhook",
 		handlers.V1WebhookByPingpp,
 	},
+	// 14.8 pingpp result
+	Route{
+		"V1GetPingResultPOST",
+		"POST",
+		"/v1/pingpp/result",
+		handlers.V1GetPingppResult,
+	},
+	Route{
+		"V1GetPingResultGET",
+		"GET",
+		"/v1/pingpp/result",
+		handlers.V1GetPingppResult,
+	},
 	// 15.1 sendcloud smshook
 	Route{
 		"V1WSMSHookPOST",
