@@ -101,7 +101,7 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 	var studentAmount int64
 	if courseId == 0 {
 		studentAmount = (int64(math.Floor(float64(order.PricePerHour*session.Length/3600))) + 50) / 100 * 100
-		if studentAmount < 100 && order.RealPricePerHour != 0 {
+		if studentAmount < 100 && order.RealPricePerHour != 0 && session.Length != 0 {
 			studentAmount = 100
 		}
 		models.MinusUserBalance(student.UserId, studentAmount)
@@ -115,7 +115,7 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 	//老师收款
 	var teacherAmount int64
 	teacherAmount = (int64(math.Floor(float64(order.RealPricePerHour*session.Length/3600))) + 50) / 100 * 100
-	if teacherAmount < 100 && order.RealPricePerHour != 0 {
+	if teacherAmount < 100 && order.RealPricePerHour != 0 && session.Length != 0 {
 		teacherAmount = 100
 	}
 	models.AddUserBalance(teacher.UserId, teacherAmount)

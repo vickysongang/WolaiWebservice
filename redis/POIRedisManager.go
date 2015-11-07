@@ -3,6 +3,7 @@ package redis
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 	"time"
 
 	"POIWolaiWebService/models"
@@ -24,8 +25,9 @@ func init() {
 }
 
 const (
-	CACHE_FEED        = "cache:feed:"
-	CACHE_FEEDCOMMENT = "cache:feed_comment:"
+	CACHE_FEED                 = "cache:feed:"
+	CACHE_FEEDCOMMENT          = "cache:feed_comment:"
+	CACHE_CONVERSATION_CONTENT = "cache:conversation:"
 
 	FEEDFLOW_ATRIUM     = "feed_flow:atrium"
 	FEEDFLOW_GANHUO     = "feed_flow:ganhuo"
@@ -50,6 +52,8 @@ const (
 
 	USER_CONVERSATION          = "conversation:"
 	CONVERSATION_PARTICIPATION = "conversation_list"
+
+	CONVERSATION_LASTEST_LIST = "conversation:latest_list"
 
 	ORDER_DISPATCH = "order:dispatch:"
 	ORDER_RESPONSE = "order:response:"
@@ -569,7 +573,7 @@ func (rm *POIRedisManager) IsSupportMessage(userId int64, convId string) bool {
 func (rm *POIRedisManager) SetSessionTicker(timestamp int64, tickerInfo string) {
 	tickerZ := redis.Z{Member: tickerInfo, Score: float64(timestamp)}
 
-	_ = RedisManager.RedisClient.ZAdd(SESSION_TICKER, tickerZ)
+	_ = rm.RedisClient.ZAdd(SESSION_TICKER, tickerZ)
 }
 
 func (rm *POIRedisManager) GetSessionTicks(timestamp int64) []string {
@@ -790,7 +794,7 @@ func (rm *POIRedisManager) GetActivityNotification(userId int64) []string {
 
 func (rm *POIRedisManager) SetSeekHelp(timestamp int64, convId string) {
 	helpZ := redis.Z{Member: convId, Score: float64(timestamp)}
-	_ = RedisManager.RedisClient.ZAdd(SEEK_HELP_SUPPORT, helpZ)
+	_ = rm.RedisClient.ZAdd(SEEK_HELP_SUPPORT, helpZ)
 }
 
 func (rm *POIRedisManager) GetSeekHelps(page, count int64) []string {
@@ -827,4 +831,28 @@ func (rm *POIRedisManager) GetSendcloudRandCode(phone string) (randCode string, 
 func (rm *POIRedisManager) RemoveSendcloudRandCode(phone string) {
 	rm.RedisClient.HDel(SC_RAND_CODE+phone, "randCode")
 	rm.RedisClient.HDel(SC_RAND_CODE+phone, "timestamp")
+}
+
+func (rm *POIRedisManager) SetLatestConversationList(convId string, timestamp float64) {
+	convZ := redis.Z{Member: convId, Score: timestamp}
+	rm.RedisClient.ZAdd(CONVERSATION_LASTEST_LIST, convZ)
+}
+
+func (rm *POIRedisManager) SetConversationLatestContent(messageLog *models.LCMessageLog) {
+	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "convId", messageLog.To)
+	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "msgId", messageLog.MsgId)
+	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "from", messageLog.From)
+	participants := rm.GetConversationParticipant(messageLog.To)
+	var to string
+	for _, userIdStr := range strings.Split(participants, ",") {
+		if messageLog.From != userIdStr {
+			to = userIdStr
+			break
+		}
+	}
+	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "to", to)
+	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "timestamp", messageLog.Timestamp)
+	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "createTime", messageLog.CreateTime.Format(utils.TIME_FORMAT))
+	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "fromIp", messageLog.FromIp)
+	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "data", messageLog.Data)
 }

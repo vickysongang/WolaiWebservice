@@ -184,6 +184,9 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 						}
 						models.InsertLCSupportMessageLog(&supportMessageLog)
 					}
+				} else {
+					redis.RedisManager.SetLatestConversationList(messageLog.To, timestamp)
+					redis.RedisManager.SetConversationLatestContent(&messageLog)
 				}
 			}
 		} else {
