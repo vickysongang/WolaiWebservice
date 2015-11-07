@@ -371,7 +371,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					userChan <- resultMsg
 
 					if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
-						acceptMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER2_ASSIGN_ACCEPT)
+						acceptMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER2_PERSONAL_REPLY)
 						acceptMsg.Attribute["orderId"] = orderIdStr
 						acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 						acceptMsg.Attribute["teacherId"] = strconv.FormatInt(msg.UserId, 10)
