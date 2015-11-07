@@ -414,7 +414,7 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 
 	go leancloud.SendPersonalOrderNotification(orderId, teacherId)
 	go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderId, teacherId))
-
+	go personalOrderHandler(orderId, teacherId)
 	return nil
 }
 
