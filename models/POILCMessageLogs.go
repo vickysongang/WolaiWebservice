@@ -18,6 +18,17 @@ type LCMessageLog struct {
 	Timestamp  string    `json:"-"`
 }
 
+type LCBakeMessageLog struct {
+	MsgId      string `json:"msgId"`
+	ConvId     string `json:"convId"`
+	From       string `json:"from"`
+	CreateTime string `json:"createTime""`
+	FromIp     string `json:"fromIp"`
+	To         string `json:"to"`
+	Data       string `json:"data"`
+	Timestamp  string `json:"timestamp"`
+}
+
 type LCSupportMessageLog struct {
 	MsgId      string    `json:"msg-id" orm:"pk"`
 	ConvId     string    `json:"conv-id"`

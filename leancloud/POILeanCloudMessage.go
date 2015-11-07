@@ -186,7 +186,7 @@ func SaveLeanCloudMessageLogs(baseTime int64) string {
 					}
 				} else {
 					redis.RedisManager.SetLatestConversationList(messageLog.To, timestamp)
-					redis.RedisManager.SetConversationLatestContent(&messageLog)
+					redis.RedisManager.SetLCBakeMessageLog(&messageLog)
 				}
 			}
 		} else {
