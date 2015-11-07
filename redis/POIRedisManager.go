@@ -53,7 +53,7 @@ const (
 	USER_CONVERSATION          = "conversation:"
 	CONVERSATION_PARTICIPATION = "conversation_list"
 
-	CONVERSATION_LASTEST_LIST = "conversation:latest_list"
+	CONVERSATION_LASTEST_LIST = "conversation_latest_list"
 
 	ORDER_DISPATCH = "order:dispatch:"
 	ORDER_RESPONSE = "order:response:"
