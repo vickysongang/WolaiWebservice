@@ -1101,6 +1101,18 @@ var V1Routes = Routes{
 		"/v1/seekhelp/get",
 		handlers.V1GetSeekHelps,
 	},
+	Route{
+		"V1GetMessageLogsPOST",
+		"POST",
+		"/v1/messagelog/list",
+		handlers.V1GetMessageLogs,
+	},
+	Route{
+		"V1GetMessageLogsGET",
+		"GET",
+		"/v1/messagelog/list",
+		handlers.V1GetMessageLogs,
+	},
 
 	// Dummy
 	Route{

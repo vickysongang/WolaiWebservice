@@ -838,7 +838,7 @@ func (rm *POIRedisManager) SetLatestConversationList(convId string, timestamp fl
 	rm.RedisClient.ZAdd(CONVERSATION_LASTEST_LIST, convZ)
 }
 
-func (rm *POIRedisManager) SetConversationLatestContent(messageLog *models.LCMessageLog) {
+func (rm *POIRedisManager) SetLCBakeMessageLog(messageLog *models.LCMessageLog) {
 	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "convId", messageLog.To)
 	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "msgId", messageLog.MsgId)
 	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "from", messageLog.From)
@@ -855,4 +855,38 @@ func (rm *POIRedisManager) SetConversationLatestContent(messageLog *models.LCMes
 	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "createTime", messageLog.CreateTime.Format(utils.TIME_FORMAT))
 	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "fromIp", messageLog.FromIp)
 	rm.RedisClient.HSet(CACHE_CONVERSATION_CONTENT+messageLog.To, "data", messageLog.Data)
+}
+
+func (rm *POIRedisManager) GetLCBakeMessageLog(convId string) *models.LCBakeMessageLog {
+	if !rm.RedisClient.HExists(CACHE_CONVERSATION_CONTENT+convId, "convId").Val() {
+		return nil
+	}
+	messageLog := models.LCBakeMessageLog{}
+
+	hashMap := rm.RedisClient.HGetAllMap(CACHE_CONVERSATION_CONTENT + convId).Val()
+
+	messageLog.ConvId = hashMap["convId"]
+	messageLog.MsgId = hashMap["msgId"]
+	messageLog.CreateTime = hashMap["createTime"]
+	messageLog.From = hashMap["from"]
+	messageLog.To = hashMap["to"]
+	messageLog.FromIp = hashMap["fromIp"]
+	messageLog.Data = hashMap["data"]
+	messageLog.Timestamp = hashMap["timestamp"]
+
+	return &messageLog
+}
+
+func (rm *POIRedisManager) GetLCBakeMessageLogs(page, count int64) []*models.LCBakeMessageLog {
+	messageLogs := make([]*models.LCBakeMessageLog, 0)
+	start := page * count
+	stop := (page+1)*count - 1
+	messageLogZs := rm.RedisClient.ZRevRangeWithScores(CONVERSATION_LASTEST_LIST, start, stop).Val()
+
+	for i := range messageLogZs {
+		convId, _ := messageLogZs[i].Member.(string)
+		messageLog := rm.GetLCBakeMessageLog(convId)
+		messageLogs = append(messageLogs, messageLog)
+	}
+	return messageLogs
 }
