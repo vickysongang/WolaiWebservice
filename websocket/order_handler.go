@@ -13,7 +13,7 @@ import (
 	"POIWolaiWebService/redis"
 )
 
-func orderHandler(orderId int64) {
+func generalOrderHandler(orderId int64) {
 	defer func() {
 		if r := recover(); r != nil {
 			seelog.Error(r)
@@ -24,11 +24,6 @@ func orderHandler(orderId int64) {
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan := WsManager.GetOrderChan(orderId)
 	orderByte, _ := json.Marshal(order)
-
-	orderInfo := map[string]interface{}{
-		"Status": models.ORDER_STATUS_DISPATHCING,
-	}
-	models.UpdateOrderInfo(orderId, orderInfo)
 
 	orderLifespan := redis.RedisManager.GetConfig(
 		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN)
@@ -59,14 +54,10 @@ func orderHandler(orderId int64) {
 				userChan <- expireMsg
 			}
 
-			// 结束订单派发，记录状态
-			orderInfo := map[string]interface{}{
-				"Status": models.ORDER_STATUS_CANCELLED,
-			}
-			models.UpdateOrderInfo(orderId, orderInfo)
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 			WsManager.RemoveOrderChan(orderId)
 
+			OrderManager.SetOrderCancelled(orderId)
 			seelog.Debug("orderHandler|orderExpired: ", orderId)
 			return
 
@@ -177,13 +168,10 @@ func orderHandler(orderId int64) {
 					}
 
 					// 结束订单派发，记录状态
-					orderInfo := map[string]interface{}{
-						"Status": models.ORDER_STATUS_CANCELLED,
-					}
-					models.UpdateOrderInfo(orderId, orderInfo)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 					WsManager.RemoveOrderChan(orderId)
 
+					OrderManager.SetOrderCancelled(orderId)
 					seelog.Debug("orderHandler|orderCancelled: ", orderId)
 					return
 
@@ -242,12 +230,7 @@ func orderHandler(orderId int64) {
 					WsManager.SetOrderReply(orderId, msg.UserId, timestamp)
 
 					// 结束派单流程，记录结果
-					orderInfo := map[string]interface{}{
-						"Status":           models.ORDER_STATUS_CONFIRMED,
-						"PricePerHour":     teacher.PricePerHour,
-						"RealPricePerHour": teacher.RealPricePerHour,
-					}
-					models.UpdateOrderInfo(orderId, orderInfo)
+					OrderManager.SetOrderConfirm(orderId, teacher.UserId)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 					WsManager.RemoveOrderChan(orderId)
 
@@ -299,7 +282,7 @@ func orderHandler(orderId int64) {
 	}
 }
 
-func initOrderDispatch(msg POIWSMessage, timestamp int64) error {
+func InitOrderDispatch(msg POIWSMessage, timestamp int64) error {
 	defer func() {
 		if r := recover(); r != nil {
 			seelog.Error(r)
@@ -326,7 +309,7 @@ func initOrderDispatch(msg POIWSMessage, timestamp int64) error {
 		return errors.New("You are not the order creator")
 	}
 
-	if order.Type != models.ORDER_TYPE_GENERAL_INSTANT && order.Type != models.ORDER_TYPE_GENERAL_APPOINTMENT {
+	if order.Type != models.ORDER_TYPE_GENERAL_INSTANT {
 		return errors.New("sorry, not order type not allowed")
 	}
 
@@ -336,8 +319,102 @@ func initOrderDispatch(msg POIWSMessage, timestamp int64) error {
 	WsManager.SetOrderChan(orderId, orderChan)
 
 	OrderManager.SetOnline(orderId)
-	go orderHandler(orderId)
+	OrderManager.SetOrderDispatching(orderId)
+	go generalOrderHandler(orderId)
 
+	return nil
+}
+
+func personalOrderHandler(orderId int64, teacherId int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
+	order := models.QueryOrderById(orderId)
+	orderIdStr := strconv.FormatInt(orderId, 10)
+	orderChan := WsManager.GetOrderChan(orderId)
+
+	orderLifespan := redis.RedisManager.GetConfig(
+		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN)
+	orderSessionCountdown := redis.RedisManager.GetConfig(
+		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
+
+	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
+
+	//timestamp := time.Now().Unix()
+	seelog.Debug("orderHandler|HandlerInit: ", orderId)
+
+	for {
+		select {
+		case <-orderTimer.C:
+			OrderManager.SetOrderCancelled(orderId)
+			OrderManager.SetOffline(orderId)
+			return
+
+		case msg, ok := <-orderChan:
+			if ok {
+				//timestamp = time.Now().Unix()
+				userChan := WsManager.GetUserChan(msg.UserId)
+
+				switch msg.OperationCode {
+				case WS_ORDER2_PERSONAL_REPLY:
+					resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
+					resp.Attribute["errCode"] = "0"
+					userChan <- resp
+
+					resultMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RESULT)
+					resultMsg.Attribute["orderId"] = orderIdStr
+					resultMsg.Attribute["status"] = "0"
+					resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
+					userChan <- resultMsg
+
+					if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+						acceptMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER2_ASSIGN_ACCEPT)
+						acceptMsg.Attribute["orderId"] = orderIdStr
+						acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
+						acceptMsg.Attribute["teacherId"] = strconv.FormatInt(msg.UserId, 10)
+						if WsManager.HasUserChan(order.Creator.UserId) {
+							creatorChan := WsManager.GetUserChan(order.Creator.UserId)
+							creatorChan <- acceptMsg
+						}
+					}
+
+					OrderManager.SetOrderConfirm(orderId, msg.UserId)
+					OrderManager.SetOffline(orderId)
+					handleSessionCreation(orderId, msg.UserId)
+					return
+				}
+			}
+		}
+	}
+}
+
+func InitOrderMonitor(orderId int64, teacherId int64) error {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
+	order := models.QueryOrderById(orderId)
+	orderByte, _ := json.Marshal(order)
+
+	orderChan := make(chan POIWSMessage)
+	WsManager.SetOrderChan(orderId, orderChan)
+	OrderManager.SetOnline(orderId)
+
+	if WsManager.HasUserChan(teacherId) {
+		teacherChan := WsManager.GetUserChan(teacherId)
+		orderMsg := NewPOIWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
+		orderMsg.Attribute["orderInfo"] = string(orderByte)
+		teacherChan <- orderMsg
+	}
+
+	go leancloud.SendPersonalOrderNotification(orderId, teacherId)
+	go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderId, teacherId))
+	go personalOrderHandler(orderId, teacherId)
 	return nil
 }
 
@@ -353,6 +430,10 @@ func assignNextTeacher(orderId int64) int64 {
 			}
 		}
 	}
+	return -1
+}
+
+func dispatchNextTeacher(orderId int64) int64 {
 	return -1
 }
 

@@ -94,6 +94,38 @@ func (osm *OrderStatusManager) SetOffline(orderId int64) error {
 	return nil
 }
 
+func (osm *OrderStatusManager) SetOrderDispatching(orderId int64) error {
+	orderInfo := map[string]interface{}{
+		"Status": models.ORDER_STATUS_DISPATHCING,
+	}
+	models.UpdateOrderInfo(orderId, orderInfo)
+
+	return nil
+}
+
+func (osm *OrderStatusManager) SetOrderCancelled(orderId int64) error {
+	orderInfo := map[string]interface{}{
+		"Status": models.ORDER_STATUS_CANCELLED,
+	}
+	models.UpdateOrderInfo(orderId, orderInfo)
+	return nil
+}
+
+func (osm *OrderStatusManager) SetOrderConfirm(orderId int64, teacherId int64) error {
+	teacher := models.QueryTeacher(teacherId)
+	orderInfo := map[string]interface{}{
+		"Status":           models.ORDER_STATUS_CONFIRMED,
+		"PricePerHour":     teacher.PricePerHour,
+		"RealPricePerHour": teacher.RealPricePerHour,
+	}
+	models.UpdateOrderInfo(orderId, orderInfo)
+	return nil
+}
+
+func (osm *OrderStatusManager) SetDispatchTarget(orderId int64, userId int64) error {
+	return nil
+}
+
 func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) error {
 	status, ok := osm.orderMap[orderId]
 	if !ok {
