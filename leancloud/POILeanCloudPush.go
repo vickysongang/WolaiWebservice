@@ -192,9 +192,10 @@ func NewRealTimeOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 
 func LCPushNotification(lcReq *map[string]interface{}) {
 	url := LC_PUSH
-	//seelog.Info("URL:>", url)
 
 	query, _ := json.Marshal(lcReq)
+	seelog.Trace("[LCSendMessage]: ", string(query))
+
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
 	if err != nil {
 		seelog.Error("LeanCloud PushNotification:", err.Error())

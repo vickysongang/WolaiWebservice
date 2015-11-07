@@ -55,11 +55,11 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		resp.Attribute["errCode"] = "2"
 		resp.Attribute["errMsg"] = "unstructed message"
 		err = conn.WriteJSON(resp)
-		seelog.Debug("V1WSHandler: unstructed message")
+		seelog.Error("V1WSHandler: unstructed message")
 		return
 	}
 
-	seelog.Debug("V1WSHandler: recieved content: ", string(p))
+	seelog.Trace("V1WSHandler: recieved content: ", string(p))
 
 	defer func() {
 		conn.Close()
@@ -152,7 +152,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		err = json.Unmarshal([]byte(p), &msg)
 		if err != nil {
 			seelog.Error("V1WSHandler:", err.Error())
-			seelog.Debug("V1WSHandler recieved: UserId", msg.UserId, "Msg: ", string(p))
 			seelog.Debug("V1WSHandler: unstructed message")
 			continue
 		}
@@ -163,7 +162,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if msg.OperationCode != WS_PONG {
-			seelog.Debug("V1Handler websocket recieve message:", string(p))
+			seelog.Trace("V1Handler websocket recieve message:", string(p))
 		}
 
 		// 比对客户端时间和系统时间
@@ -462,7 +461,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 
 				msgByte, err := json.Marshal(msg)
 				if err == nil {
-					seelog.Debug("WebSocketWriter: UserId: ", userId, "Msg: ", string(msgByte))
+					seelog.Trace("WebSocketWriter: UserId: ", userId, "Msg: ", string(msgByte))
 				}
 
 				if msg.OperationCode == WS_FORCE_QUIT ||
@@ -471,7 +470,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 					if WsManager.GetUserOnlineStatus(userId) == loginTS {
 						WSUserLogout(userId)
 						close(userChan)
-						seelog.Debug("WebSocketWriter:User ", userId, " quit or logout!")
+						seelog.Trace("WebSocketWriter:User ", userId, " quit or logout!")
 					}
 					return
 				}
