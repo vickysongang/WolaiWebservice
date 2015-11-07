@@ -227,6 +227,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 				WsManager.SetTeacherOnline(userId, timestamp)
 				//go RecoverTeacherOrder(userId)
 				resp.Attribute["errCode"] = "0"
+				resp.Attribute["assign"] = "off"
 			} else {
 				resp.Attribute["errCode"] = "2"
 				resp.Attribute["errMsg"] = "You are not a teacher"
@@ -284,7 +285,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		case WS_ORDER2_CREATE:
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_CREATE_RESP)
-			if err := initOrderDispatch(msg, timestamp); err == nil {
+			if err := InitOrderDispatch(msg, timestamp); err == nil {
 				resp.Attribute["errCode"] = "0"
 				resp.Attribute["countdown"] = "120"
 			} else {
@@ -293,9 +294,33 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			userChan <- resp
 
+		case WS_ORDER2_PERSONAL_CHECK:
+			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_PERSONAL_CHECK_RESP)
+			orderIdStr, ok := msg.Attribute["orderId"]
+			if !ok {
+				resp.Attribute["errCode"] = "2"
+				userChan <- resp
+				break
+			}
+
+			orderId, err := strconv.ParseInt(orderIdStr, 10, 64)
+			if err != nil {
+				resp.Attribute["errCode"] = "2"
+				userChan <- resp
+				break
+			}
+
+			if OrderManager.IsOrderOnline(orderId) {
+				resp.Attribute["status"] = "0"
+			} else {
+				resp.Attribute["status"] = "1"
+			}
+			userChan <- resp
+
 		case WS_ORDER2_CANCEL,
 			WS_ORDER2_ACCEPT,
-			WS_ORDER2_ASSIGN_ACCEPT:
+			WS_ORDER2_ASSIGN_ACCEPT,
+			WS_ORDER2_PERSONAL_REPLY:
 			resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
 
 			orderIdStr, ok := msg.Attribute["orderId"]
