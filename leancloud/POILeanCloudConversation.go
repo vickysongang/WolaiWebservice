@@ -39,6 +39,8 @@ func LCGetConversationId(member1, member2 string) string {
 	lcReq := NewLeanCloudConvReq("conversation", member1, member2)
 
 	query, _ := json.Marshal(lcReq)
+	seelog.Trace("[LeanCloudConversation]:", string(query))
+
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
 	if err != nil {
 		seelog.Error("LCGetConversationId:", err.Error())
@@ -46,7 +48,7 @@ func LCGetConversationId(member1, member2 string) string {
 	req.Header.Set("X-AVOSCloud-Application-Id", utils.Config.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Application-Key", utils.Config.LeanCloud.AppKey)
 	req.Header.Set("Content-Type", "application/json")
-	seelog.Debug("[LeanCloudConversation]:", string(query))
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {

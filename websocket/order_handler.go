@@ -26,7 +26,7 @@ func generalOrderHandler(orderId int64) {
 	orderByte, _ := json.Marshal(order)
 
 	orderLifespan := redis.RedisManager.GetConfig(
-		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN)
+		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_GI)
 	orderDispatchLimit := redis.RedisManager.GetConfig(
 		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_DISPATCH_LIMIT)
 	orderAssignCountdown := redis.RedisManager.GetConfig(
@@ -336,8 +336,16 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan := WsManager.GetOrderChan(orderId)
 
-	orderLifespan := redis.RedisManager.GetConfig(
-		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN)
+	var orderLifespan int64
+	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+		orderLifespan = redis.RedisManager.GetConfig(
+			redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_PI)
+	} else if order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
+		orderLifespan = redis.RedisManager.GetConfig(
+			redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_PA)
+	} else {
+		return
+	}
 	orderSessionCountdown := redis.RedisManager.GetConfig(
 		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
 

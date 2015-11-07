@@ -203,7 +203,7 @@ func LCPushNotification(lcReq *map[string]interface{}) {
 	req.Header.Set("X-AVOSCloud-Application-Id", utils.Config.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Master-Key", utils.Config.LeanCloud.MasterKey)
 	req.Header.Set("Content-Type", "application/json")
-	seelog.Info("[LeanCloud Push]:", string(query))
+	//seelog.Info("[LeanCloud Push]:", string(query))
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -217,6 +217,6 @@ func LCPushNotification(lcReq *map[string]interface{}) {
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
-	seelog.Debug("response: ", string(body))
+	seelog.Trace("response: ", string(body))
 	return
 }

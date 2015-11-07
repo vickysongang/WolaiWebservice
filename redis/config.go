@@ -8,7 +8,9 @@ import (
 
 const (
 	CONFIG_ORDER                       = "config:order"
-	CONFIG_KEY_ORDER_LIFESPAN          = "lifespan"
+	CONFIG_KEY_ORDER_LIFESPAN_GI       = "lifespan_gi"
+	CONFIG_KEY_ORDER_LIFESPAN_PI       = "lifespan_pi"
+	CONFIG_KEY_ORDER_LIFESPAN_PA       = "lifespan_pa"
 	CONFIG_KEY_ORDER_DISPATCH_LIMIT    = "dispatch_limit"
 	CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN  = "assign_countdown"
 	CONFIG_KEY_ORDER_SESSION_COUNTDOWN = "session_countdown"
@@ -16,7 +18,9 @@ const (
 
 var defaultMap = map[string]map[string]string{
 	CONFIG_ORDER: map[string]string{
-		CONFIG_KEY_ORDER_LIFESPAN:          "120",
+		CONFIG_KEY_ORDER_LIFESPAN_GI:       "600",
+		CONFIG_KEY_ORDER_LIFESPAN_PI:       "600",
+		CONFIG_KEY_ORDER_LIFESPAN_PA:       "3600",
 		CONFIG_KEY_ORDER_DISPATCH_LIMIT:    "60",
 		CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN:  "12",
 		CONFIG_KEY_ORDER_SESSION_COUNTDOWN: "10",

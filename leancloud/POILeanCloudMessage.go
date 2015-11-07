@@ -88,7 +88,6 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage, twoway b
 
 func LCSendMessage(lcMsg *LCMessage) {
 	url := LC_SEND_MSG
-	//seelog.Debug("URL:>", url)
 
 	query, _ := json.Marshal(lcMsg)
 	seelog.Trace("[LCSendMessage]: ", string(query))
