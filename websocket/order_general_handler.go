@@ -173,10 +173,8 @@ func generalOrderHandler(orderId int64) {
 					}
 
 					// 结束订单派发，记录状态
-					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
-					WsManager.RemoveOrderChan(orderId)
-
 					OrderManager.SetOrderCancelled(orderId)
+					OrderManager.SetOffline(orderId)
 					seelog.Debug("orderHandler|orderCancelled: ", orderId)
 					return
 
@@ -201,7 +199,7 @@ func generalOrderHandler(orderId int64) {
 
 					resultMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RESULT)
 					resultMsg.Attribute["orderId"] = orderIdStr
-					for dispatchId, _ := range WsManager.OrderDispatchMap[orderId] {
+					for dispatchId, _ := range OrderManager.orderMap[orderId].dispatchMap {
 						var status int64
 						var orderDispatchInfo map[string]interface{}
 						if dispatchId == teacher.UserId {
@@ -217,6 +215,7 @@ func generalOrderHandler(orderId int64) {
 
 						}
 						models.UpdateOrderDispatchInfo(orderId, dispatchId, orderDispatchInfo)
+						TeacherManager.RemoveOrderDispatch(dispatchId, orderId)
 						if !WsManager.HasUserChan(dispatchId) {
 							continue
 						}
