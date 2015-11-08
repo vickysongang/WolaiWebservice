@@ -355,7 +355,7 @@ func dispatchNextTeacher(orderId int64) int64 {
 		if !TeacherManager.IsTeacherDispatchLocked(teacherId) &&
 			order.Creator.UserId != teacherId && !WsManager.IsUserSessionLocked(teacherId) {
 			if err := OrderManager.SetDispatchTarget(orderId, teacherId); err == nil {
-				TeacherManager.SetOrderDIspatch(teacherId, orderId)
+				TeacherManager.SetOrderDispatch(teacherId, orderId)
 				seelog.Debug("orderHandler|orderDispatch: ", orderId, " to Teacher: ", teacherId)
 				return teacherId
 			}
@@ -380,6 +380,7 @@ func recoverTeacherOrder(userId int64) {
 	}
 
 	if orderId := TeacherManager.teacherMap[userId].currentAssign; orderId != -1 {
+		seelog.Debug("orderHandler|orderAssignRecover: ", orderId, " to Teacher: ", userId)
 		recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_ASSIGN)
 		if WsManager.HasOrderChan(orderId) {
 			orderChan := WsManager.GetOrderChan(orderId)
@@ -388,6 +389,7 @@ func recoverTeacherOrder(userId int64) {
 	}
 
 	for orderId, _ := range TeacherManager.teacherMap[userId].dispatchMap {
+		seelog.Debug("orderHandler|orderDispatchRecover: ", orderId, " to Teacher: ", userId)
 		recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_DISPATCH)
 		if !WsManager.HasOrderChan(orderId) {
 			continue

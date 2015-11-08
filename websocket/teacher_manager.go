@@ -141,7 +141,7 @@ func (tsm *TeacherStatusManager) SetAssignUnlock(userId int64) error {
 	return nil
 }
 
-func (tsm *TeacherStatusManager) SetOrderDIspatch(userId int64, orderId int64) error {
+func (tsm *TeacherStatusManager) SetOrderDispatch(userId int64, orderId int64) error {
 	status, ok := tsm.teacherMap[userId]
 	if !ok {
 		return ErrTeacherOffline
