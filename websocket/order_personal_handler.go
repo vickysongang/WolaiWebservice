@@ -46,6 +46,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 		case <-orderTimer.C:
 			OrderManager.SetOrderCancelled(orderId)
 			OrderManager.SetOffline(orderId)
+			go leancloud.SendPersonalOrderAutoRejectNotification(order.Creator.UserId, teacherId)
+
 			return
 
 		case msg, ok := <-orderChan:

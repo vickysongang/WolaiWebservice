@@ -69,12 +69,13 @@ func generalOrderHandler(orderId int64) {
 			// 向学生和老师通知订单过时
 			expireMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER2_EXPIRE)
 			expireMsg.Attribute["orderId"] = orderIdStr
-			for teacherId, _ := range WsManager.OrderDispatchMap[orderId] {
+			for teacherId, _ := range OrderManager.orderMap[orderId].dispatchMap {
 				if WsManager.HasUserChan(teacherId) {
 					expireMsg.UserId = teacherId
 					userChan := WsManager.GetUserChan(teacherId)
 					userChan <- expireMsg
 				}
+				TeacherManager.RemoveOrderDispatch(teacherId, orderId)
 			}
 
 			assignTarget := assignNextTeacher(orderId)
@@ -91,16 +92,15 @@ func generalOrderHandler(orderId int64) {
 
 		case <-assignTimer.C:
 			assignTarget, err := OrderManager.GetCurrentAssign(orderId)
-			if err != nil {
-				break
+			if err == nil {
+				expireMsg := NewPOIWSMessage("", assignTarget, WS_ORDER2_ASSIGN_EXPIRE)
+				expireMsg.Attribute["orderId"] = orderIdStr
+				if WsManager.HasUserChan(assignTarget) {
+					teacherChan := WsManager.GetUserChan(assignTarget)
+					teacherChan <- expireMsg
+				}
+				TeacherManager.SetAssignUnlock(assignTarget)
 			}
-			expireMsg := NewPOIWSMessage("", assignTarget, WS_ORDER2_ASSIGN_EXPIRE)
-			expireMsg.Attribute["orderId"] = orderIdStr
-			if WsManager.HasUserChan(assignTarget) {
-				teacherChan := WsManager.GetUserChan(assignTarget)
-				teacherChan <- expireMsg
-			}
-			TeacherManager.SetAssignUnlock(assignTarget)
 
 			assignTarget = assignNextTeacher(orderId)
 			if assignTarget != -1 {
@@ -117,37 +117,20 @@ func generalOrderHandler(orderId int64) {
 		case <-dispatchTicker.C:
 			// 组装派发信息
 			timestamp = time.Now().Unix()
-
 			dispatchMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER2_DISPATCH)
 			dispatchMsg.Attribute["orderInfo"] = string(orderByte)
 
-			// 遍历在线老师名单，如果未派发则直接派发
-			for teacherId, _ := range TeacherManager.teacherMap {
-				//如果订单已经被派发到该老师或者该老师正在与其他学生上课，则不再给该老师派单
-				//如果当前发单的人具有导师身份，派单时则不将单子派给自己
-				if !WsManager.HasDispatchedUser(orderId, teacherId) &&
-					!WsManager.IsUserSessionLocked(teacherId) &&
-					order.Creator.UserId != teacherId &&
-					!TeacherManager.IsTeacherDispatchLocked(teacherId) {
+			teacherId := dispatchNextTeacher(orderId)
+			for teacherId != -1 {
+				dispatchMsg.UserId = teacherId
 
-					dispatchMsg.UserId = teacherId
-
-					if WsManager.HasUserChan(teacherId) {
-						teacherChan := WsManager.GetUserChan(teacherId)
-						teacherChan <- dispatchMsg
-					} else {
-						//leancloud.LCPushNotification(leancloud.NewOrderPushReq(orderId, teacherId))
-					}
-
-					orderDispatch := models.POIOrderDispatch{
-						OrderId:   orderId,
-						TeacherId: teacherId,
-						PlanTime:  order.Date,
-					}
-					models.InsertOrderDispatch(&orderDispatch)
-					WsManager.SetOrderDispatch(orderId, teacherId, timestamp)
-					seelog.Debug("orderHandler|orderDispatch: ", orderId, " to Teacher: ", teacherId)
+				if WsManager.HasUserChan(teacherId) {
+					teacherChan := WsManager.GetUserChan(teacherId)
+					teacherChan <- dispatchMsg
+				} else {
+					leancloud.LCPushNotification(leancloud.NewOrderPushReq(orderId, teacherId))
 				}
+				teacherId = dispatchNextTeacher(orderId)
 			}
 
 		case msg, ok := <-orderChan:
@@ -155,6 +138,23 @@ func generalOrderHandler(orderId int64) {
 				timestamp = time.Now().Unix()
 				userChan := WsManager.GetUserChan(msg.UserId)
 				switch msg.OperationCode {
+				case WS_ORDER2_RECOVER_CREATE:
+					recoverMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RECOVER_CREATE)
+					recoverMsg.Attribute["orderInfo"] = string(orderByte)
+					userChan <- recoverMsg
+
+				case WS_ORDER2_RECOVER_DISPATCH:
+					recoverMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RECOVER_DISPATCH)
+					recoverMsg.Attribute["orderInfo"] = string(orderByte)
+					userChan <- recoverMsg
+
+				case WS_ORDER2_RECOVER_ASSIGN:
+					recoverMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RECOVER_ASSIGN)
+					recoverMsg.Attribute["orderInfo"] = string(orderByte)
+					countdown := OrderManager.orderMap[orderId].assignMap[msg.UserId] + orderAssignCountdown - timestamp
+					recoverMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
+					userChan <- recoverMsg
+
 				case WS_ORDER2_CANCEL:
 					// 发送反馈消息
 					cancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_CANCEL_RESP)
@@ -331,11 +331,12 @@ func InitOrderDispatch(msg POIWSMessage, timestamp int64) error {
 }
 
 func assignNextTeacher(orderId int64) int64 {
+	order := OrderManager.orderMap[orderId].orderInfo
 	for teacherId, _ := range TeacherManager.teacherMap {
 		seelog.Debug("TeacherId: ", teacherId, " assignOpen: ", TeacherManager.IsTeacherAssignOpen(teacherId), " assignLocked: ", TeacherManager.IsTeacherAssignLocked(teacherId))
 		if TeacherManager.IsTeacherAssignOpen(teacherId) &&
 			!TeacherManager.IsTeacherAssignLocked(teacherId) &&
-			!WsManager.IsUserSessionLocked(teacherId) {
+			order.Creator.UserId != teacherId && !WsManager.IsUserSessionLocked(teacherId) {
 			if err := OrderManager.SetAssignTarget(orderId, teacherId); err == nil {
 				TeacherManager.SetAssignLock(teacherId, orderId)
 				seelog.Debug("orderHandler|orderAssign: ", orderId, " to teacher: ", teacherId) // 更新老师发单记录
@@ -347,7 +348,79 @@ func assignNextTeacher(orderId int64) int64 {
 }
 
 func dispatchNextTeacher(orderId int64) int64 {
+	order := OrderManager.orderMap[orderId].orderInfo
+	// 遍历在线老师名单，如果未派发则直接派发
+	for teacherId, _ := range TeacherManager.teacherMap {
+		//如果订单已经被派发到该老师或者该老师正在与其他学生上课，则不再给该老师派单
+		//如果当前发单的人具有导师身份，派单时则不将单子派给自己
+		if !TeacherManager.IsTeacherDispatchLocked(teacherId) &&
+			order.Creator.UserId != teacherId && !WsManager.IsUserSessionLocked(teacherId) {
+			if err := OrderManager.SetDispatchTarget(orderId, teacherId); err == nil {
+				TeacherManager.SetOrderDIspatch(teacherId, orderId)
+				seelog.Debug("orderHandler|orderDispatch: ", orderId, " to Teacher: ", teacherId)
+				return teacherId
+			}
+		}
+	}
 	return -1
+}
+
+func recoverTeacherOrder(userId int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
+	if !WsManager.HasUserChan(userId) {
+		return
+	}
+
+	if !TeacherManager.IsTeacherOnline(userId) {
+		return
+	}
+
+	if orderId := TeacherManager.teacherMap[userId].currentAssign; orderId != -1 {
+		recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_ASSIGN)
+		if WsManager.HasOrderChan(orderId) {
+			orderChan := WsManager.GetOrderChan(orderId)
+			orderChan <- recoverMsg
+		}
+	}
+
+	for orderId, _ := range TeacherManager.teacherMap[userId].dispatchMap {
+		recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_DISPATCH)
+		if !WsManager.HasOrderChan(orderId) {
+			continue
+		}
+		orderChan := WsManager.GetOrderChan(orderId)
+		orderChan <- recoverMsg
+	}
+}
+
+func recoverStudentOrder(userId int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
+	if !WsManager.HasUserChan(userId) {
+		return
+	}
+
+	if _, ok := WsManager.UserOrderDispatchMap[userId]; !ok {
+		return
+	}
+
+	for orderId, _ := range WsManager.UserOrderDispatchMap[userId] {
+		recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_CREATE)
+		if !WsManager.HasOrderChan(orderId) {
+			continue
+		}
+		orderChan := WsManager.GetOrderChan(orderId)
+		orderChan <- recoverMsg
+	}
 }
 
 func handleSessionCreation(orderId int64, teacherId int64) {
