@@ -636,55 +636,35 @@ func (rm *POIRedisManager) SetSessionUserTick(sessionId int64) bool {
 
 	planTimeStr := session.PlanTime
 	planTime, _ := time.Parse(time.RFC3339, planTimeStr)
-	length := order.Length
-	lengthDuration := time.Duration(length) * time.Minute
 	blockDuration := 30 * time.Minute
 
 	timeFrom := planTime.Add(-blockDuration)
-	timeTo := planTime.Add(lengthDuration).Add(blockDuration)
 
 	teacherStartMap := map[string]int64{
 		"userId":    session.Teacher.UserId,
 		"sessionId": sessionId,
 		"lock":      1,
 	}
-	teacherEndMap := map[string]int64{
-		"userId":    session.Teacher.UserId,
-		"sessionId": sessionId,
-		"lock":      0,
-	}
 	studentStartMap := map[string]int64{
 		"userId":    session.Creator.UserId,
 		"sessionId": sessionId,
 		"lock":      1,
 	}
-	studentEndMap := map[string]int64{
-		"userId":    session.Creator.UserId,
-		"sessionId": sessionId,
-		"lock":      0,
-	}
+
 	teacherStartStr, _ := json.Marshal(teacherStartMap)
-	teacherEndStr, _ := json.Marshal(teacherEndMap)
 	studentStartStr, _ := json.Marshal(studentStartMap)
-	studentEndStr, _ := json.Marshal(studentEndMap)
 
 	teacherIdStr := strconv.FormatInt(session.Teacher.UserId, 10)
 	studentIdStr := strconv.FormatInt(session.Creator.UserId, 10)
 
 	teacherTimeFromZ := redis.Z{Member: string(teacherStartStr), Score: float64(timeFrom.Unix())}
-	teacherTimeToZ := redis.Z{Member: string(teacherEndStr), Score: float64(timeTo.Unix())}
 	studentTimeFromZ := redis.Z{Member: string(studentStartStr), Score: float64(timeFrom.Unix())}
-	studentTimeToZ := redis.Z{Member: string(studentEndStr), Score: float64(timeTo.Unix())}
 
 	rm.RedisClient.ZAdd(SESSION_USER_LOCK+teacherIdStr, teacherTimeFromZ)
-	rm.RedisClient.ZAdd(SESSION_USER_LOCK+teacherIdStr, teacherTimeToZ)
 	rm.RedisClient.ZAdd(SESSION_USER_LOCK+studentIdStr, studentTimeFromZ)
-	rm.RedisClient.ZAdd(SESSION_USER_LOCK+studentIdStr, studentTimeToZ)
 
 	rm.RedisClient.ZAdd(SESSION_USER_TICKER, teacherTimeFromZ)
-	//rm.redisClient.ZAdd(SESSION_USER_TICKER, teacherTimeToZ)
 	rm.RedisClient.ZAdd(SESSION_USER_TICKER, studentTimeFromZ)
-	//rm.redisClient.ZAdd(SESSION_USER_TICKER, studentTimeToZ)
 
 	seelog.Debug("SetSessionLock: sessionId:", sessionId, "teacherId:", session.Teacher.UserId, " studentId:", session.Creator.UserId)
 

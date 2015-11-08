@@ -12,6 +12,7 @@ type TeacherStatus struct {
 	isAssignOpen         bool
 	isAssignLocked       bool
 	isDispatchLocked     bool
+	currentAssign        int64
 }
 
 type TeacherStatusManager struct {
@@ -36,6 +37,7 @@ func NewTeacherStatus(teacherId int64) *TeacherStatus {
 		isAssignOpen:         false,
 		isAssignLocked:       false,
 		isDispatchLocked:     false,
+		currentAssign:        -1,
 	}
 
 	return &teacherStatus
@@ -117,12 +119,13 @@ func (tsm *TeacherStatusManager) SetAssignOff(userId int64) error {
 	return nil
 }
 
-func (tsm *TeacherStatusManager) SetAssignLock(userId int64) error {
+func (tsm *TeacherStatusManager) SetAssignLock(userId int64, orderId int64) error {
 	status, ok := tsm.teacherMap[userId]
 	if !ok {
 		return ErrTeacherOffline
 	}
 	status.isAssignLocked = true
+	status.currentAssign = orderId
 	return nil
 }
 
@@ -132,6 +135,7 @@ func (tsm *TeacherStatusManager) SetAssignUnlock(userId int64) error {
 		return ErrTeacherOffline
 	}
 	status.isAssignLocked = false
+	status.currentAssign = -1
 	return nil
 }
 
