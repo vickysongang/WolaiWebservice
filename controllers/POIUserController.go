@@ -177,6 +177,8 @@ func GetUserConversation(userId1, userId2 int64) (int64, string) {
 			if convId == "" {
 				convId = convId2
 				redis.RedisManager.SetConversation(convId, userId1, userId2)
+			} else {
+				redis.RedisManager.SetConversationParticipant(convId, userId1, userId2)
 			}
 		}
 	}

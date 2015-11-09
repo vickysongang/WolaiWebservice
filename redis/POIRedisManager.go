@@ -2,6 +2,7 @@ package redis
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -534,6 +535,16 @@ func (rm *POIRedisManager) SetConversation(conversationId string, userId1, userI
 }
 
 /*
+ * 根据对话的id设置对话的参与人
+ */
+func (rm *POIRedisManager) SetConversationParticipant(conversationId string, userId1, userId2 int64) {
+	userId1Str := strconv.FormatInt(userId1, 10)
+	userId2Str := strconv.FormatInt(userId2, 10)
+
+	_ = rm.RedisClient.HSet(CONVERSATION_PARTICIPATION, conversationId, userId1Str+","+userId2Str)
+}
+
+/*
  * 根据对话的id获取对话的参与人
  */
 func (rm *POIRedisManager) GetConversationParticipant(conversationId string) string {
@@ -557,7 +568,7 @@ func (rm *POIRedisManager) GetConversation(userId1, userId2 int64) string {
 }
 
 /*
- * 判断消息是否为客服消息
+ * 判断消息是否为客服消息或者系统消息(用户1000发出的消息为系统消息)
  */
 func (rm *POIRedisManager) IsSupportMessage(userId int64, convId string) bool {
 	userIdStr := strconv.FormatInt(userId, 10)
@@ -852,6 +863,13 @@ func (rm *POIRedisManager) GetLCBakeMessageLogs(page, count int64) []*models.LCB
 	for i := range messageLogZs {
 		convId, _ := messageLogZs[i].Member.(string)
 		messageLog := rm.GetLCBakeMessageLog(convId)
+		fromUserId, _ := strconv.ParseInt(messageLog.From, 10, 64)
+		toUserId, _ := strconv.ParseInt(messageLog.To, 10, 64)
+		fmt.Println("FromUser:", fromUserId, "  ToUser:", toUserId)
+		fromUser := models.QueryUserById(fromUserId)
+		toUser := models.QueryUserById(toUserId)
+		messageLog.FromUser = fromUser
+		messageLog.ToUser = toUser
 		messageLogs = append(messageLogs, messageLog)
 	}
 	return messageLogs

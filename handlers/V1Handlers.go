@@ -2124,7 +2124,7 @@ func V1SetSeekHelp(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1GetSeekHelps(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer ThrowsPanicException(w, NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -2151,7 +2151,7 @@ func V1GetSeekHelps(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1GetMessageLogs(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer ThrowsPanicException(w, NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
