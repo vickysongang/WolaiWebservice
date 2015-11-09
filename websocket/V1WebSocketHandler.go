@@ -119,8 +119,9 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	go WebSocketWriteHandler(conn, userId, userChan)
 
 	// 恢复可能存在的用户被中断的发单请求
-	//go RecoverStudentOrder(userId)
 	go RecoverUserSession(userId)
+	go recoverTeacherOrder(userId)
+	go recoverStudentOrder(userId)
 
 	//处理心跳的pong消息
 	conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -285,8 +286,10 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		case WS_ORDER2_CREATE:
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_CREATE_RESP)
 			if err := InitOrderDispatch(msg, timestamp); err == nil {
+				orderDispatchCountdown := redis.RedisManager.GetConfig(
+					redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN)
 				resp.Attribute["errCode"] = "0"
-				resp.Attribute["countdown"] = "120"
+				resp.Attribute["countdown"] = strconv.FormatInt(orderDispatchCountdown, 10)
 			} else {
 				resp.Attribute["errCode"] = "2"
 				resp.Attribute["errMsg"] = err.Error()

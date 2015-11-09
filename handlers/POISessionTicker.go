@@ -50,9 +50,6 @@ func POISessionTickerHandler() {
 			if tickInfo["lock"] == 1 {
 				websocket.WsManager.SetUserSessionLock(tickInfo["userId"], true, sessionLockTicks[i].Timestamp)
 			}
-			// } else if tickInfo["lock"] == 0 {
-			// 	WsManager.SetUserSessionLock(tickInfo["userId"], false, sessionLockTicks[i].Timestamp)
-			// }
 		}
 	}
 }

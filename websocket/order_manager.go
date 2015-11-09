@@ -24,8 +24,8 @@ type OrderStatusManager struct {
 var ErrOrderNotFound = errors.New("Order is not serving")
 var ErrOrderDispatching = errors.New("Order is dispatching")
 var ErrOrderNotAssigned = errors.New("Order not assigned")
-var ErrOrderReAssign = errors.New("This order has assigned to this teacher before")
-
+var ErrOrderHasAssigned = errors.New("This order has assigned to this teacher before")
+var ErrOrderHasDispatched = errors.New("This order has dispatched to this teacher before")
 var OrderManager *OrderStatusManager
 
 func init() {
@@ -123,6 +123,24 @@ func (osm *OrderStatusManager) SetOrderConfirm(orderId int64, teacherId int64) e
 }
 
 func (osm *OrderStatusManager) SetDispatchTarget(orderId int64, userId int64) error {
+	status, ok := osm.orderMap[orderId]
+	if !ok {
+		return ErrOrderNotFound
+	}
+
+	if _, ok = status.dispatchMap[userId]; ok {
+		return ErrOrderHasDispatched
+	}
+
+	status.dispatchMap[userId] = time.Now().Unix()
+
+	orderDispatch := models.POIOrderDispatch{
+		OrderId:   orderId,
+		TeacherId: userId,
+		PlanTime:  status.orderInfo.Date,
+	}
+	models.InsertOrderDispatch(&orderDispatch)
+
 	return nil
 }
 
@@ -133,7 +151,7 @@ func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) erro
 	}
 
 	if _, ok = status.assignMap[userId]; ok {
-		return ErrOrderReAssign
+		return ErrOrderHasAssigned
 	}
 
 	status.assignMap[userId] = time.Now().Unix()
