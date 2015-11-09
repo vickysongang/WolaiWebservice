@@ -180,6 +180,8 @@ func GetUserConversation(userId1, userId2 int64) (int64, string) {
 			} else {
 				redis.RedisManager.SetConversationParticipant(convId, userId1, userId2)
 			}
+		} else {
+			redis.RedisManager.SetConversationParticipant(convId, userId1, userId2)
 		}
 	}
 
