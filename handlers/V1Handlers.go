@@ -309,7 +309,7 @@ func V1SupportAndTeacherList(w http.ResponseWriter, r *http.Request) {
  * 1.10 Insert user loginInfo
  */
 func V1InsertUserLoginInfo(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer ThrowsPanicException(w, NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -323,7 +323,7 @@ func V1InsertUserLoginInfo(w http.ResponseWriter, r *http.Request) {
 	userAgent := r.UserAgent()
 	content, err := controllers.InsertUserLoginInfo(userId, objectId, address, ip, userAgent)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 	}
