@@ -2,10 +2,11 @@
 package handlers
 
 import (
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/websocket"
 	"encoding/json"
 	"net/http"
+
+	"POIWolaiWebService/models"
+	"POIWolaiWebService/websocket"
 )
 
 type POIMonitorUser struct {
@@ -90,38 +91,38 @@ func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanicException(w, NullObject)
 	orders := NewPOIMonitorOrders()
-	for orderId, teacherMap := range websocket.WsManager.OrderDispatchMap {
-		master := POIOrderDispatchMaster{MasterId: orderId, Slaves: make([]POIOrderDispatchSlave, 0)}
-		for teacherId, timestamp := range teacherMap {
-			slave := POIOrderDispatchSlave{SlaveId: teacherId, TimeStamp: timestamp}
-			master.Slaves = append(master.Slaves, slave)
-		}
-		if len(master.Slaves) > 0 {
-			orders.OrderDispatchInfo = append(orders.OrderDispatchInfo, master)
-		}
-	}
+	// for orderId, teacherMap := range websocket.WsManager.OrderDispatchMap {
+	// 	master := POIOrderDispatchMaster{MasterId: orderId, Slaves: make([]POIOrderDispatchSlave, 0)}
+	// 	for teacherId, timestamp := range teacherMap {
+	// 		slave := POIOrderDispatchSlave{SlaveId: teacherId, TimeStamp: timestamp}
+	// 		master.Slaves = append(master.Slaves, slave)
+	// 	}
+	// 	if len(master.Slaves) > 0 {
+	// 		orders.OrderDispatchInfo = append(orders.OrderDispatchInfo, master)
+	// 	}
+	// }
 
-	for teacherId, orderMap := range websocket.WsManager.TeacherOrderDispatchMap {
-		master := POIOrderDispatchMaster{MasterId: teacherId, Slaves: make([]POIOrderDispatchSlave, 0)}
-		for orderId, timestamp := range orderMap {
-			slave := POIOrderDispatchSlave{SlaveId: orderId, TimeStamp: timestamp}
-			master.Slaves = append(master.Slaves, slave)
-		}
-		if len(master.Slaves) > 0 {
-			orders.TeacherOrderDispatchInfo = append(orders.TeacherOrderDispatchInfo, master)
-		}
-	}
+	// for teacherId, orderMap := range websocket.WsManager.TeacherOrderDispatchMap {
+	// 	master := POIOrderDispatchMaster{MasterId: teacherId, Slaves: make([]POIOrderDispatchSlave, 0)}
+	// 	for orderId, timestamp := range orderMap {
+	// 		slave := POIOrderDispatchSlave{SlaveId: orderId, TimeStamp: timestamp}
+	// 		master.Slaves = append(master.Slaves, slave)
+	// 	}
+	// 	if len(master.Slaves) > 0 {
+	// 		orders.TeacherOrderDispatchInfo = append(orders.TeacherOrderDispatchInfo, master)
+	// 	}
+	// }
 
-	for userId, orderMap := range websocket.WsManager.UserOrderDispatchMap {
-		master := POIOrderDispatchMaster{MasterId: userId, Slaves: make([]POIOrderDispatchSlave, 0)}
-		for orderId, timestamp := range orderMap {
-			slave := POIOrderDispatchSlave{SlaveId: orderId, TimeStamp: timestamp}
-			master.Slaves = append(master.Slaves, slave)
-		}
-		if len(master.Slaves) > 0 {
-			orders.UserOrderDispatchInfo = append(orders.UserOrderDispatchInfo, master)
-		}
-	}
+	// for userId, orderMap := range websocket.WsManager.UserOrderDispatchMap {
+	// 	master := POIOrderDispatchMaster{MasterId: userId, Slaves: make([]POIOrderDispatchSlave, 0)}
+	// 	for orderId, timestamp := range orderMap {
+	// 		slave := POIOrderDispatchSlave{SlaveId: orderId, TimeStamp: timestamp}
+	// 		master.Slaves = append(master.Slaves, slave)
+	// 	}
+	// 	if len(master.Slaves) > 0 {
+	// 		orders.UserOrderDispatchInfo = append(orders.UserOrderDispatchInfo, master)
+	// 	}
+	// }
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", orders))
 }
 

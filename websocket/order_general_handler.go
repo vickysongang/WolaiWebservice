@@ -23,7 +23,7 @@ func generalOrderHandler(orderId int64) {
 
 	order := models.QueryOrderById(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
-	orderChan := WsManager.GetOrderChan(orderId)
+	orderChan, _ := OrderManager.GetOrderChan(orderId)
 	orderByte, _ := json.Marshal(order)
 
 	orderLifespan := redis.RedisManager.GetConfig(
@@ -56,9 +56,9 @@ func generalOrderHandler(orderId int64) {
 			}
 
 			WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
-			WsManager.RemoveOrderChan(orderId)
 
 			OrderManager.SetOrderCancelled(orderId)
+			OrderManager.SetOffline(orderId)
 			seelog.Debug("orderHandler|orderExpired: ", orderId)
 			return
 
@@ -233,17 +233,13 @@ func generalOrderHandler(orderId int64) {
 						dispatchChan <- resultMsg
 
 					}
+
 					seelog.Debug("orderHandler|orderAccept: ", orderId, " to teacher: ", teacher.UserId) // 更新老师发单记录
-					orderDispatchInfo := map[string]interface{}{
-						"ReplyTime": time.Now(),
-					}
-					models.UpdateOrderDispatchInfo(orderId, msg.UserId, orderDispatchInfo)
-					WsManager.SetOrderReply(orderId, msg.UserId, timestamp)
 
 					// 结束派单流程，记录结果
 					OrderManager.SetOrderConfirm(orderId, teacher.UserId)
+					OrderManager.SetOffline(orderId)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
-					WsManager.RemoveOrderChan(orderId)
 
 					handleSessionCreation(orderId, msg.UserId)
 					return
@@ -276,14 +272,9 @@ func generalOrderHandler(orderId int64) {
 					seelog.Debug("orderHandler|orderAssignAccept: ", orderId, " to teacher: ", teacher.UserId) // 更新老师发单记录
 
 					// 结束派单流程，记录结果
-					orderInfo := map[string]interface{}{
-						"Status":           models.ORDER_STATUS_CONFIRMED,
-						"PricePerHour":     teacher.PricePerHour,
-						"RealPricePerHour": teacher.RealPricePerHour,
-					}
-					models.UpdateOrderInfo(orderId, orderInfo)
+					OrderManager.SetOrderConfirm(orderId, teacher.UserId)
+					OrderManager.SetOffline(orderId)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
-					WsManager.RemoveOrderChan(orderId)
 
 					handleSessionCreation(orderId, msg.UserId)
 					return
@@ -311,7 +302,7 @@ func InitOrderDispatch(msg POIWSMessage, timestamp int64) error {
 		return errors.New("Invalid orderId")
 	}
 
-	if WsManager.HasOrderChan(orderId) {
+	if OrderManager.IsOrderOnline(orderId) {
 		return errors.New("The order is already dispatching")
 	}
 
@@ -326,9 +317,6 @@ func InitOrderDispatch(msg POIWSMessage, timestamp int64) error {
 
 	WsManager.SetOrderCreate(orderId, msg.UserId, timestamp)
 
-	orderChan := make(chan POIWSMessage)
-	WsManager.SetOrderChan(orderId, orderChan)
-
 	OrderManager.SetOnline(orderId)
 	OrderManager.SetOrderDispatching(orderId)
 	go generalOrderHandler(orderId)
@@ -339,7 +327,6 @@ func InitOrderDispatch(msg POIWSMessage, timestamp int64) error {
 func assignNextTeacher(orderId int64) int64 {
 	order := OrderManager.orderMap[orderId].orderInfo
 	for teacherId, _ := range TeacherManager.teacherMap {
-		//seelog.Debug("TeacherId: ", teacherId, " assignOpen: ", TeacherManager.IsTeacherAssignOpen(teacherId), " assignLocked: ", TeacherManager.IsTeacherAssignLocked(teacherId))
 		if TeacherManager.IsTeacherAssignOpen(teacherId) &&
 			!TeacherManager.IsTeacherAssignLocked(teacherId) &&
 			order.Creator.UserId != teacherId && !WsManager.IsUserSessionLocked(teacherId) {
@@ -387,22 +374,19 @@ func recoverTeacherOrder(userId int64) {
 	}
 
 	if orderId := TeacherManager.teacherMap[userId].currentAssign; orderId != -1 {
-		seelog.Debug("orderHandler|orderAssignRecover: ", orderId, " to Teacher: ", userId)
-		recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_ASSIGN)
-		if WsManager.HasOrderChan(orderId) {
-			orderChan := WsManager.GetOrderChan(orderId)
+		if orderChan, err := OrderManager.GetOrderChan(orderId); err != nil {
+			seelog.Debug("orderHandler|orderAssignRecover: ", orderId, " to Teacher: ", userId)
+			recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_ASSIGN)
 			orderChan <- recoverMsg
 		}
 	}
 
 	for orderId, _ := range TeacherManager.teacherMap[userId].dispatchMap {
-		seelog.Debug("orderHandler|orderDispatchRecover: ", orderId, " to Teacher: ", userId)
-		recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_DISPATCH)
-		if !WsManager.HasOrderChan(orderId) {
-			continue
+		if orderChan, err := OrderManager.GetOrderChan(orderId); err != nil {
+			seelog.Debug("orderHandler|orderDispatchRecover: ", orderId, " to Teacher: ", userId)
+			recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_DISPATCH)
+			orderChan <- recoverMsg
 		}
-		orderChan := WsManager.GetOrderChan(orderId)
-		orderChan <- recoverMsg
 	}
 }
 
@@ -422,12 +406,11 @@ func recoverStudentOrder(userId int64) {
 	}
 
 	for orderId, _ := range WsManager.UserOrderDispatchMap[userId] {
-		recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_CREATE)
-		if !WsManager.HasOrderChan(orderId) {
-			continue
+		if orderChan, err := OrderManager.GetOrderChan(orderId); err != nil {
+			seelog.Debug("orderHandler|orderCreateRecover: ", orderId, " to Teacher: ", userId)
+			recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_CREATE)
+			orderChan <- recoverMsg
 		}
-		orderChan := WsManager.GetOrderChan(orderId)
-		orderChan <- recoverMsg
 	}
 }
 

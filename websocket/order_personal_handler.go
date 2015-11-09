@@ -21,7 +21,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 
 	order := models.QueryOrderById(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
-	orderChan := WsManager.GetOrderChan(orderId)
+	orderChan, _ := OrderManager.GetOrderChan(orderId)
 
 	var orderLifespan int64
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
@@ -108,8 +108,6 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 	order := models.QueryOrderById(orderId)
 	orderByte, _ := json.Marshal(order)
 
-	orderChan := make(chan POIWSMessage)
-	WsManager.SetOrderChan(orderId, orderChan)
 	OrderManager.SetOnline(orderId)
 
 	if WsManager.HasUserChan(teacherId) &&

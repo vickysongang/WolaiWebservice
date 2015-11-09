@@ -10,6 +10,7 @@ import (
 type OrderStatus struct {
 	orderId         int64
 	orderInfo       *models.POIOrder
+	orderChan       chan POIWSMessage
 	onlineTimestamp int64
 	isDispatching   bool
 	currentAssign   int64
@@ -38,6 +39,7 @@ func NewOrderStatus(orderId int64) *OrderStatus {
 	orderStatus := OrderStatus{
 		orderId:         orderId,
 		orderInfo:       order,
+		orderChan:       make(chan POIWSMessage),
 		onlineTimestamp: timestamp,
 		isDispatching:   false,
 		currentAssign:   -1,
@@ -92,6 +94,14 @@ func (osm *OrderStatusManager) SetOffline(orderId int64) error {
 
 	delete(osm.orderMap, orderId)
 	return nil
+}
+
+func (osm *OrderStatusManager) GetOrderChan(orderId int64) (chan POIWSMessage, error) {
+	if !osm.IsOrderOnline(orderId) {
+		return nil, ErrOrderNotFound
+	}
+
+	return osm.orderMap[orderId].orderChan, nil
 }
 
 func (osm *OrderStatusManager) SetOrderDispatching(orderId int64) error {

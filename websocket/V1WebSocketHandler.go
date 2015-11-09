@@ -298,6 +298,8 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		case WS_ORDER2_PERSONAL_CHECK:
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_PERSONAL_CHECK_RESP)
+			resp.Attribute["errCode"] = "0"
+
 			orderIdStr, ok := msg.Attribute["orderId"]
 			if !ok {
 				resp.Attribute["errCode"] = "2"
@@ -324,6 +326,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			WS_ORDER2_ASSIGN_ACCEPT,
 			WS_ORDER2_PERSONAL_REPLY:
 			resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
+			resp.Attribute["errCode"] = "0"
 
 			orderIdStr, ok := msg.Attribute["orderId"]
 			if !ok {
@@ -339,78 +342,13 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
-			if !WsManager.HasOrderChan(orderId) {
-				break
-			}
-			orderChan := WsManager.GetOrderChan(orderId)
-			orderChan <- msg
-		}
-
-		//blocking old order
-		/*
-			// 订单中心老师上线信息
-			case WS_ORDER_TEACHER_ONLINE:
-				resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_TEACHER_RESP)
-				if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-					WsManager.SetTeacherOnline(userId, timestamp)
-					//go RecoverTeacherOrder(userId)
-					resp.Attribute["errCode"] = "0"
-				} else {
-					resp.Attribute["errCode"] = "2"
-					resp.Attribute["errMsg"] = "You are not a teacher"
-				}
+			if orderChan, err := OrderManager.GetOrderChan(orderId); err != nil {
+				resp.Attribute["errCode"] = "2"
 				userChan <- resp
-
-			// 订单中心老师下线信息
-			case WS_ORDER_TEACHER_OFFLINE:
-				resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_TEACHER_OFFLINE_RESP)
-				if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-					WsManager.SetTeacherOffline(userId)
-					resp.Attribute["errCode"] = "0"
-				} else {
-					resp.Attribute["errCode"] = "2"
-					resp.Attribute["errMsg"] = "You are not a teacher"
-				}
-				userChan <- resp
-
-			// 创建发单请求信息
-			case WS_ORDER_CREATE:
-				resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER_CREATE_RESP)
-				if InitOrderDispatch(msg, userId, timestamp) {
-					resp.Attribute["errCode"] = "0"
-					resp.Attribute["countdown"] = "120"
-				} else {
-					resp.Attribute["errCode"] = "2"
-					resp.Attribute["errMsg"] = "Error on order creation"
-				}
-				userChan <- resp
-
-			// 订单相关信息，直接转发处理
-			case WS_ORDER_REPLY,
-				WS_ORDER_CONFIRM,
-				WS_ORDER_CANCEL:
-				resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
-
-				orderIdStr, ok := msg.Attribute["orderId"]
-				if !ok {
-					resp.Attribute["errCode"] = "2"
-					userChan <- resp
-					break
-				}
-
-				orderId, err := strconv.ParseInt(orderIdStr, 10, 64)
-				if err != nil {
-					resp.Attribute["errCode"] = "2"
-					userChan <- resp
-					break
-				}
-
-				if !WsManager.HasOrderChan(orderId) {
-					break
-				}
-				orderChan := WsManager.GetOrderChan(orderId)
+			} else {
 				orderChan <- msg
-		*/
+			}
+		}
 	}
 }
 
