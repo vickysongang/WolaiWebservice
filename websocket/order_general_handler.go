@@ -164,10 +164,17 @@ func generalOrderHandler(orderId int64) {
 					// 向已经派到的老师发送学生取消订单的信息
 					cancelMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER2_CANCEL)
 					cancelMsg.Attribute["orderId"] = orderIdStr
-					for teacherId, _ := range WsManager.OrderDispatchMap[orderId] {
+					for teacherId, _ := range OrderManager.orderMap[orderId].dispatchMap {
 						if WsManager.HasUserChan(teacherId) {
 							cancelMsg.UserId = teacherId
 							userChan := WsManager.GetUserChan(teacherId)
+							userChan <- cancelMsg
+						}
+					}
+					if assignId, err := OrderManager.GetCurrentAssign(orderId); err == nil {
+						if WsManager.HasUserChan(assignId) {
+							cancelMsg.UserId = assignId
+							userChan := WsManager.GetUserChan(assignId)
 							userChan <- cancelMsg
 						}
 					}
@@ -332,7 +339,7 @@ func InitOrderDispatch(msg POIWSMessage, timestamp int64) error {
 func assignNextTeacher(orderId int64) int64 {
 	order := OrderManager.orderMap[orderId].orderInfo
 	for teacherId, _ := range TeacherManager.teacherMap {
-		seelog.Debug("TeacherId: ", teacherId, " assignOpen: ", TeacherManager.IsTeacherAssignOpen(teacherId), " assignLocked: ", TeacherManager.IsTeacherAssignLocked(teacherId))
+		//seelog.Debug("TeacherId: ", teacherId, " assignOpen: ", TeacherManager.IsTeacherAssignOpen(teacherId), " assignLocked: ", TeacherManager.IsTeacherAssignLocked(teacherId))
 		if TeacherManager.IsTeacherAssignOpen(teacherId) &&
 			!TeacherManager.IsTeacherAssignLocked(teacherId) &&
 			order.Creator.UserId != teacherId && !WsManager.IsUserSessionLocked(teacherId) {
