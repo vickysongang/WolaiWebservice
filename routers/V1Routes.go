@@ -1113,6 +1113,18 @@ var V1Routes = Routes{
 		"/v1/messagelog/list",
 		handlers.V1GetMessageLogs,
 	},
+	Route{
+		"V1GetMessageLogsCountPOST",
+		"POST",
+		"/v1/messagelog/count",
+		handlers.V1GetMessageLogsCount,
+	},
+	Route{
+		"V1GetMessageLogsCountGET",
+		"GET",
+		"/v1/messagelog/count",
+		handlers.V1GetMessageLogsCount,
+	},
 
 	// Dummy
 	Route{

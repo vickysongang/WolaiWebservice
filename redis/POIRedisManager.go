@@ -2,7 +2,6 @@ package redis
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -865,7 +864,6 @@ func (rm *POIRedisManager) GetLCBakeMessageLogs(page, count int64) []*models.LCB
 		messageLog := rm.GetLCBakeMessageLog(convId)
 		fromUserId, _ := strconv.ParseInt(messageLog.From, 10, 64)
 		toUserId, _ := strconv.ParseInt(messageLog.To, 10, 64)
-		fmt.Println("FromUser:", fromUserId, "  ToUser:", toUserId)
 		fromUser := models.QueryUserById(fromUserId)
 		toUser := models.QueryUserById(toUserId)
 		messageLog.FromUser = fromUser
@@ -873,4 +871,9 @@ func (rm *POIRedisManager) GetLCBakeMessageLogs(page, count int64) []*models.LCB
 		messageLogs = append(messageLogs, messageLog)
 	}
 	return messageLogs
+}
+
+func (rm *POIRedisManager) GetLCBakeMessageLogsCount() int64 {
+	messageLogZs := rm.RedisClient.ZRevRangeWithScores(CONVERSATION_LASTEST_LIST, 0, -1).Val()
+	return int64(len(messageLogZs))
 }

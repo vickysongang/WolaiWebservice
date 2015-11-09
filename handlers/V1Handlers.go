@@ -2176,3 +2176,13 @@ func V1GetMessageLogs(w http.ResponseWriter, r *http.Request) {
 	content := redis.RedisManager.GetLCBakeMessageLogs(pageNum, pageCount)
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 }
+
+func V1GetMessageLogsCount(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	content := redis.RedisManager.GetLCBakeMessageLogsCount()
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+}
