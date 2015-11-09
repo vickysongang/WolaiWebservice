@@ -656,34 +656,41 @@ func InitSessionMonitor(sessionId int64) bool {
 	}
 
 	//提示课程即将开始，给客户端发送倒计时消息
-	alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_START)
 	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
 		order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
-		alertMsg.OperationCode = WS_SESSION_ALERT
-	}
-	alertMsg.Attribute["sessionId"] = sessionIdStr
-	alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
-	alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-	alertMsg.Attribute["planTime"] = session.PlanTime
+		alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_ALERT)
+		alertMsg.Attribute["sessionId"] = sessionIdStr
+		alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
+		alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+		alertMsg.Attribute["planTime"] = session.PlanTime
 
-	if WsManager.HasUserChan(session.Teacher.UserId) {
-		teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
-		teacherChan <- alertMsg
-	}
+		if WsManager.HasUserChan(session.Teacher.UserId) {
+			teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+			teacherChan <- alertMsg
+		}
 
-	if WsManager.HasUserChan(session.Creator.UserId) {
-		alertMsg.UserId = session.Creator.UserId
-		studentChan := WsManager.GetUserChan(session.Creator.UserId)
-		studentChan <- alertMsg
-	}
-
-	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
-		order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
 		go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
 			alertMsg.OperationCode, session.Teacher.UserId))
-
 		go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
 			alertMsg.OperationCode, session.Creator.UserId))
+
+	} else if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
+		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+		startMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_START)
+		startMsg.Attribute["sessionId"] = sessionIdStr
+		startMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
+		startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+		startMsg.Attribute["planTime"] = session.PlanTime
+
+		if WsManager.HasUserChan(session.Teacher.UserId) {
+			teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+			teacherChan <- startMsg
+		}
+		if WsManager.HasUserChan(session.Creator.UserId) {
+			startMsg.UserId = session.Creator.UserId
+			studentChan := WsManager.GetUserChan(session.Creator.UserId)
+			studentChan <- startMsg
+		}
 	}
 
 	course, err := models.QueryServingCourse4User(session.Creator.UserId)
