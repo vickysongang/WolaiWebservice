@@ -62,17 +62,34 @@ func InsertTeacher(teacherInfo string) (models.POITeacherInfos, error) {
 	}
 	for i := range teachers {
 		teacher := teachers[i]
-		//插入用户基本信息
-		user := models.POIUser{}
-		user.AccessRight = 2
-		user.Status = 1
-		user.Avatar = teacher.Avatar
-		user.Gender = teacher.Gender
-		user.Nickname = teacher.Nickname
-		user.Phone = teacher.Phone
-		userId, err := models.InsertPOIUser(&user)
-		if err != nil {
-			return nil, err
+		var userId int64
+		oldUser := models.QueryUserByPhone(teacher.Phone)
+		if oldUser == nil {
+			//插入用户基本信息
+			user := models.POIUser{}
+			user.AccessRight = 2
+			user.Status = 1
+			user.Avatar = teacher.Avatar
+			user.Gender = teacher.Gender
+			user.Nickname = teacher.Nickname
+			user.Phone = teacher.Phone
+
+			userId, err = models.InsertPOIUser(&user)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			if oldUser.AccessRight == 3 {
+				userInfo := map[string]interface{}{
+					"AccessRight": 2,
+					"Status":      1,
+					"Avatar":      teacher.Avatar,
+					"Gender":      teacher.Gender,
+					"Nickname":    teacher.Nickname,
+				}
+				userId = oldUser.UserId
+				models.UpdateUserInfo(userId, userInfo)
+			}
 		}
 		teacher.POIUser.UserId = userId
 		//处理Label信息
