@@ -379,7 +379,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 				case WS_SESSION_BREAK:
 					//如果课程被暂停，则退出
-					if isPaused {
+					if isPaused || !isServing {
 						break
 					}
 
