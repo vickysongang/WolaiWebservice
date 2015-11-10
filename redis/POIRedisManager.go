@@ -773,17 +773,35 @@ func (rm *POIRedisManager) SetSeekHelp(timestamp int64, convId string) {
 	_ = rm.RedisClient.ZAdd(SEEK_HELP_SUPPORT, helpZ)
 }
 
-func (rm *POIRedisManager) GetSeekHelps(page, count int64) []string {
-	helps := make([]string, 0)
+func (rm *POIRedisManager) GetSeekHelps(page, count int64) []map[string]interface{} {
+	helps := make([]map[string]interface{}, 0)
 	start := page * count
 	stop := (page+1)*count - 1
 	helpZs := rm.RedisClient.ZRevRangeWithScores(SEEK_HELP_SUPPORT, start, stop).Val()
-
 	for i := range helpZs {
-		help, _ := helpZs[i].Member.(string)
-		helps = append(helps, help)
+		helpMap := make(map[string]interface{})
+		convId, _ := helpZs[i].Member.(string)
+		timestamp := helpZs[i].Score
+		helpMap["convId"] = convId
+		helpMap["timpstamp"] = timestamp
+		participants := rm.GetConversationParticipant(convId)
+		participantArray := strings.Split(participants, ",")
+		if len(participantArray) == 2 {
+			userId1, _ := strconv.ParseInt(participantArray[0], 10, 64)
+			userId2, _ := strconv.ParseInt(participantArray[1], 10, 64)
+			participant1 := models.QueryUserById(userId1)
+			participant2 := models.QueryUserById(userId2)
+			helpMap["participant1"] = participant1
+			helpMap["participant2"] = participant2
+		}
+		helps = append(helps, helpMap)
 	}
 	return helps
+}
+
+func (rm *POIRedisManager) GetSeekHelpsCount() int64 {
+	helpZs := rm.RedisClient.ZRevRangeWithScores(SEEK_HELP_SUPPORT, 0, -1).Val()
+	return int64(len(helpZs))
 }
 
 func (rm *POIRedisManager) SetSendcloudRandCode(phone string, randCode string) {

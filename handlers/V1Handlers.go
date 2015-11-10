@@ -2147,6 +2147,17 @@ func V1GetSeekHelps(w http.ResponseWriter, r *http.Request) {
 		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
 	}
 	content := redis.RedisManager.GetSeekHelps(pageNum, pageCount)
+	fmt.Println("content:", content)
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+}
+
+func V1GetSeekHelpsCount(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	content := redis.RedisManager.GetSeekHelpsCount()
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 }
 

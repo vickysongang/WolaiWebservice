@@ -183,7 +183,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		// 用户登出信息
 		case WS_LOGOUT:
-			seelog.Debug("User:", userId, "logout correctly!")
+			seelog.Debug("User:", userId, " logout correctly!")
 			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
 			userChan <- resp
 			WSUserLogout(userId)

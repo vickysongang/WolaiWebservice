@@ -1102,6 +1102,18 @@ var V1Routes = Routes{
 		handlers.V1GetSeekHelps,
 	},
 	Route{
+		"V1GetSeekHelpsCountGET",
+		"GET",
+		"/v1/seekhelp/count",
+		handlers.V1GetSeekHelpsCount,
+	},
+	Route{
+		"V1GetSeekHelpsCountPOST",
+		"POST",
+		"/v1/seekhelp/count",
+		handlers.V1GetSeekHelpsCount,
+	},
+	Route{
 		"V1GetMessageLogsPOST",
 		"POST",
 		"/v1/messagelog/list",
