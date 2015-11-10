@@ -783,7 +783,7 @@ func (rm *POIRedisManager) GetSeekHelps(page, count int64) []map[string]interfac
 		convId, _ := helpZs[i].Member.(string)
 		timestamp := helpZs[i].Score
 		helpMap["convId"] = convId
-		helpMap["timpstamp"] = timestamp
+		helpMap["timestamp"] = timestamp
 		participants := rm.GetConversationParticipant(convId)
 		participantArray := strings.Split(participants, ",")
 		if len(participantArray) == 2 {
