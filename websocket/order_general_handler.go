@@ -370,19 +370,16 @@ func recoverTeacherOrder(userId int64) {
 		}
 	}()
 
-	seelog.Debug("In recoverTeacherOrder")
 	if !WsManager.HasUserChan(userId) {
-		seelog.Debug("In recoverTeacherOrder :::::::::::: No userChan")
 		return
 	}
 
 	if !TeacherManager.IsTeacherOnline(userId) {
-		seelog.Debug("In recoverTeacherOrder :::::::::::: Teacher not online")
 		return
 	}
 
 	if orderId := TeacherManager.teacherMap[userId].currentAssign; orderId != -1 {
-		if orderChan, err := OrderManager.GetOrderChan(orderId); err != nil {
+		if orderChan, err := OrderManager.GetOrderChan(orderId); err == nil {
 			seelog.Debug("orderHandler|orderAssignRecover: ", orderId, " to Teacher: ", userId)
 			recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_ASSIGN)
 			orderChan <- recoverMsg
@@ -390,7 +387,7 @@ func recoverTeacherOrder(userId int64) {
 	}
 
 	for orderId, _ := range TeacherManager.teacherMap[userId].dispatchMap {
-		if orderChan, err := OrderManager.GetOrderChan(orderId); err != nil {
+		if orderChan, err := OrderManager.GetOrderChan(orderId); err == nil {
 			seelog.Debug("orderHandler|orderDispatchRecover: ", orderId, " to Teacher: ", userId)
 			recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_DISPATCH)
 			orderChan <- recoverMsg
@@ -405,19 +402,16 @@ func recoverStudentOrder(userId int64) {
 		}
 	}()
 
-	seelog.Debug("In recoverStudentOrder")
 	if !WsManager.HasUserChan(userId) {
-		seelog.Debug("In recoverStudentOrder :::::::::: No user Chan")
 		return
 	}
 
 	if _, ok := WsManager.UserOrderDispatchMap[userId]; !ok {
-		seelog.Debug("In recoverStudentOrder :::::::::: No order to recover")
 		return
 	}
 
 	for orderId, _ := range WsManager.UserOrderDispatchMap[userId] {
-		if orderChan, err := OrderManager.GetOrderChan(orderId); err != nil {
+		if orderChan, err := OrderManager.GetOrderChan(orderId); err == nil {
 			seelog.Debug("orderHandler|orderCreateRecover: ", orderId, " to user: ", userId)
 			recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_CREATE)
 			orderChan <- recoverMsg
