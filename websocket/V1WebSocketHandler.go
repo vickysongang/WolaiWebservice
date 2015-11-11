@@ -292,6 +292,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 					redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN)
 				resp.Attribute["errCode"] = "0"
 				resp.Attribute["countdown"] = strconv.FormatInt(orderDispatchCountdown, 10)
+				resp.Attribute["countfrom"] = "0"
 			} else {
 				resp.Attribute["errCode"] = "2"
 				resp.Attribute["errMsg"] = err.Error()

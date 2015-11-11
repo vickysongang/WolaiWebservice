@@ -34,6 +34,8 @@ func generalOrderHandler(orderId int64) {
 		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN)
 	orderSessionCountdown := redis.RedisManager.GetConfig(
 		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
+	orderDispatchCountdown := redis.RedisManager.GetConfig(
+		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN)
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 	dispatchTimer := time.NewTimer(time.Second * time.Duration(orderDispatchLimit))
@@ -144,6 +146,8 @@ func generalOrderHandler(orderId int64) {
 					seelog.Debug("In ORDER Create Recover")
 					recoverMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RECOVER_CREATE)
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
+					recoverMsg.Attribute["countdown"] = strconv.FormatInt(orderDispatchCountdown, 10)
+					recoverMsg.Attribute["countfrom"] = strconv.FormatInt(timestamp-OrderManager.orderMap[orderId].onlineTimestamp, 10)
 					userChan <- recoverMsg
 
 				case WS_ORDER2_RECOVER_DISPATCH:
