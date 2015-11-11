@@ -370,11 +370,14 @@ func recoverTeacherOrder(userId int64) {
 		}
 	}()
 
+	seelog.Debug("In recoverTeacherOrder")
 	if !WsManager.HasUserChan(userId) {
+		seelog.Debug("In recoverTeacherOrder :::::::::::: No userChan")
 		return
 	}
 
 	if !TeacherManager.IsTeacherOnline(userId) {
+		seelog.Debug("In recoverTeacherOrder :::::::::::: Teacher not online")
 		return
 	}
 
@@ -402,11 +405,14 @@ func recoverStudentOrder(userId int64) {
 		}
 	}()
 
+	seelog.Debug("In recoverStudentOrder")
 	if !WsManager.HasUserChan(userId) {
+		seelog.Debug("In recoverStudentOrder :::::::::: No user Chan")
 		return
 	}
 
 	if _, ok := WsManager.UserOrderDispatchMap[userId]; !ok {
+		seelog.Debug("In recoverStudentOrder :::::::::: No order to recover")
 		return
 	}
 

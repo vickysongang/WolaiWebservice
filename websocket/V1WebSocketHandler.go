@@ -121,9 +121,9 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	go WebSocketWriteHandler(conn, userId, userChan)
 
 	// 恢复可能存在的用户被中断的发单请求
+	recoverTeacherOrder(userId)
+	recoverStudentOrder(userId)
 	go RecoverUserSession(userId)
-	go recoverTeacherOrder(userId)
-	go recoverStudentOrder(userId)
 
 	//处理心跳的pong消息
 	conn.SetReadDeadline(time.Now().Add(pongWait))
