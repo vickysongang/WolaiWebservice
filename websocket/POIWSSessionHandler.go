@@ -779,11 +779,37 @@ func RecoverUserSession(userId int64) {
 			continue
 		}
 
-		recoverMsg := NewPOIWSMessage("", userId, WS_SESSION_RECOVER_STU)
-		if session.Teacher.UserId == userId {
-			recoverMsg.OperationCode = WS_SESSION_RECOVER_TEACHER
+		order := models.QueryOrderById(session.OrderId)
+		if order == nil {
+			continue
 		}
-		sessionChan := WsManager.GetSessionChan(sessionId)
-		sessionChan <- recoverMsg
+
+		sessionStatus := session.Status
+		sessionIdStr := strconv.FormatInt(sessionId, 10)
+		//如果是预约的课还未开始的话，则发送201，否则发送回溯
+		if (order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT || order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT) && sessionStatus == models.SESSION_STATUS_CREATED {
+			alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_ALERT)
+			alertMsg.Attribute["sessionId"] = sessionIdStr
+			alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
+			alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+			alertMsg.Attribute["planTime"] = session.PlanTime
+
+			if WsManager.HasUserChan(session.Teacher.UserId) {
+				teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+				teacherChan <- alertMsg
+			}
+
+			go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
+				alertMsg.OperationCode, session.Teacher.UserId))
+			go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
+				alertMsg.OperationCode, session.Creator.UserId))
+		} else {
+			recoverMsg := NewPOIWSMessage("", userId, WS_SESSION_RECOVER_STU)
+			if session.Teacher.UserId == userId {
+				recoverMsg.OperationCode = WS_SESSION_RECOVER_TEACHER
+			}
+			sessionChan := WsManager.GetSessionChan(sessionId)
+			sessionChan <- recoverMsg
+		}
 	}
 }
