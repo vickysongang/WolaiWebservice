@@ -27,6 +27,7 @@ var ErrOrderDispatching = errors.New("Order is dispatching")
 var ErrOrderNotAssigned = errors.New("Order not assigned")
 var ErrOrderHasAssigned = errors.New("This order has assigned to this teacher before")
 var ErrOrderHasDispatched = errors.New("This order has dispatched to this teacher before")
+
 var OrderManager *OrderStatusManager
 
 func init() {

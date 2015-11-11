@@ -319,7 +319,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			if OrderManager.IsOrderOnline(orderId) {
 				resp.Attribute["status"] = "0"
 			} else {
-				resp.Attribute["status"] = "1"
+				resp.Attribute["status"] = "-1"
 			}
 			userChan <- resp
 
