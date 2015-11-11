@@ -20,10 +20,12 @@ const (
 	writeWait = 10 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
-	pongWait = 20 * time.Second
+	//	pongWait = 20 * time.Second
+	pongWait = 10 * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriod = (pongWait * 9) / 10
+	//	pingPeriod = (pongWait * 9) / 10
+	pingPeriod = 5 * time.Second
 )
 
 var upgrader = websocket.Upgrader{
