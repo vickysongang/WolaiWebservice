@@ -182,3 +182,13 @@ func (osm *OrderStatusManager) GetCurrentAssign(orderId int64) (int64, error) {
 
 	return status.currentAssign, nil
 }
+
+func (osm *OrderStatusManager) RemoveCurrentAssign(orderId int64) error {
+	status, ok := osm.orderMap[orderId]
+	if !ok {
+		return ErrOrderNotFound
+	}
+
+	status.currentAssign = -1
+	return nil
+}
