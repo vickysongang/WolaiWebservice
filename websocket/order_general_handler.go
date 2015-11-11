@@ -406,11 +406,14 @@ func recoverStudentOrder(userId int64) {
 		}
 	}()
 
+	seelog.Debug("In order create recover :::::::", userId)
 	if !WsManager.HasUserChan(userId) {
+		seelog.Debug("In order create recover :::::::::: no user chan :::::::", userId)
 		return
 	}
 
 	if _, ok := WsManager.UserOrderDispatchMap[userId]; !ok {
+		seelog.Debug("In order create recover :::::::::: no order :::::::", userId)
 		return
 	}
 
