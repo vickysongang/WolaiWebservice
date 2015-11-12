@@ -726,7 +726,6 @@ func (rm *POIRedisManager) IsUserAvailable(userId int64, startTime time.Time) bo
 			Offset: 0,
 			Count:  10,
 		}).Result()
-	)
 	if err == redis.Nil {
 		return true
 	}
