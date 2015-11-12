@@ -34,6 +34,8 @@ func generalOrderHandler(orderId int64) {
 		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN)
 	orderSessionCountdown := redis.RedisManager.GetConfig(
 		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
+	orderDispatchCountdown := redis.RedisManager.GetConfig(
+		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN)
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 	dispatchTimer := time.NewTimer(time.Second * time.Duration(orderDispatchLimit))
@@ -111,6 +113,8 @@ func generalOrderHandler(orderId int64) {
 					teacherChan := WsManager.GetUserChan(assignTarget)
 					teacherChan <- assignMsg
 				}
+			} else {
+				OrderManager.RemoveCurrentAssign(orderId)
 			}
 			assignTimer = time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
 
@@ -139,16 +143,21 @@ func generalOrderHandler(orderId int64) {
 				userChan := WsManager.GetUserChan(msg.UserId)
 				switch msg.OperationCode {
 				case WS_ORDER2_RECOVER_CREATE:
+					seelog.Debug("In ORDER Create Recover")
 					recoverMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RECOVER_CREATE)
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
+					recoverMsg.Attribute["countdown"] = strconv.FormatInt(orderDispatchCountdown, 10)
+					recoverMsg.Attribute["countfrom"] = strconv.FormatInt(timestamp-OrderManager.orderMap[orderId].onlineTimestamp, 10)
 					userChan <- recoverMsg
 
 				case WS_ORDER2_RECOVER_DISPATCH:
+					seelog.Debug("In ORDER Dispatch Recover")
 					recoverMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RECOVER_DISPATCH)
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
 					userChan <- recoverMsg
 
 				case WS_ORDER2_RECOVER_ASSIGN:
+					seelog.Debug("In ORDER Assign Recover")
 					recoverMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RECOVER_ASSIGN)
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
 					countdown := OrderManager.orderMap[orderId].assignMap[msg.UserId] + orderAssignCountdown - timestamp
@@ -247,6 +256,12 @@ func generalOrderHandler(orderId int64) {
 				case WS_ORDER2_ASSIGN_ACCEPT:
 					//发送反馈消息
 					acceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_ASSIGN_ACCEPT_RESP)
+					if currentAssign, _ := OrderManager.GetCurrentAssign(orderId); currentAssign != msg.UserId {
+						acceptResp.Attribute["errCode"] = "2"
+						acceptResp.Attribute["errMsg"] = "This order is not assigned to you"
+						userChan <- acceptResp
+
+					}
 					acceptResp.Attribute["errCode"] = "0"
 					userChan <- acceptResp
 
@@ -374,7 +389,7 @@ func recoverTeacherOrder(userId int64) {
 	}
 
 	if orderId := TeacherManager.teacherMap[userId].currentAssign; orderId != -1 {
-		if orderChan, err := OrderManager.GetOrderChan(orderId); err != nil {
+		if orderChan, err := OrderManager.GetOrderChan(orderId); err == nil {
 			seelog.Debug("orderHandler|orderAssignRecover: ", orderId, " to Teacher: ", userId)
 			recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_ASSIGN)
 			orderChan <- recoverMsg
@@ -382,7 +397,7 @@ func recoverTeacherOrder(userId int64) {
 	}
 
 	for orderId, _ := range TeacherManager.teacherMap[userId].dispatchMap {
-		if orderChan, err := OrderManager.GetOrderChan(orderId); err != nil {
+		if orderChan, err := OrderManager.GetOrderChan(orderId); err == nil {
 			seelog.Debug("orderHandler|orderDispatchRecover: ", orderId, " to Teacher: ", userId)
 			recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_DISPATCH)
 			orderChan <- recoverMsg
@@ -406,8 +421,8 @@ func recoverStudentOrder(userId int64) {
 	}
 
 	for orderId, _ := range WsManager.UserOrderDispatchMap[userId] {
-		if orderChan, err := OrderManager.GetOrderChan(orderId); err != nil {
-			seelog.Debug("orderHandler|orderCreateRecover: ", orderId, " to Teacher: ", userId)
+		if orderChan, err := OrderManager.GetOrderChan(orderId); err == nil {
+			seelog.Debug("orderHandler|orderCreateRecover: ", orderId, " to user: ", userId)
 			recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_CREATE)
 			orderChan <- recoverMsg
 		}

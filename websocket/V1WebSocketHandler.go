@@ -20,10 +20,12 @@ const (
 	writeWait = 10 * time.Second
 
 	// Time allowed to read the next pong message from the peer.
-	pongWait = 20 * time.Second
+	//	pongWait = 20 * time.Second
+	pongWait = 10 * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriod = (pongWait * 9) / 10
+	//	pingPeriod = (pongWait * 9) / 10
+	pingPeriod = 5 * time.Second
 )
 
 var upgrader = websocket.Upgrader{
@@ -119,9 +121,9 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	go WebSocketWriteHandler(conn, userId, userChan)
 
 	// 恢复可能存在的用户被中断的发单请求
+	recoverTeacherOrder(userId)
+	recoverStudentOrder(userId)
 	go RecoverUserSession(userId)
-	go recoverTeacherOrder(userId)
-	go recoverStudentOrder(userId)
 
 	//处理心跳的pong消息
 	conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -290,6 +292,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 					redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN)
 				resp.Attribute["errCode"] = "0"
 				resp.Attribute["countdown"] = strconv.FormatInt(orderDispatchCountdown, 10)
+				resp.Attribute["countfrom"] = "0"
 			} else {
 				resp.Attribute["errCode"] = "2"
 				resp.Attribute["errMsg"] = err.Error()
@@ -317,7 +320,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			if OrderManager.IsOrderOnline(orderId) {
 				resp.Attribute["status"] = "0"
 			} else {
-				resp.Attribute["status"] = "1"
+				resp.Attribute["status"] = "-1"
 			}
 			userChan <- resp
 
