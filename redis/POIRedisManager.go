@@ -721,8 +721,8 @@ func (rm *POIRedisManager) IsUserAvailable(userId int64, startTime time.Time) bo
 	userIdStr := strconv.FormatInt(userId, 10)
 	items, err := rm.RedisClient.ZRangeByScore(SESSION_USER_LOCK+userIdStr,
 		redis.ZRangeByScore{
-			Min:    strconv.FormatInt(timestampFrom+5, 10),
-			Max:    strconv.FormatInt(timestampFrom-5, 10),
+			Min:    strconv.FormatInt(timestampFrom-125, 10),
+			Max:    strconv.FormatInt(timestampFrom+125, 10),
 			Offset: 0,
 			Count:  10,
 		}).Result()
@@ -732,7 +732,6 @@ func (rm *POIRedisManager) IsUserAvailable(userId int64, startTime time.Time) bo
 	if len(items) > 0 {
 		return false
 	}
-
 	return true
 }
 
