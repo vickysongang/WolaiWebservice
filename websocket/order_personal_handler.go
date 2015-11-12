@@ -46,7 +46,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 		case <-orderTimer.C:
 			OrderManager.SetOrderCancelled(orderId)
 			OrderManager.SetOffline(orderId)
-			go leancloud.SendPersonalOrderAutoRejectNotification(order.Creator.UserId, teacherId)
+			go leancloud.SendPersonalOrderRejectNotification(orderId, teacherId)
 
 			return
 
@@ -58,6 +58,30 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 				switch msg.OperationCode {
 				case WS_ORDER2_PERSONAL_REPLY:
 					resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
+
+					if WsManager.IsUserSessionLocked(order.Creator.UserId) {
+						resp.Attribute["errCode"] = "2"
+						resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
+						userChan <- resp
+
+						OrderManager.SetOrderCancelled(orderId)
+						OrderManager.SetOffline(orderId)
+
+						go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator.UserId, msg.UserId)
+						return
+					}
+					if WsManager.IsUserSessionLocked(msg.UserId) {
+						resp.Attribute["errCode"] = "2"
+						resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
+						userChan <- resp
+
+						OrderManager.SetOrderCancelled(orderId)
+						OrderManager.SetOffline(orderId)
+
+						go leancloud.SendPersonalOrderAutoRejectNotification(order.Creator.UserId, msg.UserId)
+						return
+					}
+
 					resp.Attribute["errCode"] = "0"
 					userChan <- resp
 
