@@ -256,6 +256,12 @@ func generalOrderHandler(orderId int64) {
 				case WS_ORDER2_ASSIGN_ACCEPT:
 					//发送反馈消息
 					acceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_ASSIGN_ACCEPT_RESP)
+					if currentAssign, _ := OrderManager.GetCurrentAssign(orderId); currentAssign != msg.UserId {
+						acceptResp.Attribute["errCode"] = "2"
+						acceptResp.Attribute["errMsg"] = "This order is not assigned to you"
+						userChan <- acceptResp
+
+					}
 					acceptResp.Attribute["errCode"] = "0"
 					userChan <- acceptResp
 
@@ -406,14 +412,11 @@ func recoverStudentOrder(userId int64) {
 		}
 	}()
 
-	seelog.Debug("In order create recover :::::::", userId)
 	if !WsManager.HasUserChan(userId) {
-		seelog.Debug("In order create recover :::::::::: no user chan :::::::", userId)
 		return
 	}
 
 	if _, ok := WsManager.UserOrderDispatchMap[userId]; !ok {
-		seelog.Debug("In order create recover :::::::::: no order :::::::", userId)
 		return
 	}
 

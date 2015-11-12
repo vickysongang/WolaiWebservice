@@ -105,6 +105,10 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 		}
 	}()
 
+	if WsManager.IsUserSessionLocked(teacherId) {
+		return nil
+	}
+
 	order := models.QueryOrderById(orderId)
 	orderByte, _ := json.Marshal(order)
 
