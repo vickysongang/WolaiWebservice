@@ -1,11 +1,16 @@
 package main
 
 import (
+	"net"
 	"net/http"
+	"net/rpc"
+	"net/rpc/jsonrpc"
 
 	"POIWolaiWebService/handlers"
 	"POIWolaiWebService/routers"
 	"POIWolaiWebService/utils"
+
+	myrpc "POIWolaiWebService/rpc"
 
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"
@@ -31,12 +36,28 @@ func init() {
 	}
 }
 
+func startRpcServer() {
+	lis, err := net.Listen("tcp", utils.Config.Server.RpcPort)
+	if err != nil {
+		seelog.Critical("RPC端口被占用")
+	}
+	defer lis.Close()
+	watcher := new(myrpc.RpcWatcher)
+	srv := rpc.NewServer()
+	srv.RegisterName("RpcWatcher", watcher)
+	for {
+		conn, _ := lis.Accept()
+		go srv.ServeCodec(jsonrpc.NewServerCodec(conn))
+	}
+}
+
 func main() {
 	orm.Debug = false
 
 	go handlers.POISessionTickerHandler()
 	go handlers.POILeanCloudTickerHandler()
 	go handlers.POICourseExpiredHandler()
+	go startRpcServer()
 
 	router := routers.NewRouter()
 	seelog.Critical(http.ListenAndServe(utils.Config.Server.Port, router))
