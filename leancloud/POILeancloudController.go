@@ -23,11 +23,15 @@ const (
 
 func SendWelcomeMessageTeacher(userId int64) {
 	attr := map[string]string{
-		"mediaId": "teacher_welcome_1.jpg",
+		"title":       "【有人@我】一秒匹配你的大神导师",
+		"description": "我来了这么久，你终于来了！",
+		"mediaId":     "welcome.jpg",
+		"url":         "http://mp.weixin.qq.com/s?__biz=MzA4MTM4NDAyNg==&mid=400187411&idx=1&sn=cfd4a3032885ad0883a2158ca8de18f9",
 	}
+
 	msg := LCTypedMessage{
-		Type:      LC_MSG_IMAGE,
-		Text:      "[图片消息]",
+		Type:      LC_MSG_AD,
+		Text:      "[图文消息]",
 		Attribute: attr,
 	}
 	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &msg, false)
@@ -35,11 +39,15 @@ func SendWelcomeMessageTeacher(userId int64) {
 
 func SendWelcomeMessageStudent(userId int64) {
 	attr := map[string]string{
-		"mediaId": "student_welcome_1.jpg",
+		"title":       "【有人@我】一秒匹配你的大神导师",
+		"description": "我来了这么久，你终于来了！",
+		"mediaId":     "welcome.jpg",
+		"url":         "http://mp.weixin.qq.com/s?__biz=MzA4MTM4NDAyNg==&mid=400187411&idx=1&sn=cfd4a3032885ad0883a2158ca8de18f9",
 	}
+
 	msg := LCTypedMessage{
-		Type:      LC_MSG_IMAGE,
-		Text:      "[图片消息]",
+		Type:      LC_MSG_AD,
+		Text:      "[图文消息]",
 		Attribute: attr,
 	}
 	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &msg, false)

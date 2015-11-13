@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
+	"errors"
 	"strconv"
 	"time"
 
@@ -122,6 +123,23 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	}
 }
 
+func checkOrderValidation(orderId int64) (int64, error) {
+	if OrderManager.IsOrderOnline(orderId) {
+		return 0, nil
+	}
+
+	order := models.QueryOrderById(orderId)
+	if order == nil {
+		return -1, errors.New("Invalid OrderId")
+	}
+
+	if order.Status == models.ORDER_STATUS_CONFIRMED {
+		return 1, nil
+	}
+
+	return -1, nil
+}
+
 func InitOrderMonitor(orderId int64, teacherId int64) error {
 	defer func() {
 		if r := recover(); r != nil {
@@ -140,9 +158,10 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 		orderMsg := NewPOIWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
 		orderMsg.Attribute["orderInfo"] = string(orderByte)
 		teacherChan <- orderMsg
+	} else {
+		go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderId, teacherId))
 	}
 	go leancloud.SendPersonalOrderNotification(orderId, teacherId)
-	go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderId, teacherId))
 	go personalOrderHandler(orderId, teacherId)
 	return nil
 }

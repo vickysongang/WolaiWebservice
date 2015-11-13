@@ -317,10 +317,10 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
-			if OrderManager.IsOrderOnline(orderId) {
-				resp.Attribute["status"] = "0"
-			} else {
-				resp.Attribute["status"] = "-1"
+			status, err := checkOrderValidation(orderId)
+			resp.Attribute["status"] = strconv.FormatInt(status, 10)
+			if err != nil {
+				resp.Attribute["errMsg"] = err.Error()
 			}
 			userChan <- resp
 
