@@ -142,6 +142,7 @@ func POIWSSessionHandler(sessionId int64) {
 				session = models.QuerySessionById(sessionId)
 				//课后结算，产生交易记录
 				trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, true)
+				go leancloud.SendSessionBreakMsg(session.Creator.UserId, session.Teacher.UserId)
 			}
 
 			WsManager.RemoveSessionLive(sessionId)
@@ -373,6 +374,8 @@ func POIWSSessionHandler(sessionId int64) {
 
 					//将当前课程从内存中释放
 					WsManager.RemoveSessionServingMap(sessionId)
+
+					go leancloud.SendSessionFinishMsg(session.Creator.UserId, session.Teacher.UserId)
 
 					logger.InsertSessionEventLog(sessionId, 0, "导师下课，课程结束", "")
 					return
