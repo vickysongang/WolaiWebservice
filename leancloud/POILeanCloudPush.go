@@ -141,6 +141,29 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 	return &lcReq
 }
 
+func NewAdvPushReq(titleStr string) *map[string]interface{} {
+	lcReq := map[string]interface{}{
+		"data": map[string]interface{}{
+			"ios": map[string]interface{}{
+				"alert": map[string]interface{}{
+					"title":          "我来",
+					"body":           titleStr,
+					"action-loc-key": "查看",
+				},
+				"action": "hahaha",
+			},
+			"android": map[string]interface{}{
+				"alert":  "您有一条消息提醒",
+				"title":  titleStr,
+				"action": "com.poi.AD_REQUEST",
+			},
+		},
+		"prod": "dev",
+	}
+
+	return &lcReq
+}
+
 func LCPushNotification(lcReq *map[string]interface{}) {
 	url := LC_PUSH
 
