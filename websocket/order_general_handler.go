@@ -301,46 +301,6 @@ func generalOrderHandler(orderId int64) {
 	}
 }
 
-func InitOrderDispatch(msg POIWSMessage, timestamp int64) error {
-	defer func() {
-		if r := recover(); r != nil {
-			seelog.Error(r)
-		}
-	}()
-
-	orderIdStr, ok := msg.Attribute["orderId"]
-	if !ok {
-		return errors.New("Must have order Id in attribute")
-	}
-
-	orderId, err := strconv.ParseInt(orderIdStr, 10, 64)
-	if err != nil {
-		seelog.Error("InitOrderDispatch:", err.Error())
-		return errors.New("Invalid orderId")
-	}
-
-	if OrderManager.IsOrderOnline(orderId) {
-		return errors.New("The order is already dispatching")
-	}
-
-	order := models.QueryOrderById(orderId)
-	if msg.UserId != order.Creator.UserId {
-		return errors.New("You are not the order creator")
-	}
-
-	if order.Type != models.ORDER_TYPE_GENERAL_INSTANT {
-		return errors.New("sorry, not order type not allowed")
-	}
-
-	WsManager.SetOrderCreate(orderId, msg.UserId, timestamp)
-
-	OrderManager.SetOnline(orderId)
-	OrderManager.SetOrderDispatching(orderId)
-	go generalOrderHandler(orderId)
-
-	return nil
-}
-
 func assignNextTeacher(orderId int64) int64 {
 	order := OrderManager.orderMap[orderId].orderInfo
 	for teacherId, _ := range TeacherManager.teacherMap {
@@ -429,6 +389,46 @@ func recoverStudentOrder(userId int64) {
 			orderChan <- recoverMsg
 		}
 	}
+}
+
+func InitOrderDispatch(msg POIWSMessage, timestamp int64) error {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
+	orderIdStr, ok := msg.Attribute["orderId"]
+	if !ok {
+		return errors.New("Must have order Id in attribute")
+	}
+
+	orderId, err := strconv.ParseInt(orderIdStr, 10, 64)
+	if err != nil {
+		seelog.Error("InitOrderDispatch:", err.Error())
+		return errors.New("Invalid orderId")
+	}
+
+	if OrderManager.IsOrderOnline(orderId) {
+		return errors.New("The order is already dispatching")
+	}
+
+	order := models.QueryOrderById(orderId)
+	if msg.UserId != order.Creator.UserId {
+		return errors.New("You are not the order creator")
+	}
+
+	if order.Type != models.ORDER_TYPE_GENERAL_INSTANT {
+		return errors.New("sorry, not order type not allowed")
+	}
+
+	WsManager.SetOrderCreate(orderId, msg.UserId, timestamp)
+
+	OrderManager.SetOnline(orderId)
+	OrderManager.SetOrderDispatching(orderId)
+	go generalOrderHandler(orderId)
+
+	return nil
 }
 
 func handleSessionCreation(orderId int64, teacherId int64) {
