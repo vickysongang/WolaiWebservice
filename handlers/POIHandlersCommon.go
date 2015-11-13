@@ -2,13 +2,13 @@
 package handlers
 
 import (
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/redis"
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/cihub/seelog"
+
+	"POIWolaiWebService/leancloud"
+	"POIWolaiWebService/models"
 )
 
 var NullSlice []interface{}
@@ -43,17 +43,8 @@ func Dummy(w http.ResponseWriter, r *http.Request) {
 }
 
 func Dummy2(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanic(w)
-	err := r.ParseForm()
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-
-	vars := r.Form
-
-	activityIdStr := vars["id"][0]
-	activityId, _ := strconv.ParseInt(activityIdStr, 10, 64)
-	redis.RedisManager.SetActivityNotification(10001, activityId, "promo_1.png")
+	title := "这是一条没有任何意义的测试消息！"
+	go leancloud.LCPushNotification(leancloud.NewAdvPushReq(title))
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
