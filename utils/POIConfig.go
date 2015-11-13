@@ -34,7 +34,8 @@ func init() {
 }
 
 type serverConf struct {
-	Port string
+	Port    string
+	RpcPort string
 }
 
 type databaseConf struct {
