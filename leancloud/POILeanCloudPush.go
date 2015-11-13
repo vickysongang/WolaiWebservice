@@ -57,6 +57,7 @@ func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface
 				"countdown": "10",
 			},
 		},
+		"prod": "dev",
 	}
 
 	return &lcReq
@@ -74,16 +75,7 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 		return nil
 	}
 
-	grade := models.QueryGradeById(order.GradeId)
-	subject := models.QuerySubjectById(order.SubjectId)
-
-	titleStr := "您有一个来自" + order.Creator.Nickname + "同学的"
-	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT {
-		titleStr = titleStr + "立即辅导"
-	} else if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT {
-		titleStr = titleStr + "预约辅导"
-	}
-	titleStr = titleStr + "订单，辅导内容为" + grade.Name + subject.Name + "。"
+	titleStr := "你有一条新的上课请求"
 
 	lcReq := map[string]interface{}{
 		"where": map[string]interface{}{
@@ -104,6 +96,7 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 				"action": "com.poi.ORDER_REMINDER",
 			},
 		},
+		"prod": "dev",
 	}
 
 	return &lcReq
@@ -121,14 +114,7 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 		return nil
 	}
 
-	grade := models.QueryGradeById(order.GradeId)
-	subject := models.QuerySubjectById(order.SubjectId)
-
-	titleStr := "您有一个来自" + order.Creator.Nickname + "同学的"
-	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
-		titleStr = titleStr + "私人辅导"
-	}
-	titleStr = titleStr + "订单，辅导内容为" + grade.Name + subject.Name + "。"
+	titleStr := "你有一条新的上课请求"
 
 	lcReq := map[string]interface{}{
 		"where": map[string]interface{}{
@@ -136,10 +122,12 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 		},
 		"data": map[string]interface{}{
 			"ios": map[string]interface{}{
-				"alert":   titleStr,
-				"action":  "hahaha",
-				"miscStr": "111",
-				"miscNum": 111,
+				"alert": map[string]interface{}{
+					"title":          "我来",
+					"body":           titleStr,
+					"action-loc-key": "处理",
+				},
+				"action": "hahaha",
 			},
 			"android": map[string]interface{}{
 				"alert":  "您有一条约课提醒",
@@ -153,35 +141,21 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 	return &lcReq
 }
 
-func NewRealTimeOrderPushReq(orderId, targetId int64) *map[string]interface{} {
-	order := models.QueryOrderById(orderId)
-	user := models.QueryUserById(targetId)
-	if order == nil || user == nil {
-		return nil
-	}
-
-	objectId := redis.RedisManager.GetUserObjectId(targetId)
-	if objectId == "" {
-		return nil
-	}
-
-	titleStr := "您有一个来自" + order.Creator.Nickname + "同学的实时课堂"
-
+func NewAdvPushReq(titleStr string) *map[string]interface{} {
 	lcReq := map[string]interface{}{
-		"where": map[string]interface{}{
-			"objectId": objectId,
-		},
 		"data": map[string]interface{}{
 			"ios": map[string]interface{}{
-				"alert":   titleStr,
-				"action":  "hahaha",
-				"miscStr": "111",
-				"miscNum": 111,
+				"alert": map[string]interface{}{
+					"title":          "我来",
+					"body":           titleStr,
+					"action-loc-key": "查看",
+				},
+				"action": "hahaha",
 			},
 			"android": map[string]interface{}{
-				"alert":  "您有一条约课提醒",
+				"alert":  "您有一条消息提醒",
 				"title":  titleStr,
-				"action": "com.poi.POINT_TO_POINT_ORDER",
+				"action": "com.poi.AD_REQUEST",
 			},
 		},
 		"prod": "dev",

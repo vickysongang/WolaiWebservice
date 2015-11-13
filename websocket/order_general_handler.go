@@ -112,6 +112,8 @@ func generalOrderHandler(orderId int64) {
 				if WsManager.HasUserChan(assignTarget) {
 					teacherChan := WsManager.GetUserChan(assignTarget)
 					teacherChan <- assignMsg
+				} else {
+					leancloud.LCPushNotification(leancloud.NewOrderPushReq(orderId, assignTarget))
 				}
 			} else {
 				OrderManager.RemoveCurrentAssign(orderId)
