@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"POIWolaiWebService/handlers"
 	"POIWolaiWebService/routers"
 	"POIWolaiWebService/utils"
 
@@ -33,9 +34,9 @@ func init() {
 func main() {
 	orm.Debug = false
 
-	//	go handlers.POISessionTickerHandler()
-	//	go handlers.POILeanCloudTickerHandler()
-	//	go handlers.POICourseExpiredHandler()
+	go handlers.POISessionTickerHandler()
+	go handlers.POILeanCloudTickerHandler()
+	go handlers.POICourseExpiredHandler()
 
 	//	lis, err := net.Listen("tcp", utils.Config.Server.RpcPort)
 	//	if err != nil {
