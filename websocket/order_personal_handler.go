@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
+	"errors"
 	"strconv"
 	"time"
 
@@ -46,7 +47,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 		case <-orderTimer.C:
 			OrderManager.SetOrderCancelled(orderId)
 			OrderManager.SetOffline(orderId)
-			go leancloud.SendPersonalOrderAutoRejectNotification(order.Creator.UserId, teacherId)
+			go leancloud.SendPersonalOrderRejectNotification(orderId, teacherId)
 
 			return
 
@@ -58,6 +59,30 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 				switch msg.OperationCode {
 				case WS_ORDER2_PERSONAL_REPLY:
 					resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
+
+					if WsManager.IsUserSessionLocked(order.Creator.UserId) {
+						resp.Attribute["errCode"] = "2"
+						resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
+						userChan <- resp
+
+						OrderManager.SetOrderCancelled(orderId)
+						OrderManager.SetOffline(orderId)
+
+						go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator.UserId, msg.UserId)
+						return
+					}
+					if WsManager.IsUserSessionLocked(msg.UserId) {
+						resp.Attribute["errCode"] = "2"
+						resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
+						userChan <- resp
+
+						OrderManager.SetOrderCancelled(orderId)
+						OrderManager.SetOffline(orderId)
+
+						go leancloud.SendPersonalOrderAutoRejectNotification(order.Creator.UserId, msg.UserId)
+						return
+					}
+
 					resp.Attribute["errCode"] = "0"
 					userChan <- resp
 
@@ -98,6 +123,23 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	}
 }
 
+func checkOrderValidation(orderId int64) (int64, error) {
+	if OrderManager.IsOrderOnline(orderId) {
+		return 0, nil
+	}
+
+	order := models.QueryOrderById(orderId)
+	if order == nil {
+		return -1, errors.New("Invalid OrderId")
+	}
+
+	if order.Status == models.ORDER_STATUS_CONFIRMED {
+		return 1, nil
+	}
+
+	return -1, nil
+}
+
 func InitOrderMonitor(orderId int64, teacherId int64) error {
 	defer func() {
 		if r := recover(); r != nil {
@@ -116,9 +158,10 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 		orderMsg := NewPOIWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
 		orderMsg.Attribute["orderInfo"] = string(orderByte)
 		teacherChan <- orderMsg
+	} else {
+		go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderId, teacherId))
 	}
 	go leancloud.SendPersonalOrderNotification(orderId, teacherId)
-	go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderId, teacherId))
 	go personalOrderHandler(orderId, teacherId)
 	return nil
 }

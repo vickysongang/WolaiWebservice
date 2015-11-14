@@ -90,6 +90,11 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 			seelog.Error(err.Error())
 			return 5002, nil, err
 		}
+		// if websocket.WsManager.IsUserSessionLocked(teacherId) {
+		// 	err = errors.New("该导师有一堂课马上就要开始啦！")
+		// 	seelog.Error(err.Error())
+		// 	return 5002, nil, err
+		// }
 
 	case models.ORDER_TYPE_PERSONAL_APPOINTEMENT:
 		startTime, _ := time.Parse(time.RFC3339, order.Date)   //预计上课时间
