@@ -2,6 +2,7 @@
 package rpc
 
 import (
+	"POIWolaiWebService/controllers"
 	"POIWolaiWebService/handlers"
 	"POIWolaiWebService/leancloud"
 	"POIWolaiWebService/models"
@@ -90,5 +91,36 @@ func (watcher *RpcWatcher) QueryPingppRecordByChargeId(request *POIRpcRequest, r
 	} else {
 		*response = models.NewPOIResponse(0, "", content)
 	}
+	return nil
+}
+
+func (watcher *RpcWatcher) GetUserConversation(request *POIRpcRequest, response *models.POIResponse) error {
+	userId, _ := strconv.ParseInt(request.Args["userId"], 10, 64)
+	targetId, _ := strconv.ParseInt(request.Args["targetId"], 10, 64)
+	status, content := controllers.GetUserConversation(userId, targetId)
+	*response = models.NewPOIResponse(status, "", content)
+	return nil
+}
+
+func (watcher *RpcWatcher) GetUserMonitorInfo(request *POIRpcRequest, response *models.POIResponse) error {
+	users := handlers.NewPOIMonitorUsers()
+	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
+		locked := websocket.WsManager.IsUserSessionLocked(userId)
+		users.LiveUsers = append(users.LiveUsers, handlers.POIMonitorUser{User: models.QueryUserById(userId), LoginTime: timestamp, Locked: locked})
+	}
+	for userId, timestamp := range websocket.WsManager.OnlineTeacherMap {
+		locked := websocket.WsManager.IsUserSessionLocked(userId)
+		users.LiveTeachers = append(users.LiveTeachers, handlers.POIMonitorUser{User: models.QueryUserById(userId), LoginTime: timestamp, Locked: locked})
+	}
+	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
+		user := models.QueryUserById(userId)
+		locked := websocket.WsManager.IsUserSessionLocked(userId)
+		if user.AccessRight == 2 {
+			users.OnlineTeachers = append(users.OnlineTeachers, handlers.POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
+		} else {
+			users.OnlineUsers = append(users.OnlineUsers, handlers.POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
+		}
+	}
+	*response = models.NewPOIResponse(0, "", users)
 	return nil
 }
