@@ -2197,3 +2197,35 @@ func V1GetMessageLogsCount(w http.ResponseWriter, r *http.Request) {
 	content := redis.RedisManager.GetLCBakeMessageLogsCount()
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
 }
+
+func V1ReplyLCPush(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	userIdStr := vars["userId"][0]
+	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
+	pushIdStr := vars["pushId"][0]
+	pushId, _ := strconv.ParseInt(pushIdStr, 10, 64)
+	deviceType := vars["deviceType"][0]
+	pushType := vars["pushType"][0]
+	if pushType == "p2p" {
+		pushInfo := map[string]interface{}{
+			"DeviceType": deviceType,
+			"ReplyTime":  time.Now(),
+		}
+		models.UpdateLcPushInfo(pushId, pushInfo)
+	} else if pushType == "broadcast" {
+		objectId := redis.RedisManager.GetUserObjectId(userId)
+		broadcastResp := models.POIEventLcBroadCastResp{
+			PushId:     pushId,
+			UserId:     userId,
+			DeviceType: deviceType,
+			ObjectId:   objectId,
+		}
+		models.InsertLcBroadcastResp(&broadcastResp)
+	}
+	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+}

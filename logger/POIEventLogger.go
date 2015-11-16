@@ -37,3 +37,15 @@ func InsertUserEventLog(userId int64, action string, comment interface{}) {
 	}
 	go models.InsertUserEventLog(&eventLog)
 }
+
+func InsertLcPushEvent(title string, orderId, targetId int64, objectId, pushType string) int64 {
+	pushEvent := models.POIEventLcPush{
+		Title:    title,
+		OrderId:  orderId,
+		TargetId: targetId,
+		ObjectId: objectId,
+		PushType: pushType,
+	}
+	id := models.InsertLcPushEvent(&pushEvent)
+	return id
+}
