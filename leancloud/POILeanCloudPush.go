@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"POIWolaiWebService/common"
-	"POIWolaiWebService/logger"
 	"POIWolaiWebService/models"
 	"POIWolaiWebService/redis"
 	"POIWolaiWebService/utils"
@@ -78,8 +77,6 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 
 	titleStr := "你有一条新的上课请求"
 
-	pushId := logger.InsertLcPushEvent(titleStr, orderId, targetId, objectId, "p2p")
-
 	lcReq := map[string]interface{}{
 		"where": map[string]interface{}{
 			"objectId": objectId,
@@ -99,8 +96,7 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 				"action": "com.poi.ORDER_REMINDER",
 			},
 		},
-		"prod":   "dev",
-		"pushId": pushId,
+		"prod": "dev",
 	}
 
 	return &lcReq
@@ -119,8 +115,6 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 	}
 
 	titleStr := "你有一条新的上课请求"
-
-	pushId := logger.InsertLcPushEvent(titleStr, orderId, targetId, objectId, "p2p")
 
 	lcReq := map[string]interface{}{
 		"where": map[string]interface{}{
@@ -141,15 +135,13 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 				"action": "com.poi.POINT_TO_POINT_ORDER",
 			},
 		},
-		"prod":   "dev",
-		"pushId": pushId,
+		"prod": "dev",
 	}
 
 	return &lcReq
 }
 
 func NewAdvPushReq(titleStr string) *map[string]interface{} {
-	pushId := logger.InsertLcPushEvent(titleStr, 0, 0, "", "broadcast")
 	lcReq := map[string]interface{}{
 		"data": map[string]interface{}{
 			"ios": map[string]interface{}{
@@ -166,8 +158,7 @@ func NewAdvPushReq(titleStr string) *map[string]interface{} {
 				"action": "com.poi.AD_REQUEST",
 			},
 		},
-		"prod":   "dev",
-		"pushId": pushId,
+		"prod": "dev",
 	}
 
 	return &lcReq

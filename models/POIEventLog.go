@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/cihub/seelog"
 )
 
 type POIEventLogSession struct {
@@ -34,27 +33,6 @@ type POIEventLogUser struct {
 	Comment string    `json:"comment"`
 }
 
-type POIEventLcPush struct {
-	Id         int64     `json:"id" orm:"pk"`
-	Title      string    `json:"title"`
-	OrderId    int64     `json:"orderId"`
-	TargetId   int64     `json:"targetId"`
-	ObjectId   string    `json:"objectId"`
-	CreateTime time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
-	ReplyTime  time.Time `json:"replyTime" orm:"type(datetime)"`
-	DeviceType string    `json:"deviceType"`
-	PushType   string    `json:"pushType"`
-}
-
-type POIEventLcBroadCastResp struct {
-	Id         int64     `json:"id" orm:"pk"`
-	PushId     int64     `json:"pushId"`
-	UserId     int64     `json:"userId"`
-	CreateTime time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
-	DeviceType string    `json:"deviceType" orm:"type(datetime)"`
-	ObjectId   string    `json:"objectId"`
-}
-
 func (session *POIEventLogSession) TableName() string {
 	return "event_log_session"
 }
@@ -67,16 +45,8 @@ func (order *POIEventLogUser) TableName() string {
 	return "event_log_user"
 }
 
-func (push *POIEventLcPush) TableName() string {
-	return "event_lc_push"
-}
-
-func (broadcastResp *POIEventLcBroadCastResp) TableName() string {
-	return "event_lc_broadcast_resp"
-}
-
 func init() {
-	orm.RegisterModel(new(POIEventLogSession), new(POIEventLogOrder), new(POIEventLogUser), new(POIEventLcPush), new(POIEventLcBroadCastResp))
+	orm.RegisterModel(new(POIEventLogSession), new(POIEventLogOrder), new(POIEventLogUser))
 }
 
 func InsertSessionEventLog(eventLog *POIEventLogSession) *POIEventLogSession {
@@ -98,30 +68,4 @@ func InsertUserEventLog(eventLog *POIEventLogUser) *POIEventLogUser {
 	id, _ := o.Insert(eventLog)
 	eventLog.Id = id
 	return eventLog
-}
-
-func InsertLcPushEvent(push *POIEventLcPush) int64 {
-	o := orm.NewOrm()
-	id, _ := o.Insert(push)
-	push.Id = id
-	return id
-}
-
-func UpdateLcPushInfo(pushId int64, pushInfo map[string]interface{}) {
-	o := orm.NewOrm()
-	var params orm.Params = make(orm.Params)
-	for k, v := range pushInfo {
-		params[k] = v
-	}
-	_, err := o.QueryTable("event_lc_push").Filter("id", pushId).Update(params)
-	if err != nil {
-		seelog.Error("pushId:", pushId, " pushInfo:", pushInfo, " ", err.Error())
-	}
-}
-
-func InsertLcBroadcastResp(broadcastResp *POIEventLcBroadCastResp) int64 {
-	o := orm.NewOrm()
-	id, _ := o.Insert(broadcastResp)
-	broadcastResp.Id = id
-	return id
 }

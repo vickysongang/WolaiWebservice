@@ -1137,18 +1137,6 @@ var V1Routes = Routes{
 		"/v1/messagelog/count",
 		handlers.V1GetMessageLogsCount,
 	},
-	Route{
-		"V1ReplyLCPushPOST",
-		"POST",
-		"/v1/push/reply",
-		handlers.V1ReplyLCPush,
-	},
-	Route{
-		"V1V1ReplyLCPushGET",
-		"GET",
-		"/v1/push/reply",
-		handlers.V1ReplyLCPush,
-	},
 
 	// Dummy
 	Route{
