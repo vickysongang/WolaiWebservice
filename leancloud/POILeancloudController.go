@@ -265,28 +265,71 @@ func SendPersonalOrderRejectNotification(orderId int64, teacherId int64) {
 	LCSendTypedMessage(teacherId, order.Creator.UserId, &lcTMsg, false)
 }
 
-func SendPersonalOrderAutoRejectNotification(studentId int64, teacherId int64) {
+func SendPersonalOrderSentMsg(studentId int64, teacherId int64) {
 	attr := make(map[string]string)
 	studentTMsg := LCTypedMessage{
 		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]导师正忙，暂时不能收到你的约课请求，建议换个时间再试试看噢！",
+		Text:      "[系统提示]约课通知已发送，请耐心等待导师回复",
 		Attribute: attr,
 	}
-	teacherTMsg := LCTypedMessage{
-		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]你有课程正在进行中，暂时不能接受学生的约课请求，记得联系他换个时间再约喔！",
-		Attribute: attr,
-	}
-
 	LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
-	LCSendTypedMessage(studentId, teacherId, &teacherTMsg, false)
+}
+
+func SendPersonalOrderTeacherBusyMsg(studentId int64, teacherId int64) {
+	attr := make(map[string]string)
+	studentTMsg := LCTypedMessage{
+		Type:      LC_MSG_TEXT,
+		Text:      "[系统提示]导师正在上课，可能无法及时回复。建议换个时间或者再等等",
+		Attribute: attr,
+	}
+	LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+}
+
+func SendPersonalOrderTeacherOfflineMsg(studentId int64, teacherId int64) {
+	attr := make(map[string]string)
+	studentTMsg := LCTypedMessage{
+		Type:      LC_MSG_TEXT,
+		Text:      "[系统提示]导师暂时不在线，可能无法及时回复。建议换个时间或者再等等",
+		Attribute: attr,
+	}
+	LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+}
+
+func SendPersonalorderExpireMsg(studentId int64, teacherId int64) {
+	attr := make(map[string]string)
+	studentTMsg := LCTypedMessage{
+		Type:      LC_MSG_TEXT,
+		Text:      "[系统提示]导师未回复，约课请求超时，已自动取消",
+		Attribute: attr,
+	}
+	LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+}
+
+func SendSessionFinishMsg(studentId int64, teacherId int64) {
+	attr := make(map[string]string)
+	msg := LCTypedMessage{
+		Type:      LC_MSG_TEXT,
+		Text:      "[系统提示]课程结束，别忘了给ta写评价噢",
+		Attribute: attr,
+	}
+	LCSendTypedMessage(teacherId, studentId, &msg, true)
+}
+
+func SendSessionBreakMsg(studentId int64, teacherId int64) {
+	attr := make(map[string]string)
+	msg := LCTypedMessage{
+		Type:      LC_MSG_TEXT,
+		Text:      "[系统提示]课程中断，建议尝试重新发起上课请求",
+		Attribute: attr,
+	}
+	LCSendTypedMessage(teacherId, studentId, &msg, true)
 }
 
 func SendPersonalOrderAutoIgnoreNotification(studentId int64, teacherId int64) {
 	attr := make(map[string]string)
 	studentTMsg := LCTypedMessage{
 		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]导师回复了您的约课请求，但是你有课程正在进行中，暂时不能开始此次辅导，记得联系他换个时间再约喔！",
+		Text:      "[系统提示]老师回复了您的约课请求，但是你有课程正在进行中，暂时不能开始此次辅导，记得联系他换个时间再约喔！",
 		Attribute: attr,
 	}
 	teacherTMsg := LCTypedMessage{

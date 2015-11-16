@@ -15,25 +15,20 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const (
-	// Time allowed to write a message to the peer.
-	writeWait = 10 * time.Second
-
-	// Time allowed to read the next pong message from the peer.
-	//	pongWait = 20 * time.Second
-	pongWait = 10 * time.Second
-
-	// Send pings to peer with this period. Must be less than pongWait.
-	//	pingPeriod = (pongWait * 9) / 10
-	pingPeriod = 5 * time.Second
-)
-
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
 func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
+	// Time allowed to read the next pong message from the peer.
+	pongWaitInt := redis.RedisManager.GetConfig(redis.CONFIG_WEBSOCKET, redis.CONFIG_KEY_WEBSOCKET_PONG_WAIT)
+	pongWait := time.Duration(pongWaitInt) * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
+	pingPeriodInt := redis.RedisManager.GetConfig(redis.CONFIG_WEBSOCKET, redis.CONFIG_KEY_WEBSOCKET_PING_PERIOD)
+	//pingPeriod := time.Duration(pingPeriodInt) * time.Second
+
 	// 将HTTP请求升级为Websocket连接
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -106,9 +101,9 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			loginResp.Attribute["online"] = "off"
 			loginResp.Attribute["assign"] = "off"
 		}
+		loginResp.Attribute["pingPeriod"] = strconv.FormatInt(pingPeriodInt, 10)
 		err = conn.WriteJSON(loginResp)
 		if err == nil {
-			//seelog.Debug("V1WSHandler:Send code 12 to user ", msg.UserId)
 			logger.InsertUserEventLog(msg.UserId, "用户上线", msg)
 		} else {
 			seelog.Error("send login response to user ", msg.UserId, " fail")
@@ -356,6 +351,14 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POIWSMessage) {
+	// Time allowed to write a message to the peer.
+	writeWaitInt := redis.RedisManager.GetConfig(redis.CONFIG_WEBSOCKET, redis.CONFIG_KEY_WEBSOCKET_WRITE_WAIT)
+	writeWait := time.Duration(writeWaitInt) * time.Second
+
+	// Send pings to peer with this period. Must be less than pongWait.
+	pingPeriodInt := redis.RedisManager.GetConfig(redis.CONFIG_WEBSOCKET, redis.CONFIG_KEY_WEBSOCKET_PING_PERIOD)
+	pingPeriod := time.Duration(pingPeriodInt) * time.Second
+
 	// 初始化心跳计时器
 	pingTicker := time.NewTicker(pingPeriod)
 	defer func() {
