@@ -15,6 +15,11 @@ const (
 	CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN = "dispatch_countdown"
 	CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN   = "assign_countdown"
 	CONFIG_KEY_ORDER_SESSION_COUNTDOWN  = "session_countdown"
+
+	CONFIG_WEBSOCKET                 = "config:websocket"
+	CONFIG_KEY_WEBSOCKET_PING_PERIOD = "ping_period"
+	CONFIG_KEY_WEBSOCKET_PONG_WAIT   = "pong_wait"
+	CONFIG_KEY_WEBSOCKET_WRITE_WAIT  = "write_wait"
 )
 
 var defaultMap = map[string]map[string]string{
@@ -26,6 +31,11 @@ var defaultMap = map[string]map[string]string{
 		CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN: "120",
 		CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN:   "12",
 		CONFIG_KEY_ORDER_SESSION_COUNTDOWN:  "10",
+	},
+	CONFIG_WEBSOCKET: map[string]string{
+		CONFIG_KEY_WEBSOCKET_PING_PERIOD: "5",
+		CONFIG_KEY_WEBSOCKET_PONG_WAIT:   "10",
+		CONFIG_KEY_WEBSOCKET_WRITE_WAIT:  "10",
 	},
 }
 
