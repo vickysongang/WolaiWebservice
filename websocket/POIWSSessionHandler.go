@@ -329,7 +329,7 @@ func POIWSSessionHandler(sessionId int64) {
 					return
 
 				case models.WS_SESSION_BREAK:
-					if isPaused {
+					if isPaused || !isServing {
 						break
 					}
 					length = length + (timestamp - lastSync)
@@ -390,6 +390,11 @@ func POIWSSessionHandler(sessionId int64) {
 					lastSync = timestamp
 					isPaused = true
 					managers.WsManager.RemoveSessionServingMap(sessionId)
+
+					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
+					waitingTimer = time.NewTimer(time.Minute * 5)
+					//停止时间同步计时器
+					syncTicker.Stop()
 
 					pauseMsg := models.NewPOIWSMessage("", session.Creator.UserId, models.WS_SESSION_PAUSE)
 					pauseMsg.Attribute["sessionId"] = sessionIdStr
