@@ -146,9 +146,10 @@ func (osm *OrderStatusManager) SetDispatchTarget(orderId int64, userId int64) er
 	status.dispatchMap[userId] = time.Now().Unix()
 
 	orderDispatch := models.POIOrderDispatch{
-		OrderId:   orderId,
-		TeacherId: userId,
-		PlanTime:  status.orderInfo.Date,
+		OrderId:      orderId,
+		TeacherId:    userId,
+		PlanTime:     status.orderInfo.Date,
+		DispatchType: models.ORDER_DISPATCH_TYPE_DISPATCH,
 	}
 	models.InsertOrderDispatch(&orderDispatch)
 
@@ -170,10 +171,10 @@ func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) erro
 
 	//将指派对象写入分发表中，并标识为指派单
 	orderDispatch := models.POIOrderDispatch{
-		OrderId:    orderId,
-		TeacherId:  userId,
-		PlanTime:   status.orderInfo.Date,
-		AssignFlag: "Y",
+		OrderId:      orderId,
+		TeacherId:    userId,
+		PlanTime:     status.orderInfo.Date,
+		DispatchType: models.ORDER_DISPATCH_TYPE_ASSIGN,
 	}
 	models.InsertOrderDispatch(&orderDispatch)
 

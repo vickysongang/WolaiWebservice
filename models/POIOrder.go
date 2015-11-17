@@ -39,7 +39,7 @@ type POIOrderDispatch struct {
 	DispatchTime time.Time   `json:"dispatchTime" orm:"auto_now_add;type(datetime)"`
 	ReplyTime    time.Time   `json:"replyTime"`
 	PlanTime     string      `json:"planTime"`
-	AssignFlag   string      `json:"assignFlag"` //新增指派标识，判断该单是否属于指派单
+	DispatchType string      `json:"dispatchType"` //分发类型，assign代表指派，dispatch代表分发
 	Result       string      `json:"result"`
 }
 
@@ -76,6 +76,9 @@ const (
 	ORDER_PERIOD_MORNING   = 1
 	ORDER_PERIOD_AFTERNOON = 2
 	ORDER_PERIOD_EVENING   = 3
+
+	ORDER_DISPATCH_TYPE_DISPATCH = "dispatch"
+	ORDER_DISPATCH_TYPE_ASSIGN   = "assign"
 )
 
 func (o *POIOrder) TableName() string {
@@ -188,14 +191,16 @@ func UpdateAssignOrderResult(orderId int64, userId int64) {
 	var params1 orm.Params = make(orm.Params)
 	params1["Result"] = "success"
 	params1["ReplyTime"] = time.Now()
-	_, err = o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("assign_flag", "Y").Filter("teacher_id", userId).Update(params1)
+	_, err = o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("dispatch_type", ORDER_DISPATCH_TYPE_ASSIGN).
+		Filter("teacher_id", userId).Update(params1)
 	if err != nil {
 		seelog.Error("orderId:", orderId, " userId:", userId, " ", err.Error())
 	}
 
 	var params2 orm.Params = make(orm.Params)
 	params2["Result"] = "fail"
-	_, err = o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("assign_flag", "Y").Exclude("teacher_id", userId).Update(params2)
+	_, err = o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("dispatch_type", ORDER_DISPATCH_TYPE_ASSIGN).
+		Exclude("teacher_id", userId).Update(params2)
 	if err != nil {
 		seelog.Error("orderId:", orderId, " userId:", userId, " ", err.Error())
 	}
