@@ -398,7 +398,6 @@ func POIWSSessionHandler(sessionId int64) {
 					isAccepted = false
 
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
-					//					waitingTimer = time.NewTimer(time.Minute * 5)
 					waitingTimer = time.NewTimer(time.Second * 30)
 					//停止时间同步计时器
 					syncTicker.Stop()
