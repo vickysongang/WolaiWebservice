@@ -39,6 +39,7 @@ type POIOrderDispatch struct {
 	DispatchTime time.Time   `json:"dispatchTime" orm:"auto_now_add;type(datetime)"`
 	ReplyTime    time.Time   `json:"replyTime"`
 	PlanTime     string      `json:"planTime"`
+	AssignFlag   string      `json:"assignFlag"` //新增指派标识，判断该单是否属于指派单
 	Result       string      `json:"result"`
 }
 
@@ -176,6 +177,17 @@ func UpdateOrderDispatchInfo(orderId int64, userId int64, dispatchInfo map[strin
 	_, err := o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("teacher_id", userId).Update(params)
 	if err != nil {
 		seelog.Error("orderId:", orderId, " userId:", userId, " dispatchInfo:", dispatchInfo, " ", err.Error())
+	}
+	return
+}
+
+func UpdateAssignOrderResult(orderId int64, userId int64) {
+	o := orm.NewOrm()
+	var params orm.Params = make(orm.Params)
+	params["Result"] = "fail"
+	_, err := o.QueryTable("order_dispatch").Filter("order_id", orderId).Exclude("teacher_id", userId).Update(params)
+	if err != nil {
+		seelog.Error("orderId:", orderId, " userId:", userId, " ", err.Error())
 	}
 	return
 }

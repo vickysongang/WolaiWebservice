@@ -120,9 +120,6 @@ func POIWSSessionHandler(sessionId int64) {
 				userChan <- expireMsg
 			}
 
-			logger.InsertSessionEventLog(sessionId, 0, "课程超时结束", "")
-			seelog.Debug("POIWSSessionHandler: session expired: " + sessionIdStr)
-
 			//如果课程没有在进行，超时后该课自动被取消，否则课程自动被结束
 			if !isServing {
 				sessionInfo := map[string]interface{}{
@@ -152,6 +149,9 @@ func POIWSSessionHandler(sessionId int64) {
 			//将老师和学生从内存中解锁
 			WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
 			WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
+
+			logger.InsertSessionEventLog(sessionId, 0, "课程超时结束", "")
+			seelog.Debug("POIWSSessionHandler: session expired: " + sessionIdStr)
 
 			return
 

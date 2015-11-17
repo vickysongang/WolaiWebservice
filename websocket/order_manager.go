@@ -167,6 +167,16 @@ func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) erro
 
 	status.assignMap[userId] = time.Now().Unix()
 	status.currentAssign = userId
+
+	//将指派对象写入分发表中，并标识为指派单
+	orderDispatch := models.POIOrderDispatch{
+		OrderId:    orderId,
+		TeacherId:  userId,
+		PlanTime:   status.orderInfo.Date,
+		AssignFlag: "Y",
+	}
+	models.InsertOrderDispatch(&orderDispatch)
+
 	return nil
 }
 

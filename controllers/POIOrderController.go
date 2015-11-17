@@ -54,7 +54,8 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 
 	//如果是点对点的单，则老师不能为空
 	if (orderType == models.ORDER_TYPE_PERSONAL_INSTANT || orderType == models.ORDER_TYPE_PERSONAL_APPOINTEMENT) && teacherId == 0 {
-		return 2, nil, nil
+		err = errors.New("您没有选择老师")
+		return 2, nil, err
 	}
 
 	order := models.POIOrder{

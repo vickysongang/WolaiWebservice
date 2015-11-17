@@ -223,7 +223,8 @@ func generalOrderHandler(orderId int64) {
 						if dispatchId == teacher.UserId {
 							status = 0
 							orderDispatchInfo = map[string]interface{}{
-								"Result": "success",
+								"Result":    "success",
+								"ReplyTime": time.Now(), //回写老师抢单的时间
 							}
 						} else {
 							status = -1
@@ -292,6 +293,14 @@ func generalOrderHandler(orderId int64) {
 					OrderManager.SetOrderConfirm(orderId, teacher.UserId)
 					OrderManager.SetOffline(orderId)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
+
+					orderDispatchInfo := map[string]interface{}{
+						"Result":    "success",
+						"ReplyTime": time.Now(), //回写老师抢单的时间
+					}
+					models.UpdateOrderDispatchInfo(orderId, teacher.UserId, orderDispatchInfo)
+					//将其他指派结果置为失败
+					models.UpdateAssignOrderResult(orderId, teacher.UserId)
 
 					handleSessionCreation(orderId, msg.UserId)
 					return
