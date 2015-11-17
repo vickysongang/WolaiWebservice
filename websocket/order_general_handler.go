@@ -463,11 +463,13 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 		}
 		planTime, _ := time.Parse(time.RFC3339, planTime)
 		planTimeTS := planTime.Unix()
+
 		sessionStart := make(map[string]int64)
 		sessionStart["type"] = leancloud.LC_MSG_SESSION_SYS
 		sessionStart["sessionId"] = session.Id
 		jsonStart, _ := json.Marshal(sessionStart)
 		redis.RedisManager.SetSessionTicker(planTimeTS, string(jsonStart))
+
 		sessionReminder := make(map[string]int64)
 		sessionReminder["type"] = leancloud.LC_MSG_SESSION
 		sessionReminder["sessionId"] = session.Id
