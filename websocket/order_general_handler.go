@@ -294,12 +294,7 @@ func generalOrderHandler(orderId int64) {
 					OrderManager.SetOffline(orderId)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
 
-					orderDispatchInfo := map[string]interface{}{
-						"Result":    "success",
-						"ReplyTime": time.Now(), //回写老师抢单的时间
-					}
-					models.UpdateOrderDispatchInfo(orderId, teacher.UserId, orderDispatchInfo)
-					//将其他指派结果置为失败
+					//修改指派单的结果
 					models.UpdateAssignOrderResult(orderId, teacher.UserId)
 
 					handleSessionCreation(orderId, msg.UserId)

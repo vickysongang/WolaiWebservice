@@ -183,9 +183,19 @@ func UpdateOrderDispatchInfo(orderId int64, userId int64, dispatchInfo map[strin
 
 func UpdateAssignOrderResult(orderId int64, userId int64) {
 	o := orm.NewOrm()
-	var params orm.Params = make(orm.Params)
-	params["Result"] = "fail"
-	_, err := o.QueryTable("order_dispatch").Filter("order_id", orderId).Exclude("teacher_id", userId).Update(params)
+	var err error
+
+	var params1 orm.Params = make(orm.Params)
+	params1["Result"] = "success"
+	params1["ReplyTime"] = time.Now()
+	_, err = o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("assign_flag", "Y").Filter("teacher_id", userId).Update(params1)
+	if err != nil {
+		seelog.Error("orderId:", orderId, " userId:", userId, " ", err.Error())
+	}
+
+	var params2 orm.Params = make(orm.Params)
+	params2["Result"] = "fail"
+	_, err = o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("assign_flag", "Y").Exclude("teacher_id", userId).Update(params2)
 	if err != nil {
 		seelog.Error("orderId:", orderId, " userId:", userId, " ", err.Error())
 	}
