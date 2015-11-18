@@ -1045,7 +1045,6 @@ func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
 		date = time.Now().Format(time.RFC3339)
 	}
 	t, _ := time.Parse(time.RFC3339, date)
-	fmt.Println(time.Now().Format(time.RFC3339))
 	freeFlag := models.IsUserFree4Session(userId, t.Format(utils.TIME_FORMAT))
 	if freeFlag {
 		content := map[string]interface{}{
