@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"POIWolaiWebService/utils"
+	"WolaiWebservice/utils"
 
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"
@@ -39,6 +39,7 @@ type POIOrderDispatch struct {
 	DispatchTime time.Time   `json:"dispatchTime" orm:"auto_now_add;type(datetime)"`
 	ReplyTime    time.Time   `json:"replyTime"`
 	PlanTime     string      `json:"planTime"`
+	DispatchType string      `json:"dispatchType"` //分发类型，assign代表指派，dispatch代表分发
 	Result       string      `json:"result"`
 }
 
@@ -75,6 +76,9 @@ const (
 	ORDER_PERIOD_MORNING   = 1
 	ORDER_PERIOD_AFTERNOON = 2
 	ORDER_PERIOD_EVENING   = 3
+
+	ORDER_DISPATCH_TYPE_DISPATCH = "dispatch"
+	ORDER_DISPATCH_TYPE_ASSIGN   = "assign"
 )
 
 func (o *POIOrder) TableName() string {
@@ -176,6 +180,29 @@ func UpdateOrderDispatchInfo(orderId int64, userId int64, dispatchInfo map[strin
 	_, err := o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("teacher_id", userId).Update(params)
 	if err != nil {
 		seelog.Error("orderId:", orderId, " userId:", userId, " dispatchInfo:", dispatchInfo, " ", err.Error())
+	}
+	return
+}
+
+func UpdateAssignOrderResult(orderId int64, userId int64) {
+	o := orm.NewOrm()
+	var err error
+
+	var params1 orm.Params = make(orm.Params)
+	params1["Result"] = "success"
+	params1["ReplyTime"] = time.Now()
+	_, err = o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("dispatch_type", ORDER_DISPATCH_TYPE_ASSIGN).
+		Filter("teacher_id", userId).Update(params1)
+	if err != nil {
+		seelog.Error("orderId:", orderId, " userId:", userId, " ", err.Error())
+	}
+
+	var params2 orm.Params = make(orm.Params)
+	params2["Result"] = "fail"
+	_, err = o.QueryTable("order_dispatch").Filter("order_id", orderId).Filter("dispatch_type", ORDER_DISPATCH_TYPE_ASSIGN).
+		Exclude("teacher_id", userId).Update(params2)
+	if err != nil {
+		seelog.Error("orderId:", orderId, " userId:", userId, " ", err.Error())
 	}
 	return
 }

@@ -4,10 +4,10 @@ import (
 	"strconv"
 	"time"
 
-	"POIWolaiWebService/controllers/trade"
-	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/logger"
-	"POIWolaiWebService/models"
+	"WolaiWebservice/controllers/trade"
+	"WolaiWebservice/leancloud"
+	"WolaiWebservice/logger"
+	"WolaiWebservice/models"
 
 	seelog "github.com/cihub/seelog"
 )
@@ -120,9 +120,6 @@ func POIWSSessionHandler(sessionId int64) {
 				userChan <- expireMsg
 			}
 
-			logger.InsertSessionEventLog(sessionId, 0, "课程超时结束", "")
-			seelog.Debug("POIWSSessionHandler: session expired: " + sessionIdStr)
-
 			//如果课程没有在进行，超时后该课自动被取消，否则课程自动被结束
 			if !isServing {
 				sessionInfo := map[string]interface{}{
@@ -152,6 +149,9 @@ func POIWSSessionHandler(sessionId int64) {
 			//将老师和学生从内存中解锁
 			WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
 			WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
+
+			logger.InsertSessionEventLog(sessionId, 0, "课程超时结束", "")
+			seelog.Debug("POIWSSessionHandler: session expired: " + sessionIdStr)
 
 			return
 
@@ -398,7 +398,8 @@ func POIWSSessionHandler(sessionId int64) {
 					isAccepted = false
 
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
-					waitingTimer = time.NewTimer(time.Second * 30)
+					waitingTimer = time.NewTimer(time.Minute * 5)
+
 					//停止时间同步计时器
 					syncTicker.Stop()
 

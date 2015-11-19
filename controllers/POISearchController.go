@@ -2,8 +2,8 @@
 package controllers
 
 import (
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/redis"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 
 	"github.com/cihub/seelog"
 )

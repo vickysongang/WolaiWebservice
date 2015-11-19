@@ -7,8 +7,8 @@ import (
 
 	"github.com/cihub/seelog"
 
-	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/models"
+	"WolaiWebservice/leancloud"
+	"WolaiWebservice/models"
 )
 
 var NullSlice []interface{}

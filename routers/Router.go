@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/utils"
+	"WolaiWebservice/models"
+	"WolaiWebservice/utils"
 
-	"POIWolaiWebService/handlers"
+	"WolaiWebservice/handlers"
 
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/mux"

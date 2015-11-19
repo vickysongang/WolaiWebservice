@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"POIWolaiWebService/logger"
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/redis"
+	"WolaiWebservice/logger"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/websocket"
@@ -161,6 +161,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		if msg.OperationCode != WS_PONG {
 			seelog.Trace("V1Handler websocket recieve message:", string(p))
+			logger.InsertUserEventLog(userId, "", string(p))
 		}
 
 		// 比对客户端时间和系统时间

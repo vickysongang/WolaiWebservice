@@ -8,10 +8,10 @@ import (
 
 	seelog "github.com/cihub/seelog"
 
-	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/redis"
-	"POIWolaiWebService/utils"
+	"WolaiWebservice/leancloud"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
+	"WolaiWebservice/utils"
 )
 
 func generalOrderHandler(orderId int64) {
@@ -223,7 +223,8 @@ func generalOrderHandler(orderId int64) {
 						if dispatchId == teacher.UserId {
 							status = 0
 							orderDispatchInfo = map[string]interface{}{
-								"Result": "success",
+								"Result":    "success",
+								"ReplyTime": time.Now(), //回写老师抢单的时间
 							}
 						} else {
 							status = -1
@@ -292,6 +293,9 @@ func generalOrderHandler(orderId int64) {
 					OrderManager.SetOrderConfirm(orderId, teacher.UserId)
 					OrderManager.SetOffline(orderId)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator.UserId)
+
+					//修改指派单的结果
+					models.UpdateAssignOrderResult(orderId, teacher.UserId)
 
 					handleSessionCreation(orderId, msg.UserId)
 					return

@@ -2,8 +2,8 @@
 package sendcloud
 
 import (
-	"POIWolaiWebService/redis"
-	"POIWolaiWebService/utils"
+	"WolaiWebservice/redis"
+	"WolaiWebservice/utils"
 	"bytes"
 	"crypto/md5"
 	"crypto/sha256"

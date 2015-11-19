@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/websocket"
+	"WolaiWebservice/models"
+	"WolaiWebservice/websocket"
 )
 
 type POIMonitorUser struct {

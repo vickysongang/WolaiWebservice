@@ -9,19 +9,19 @@ import (
 	"strings"
 	"time"
 
-	"POIWolaiWebService/controllers"
-	"POIWolaiWebService/utils"
+	"WolaiWebservice/controllers"
+	"WolaiWebservice/utils"
 
-	"POIWolaiWebService/controllers/trade"
+	"WolaiWebservice/controllers/trade"
 
-	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/redis"
-	"POIWolaiWebService/websocket"
+	"WolaiWebservice/leancloud"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
+	"WolaiWebservice/websocket"
 
-	pingxx "POIWolaiWebService/pingpp"
+	pingxx "WolaiWebservice/pingpp"
 
-	"POIWolaiWebService/sendcloud"
+	"WolaiWebservice/sendcloud"
 
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/mux"
@@ -1045,7 +1045,6 @@ func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
 		date = time.Now().Format(time.RFC3339)
 	}
 	t, _ := time.Parse(time.RFC3339, date)
-	fmt.Println(time.Now().Format(time.RFC3339))
 	freeFlag := models.IsUserFree4Session(userId, t.Format(utils.TIME_FORMAT))
 	if freeFlag {
 		content := map[string]interface{}{
