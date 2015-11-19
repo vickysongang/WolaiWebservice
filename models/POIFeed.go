@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"POIWolaiWebService/utils"
+	"WolaiWebservice/utils"
 
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"

@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/models"
+	"WolaiWebservice/leancloud"
+	"WolaiWebservice/models"
 )
 
 /*

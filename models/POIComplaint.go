@@ -2,7 +2,7 @@
 package models
 
 import (
-	"POIWolaiWebService/utils"
+	"WolaiWebservice/utils"
 	"time"
 
 	"github.com/astaxie/beego/orm"

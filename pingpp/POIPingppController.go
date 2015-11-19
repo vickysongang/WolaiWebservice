@@ -2,11 +2,11 @@
 package pingpp
 
 import (
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/utils"
+	"WolaiWebservice/models"
+	"WolaiWebservice/utils"
 	"strconv"
 
-	"POIWolaiWebService/controllers/trade"
+	"WolaiWebservice/controllers/trade"
 
 	"github.com/pingplusplus/pingpp-go/pingpp"
 	"github.com/pingplusplus/pingpp-go/pingpp/charge"
