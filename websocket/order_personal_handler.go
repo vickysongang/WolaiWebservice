@@ -152,16 +152,18 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 
 	OrderManager.SetOnline(orderId)
 
+	go leancloud.SendPersonalOrderNotification(orderId, teacherId)
+
 	if !WsManager.HasUserChan(teacherId) {
 		go leancloud.SendPersonalOrderTeacherOfflineMsg(studentId, teacherId)
-	} else if WsManager.IsUserSessionLocked(teacherId) {
+	} else if WsManager.HasSessionWithOther(teacherId) {
 		go leancloud.SendPersonalOrderTeacherBusyMsg(studentId, teacherId)
 	} else {
 		go leancloud.SendPersonalOrderSentMsg(studentId, teacherId)
 	}
 
 	if WsManager.HasUserChan(teacherId) &&
-		!WsManager.IsUserSessionLocked(teacherId) {
+		!WsManager.HasSessionWithOther(teacherId) {
 		teacherChan := WsManager.GetUserChan(teacherId)
 		orderMsg := NewPOIWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
 		orderMsg.Attribute["orderInfo"] = string(orderByte)
@@ -169,7 +171,7 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 	} else {
 		go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderId, teacherId))
 	}
-	go leancloud.SendPersonalOrderNotification(orderId, teacherId)
+
 	go personalOrderHandler(orderId, teacherId)
 	return nil
 }
