@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/redis"
-	"POIWolaiWebService/utils"
+	"WolaiWebService/models"
+	"WolaiWebService/redis"
+	"WolaiWebService/utils"
 
 	seelog "github.com/cihub/seelog"
 )

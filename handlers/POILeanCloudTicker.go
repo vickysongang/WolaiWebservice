@@ -4,7 +4,7 @@ package handlers
 import (
 	"time"
 
-	"POIWolaiWebService/leancloud"
+	"WolaiWebService/leancloud"
 )
 
 var LCMessageTicker *time.Ticker

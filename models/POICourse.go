@@ -2,7 +2,7 @@
 package models
 
 import (
-	"POIWolaiWebService/utils"
+	"WolaiWebService/utils"
 
 	"time"
 

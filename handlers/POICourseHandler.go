@@ -2,8 +2,8 @@
 package handlers
 
 import (
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/utils"
+	"WolaiWebService/models"
+	"WolaiWebService/utils"
 	"time"
 
 	"github.com/astaxie/beego/toolbox"

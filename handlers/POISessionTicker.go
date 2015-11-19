@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"time"
 
-	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/redis"
-	"POIWolaiWebService/websocket"
+	"WolaiWebService/leancloud"
+	"WolaiWebService/models"
+	"WolaiWebService/redis"
+	"WolaiWebService/websocket"
 
 	seelog "github.com/cihub/seelog"
 )

@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"POIWolaiWebService/utils"
+	"WolaiWebService/utils"
 
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"

@@ -28,7 +28,7 @@ var Config POIConfig
 
 func init() {
 	//加载系统使用到的配置信息
-	if _, err := toml.DecodeFile("/var/lib/poi/POIWolaiWebService.toml", &Config); err != nil {
+	if _, err := toml.DecodeFile("/var/lib/poi/WolaiWebservice.toml", &Config); err != nil {
 		seelog.Critical(err.Error())
 	}
 }

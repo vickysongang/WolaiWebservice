@@ -4,10 +4,10 @@ import (
 	"strconv"
 	"time"
 
-	"POIWolaiWebService/controllers/trade"
-	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/redis"
+	"WolaiWebService/controllers/trade"
+	"WolaiWebService/leancloud"
+	"WolaiWebService/models"
+	"WolaiWebService/redis"
 )
 
 func LoadPOIUser(userId int64) *models.POIUser {

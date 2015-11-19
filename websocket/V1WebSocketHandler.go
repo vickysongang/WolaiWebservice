@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"POIWolaiWebService/logger"
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/redis"
+	"WolaiWebService/logger"
+	"WolaiWebService/models"
+	"WolaiWebService/redis"
 
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/websocket"

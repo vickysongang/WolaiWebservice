@@ -2,7 +2,7 @@
 package logger
 
 import (
-	"POIWolaiWebService/models"
+	"WolaiWebService/models"
 	"encoding/json"
 )
 

@@ -2,8 +2,8 @@
 package controllers
 
 import (
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/utils"
+	"WolaiWebService/models"
+	"WolaiWebService/utils"
 	"time"
 )
 

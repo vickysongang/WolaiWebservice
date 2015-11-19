@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"POIWolaiWebService/models"
-	"POIWolaiWebService/redis"
+	"WolaiWebService/models"
+	"WolaiWebService/redis"
 
 	"github.com/cihub/seelog"
 )

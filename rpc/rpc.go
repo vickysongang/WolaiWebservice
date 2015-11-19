@@ -2,12 +2,12 @@
 package rpc
 
 import (
-	"POIWolaiWebService/controllers"
-	"POIWolaiWebService/handlers"
-	"POIWolaiWebService/leancloud"
-	"POIWolaiWebService/models"
-	pingxx "POIWolaiWebService/pingpp"
-	"POIWolaiWebService/websocket"
+	"WolaiWebService/controllers"
+	"WolaiWebService/handlers"
+	"WolaiWebService/leancloud"
+	"WolaiWebService/models"
+	pingxx "WolaiWebService/pingpp"
+	"WolaiWebService/websocket"
 	"fmt"
 	"strconv"
 )

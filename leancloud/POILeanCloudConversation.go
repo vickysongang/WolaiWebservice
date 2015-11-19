@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"POIWolaiWebService/utils"
+	"WolaiWebService/utils"
 
 	seelog "github.com/cihub/seelog"
 )

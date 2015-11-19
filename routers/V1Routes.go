@@ -2,8 +2,8 @@
 package routers
 
 import (
-	"POIWolaiWebService/handlers"
-	"POIWolaiWebService/websocket"
+	"WolaiWebService/handlers"
+	"WolaiWebService/websocket"
 )
 
 var V1Routes = Routes{

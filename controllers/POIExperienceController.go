@@ -1,7 +1,7 @@
 // POIExperienceController
 package controllers
 
-import "POIWolaiWebService/models"
+import "WolaiWebService/models"
 
 func InsertExperience(nickname, phone string) (*models.POIExperience, error) {
 	exsit := models.CheckExperienceExsits(phone)
