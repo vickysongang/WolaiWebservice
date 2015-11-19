@@ -4,10 +4,10 @@ import (
 	"strconv"
 	"time"
 
-	"WolaiWebService/controllers/trade"
-	"WolaiWebService/leancloud"
-	"WolaiWebService/logger"
-	"WolaiWebService/models"
+	"WolaiWebservice/controllers/trade"
+	"WolaiWebservice/leancloud"
+	"WolaiWebservice/logger"
+	"WolaiWebservice/models"
 
 	seelog "github.com/cihub/seelog"
 )

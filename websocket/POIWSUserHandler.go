@@ -3,8 +3,8 @@ package websocket
 import (
 	"time"
 
-	"WolaiWebService/models"
-	"WolaiWebService/redis"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 
 	seelog "github.com/cihub/seelog"
 )

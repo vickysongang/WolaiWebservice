@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"WolaiWebService/models"
-	"WolaiWebService/utils"
+	"WolaiWebservice/models"
+	"WolaiWebservice/utils"
 
 	seelog "github.com/cihub/seelog"
 	"gopkg.in/redis.v3"

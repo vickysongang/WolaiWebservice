@@ -6,9 +6,9 @@ import (
 	"errors"
 	"strconv"
 
-	"WolaiWebService/leancloud"
-	"WolaiWebService/models"
-	"WolaiWebService/redis"
+	"WolaiWebservice/leancloud"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 
 	"github.com/cihub/seelog"
 	"github.com/satori/go.uuid"

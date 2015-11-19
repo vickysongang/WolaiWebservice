@@ -9,19 +9,19 @@ import (
 	"strings"
 	"time"
 
-	"WolaiWebService/controllers"
-	"WolaiWebService/utils"
+	"WolaiWebservice/controllers"
+	"WolaiWebservice/utils"
 
-	"WolaiWebService/controllers/trade"
+	"WolaiWebservice/controllers/trade"
 
-	"WolaiWebService/leancloud"
-	"WolaiWebService/models"
-	"WolaiWebService/redis"
-	"WolaiWebService/websocket"
+	"WolaiWebservice/leancloud"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
+	"WolaiWebservice/websocket"
 
-	pingxx "WolaiWebService/pingpp"
+	pingxx "WolaiWebservice/pingpp"
 
-	"WolaiWebService/sendcloud"
+	"WolaiWebservice/sendcloud"
 
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/mux"

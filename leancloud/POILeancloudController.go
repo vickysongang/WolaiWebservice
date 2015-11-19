@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"WolaiWebService/models"
-	"WolaiWebService/redis"
-	"WolaiWebService/utils"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
+	"WolaiWebservice/utils"
 )
 
 const (

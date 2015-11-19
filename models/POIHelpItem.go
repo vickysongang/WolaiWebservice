@@ -2,7 +2,7 @@
 package models
 
 import (
-	"WolaiWebService/utils"
+	"WolaiWebservice/utils"
 
 	"github.com/astaxie/beego/orm"
 )

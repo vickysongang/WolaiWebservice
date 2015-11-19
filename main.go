@@ -6,11 +6,11 @@ import (
 	"net/rpc"
 	"net/rpc/jsonrpc"
 
-	"WolaiWebService/handlers"
-	"WolaiWebService/routers"
-	"WolaiWebService/utils"
+	"WolaiWebservice/handlers"
+	"WolaiWebservice/routers"
+	"WolaiWebservice/utils"
 
-	myrpc "WolaiWebService/rpc"
+	myrpc "WolaiWebservice/rpc"
 
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"

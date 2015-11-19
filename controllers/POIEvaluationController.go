@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"WolaiWebService/models"
+	"WolaiWebservice/models"
 )
 
 const (

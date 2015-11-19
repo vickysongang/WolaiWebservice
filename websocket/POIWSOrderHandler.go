@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"WolaiWebService/leancloud"
-	"WolaiWebService/models"
-	"WolaiWebService/redis"
-	"WolaiWebService/utils"
+	"WolaiWebservice/leancloud"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
+	"WolaiWebservice/utils"
 
 	seelog "github.com/cihub/seelog"
 */

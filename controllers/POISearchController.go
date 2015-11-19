@@ -2,8 +2,8 @@
 package controllers
 
 import (
-	"WolaiWebService/models"
-	"WolaiWebService/redis"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 
 	"github.com/cihub/seelog"
 )

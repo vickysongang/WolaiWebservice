@@ -8,10 +8,10 @@ import (
 
 	seelog "github.com/cihub/seelog"
 
-	"WolaiWebService/leancloud"
-	"WolaiWebService/models"
-	"WolaiWebService/redis"
-	"WolaiWebService/utils"
+	"WolaiWebservice/leancloud"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
+	"WolaiWebservice/utils"
 )
 
 func generalOrderHandler(orderId int64) {

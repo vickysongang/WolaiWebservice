@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"WolaiWebService/models"
+	"WolaiWebservice/models"
 )
 
 type OrderStatus struct {

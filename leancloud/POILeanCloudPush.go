@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"WolaiWebService/common"
-	"WolaiWebService/models"
-	"WolaiWebService/redis"
-	"WolaiWebService/utils"
+	"WolaiWebservice/common"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
+	"WolaiWebservice/utils"
 
 	seelog "github.com/cihub/seelog"
 )
