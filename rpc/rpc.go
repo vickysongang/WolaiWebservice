@@ -8,7 +8,6 @@ import (
 	"WolaiWebservice/models"
 	pingxx "WolaiWebservice/pingpp"
 	"WolaiWebservice/websocket"
-	"fmt"
 	"strconv"
 )
 
@@ -20,23 +19,23 @@ type POIRpcRequest struct {
 }
 
 func (watcher *RpcWatcher) GetStatusLive(request *POIRpcRequest, response *models.POIResponse) error {
-	fmt.Println("args:", request.Args)
-	liveUser := len(websocket.WsManager.OnlineUserMap)
-	onlineUserCount := 0
-	onlineTeacherCount := 0
+	allOnlineUsers := len(websocket.WsManager.OnlineUserMap)
+	onlineStudentsCount := 0
+	onlineTeachersCount := 0
 	for userId, _ := range websocket.WsManager.OnlineUserMap {
 		user := models.QueryUserById(userId)
 		if user.AccessRight == 2 {
-			onlineTeacherCount++
+			onlineTeachersCount++
 		}
 	}
-	onlineUserCount = liveUser - onlineTeacherCount
-	liveTeacher := len(websocket.WsManager.OnlineTeacherMap)
+	onlineStudentsCount = allOnlineUsers - onlineTeachersCount
+	liveTeachersCount := len(websocket.TeacherManager.GetLiveTeachers())
+	assignOnTeachersCount := len(websocket.TeacherManager.GetAssignOnTeachers())
 	content := map[string]interface{}{
-		"liveUser":           liveUser,
-		"liveTeacher":        liveTeacher,
-		"onlineUserCount":    onlineUserCount,
-		"onlineTeacherCount": onlineTeacherCount,
+		"onlineStudentsCount":   onlineStudentsCount,
+		"onlineTeachersCount":   onlineTeachersCount,
+		"liveTeachersCount":     liveTeachersCount,
+		"assignOnTeachersCount": assignOnTeachersCount,
 	}
 	*response = models.NewPOIResponse(0, "", content)
 	return nil
@@ -105,21 +104,23 @@ func (watcher *RpcWatcher) GetUserConversation(request *POIRpcRequest, response 
 func (watcher *RpcWatcher) GetUserMonitorInfo(request *POIRpcRequest, response *models.POIResponse) error {
 	users := handlers.NewPOIMonitorUsers()
 	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
-		locked := websocket.WsManager.IsUserSessionLocked(userId)
-		users.LiveUsers = append(users.LiveUsers, handlers.POIMonitorUser{User: models.QueryUserById(userId), LoginTime: timestamp, Locked: locked})
-	}
-	for userId, timestamp := range websocket.WsManager.OnlineTeacherMap {
-		locked := websocket.WsManager.IsUserSessionLocked(userId)
-		users.LiveTeachers = append(users.LiveTeachers, handlers.POIMonitorUser{User: models.QueryUserById(userId), LoginTime: timestamp, Locked: locked})
-	}
-	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
 		user := models.QueryUserById(userId)
 		locked := websocket.WsManager.IsUserSessionLocked(userId)
 		if user.AccessRight == 2 {
 			users.OnlineTeachers = append(users.OnlineTeachers, handlers.POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
 		} else {
-			users.OnlineUsers = append(users.OnlineUsers, handlers.POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
+			users.OnlineStudents = append(users.OnlineStudents, handlers.POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
 		}
+	}
+	for _, teacherId := range websocket.TeacherManager.GetLiveTeachers() {
+		user := models.QueryUserById(teacherId)
+		locked := websocket.WsManager.IsUserSessionLocked(teacherId)
+		users.LiveTeachers = append(users.LiveTeachers, handlers.POIMonitorUser{User: user, LoginTime: user.LastLoginTime.Unix(), Locked: locked})
+	}
+	for _, teacherId := range websocket.TeacherManager.GetAssignOnTeachers() {
+		user := models.QueryUserById(teacherId)
+		locked := websocket.WsManager.IsUserSessionLocked(teacherId)
+		users.AssignOnTeachers = append(users.AssignOnTeachers, handlers.POIMonitorUser{User: user, LoginTime: user.LastLoginTime.Unix(), Locked: locked})
 	}
 	*response = models.NewPOIResponse(0, "", users)
 	return nil

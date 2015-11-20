@@ -182,3 +182,21 @@ func (tsm *TeacherStatusManager) SetdispatchUnlock(userId int64) error {
 	status.isDispatchLocked = false
 	return nil
 }
+
+func (tsm *TeacherStatusManager) GetLiveTeachers() []int64 {
+	liveTeachers := make([]int64, 0)
+	for teacherId, _ := range tsm.teacherMap {
+		liveTeachers = append(liveTeachers, teacherId)
+	}
+	return liveTeachers
+}
+
+func (tsm *TeacherStatusManager) GetAssignOnTeachers() []int64 {
+	assignOnTeachers := make([]int64, 0)
+	for teacherId, status := range tsm.teacherMap {
+		if status.isAssignOpen {
+			assignOnTeachers = append(assignOnTeachers, teacherId)
+		}
+	}
+	return assignOnTeachers
+}
