@@ -8,7 +8,6 @@ import (
 	"WolaiWebservice/models"
 	pingxx "WolaiWebservice/pingpp"
 	"WolaiWebservice/websocket"
-	"fmt"
 	"strconv"
 )
 
@@ -20,23 +19,23 @@ type POIRpcRequest struct {
 }
 
 func (watcher *RpcWatcher) GetStatusLive(request *POIRpcRequest, response *models.POIResponse) error {
-	fmt.Println("args:", request.Args)
-	liveUser := len(websocket.WsManager.OnlineUserMap)
-	onlineUserCount := 0
-	onlineTeacherCount := 0
+	allOnlineUsers := len(websocket.WsManager.OnlineUserMap)
+	onlineStudentsCount := 0
+	onlineTeachersCount := 0
 	for userId, _ := range websocket.WsManager.OnlineUserMap {
 		user := models.QueryUserById(userId)
 		if user.AccessRight == 2 {
-			onlineTeacherCount++
+			onlineTeachersCount++
 		}
 	}
-	onlineUserCount = liveUser - onlineTeacherCount
-	liveTeacher := len(websocket.WsManager.OnlineTeacherMap)
+	onlineStudentsCount = allOnlineUsers - onlineTeachersCount
+	liveTeachersCount := len(websocket.TeacherManager.GetLiveTeachers())
+	assignOnTeachersCount := len(websocket.TeacherManager.GetAssignOnTeachers())
 	content := map[string]interface{}{
-		"liveUser":           liveUser,
-		"liveTeacher":        liveTeacher,
-		"onlineUserCount":    onlineUserCount,
-		"onlineTeacherCount": onlineTeacherCount,
+		"onlineStudentsCount":   onlineStudentsCount,
+		"onlineTeachersCount":   onlineTeachersCount,
+		"liveTeachersCount":     liveTeachersCount,
+		"assignOnTeachersCount": assignOnTeachersCount,
 	}
 	*response = models.NewPOIResponse(0, "", content)
 	return nil
