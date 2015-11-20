@@ -16,10 +16,10 @@ type POIMonitorUser struct {
 }
 
 type POIMonitorUsers struct {
-	LiveUsers      []POIMonitorUser
-	LiveTeachers   []POIMonitorUser
-	OnlineUsers    []POIMonitorUser
-	OnlineTeachers []POIMonitorUser
+	OnlineStudents   []POIMonitorUser //在线学生
+	OnlineTeachers   []POIMonitorUser //在线导师
+	LiveTeachers     []POIMonitorUser //可接单导师
+	AssignOnTeachers []POIMonitorUser //指派导师
 }
 
 type POIOrderDispatchSlave struct {
@@ -48,10 +48,10 @@ type POIMonitorSessions []POIMonitorSession
 
 func NewPOIMonitorUsers() POIMonitorUsers {
 	users := POIMonitorUsers{
-		LiveUsers:      make([]POIMonitorUser, 0),
-		LiveTeachers:   make([]POIMonitorUser, 0),
-		OnlineUsers:    make([]POIMonitorUser, 0),
-		OnlineTeachers: make([]POIMonitorUser, 0),
+		OnlineStudents:   make([]POIMonitorUser, 0),
+		OnlineTeachers:   make([]POIMonitorUser, 0),
+		LiveTeachers:     make([]POIMonitorUser, 0),
+		AssignOnTeachers: make([]POIMonitorUser, 0),
 	}
 	return users
 }
@@ -69,20 +69,12 @@ func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	defer ThrowsPanicException(w, NullObject)
 	users := NewPOIMonitorUsers()
 	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
-		locked := websocket.WsManager.IsUserSessionLocked(userId)
-		users.LiveUsers = append(users.LiveUsers, POIMonitorUser{User: models.QueryUserById(userId), LoginTime: timestamp, Locked: locked})
-	}
-	for userId, timestamp := range websocket.WsManager.OnlineTeacherMap {
-		locked := websocket.WsManager.IsUserSessionLocked(userId)
-		users.LiveTeachers = append(users.LiveTeachers, POIMonitorUser{User: models.QueryUserById(userId), LoginTime: timestamp, Locked: locked})
-	}
-	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
 		user := models.QueryUserById(userId)
 		locked := websocket.WsManager.IsUserSessionLocked(userId)
 		if user.AccessRight == 2 {
 			users.OnlineTeachers = append(users.OnlineTeachers, POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
 		} else {
-			users.OnlineUsers = append(users.OnlineUsers, POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
+			users.OnlineStudents = append(users.OnlineStudents, POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
 		}
 	}
 	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", users))
