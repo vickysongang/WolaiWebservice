@@ -62,7 +62,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
 
 					if WsManager.IsUserSessionLocked(order.Creator.UserId) &&
-						order.OrderType == models.ORDER_TYPE_PERSONAL_INSTANT {
+						order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 						resp.Attribute["errCode"] = "2"
 						resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
 						userChan <- resp
@@ -74,7 +74,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						return
 					}
 					if WsManager.IsUserSessionLocked(msg.UserId) &&
-						order.OrderType == models.ORDER_TYPE_PERSONAL_INSTANT {
+						order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 						resp.Attribute["errCode"] = "2"
 						resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
 						userChan <- resp

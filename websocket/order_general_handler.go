@@ -267,7 +267,7 @@ func generalOrderHandler(orderId int64) {
 					}
 					acceptResp.Attribute["errCode"] = "0"
 					userChan <- acceptResp
-					TeacherManager.SetAssignUnlock(assignTarget)
+					TeacherManager.SetAssignUnlock(msg.UserId)
 
 					//向学生发送结果
 					teacher := models.QueryTeacher(msg.UserId)
