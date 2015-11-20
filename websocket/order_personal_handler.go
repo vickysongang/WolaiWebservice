@@ -61,7 +61,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 				case WS_ORDER2_PERSONAL_REPLY:
 					resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
 
-					if WsManager.IsUserSessionLocked(order.Creator.UserId) {
+					if WsManager.IsUserSessionLocked(order.Creator.UserId) &&
+						order.OrderType == models.ORDER_TYPE_PERSONAL_INSTANT {
 						resp.Attribute["errCode"] = "2"
 						resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
 						userChan <- resp
@@ -72,7 +73,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator.UserId, msg.UserId)
 						return
 					}
-					if WsManager.IsUserSessionLocked(msg.UserId) {
+					if WsManager.IsUserSessionLocked(msg.UserId) &&
+						order.OrderType == models.ORDER_TYPE_PERSONAL_INSTANT {
 						resp.Attribute["errCode"] = "2"
 						resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
 						userChan <- resp
