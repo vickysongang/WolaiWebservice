@@ -61,7 +61,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 				case WS_ORDER2_PERSONAL_REPLY:
 					resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
 
-					if WsManager.IsUserSessionLocked(order.Creator.UserId) {
+					if WsManager.IsUserSessionLocked(order.Creator.UserId) &&
+						order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 						resp.Attribute["errCode"] = "2"
 						resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
 						userChan <- resp
@@ -72,7 +73,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator.UserId, msg.UserId)
 						return
 					}
-					if WsManager.IsUserSessionLocked(msg.UserId) {
+					if WsManager.IsUserSessionLocked(msg.UserId) &&
+						order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 						resp.Attribute["errCode"] = "2"
 						resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
 						userChan <- resp
@@ -152,16 +154,18 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 
 	OrderManager.SetOnline(orderId)
 
+	go leancloud.SendPersonalOrderNotification(orderId, teacherId)
+
 	if !WsManager.HasUserChan(teacherId) {
 		go leancloud.SendPersonalOrderTeacherOfflineMsg(studentId, teacherId)
-	} else if WsManager.IsUserSessionLocked(teacherId) {
+	} else if WsManager.HasSessionWithOther(teacherId) {
 		go leancloud.SendPersonalOrderTeacherBusyMsg(studentId, teacherId)
 	} else {
 		go leancloud.SendPersonalOrderSentMsg(studentId, teacherId)
 	}
 
 	if WsManager.HasUserChan(teacherId) &&
-		!WsManager.IsUserSessionLocked(teacherId) {
+		!WsManager.HasSessionWithOther(teacherId) {
 		teacherChan := WsManager.GetUserChan(teacherId)
 		orderMsg := NewPOIWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
 		orderMsg.Attribute["orderInfo"] = string(orderByte)
@@ -169,7 +173,7 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 	} else {
 		go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderId, teacherId))
 	}
-	go leancloud.SendPersonalOrderNotification(orderId, teacherId)
+
 	go personalOrderHandler(orderId, teacherId)
 	return nil
 }
