@@ -1782,7 +1782,7 @@ func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
 	if len(vars["orderNo"]) > 0 {
 		orderNo = vars["orderNo"][0]
 	} else {
-		orderNo = "No_" + strconv.Itoa(int(time.Now().Unix()))
+		orderNo = strconv.Itoa(int(time.Now().UnixNano()))
 	}
 
 	amountStr := vars["amount"][0]

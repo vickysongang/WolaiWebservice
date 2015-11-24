@@ -9,6 +9,7 @@ import (
 	pingxx "WolaiWebservice/pingpp"
 	"WolaiWebservice/websocket"
 	"strconv"
+	"time"
 )
 
 type RpcWatcher struct {
@@ -66,6 +67,9 @@ func (watcher *RpcWatcher) SendTradeNotificationSystem(request *POIRpcRequest, r
 
 func (watcher *RpcWatcher) PayByPingpp(request *POIRpcRequest, response *models.POIResponse) error {
 	orderNo := request.Args["orderNo"]
+	if orderNo == "" || len(orderNo) == 0 {
+		orderNo = strconv.Itoa(int(time.Now().UnixNano()))
+	}
 	amount, _ := strconv.ParseUint(request.Args["amount"], 10, 64)
 	channel := request.Args["channel"]
 	currency := request.Args["currency"]
