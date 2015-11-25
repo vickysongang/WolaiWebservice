@@ -1782,7 +1782,7 @@ func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
 	if len(vars["orderNo"]) > 0 {
 		orderNo = vars["orderNo"][0]
 	} else {
-		orderNo = "No_" + strconv.Itoa(int(time.Now().UnixNano()))
+		orderNo = strconv.Itoa(int(time.Now().UnixNano()))
 	}
 
 	amountStr := vars["amount"][0]
@@ -1798,7 +1798,36 @@ func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
 	subject := vars["subject"][0]
 	body := vars["body"][0]
 	phone := vars["phone"][0]
-	content, err := pingxx.PayByPingpp(orderNo, amount, channel, currency, clientIp, subject, body, phone)
+
+	var extraMap map[string]interface{}
+	if channel == "alipay_wap" {
+		successUrl := vars["successUrl"][0]
+		var cancelUrl string
+		if len(vars["cancelUrl"]) > 0 {
+			cancelUrl = vars["cancelUrl"][0]
+		}
+		extraMap = map[string]interface{}{
+			"success_url": successUrl,
+			"cancel_url":  cancelUrl,
+		}
+	} else if channel == "alipay_pc_direct" {
+		successUrl := vars["successUrl"][0]
+		extraMap = map[string]interface{}{
+			"success_url": successUrl,
+		}
+	} else if channel == "upacp_wap" || channel == "upacp_pc" || channel == "upmp_wap" {
+		resultUrl := vars["resultUrl"][0]
+		extraMap = map[string]interface{}{
+			"result_url": resultUrl,
+		}
+	} else if channel == "apple_pay" {
+		paymentToken := vars["paymentToken"][0]
+		extraMap = map[string]interface{}{
+			"payment_token": paymentToken,
+		}
+	}
+
+	content, err := pingxx.PayByPingpp(orderNo, amount, channel, currency, clientIp, subject, body, phone, extraMap)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 	} else {

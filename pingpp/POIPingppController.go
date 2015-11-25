@@ -27,7 +27,7 @@ func init() {
  * @param subject:主题，示例：Your Subject
  * @param body:内容，示例：Your Body
  */
-func PayByPingpp(orderNo string, amount uint64, channel, currency, clientIp, subject, body, phone string) (*pingpp.Charge, error) {
+func PayByPingpp(orderNo string, amount uint64, channel, currency, clientIp, subject, body, phone string, extra map[string]interface{}) (*pingpp.Charge, error) {
 	params := &pingpp.ChargeParams{
 		Order_no:  orderNo,
 		App:       pingpp.App{Id: utils.Config.Pingpp.AppId},
@@ -36,7 +36,8 @@ func PayByPingpp(orderNo string, amount uint64, channel, currency, clientIp, sub
 		Currency:  currency,
 		Client_ip: clientIp,
 		Subject:   subject,
-		Body:      body}
+		Body:      body,
+		Extra:     extra}
 	ch, err := charge.New(params)
 	if err == nil {
 		record := models.POIPingppRecord{
