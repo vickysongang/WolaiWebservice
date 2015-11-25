@@ -1,26 +1,24 @@
 package websocket
 
 import (
+	"time"
+
 	seelog "github.com/cihub/seelog"
 )
 
 type POIWSManager struct {
-	UserMap map[int64](chan POIWSMessage) // userId to chan
-	//OrderMap   map[int64](chan POIWSMessage) // orderId to chan
+	UserMap    map[int64](chan POIWSMessage) // userId to chan
 	SessionMap map[int64](chan POIWSMessage) // sessionId to chan
 
 	OnlineUserMap    map[int64]int64 // userId to online timestamp
 	OnlineTeacherMap map[int64]int64 // teacher userId to online timestamp
+	OfflineUserMap   map[int64]int64 // userId to offline userId
 
-	//OrderDispatchMap        map[int64]map[int64]int64 // orderId to teacherId to timestamp
-	//TeacherOrderDispatchMap map[int64]map[int64]int64 // teacherId to orderId to reply_timestamp
 	UserOrderDispatchMap map[int64]map[int64]int64 // userId to orderId to timestamp
 
 	SessionLiveMap     map[int64]int64          // sessionId to timestamp
 	UserSessionLiveMap map[int64]map[int64]bool // userId to sessionId
 	UserSessionLockMap map[int64]POISessionLock // userId to sessionLock
-
-	SessionServingMap map[int64]bool //sessionId to serving status(bool)
 }
 
 var WsManager POIWSManager
@@ -36,22 +34,18 @@ type POISessionLock struct {
 
 func NewPOIWSManager() POIWSManager {
 	return POIWSManager{
-		UserMap: make(map[int64](chan POIWSMessage)),
-		//OrderMap:   make(map[int64](chan POIWSMessage)),
+		UserMap:    make(map[int64](chan POIWSMessage)),
 		SessionMap: make(map[int64](chan POIWSMessage)),
 
 		OnlineUserMap:    make(map[int64]int64),
 		OnlineTeacherMap: make(map[int64]int64),
+		OfflineUserMap:   make(map[int64]int64),
 
-		//OrderDispatchMap:        make(map[int64]map[int64]int64),
-		//TeacherOrderDispatchMap: make(map[int64]map[int64]int64),
 		UserOrderDispatchMap: make(map[int64]map[int64]int64),
 
 		SessionLiveMap:     make(map[int64]int64),
 		UserSessionLiveMap: make(map[int64]map[int64]bool),
 		UserSessionLockMap: make(map[int64]POISessionLock),
-
-		SessionServingMap: make(map[int64]bool),
 	}
 }
 
@@ -75,27 +69,6 @@ func (wsm *POIWSManager) HasUserChan(userId int64) bool {
 	_, ok := wsm.UserMap[userId]
 	return ok
 }
-
-// func (wsm *POIWSManager) SetOrderChan(orderId int64, orderChan chan POIWSMessage) {
-// 	wsm.OrderMap[orderId] = orderChan
-// 	seelog.Debug("WSManager: order chan created, orderId: ", orderId)
-// }
-
-// func (wsm *POIWSManager) GetOrderChan(orderId int64) chan POIWSMessage {
-// 	return wsm.OrderMap[orderId]
-// }
-
-// func (wsm *POIWSManager) RemoveOrderChan(orderId int64) {
-// 	if _, ok := wsm.OrderMap[orderId]; ok {
-// 		delete(wsm.OrderMap, orderId)
-// 		seelog.Debug("WSManager: order chan removed, orderId: ", orderId)
-// 	}
-// }
-
-// func (wsm *POIWSManager) HasOrderChan(orderId int64) bool {
-// 	_, ok := wsm.OrderMap[orderId]
-// 	return ok
-// }
 
 func (wsm *POIWSManager) SetSessionChan(sessionId int64, sessionChan chan POIWSMessage) {
 	wsm.SessionMap[sessionId] = sessionChan
@@ -127,11 +100,19 @@ func (wsm *POIWSManager) SetUserOffline(userId int64) {
 	if _, ok := wsm.OnlineUserMap[userId]; ok {
 		seelog.Debug("SetUserOffline:", userId)
 		delete(wsm.OnlineUserMap, userId)
+		wsm.OfflineUserMap[userId] = time.Now().Unix()
 	}
 }
 
 func (wsm *POIWSManager) GetUserOnlineStatus(userId int64) int64 {
 	if timestamp, ok := wsm.OnlineUserMap[userId]; ok {
+		return timestamp
+	}
+	return -1
+}
+
+func (wsm *POIWSManager) GetUserOfflineStatus(userId int64) int64 {
+	if timestamp, ok := wsm.OfflineUserMap[userId]; ok {
 		return timestamp
 	}
 	return -1
@@ -236,21 +217,4 @@ func (wsm *POIWSManager) HasSessionWithOther(userId int64) bool {
 		}
 	}
 	return false
-}
-
-func (wsm *POIWSManager) SetSessionServingMap(sessionId int64, status bool) {
-	wsm.SessionServingMap[sessionId] = status
-}
-
-func (wsm *POIWSManager) GetSessionServingMap(sessionId int64) bool {
-	if _, ok := wsm.SessionServingMap[sessionId]; ok {
-		return wsm.SessionServingMap[sessionId]
-	}
-	return false
-}
-
-func (wsm *POIWSManager) RemoveSessionServingMap(sessionId int64) {
-	if _, ok := wsm.SessionServingMap[sessionId]; ok {
-		delete(wsm.SessionServingMap, sessionId)
-	}
 }

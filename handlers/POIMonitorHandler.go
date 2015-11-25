@@ -121,7 +121,8 @@ func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
 func GetSessionMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	sessions := make(POIMonitorSessions, 0)
 	for sessionId, timestamp := range websocket.WsManager.SessionLiveMap {
-		servingStatus := websocket.WsManager.GetSessionServingMap(sessionId)
+		//TODO
+		servingStatus := true //websocket.WsManager.GetSessionServingMap(sessionId)
 		session := POIMonitorSession{SessionId: sessionId, TimeStamp: timestamp, ServingStatus: servingStatus}
 		sessions = append(sessions, session)
 	}

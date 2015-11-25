@@ -54,7 +54,6 @@ func POIWSSessionHandler(sessionId int64) {
 
 		//将课程标记为上课中，并将该状态存在内存中
 		isServing = true
-		WsManager.SetSessionServingMap(sessionId, isServing)
 
 		//设置课程的开始时间并更改课程的状态
 		sessionInfo := map[string]interface{}{
@@ -79,7 +78,6 @@ func POIWSSessionHandler(sessionId int64) {
 			}
 			waitingTimer = time.NewTimer(time.Minute * 5)
 			isPaused = true
-			WsManager.RemoveSessionServingMap(sessionId)
 		} else if !studentOnline {
 			//如果学生不在线老师在线，则向老师发送课程中断消息
 			if teacherOnline {
@@ -93,7 +91,6 @@ func POIWSSessionHandler(sessionId int64) {
 			}
 			waitingTimer = time.NewTimer(time.Minute * 5)
 			isPaused = true
-			WsManager.RemoveSessionServingMap(sessionId)
 		} else {
 			//启动时间同步计时器
 			syncTicker = time.NewTicker(time.Second * 60)
@@ -270,7 +267,6 @@ func POIWSSessionHandler(sessionId int64) {
 						lastSync = timestamp
 
 						isServing = true
-						WsManager.SetSessionServingMap(sessionId, isServing)
 
 						//启动时间同步计时器，开始同步时间
 						syncTicker = time.NewTicker(time.Second * 60)
@@ -372,9 +368,6 @@ func POIWSSessionHandler(sessionId int64) {
 					WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
 					WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
 
-					//将当前课程从内存中释放
-					WsManager.RemoveSessionServingMap(sessionId)
-
 					go leancloud.SendSessionFinishMsg(session.Creator.UserId, session.Teacher.UserId)
 
 					logger.InsertSessionEventLog(sessionId, 0, "导师下课，课程结束", "")
@@ -393,7 +386,6 @@ func POIWSSessionHandler(sessionId int64) {
 
 					//课程暂停，从内存中移除课程正在进行当状态
 					isPaused = true
-					WsManager.RemoveSessionServingMap(sessionId)
 
 					isAccepted = false
 
@@ -419,7 +411,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 				case WS_SESSION_RECOVER_TEACHER:
 					//如果老师所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
-					if WsManager.GetSessionServingMap(sessionId) {
+					if !isPaused || !isServing {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
 						length = length + (timestamp - lastSync)
 						//将中断时间设置为最后同步时间，用于下次时间的计算
@@ -439,7 +431,7 @@ func POIWSSessionHandler(sessionId int64) {
 					teacherChan <- recoverTeacherMsg
 
 					//如果老师所在的课程正在进行中，则通知老师该课正在进行中
-					if WsManager.GetSessionServingMap(sessionId) {
+					if !isPaused || !isServing {
 						seelog.Debug("send session:", sessionId, " live status message to teacher:", session.Teacher.UserId)
 						sessionStatusMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
@@ -450,7 +442,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 				case WS_SESSION_RECOVER_STU:
 					//如果学生所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
-					if WsManager.GetSessionServingMap(sessionId) {
+					if !isPaused || !isServing {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
 						length = length + (timestamp - lastSync)
 						//将中断时间设置为最后同步时间，用于下次时间的计算
@@ -470,7 +462,7 @@ func POIWSSessionHandler(sessionId int64) {
 					studentChan <- recoverStuMsg
 
 					//如果学生所在的课程正在进行中，则通知学生该课正在进行中
-					if WsManager.GetSessionServingMap(sessionId) {
+					if !isPaused || !isServing {
 						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator.UserId)
 						sessionStatusMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
@@ -497,8 +489,6 @@ func POIWSSessionHandler(sessionId int64) {
 
 					//课程暂停，从内存中移除课程正在进行当状态
 					isPaused = true
-					WsManager.RemoveSessionServingMap(sessionId)
-
 					isAccepted = false
 
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
@@ -621,7 +611,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 						//设置课程状态为正在服务中
 						isServing = true
-						WsManager.SetSessionServingMap(sessionId, isServing)
+
 						isPaused = false
 
 						//启动时间同步计时器
@@ -729,22 +719,28 @@ func CheckSessionBreak(userId int64) {
 	if _, ok := WsManager.UserSessionLiveMap[userId]; !ok {
 		return
 	}
-	seelog.Debug("send session break message:", userId)
 	//延迟10秒判断用户是否重连上，给客户端10s的重连时间
-	time.Sleep(10 * time.Second)
-	userLoginTime := WsManager.GetUserOnlineStatus(userId)
-	//如果用户重连上了且用户有正在进行的课，则不给对方发送课程中断的消息
-	if userLoginTime != -1 && WsManager.HasUserChan(userId) {
-		seelog.Debug("user ", userId, " reconnect success!")
-		for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
-			if !WsManager.HasSessionChan(sessionId) {
-				continue
-			}
-			if WsManager.GetSessionServingMap(sessionId) {
-				return
-			}
-		}
+	breakTime := WsManager.GetUserOfflineStatus(userId)
+	if breakTime == -1 {
+		return
 	}
+
+	time.Sleep(15 * time.Second)
+	userLoginTime := WsManager.GetUserOnlineStatus(userId)
+	breakTime2 := WsManager.GetUserOfflineStatus(userId)
+	if breakTime2 != breakTime || userLoginTime != -1 {
+		return
+	}
+
+	// //如果用户重连上了且用户有正在进行的课，则不给对方发送课程中断的消息
+	// if userLoginTime != -1 && WsManager.HasUserChan(userId) {
+	// 	seelog.Debug("user ", userId, " reconnect success!")
+	// 	for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
+	// 		if !WsManager.HasSessionChan(sessionId) {
+	// 			continue
+	// 		}
+	// 	}
+	// }
 
 	//给对方发送课程中断的消息
 	for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {

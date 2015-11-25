@@ -77,7 +77,7 @@ func (watcher *RpcWatcher) PayByPingpp(request *POIRpcRequest, response *models.
 	subject := request.Args["subject"]
 	body := request.Args["body"]
 	phone := request.Args["phone"]
-	content, err := pingxx.PayByPingpp(orderNo, amount, channel, currency, clientIp, subject, body, phone)
+	content, err := pingxx.PayByPingpp(orderNo, amount, channel, currency, clientIp, subject, body, phone, map[string]interface{}{})
 	if err != nil {
 		*response = models.NewPOIResponse(2, err.Error(), handlers.NullObject)
 	} else {
