@@ -411,7 +411,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 				case WS_SESSION_RECOVER_TEACHER:
 					//如果老师所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
-					if !isPaused || !isServing {
+					if !isPaused && isServing {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
 						length = length + (timestamp - lastSync)
 						//将中断时间设置为最后同步时间，用于下次时间的计算
@@ -431,18 +431,19 @@ func POIWSSessionHandler(sessionId int64) {
 					teacherChan <- recoverTeacherMsg
 
 					//如果老师所在的课程正在进行中，则通知老师该课正在进行中
-					if !isPaused || !isServing {
+					if !isPaused && isServing {
 						seelog.Debug("send session:", sessionId, " live status message to teacher:", session.Teacher.UserId)
 						sessionStatusMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
 						sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
+						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 						sessionStatusMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 						teacherChan <- sessionStatusMsg
 					}
 
 				case WS_SESSION_RECOVER_STU:
 					//如果学生所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
-					if !isPaused || !isServing {
+					if !isPaused && isServing {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
 						length = length + (timestamp - lastSync)
 						//将中断时间设置为最后同步时间，用于下次时间的计算
@@ -462,10 +463,11 @@ func POIWSSessionHandler(sessionId int64) {
 					studentChan <- recoverStuMsg
 
 					//如果学生所在的课程正在进行中，则通知学生该课正在进行中
-					if !isPaused || !isServing {
+					if !isPaused && isServing {
 						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator.UserId)
 						sessionStatusMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
+						sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
 						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 						sessionStatusMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 						studentChan <- sessionStatusMsg
@@ -511,7 +513,7 @@ func POIWSSessionHandler(sessionId int64) {
 				case WS_SESSION_RESUME: //老师发起恢复上课的请求
 					//向老师发送恢复上课的响应消息
 					resumeResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_RESP)
-					if !isPaused || !isServing {
+					if isPaused || !isServing {
 						resumeResp.Attribute["errCode"] = "2"
 						resumeResp.Attribute["errMsg"] = "session is not serving"
 						userChan <- resumeResp
