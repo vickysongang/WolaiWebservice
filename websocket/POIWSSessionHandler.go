@@ -444,6 +444,7 @@ func POIWSSessionHandler(sessionId int64) {
 						sessionStatusMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
 						sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
+						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 						sessionStatusMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 						teacherChan <- sessionStatusMsg
 					}
@@ -474,6 +475,7 @@ func POIWSSessionHandler(sessionId int64) {
 						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator.UserId)
 						sessionStatusMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
+						sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
 						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
 						sessionStatusMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 						studentChan <- sessionStatusMsg
