@@ -513,7 +513,7 @@ func POIWSSessionHandler(sessionId int64) {
 				case WS_SESSION_RESUME: //老师发起恢复上课的请求
 					//向老师发送恢复上课的响应消息
 					resumeResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_RESP)
-					if isPaused || !isServing {
+					if !isPaused || !isServing {
 						resumeResp.Attribute["errCode"] = "2"
 						resumeResp.Attribute["errMsg"] = "session is not serving"
 						userChan <- resumeResp
