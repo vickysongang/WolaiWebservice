@@ -3,10 +3,10 @@ package websocket
 import (
 	"time"
 
+	seelog "github.com/cihub/seelog"
+
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
-
-	seelog "github.com/cihub/seelog"
 )
 
 func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
