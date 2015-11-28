@@ -7,12 +7,12 @@ import (
 	"strconv"
 	"time"
 
+	seelog "github.com/cihub/seelog"
+	"github.com/gorilla/websocket"
+
 	"WolaiWebservice/logger"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
-
-	seelog "github.com/cihub/seelog"
-	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{

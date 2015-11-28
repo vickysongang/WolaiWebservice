@@ -51,7 +51,6 @@ func NewPOIWSManager() POIWSManager {
 
 func (wsm *POIWSManager) SetUserChan(userId int64, userChan chan POIWSMessage) {
 	wsm.UserMap[userId] = userChan
-	seelog.Debug("WSManager: user chan created, userId: ", userId)
 }
 
 func (wsm *POIWSManager) GetUserChan(userId int64) chan POIWSMessage {
@@ -61,7 +60,6 @@ func (wsm *POIWSManager) GetUserChan(userId int64) chan POIWSMessage {
 func (wsm *POIWSManager) RemoveUserChan(userId int64) {
 	if _, ok := wsm.UserMap[userId]; ok {
 		delete(wsm.UserMap, userId)
-		seelog.Debug("WSManager: user chan removed, userId: ", userId)
 	}
 }
 
@@ -72,7 +70,6 @@ func (wsm *POIWSManager) HasUserChan(userId int64) bool {
 
 func (wsm *POIWSManager) SetSessionChan(sessionId int64, sessionChan chan POIWSMessage) {
 	wsm.SessionMap[sessionId] = sessionChan
-	seelog.Debug("WSManager: session chan created, sessionId: ", sessionId)
 }
 
 func (wsm *POIWSManager) GetSessionChan(sessionId int64) chan POIWSMessage {
@@ -82,7 +79,6 @@ func (wsm *POIWSManager) GetSessionChan(sessionId int64) chan POIWSMessage {
 func (wsm *POIWSManager) RemoveSessionChan(sessionId int64) {
 	if _, ok := wsm.SessionMap[sessionId]; ok {
 		delete(wsm.SessionMap, sessionId)
-		seelog.Debug("WSManager: session chan created, sessionId: ", sessionId)
 	}
 }
 
