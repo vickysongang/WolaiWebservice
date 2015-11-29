@@ -727,7 +727,7 @@ func CheckSessionBreak(userId int64) {
 		return
 	}
 
-	time.Sleep(15 * time.Second)
+	time.Sleep(60 * time.Second)
 	userLoginTime := WsManager.GetUserOnlineStatus(userId)
 	breakTime2 := WsManager.GetUserOfflineStatus(userId)
 	if breakTime2 != breakTime || userLoginTime != -1 {
