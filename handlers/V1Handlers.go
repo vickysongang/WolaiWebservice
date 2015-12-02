@@ -523,23 +523,7 @@ func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
 		seelog.Error(err.Error())
 	}
 
-	vars := r.Form
-
-	userIdStr := vars["userId"][0]
-	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
-
-	timestampNano := time.Now().UnixNano()
-	timestamp := float64(timestampNano) / 1000000000.0
-
-	commentId := vars["commentId"][0]
-
-	content, err := controllers.LikePOIFeedComment(userId, commentId, timestamp)
-
-	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
-	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
-	}
+	json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
 }
 
 /*

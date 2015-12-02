@@ -67,31 +67,3 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	go models.InsertPOIFeedComment(&feedCommentModel)
 	return &feedComment, nil
 }
-
-func LikePOIFeedComment(userId int64, feedCommentId string, timestamp float64) (*models.POIFeedComment, error) {
-	var feedComment *models.POIFeedComment
-	var err error
-	if redis.RedisManager.RedisError == nil {
-		feedComment = redis.RedisManager.GetFeedComment(feedCommentId)
-	} else {
-		feedComment, err = models.GetFeedComment(feedCommentId)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	user := models.QueryUserById(userId)
-	if user == nil {
-		err = errors.New("user " + strconv.Itoa(int(userId)) + "doesn't exsit.")
-		seelog.Error(err.Error())
-		return nil, err
-	}
-	if redis.RedisManager.RedisError == nil {
-		if !redis.RedisManager.HasLikedFeedComment(feedComment, user) {
-			feedComment.IncreaseLike()
-			redis.RedisManager.SetFeedComment(feedComment)
-			redis.RedisManager.LikeFeedComment(feedComment, user, timestamp)
-		}
-	}
-	return feedComment, nil
-}
