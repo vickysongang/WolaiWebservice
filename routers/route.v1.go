@@ -988,6 +988,13 @@ var routesV1 = route.Routes{
 		"/v1/sendcloud/sendmessage",
 		handlers.V1SendMessage,
 	},
+	// 15.3 sendcloud verify rand code
+	Route{
+		"V1SCSendMessagePOST",
+		"POST",
+		"/v1/sendcloud/verify",
+		handlers.V1VerifyRandCode,
+	},
 
 	route.Route{
 		"V1BannerPOST",

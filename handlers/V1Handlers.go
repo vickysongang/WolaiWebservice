@@ -1823,7 +1823,7 @@ func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
  * 14.2 pingpp refund
  */
 func V1RefundByPingpp(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	//	defer ThrowsPanicException(w, NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -2018,6 +2018,28 @@ func V1SendMessage(w http.ResponseWriter, r *http.Request) {
 	err = sendcloud.SendMessage(phone)
 	if err != nil {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+	} else {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+	}
+}
+
+/*
+ * 15.3 sendcloud verify rand code
+ */
+func V1VerifyRandCode(w http.ResponseWriter, r *http.Request) {
+	defer ThrowsPanicException(w, NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	phone := vars["phone"][0]
+	randCode := vars["randCode"][0]
+	rc, timestamp := redis.RedisManager.GetSendcloudRandCode(phone)
+	if randCode != rc {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, "验证码不匹配", NullObject))
+	} else if time.Now().Unix()-timestamp > 10*60 {
+		json.NewEncoder(w).Encode(models.NewPOIResponse(2, "验证码已失效", NullObject))
 	} else {
 		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
 	}
