@@ -2,6 +2,7 @@
 package models
 
 import (
+	"strings"
 	"time"
 
 	"WolaiWebservice/utils"
@@ -29,16 +30,17 @@ type POITradeToSession struct {
 }
 
 type POISessionTradeRecord struct {
-	Id          int64     `json:"-"`
-	UserId      int64     `json:"-"`
-	User        *POIUser  `json:"userInfo"`
-	TradeType   string    `json:"tradeType"`
-	TradeAmount int64     `json:"tradeAmount"`
-	OrderType   int64     `json:"orderType"`
-	CreateTime  time.Time `json:"tradeTime"`
-	Result      string    `json:"tradeResult"`
-	Balance     int64     `json:"balance"`
-	Comment     string    `json:"comment"`
+	Id                int64     `json:"-"`
+	UserId            int64     `json:"-"`
+	User              *POIUser  `json:"userInfo"`
+	TradeType         string    `json:"tradeType"`
+	TradeAmount       int64     `json:"tradeAmount"`
+	OrderType         int64     `json:"orderType"`
+	CreateTime        time.Time `json:"tradeTime"`
+	Result            string    `json:"tradeResult"`
+	Balance           int64     `json:"balance"`
+	Comment           string    `json:"comment"`
+	SessionTimeLength string    `json:"sessionTimeLength"`
 }
 
 const (
@@ -160,6 +162,11 @@ func QuerySessionTradeRecords(userId int64, pageNum, pageCount int) (*POISession
 			} else if userId == session.Created {
 				record.User = QueryUserById(session.Tutor)
 			}
+		}
+		if strings.Contains(record.Comment, " ") {
+			commentArray := strings.Split(record.Comment, " ")
+			record.Comment = commentArray[0]
+			record.SessionTimeLength = commentArray[1]
 		}
 		returnRecords = append(returnRecords, record)
 	}

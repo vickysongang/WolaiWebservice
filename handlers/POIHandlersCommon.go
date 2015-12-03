@@ -48,8 +48,6 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 }
 
 func Test(w http.ResponseWriter, r *http.Request) {
-	recordInfo := map[string]interface{}{
-		"Result": "success",
-	}
-	models.UpdatePingppRecord("ch_qfrHqPDOOibP54aXHCzPiDKO", recordInfo)
+	leancloud.SendPersonalOrderSentMsg(1003, 10004)
+	leancloud.SendPersonalOrderSentMsg(10004, 1003)
 }
