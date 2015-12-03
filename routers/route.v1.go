@@ -1,14 +1,14 @@
-// V1Routes
 package routers
 
 import (
 	"WolaiWebservice/handlers"
+	"WolaiWebservice/routers/route"
 	"WolaiWebservice/websocket"
 )
 
-var V1Routes = Routes{
+var routesV1 = route.Routes{
 	// Websocket
-	Route{
+	route.Route{
 		"V1WebSocketHandler",
 		"GET",
 		"/v1/ws",
@@ -16,19 +16,19 @@ var V1Routes = Routes{
 	},
 
 	// 1.1 Login
-	Route{
+	route.Route{
 		"V1LoginPOST",
 		"POST",
 		"/v1/login",
 		handlers.V1Login,
 	},
-	Route{
+	route.Route{
 		"V1LoginGET",
 		"GET",
 		"/v1/login",
 		handlers.V1Login,
 	},
-	Route{
+	route.Route{
 		"V1LoginGETURL",
 		"GET",
 		"/v1/login/{phone}",
@@ -36,19 +36,19 @@ var V1Routes = Routes{
 	},
 
 	// 1.2 Update profile
-	Route{
+	route.Route{
 		"V1UpdateProfilePOST",
 		"POST",
 		"/v1/update_profile",
 		handlers.V1UpdateProfile,
 	},
-	Route{
+	route.Route{
 		"V1UpdateProfileGET",
 		"GET",
 		"/v1/update_profile",
 		handlers.V1UpdateProfile,
 	},
-	Route{
+	route.Route{
 		"V1UpdateProfileGETURL",
 		"GET",
 		"/v1/update_profile/{userId}/{nickname}/{avatar}/{gender}",
@@ -56,13 +56,13 @@ var V1Routes = Routes{
 	},
 
 	// 1.3 Oauth Login
-	Route{
+	route.Route{
 		"V1OauthLoginPOST",
 		"POST",
 		"/v1/oauth/qq/login",
 		handlers.V1OauthLogin,
 	},
-	Route{
+	route.Route{
 		"V1OauthLoginGET",
 		"GET",
 		"/v1/oauth/qq/login",
@@ -70,13 +70,13 @@ var V1Routes = Routes{
 	},
 
 	// 1.4 Oauth Register
-	Route{
+	route.Route{
 		"V1OauthRegisterPOST",
 		"POST",
 		"/v1/oauth/qq/register",
 		handlers.V1OauthRegister,
 	},
-	Route{
+	route.Route{
 		"V1OauthRegisterGET",
 		"GET",
 		"/v1/oauth/qq/register",
@@ -84,13 +84,13 @@ var V1Routes = Routes{
 	},
 
 	// 1.6 Teacher Recommendation
-	Route{
+	route.Route{
 		"V1TeacherRecommendationPOST",
 		"POST",
 		"/v1/teacher/recommendation",
 		handlers.V1TeacherRecommendation,
 	},
-	Route{
+	route.Route{
 		"V1TeacherRecommendationGET",
 		"GET",
 		"/v1/teacher/recommendation",
@@ -98,59 +98,59 @@ var V1Routes = Routes{
 	},
 
 	// 1.7 Teacher Profile
-	Route{
+	route.Route{
 		"V1TeacherProfilePOST",
 		"POST",
 		"/v1/teacher/profile",
 		handlers.V1TeacherProfile,
 	},
-	Route{
+	route.Route{
 		"V1TeacherProfileGET",
 		"GET",
 		"/v1/teacher/profile",
 		handlers.V1TeacherProfile,
 	},
 	//1.8 Teacher post
-	Route{
+	route.Route{
 		"V1InsertTeacherPost",
 		"POST",
 		"/v1/teacher/insert",
 		handlers.V1TeacherPost,
 	},
 	//1.9 Check Phone
-	Route{
+	route.Route{
 		"V1CheckPhoneGET",
 		"GET",
 		"/v1/oauth/qq/checkphone",
 		handlers.V1CheckPhoneBindWithQQ,
 	},
-	Route{
+	route.Route{
 		"V1CheckPhonePost",
 		"POST",
 		"/v1/oauth/qq/checkphone",
 		handlers.V1CheckPhoneBindWithQQ,
 	},
 	// 1.10 support and teacher list
-	Route{
+	route.Route{
 		"V1SupportAndTeacherListPOST",
 		"POST",
 		"/v1/support/teacher/list",
 		handlers.V1SupportAndTeacherList,
 	},
-	Route{
+	route.Route{
 		"V1TSupportAndTeacherListGET",
 		"GET",
 		"/v1/support/teacher/list",
 		handlers.V1SupportAndTeacherList,
 	},
 	// 1.11 user login info insert
-	Route{
+	route.Route{
 		"V1InsertUserLoginInfoPOST",
 		"POST",
 		"/v1/user/logininfo/insert",
 		handlers.V1InsertUserLoginInfo,
 	},
-	Route{
+	route.Route{
 		"V1InsertUserLoginInfoGET",
 		"GET",
 		"/v1/user/logininfo/insert",
@@ -158,13 +158,13 @@ var V1Routes = Routes{
 	},
 
 	// 2.1 Atrium
-	Route{
+	route.Route{
 		"V1AtriumPOST",
 		"POST",
 		"/v1/atrium",
 		handlers.V1Atrium,
 	},
-	Route{
+	route.Route{
 		"V1AtriumGET",
 		"GET",
 		"/v1/atrium",
@@ -172,13 +172,13 @@ var V1Routes = Routes{
 	},
 
 	// 2.2 Feed Post
-	Route{
+	route.Route{
 		"V1FeedPostPOST",
 		"POST",
 		"/v1/feed/post",
 		handlers.V1FeedPost,
 	},
-	Route{
+	route.Route{
 		"V1FeedPostGET",
 		"GET",
 		"/v1/feed/post",
@@ -186,13 +186,13 @@ var V1Routes = Routes{
 	},
 
 	// 2.3 Feed Detail
-	Route{
+	route.Route{
 		"V1FeedDetailPOST",
 		"POST",
 		"/v1/feed/detail",
 		handlers.V1FeedDetail,
 	},
-	Route{
+	route.Route{
 		"V1FeedDetailGET",
 		"GET",
 		"/v1/feed/detail",
@@ -200,13 +200,13 @@ var V1Routes = Routes{
 	},
 
 	// 2.4 Feed Like
-	Route{
+	route.Route{
 		"V1FeedLikePOST",
 		"POST",
 		"/v1/feed/like",
 		handlers.V1FeedLike,
 	},
-	Route{
+	route.Route{
 		"V1FeedLikeGET",
 		"GET",
 		"/v1/feed/like",
@@ -215,13 +215,13 @@ var V1Routes = Routes{
 
 	// 2.5 Feed Favorite
 	/*
-		Route{
+		route.Route{
 			"V1FeedFavPOST",
 			"POST",
 			"/v1/feed/favorite",
 			V1FeedFav,
 		},
-		Route{
+		route.Route{
 			"V1FeedFavGET",
 			"GET",
 			"/v1/feed/favorite",
@@ -230,13 +230,13 @@ var V1Routes = Routes{
 	*/
 
 	// 2.6 Feed Comment
-	Route{
+	route.Route{
 		"V1FeedCommentPOST",
 		"POST",
 		"/v1/feed/comment",
 		handlers.V1FeedComment,
 	},
-	Route{
+	route.Route{
 		"V1FeedCommentGET",
 		"GET",
 		"/v1/feed/comment",
@@ -245,13 +245,13 @@ var V1Routes = Routes{
 
 	// 2.7 Feed Comment Like
 	/*
-		Route{
+		route.Route{
 			"V1FeedCommentLikePOST",
 			"POST",
 			"/v1/feed/comment/like",
 			V1FeedCommentLike,
 		},
-		Route{
+		route.Route{
 			"V1FeedCommentLikeGET",
 			"GET",
 			"/v1/feed/comment/like",
@@ -259,13 +259,13 @@ var V1Routes = Routes{
 		},
 	*/
 	// 2.8 Feed mark
-	Route{
+	route.Route{
 		"V1MarkFeedPOST",
 		"POST",
 		"/v1/feed/mark",
 		handlers.V1FeedMark,
 	},
-	Route{
+	route.Route{
 		"V1MarkFeedGET",
 		"GET",
 		"/v1/feed/mark",
@@ -273,52 +273,52 @@ var V1Routes = Routes{
 	},
 
 	// 2.9 Top Feed
-	Route{
+	route.Route{
 		"V1TopFeedPOST",
 		"POST",
 		"/v1/feed/top/get",
 		handlers.V1GetTopFeed,
 	},
-	Route{
+	route.Route{
 		"V1TopFeedGET",
 		"GET",
 		"/v1/feed/top/get",
 		handlers.V1GetTopFeed,
 	},
 	// 2.10 Delete Feed
-	Route{
+	route.Route{
 		"V1DeleteFeedPOST",
 		"POST",
 		"/v1/feed/delete",
 		handlers.V1FeedDelete,
 	},
-	Route{
+	route.Route{
 		"V1DeleteFeedGET",
 		"GET",
 		"/v1/feed/delete",
 		handlers.V1FeedDelete,
 	},
 	// 2.11 Recover Feed
-	Route{
+	route.Route{
 		"V1RecoverFeedPOST",
 		"POST",
 		"/v1/feed/recover",
 		handlers.V1FeedRecover,
 	},
-	Route{
+	route.Route{
 		"V1RecoverFeedGET",
 		"GET",
 		"/v1/feed/recover",
 		handlers.V1FeedRecover,
 	},
 	// 2.12 Top Feed
-	Route{
+	route.Route{
 		"V1TopFeedPOST",
 		"POST",
 		"/v1/feed/top",
 		handlers.V1FeedTop,
 	},
-	Route{
+	route.Route{
 		"V1TopFeedGET",
 		"GET",
 		"/v1/feed/top",
@@ -326,13 +326,13 @@ var V1Routes = Routes{
 	},
 
 	// 3.1 User Info
-	Route{
+	route.Route{
 		"V1UserInfoPOST",
 		"POST",
 		"/v1/user/info",
 		handlers.V1UserInfo,
 	},
-	Route{
+	route.Route{
 		"V1UserInfoGET",
 		"GET",
 		"/v1/user/info",
@@ -340,13 +340,13 @@ var V1Routes = Routes{
 	},
 
 	// 3.2 User Wallet
-	Route{
+	route.Route{
 		"V1UserMyWalletPOST",
 		"POST",
 		"/v1/user/mywallet",
 		handlers.V1UserMyWallet,
 	},
-	Route{
+	route.Route{
 		"V1UserMyWalletGET",
 		"GET",
 		"/v1/user/mywallet",
@@ -354,13 +354,13 @@ var V1Routes = Routes{
 	},
 
 	// 3.3 User MyFeed
-	Route{
+	route.Route{
 		"V1UserMyFeedPOST",
 		"POST",
 		"/v1/user/myfeed",
 		handlers.V1UserMyFeed,
 	},
-	Route{
+	route.Route{
 		"V1UserMyFeedGET",
 		"GET",
 		"/v1/user/myfeed",
@@ -368,13 +368,13 @@ var V1Routes = Routes{
 	},
 
 	// 3.4 User MyFollowing
-	Route{
+	route.Route{
 		"V1UserMyFollowPOST",
 		"POST",
 		"/v1/user/myfollow",
 		handlers.V1UserMyFollowing,
 	},
-	Route{
+	route.Route{
 		"V1UserMyFollowGET",
 		"GET",
 		"/v1/user/myfollow",
@@ -382,13 +382,13 @@ var V1Routes = Routes{
 	},
 
 	// 3.5 User MyLike
-	Route{
+	route.Route{
 		"V1UserMyLikePOST",
 		"POST",
 		"/v1/user/mylike",
 		handlers.V1UserMyLike,
 	},
-	Route{
+	route.Route{
 		"V1UserMyLikeGET",
 		"GET",
 		"/v1/user/mylike",
@@ -396,13 +396,13 @@ var V1Routes = Routes{
 	},
 
 	// 3.6 User Follow
-	Route{
+	route.Route{
 		"V1UserFollowPOST",
 		"POST",
 		"/v1/user/follow",
 		handlers.V1UserFollow,
 	},
-	Route{
+	route.Route{
 		"V1UserFollowGET",
 		"GET",
 		"/v1/user/follow",
@@ -410,13 +410,13 @@ var V1Routes = Routes{
 	},
 
 	// 3.7 User Unfollow
-	Route{
+	route.Route{
 		"V1UserUnfollowPOST",
 		"POST",
 		"/v1/user/unfollow",
 		handlers.V1UserUnfollow,
 	},
-	Route{
+	route.Route{
 		"V1UserUnfollowGET",
 		"GET",
 		"/v1/user/unfollow",
@@ -424,13 +424,13 @@ var V1Routes = Routes{
 	},
 
 	// 3.8 User Order
-	Route{
+	route.Route{
 		"V1MyOrdersGET",
 		"GET",
 		"/v1/user/myorders",
 		handlers.V1OrderInSession,
 	},
-	Route{
+	route.Route{
 		"V1MyOrdersPost",
 		"POST",
 		"/v1/user/myorders",
@@ -438,20 +438,20 @@ var V1Routes = Routes{
 	},
 
 	// 4.1 Get Conversation ID
-	Route{
+	route.Route{
 		"V1GetConversationIDPOST",
 		"POST",
 		"/v1/conversation/get",
 		handlers.V1GetConversationID,
 	},
-	Route{
+	route.Route{
 		"V1GetConversationIDGET",
 		"GET",
 		"/v1/conversation/get",
 		handlers.V1GetConversationID,
 	},
 	// 4.2 Get Conversation Participants
-	Route{
+	route.Route{
 		"V1ConversationParticipantsPOST",
 		"POST",
 		"/v1/conversation/participant",
@@ -459,13 +459,13 @@ var V1Routes = Routes{
 	},
 
 	//5.1 Grade List
-	Route{
+	route.Route{
 		"V1GradeListPOST",
 		"POST",
 		"/v1/grade/list",
 		handlers.V1GradeList,
 	},
-	Route{
+	route.Route{
 		"V1GradeListGET",
 		"GET",
 		"/v1/grade/list",
@@ -473,13 +473,13 @@ var V1Routes = Routes{
 	},
 
 	//5.2 Subject List
-	Route{
+	route.Route{
 		"V1SubjectListPOST",
 		"POST",
 		"/v1/subject/list",
 		handlers.V1SubjectList,
 	},
-	Route{
+	route.Route{
 		"V1SubjectListGET",
 		"GET",
 		"/v1/subject/list",
@@ -487,13 +487,13 @@ var V1Routes = Routes{
 	},
 
 	// 5.3 Create Order
-	Route{
+	route.Route{
 		"V1OrderCreatePOST",
 		"POST",
 		"/v1/order/create",
 		handlers.V1OrderCreate,
 	},
-	Route{
+	route.Route{
 		"V1OrderCreateGET",
 		"GET",
 		"/v1/order/create",
@@ -501,13 +501,13 @@ var V1Routes = Routes{
 	},
 
 	//5.4 Personal Order Confirm
-	Route{
+	route.Route{
 		"V1OrderPersonalConfirmPOST",
 		"POST",
 		"/v1/order/personal/confirm",
 		handlers.V1OrderPersonalConfirm,
 	},
-	Route{
+	route.Route{
 		"V1OrderPersonalConfirmGET",
 		"GET",
 		"/v1/order/personal/confirm",
@@ -515,39 +515,39 @@ var V1Routes = Routes{
 	},
 
 	//5.5 Teacher Expect Price
-	Route{
+	route.Route{
 		"V1TeacherExpectPost",
 		"POST",
 		"/v1/teacher/expect",
 		handlers.V1TeacherExpect,
 	},
-	Route{
+	route.Route{
 		"V1TeacherExpectGET",
 		"GET",
 		"/v1/teacher/expect",
 		handlers.V1TeacherExpect,
 	},
 	// 5.6 Create RealTime Order
-	Route{
+	route.Route{
 		"V1RealTimeOrderCreatePOST",
 		"POST",
 		"/v1/order/realtime/create",
 		handlers.V1RealTimeOrderCreate,
 	},
-	Route{
+	route.Route{
 		"V1RealTimeOrderCreateGET",
 		"GET",
 		"/v1/order/realtime/create",
 		handlers.V1RealTimeOrderCreate,
 	},
 	//5.7 RealTime Order Confirm
-	Route{
+	route.Route{
 		"V1RealTimeOrderConfirmPOST",
 		"POST",
 		"/v1/order/realtime/confirm",
 		handlers.V1RealTimeOrderConfirm,
 	},
-	Route{
+	route.Route{
 		"V1RealTimeOrderConfirmGET",
 		"GET",
 		"/v1/order/realtime/confirm",
@@ -555,13 +555,13 @@ var V1Routes = Routes{
 	},
 
 	//6.1 Trade Charge
-	Route{
+	route.Route{
 		"V1TradeChargePOST",
 		"POST",
 		"/v1/trade/charge",
 		handlers.V1TradeCharge,
 	},
-	Route{
+	route.Route{
 		"V1TradeChargeGET",
 		"GET",
 		"/v1/trade/charge",
@@ -569,13 +569,13 @@ var V1Routes = Routes{
 	},
 
 	//6.2 Trade Withdraw
-	Route{
+	route.Route{
 		"V1TradeWithdrawPOST",
 		"POST",
 		"/v1/trade/withdraw",
 		handlers.V1TradeWithdraw,
 	},
-	Route{
+	route.Route{
 		"V1TradeWithdrawGET",
 		"GET",
 		"/v1/trade/withdraw",
@@ -583,13 +583,13 @@ var V1Routes = Routes{
 	},
 
 	//6.3 Trade Award
-	Route{
+	route.Route{
 		"V1TradeAwardPOST",
 		"POST",
 		"/v1/trade/award",
 		handlers.V1TradeAward,
 	},
-	Route{
+	route.Route{
 		"V1TradeAwardGET",
 		"GET",
 		"/v1/trade/award",
@@ -597,13 +597,13 @@ var V1Routes = Routes{
 	},
 
 	//6.4 Trade Promotion
-	Route{
+	route.Route{
 		"V1TradePromotionPOST",
 		"POST",
 		"/v1/trade/promotion",
 		handlers.V1TradePromotion,
 	},
-	Route{
+	route.Route{
 		"V1TradePromotionGET",
 		"GET",
 		"/v1/trade/promotion",
@@ -611,13 +611,13 @@ var V1Routes = Routes{
 	},
 
 	// 6.5 User Trade Record
-	Route{
+	route.Route{
 		"V1MyTradeRecordGET",
 		"GET",
 		"/v1/trade/traderecord",
 		handlers.V1TradeRecord,
 	},
-	Route{
+	route.Route{
 		"V1MyTradeRecordPOST",
 		"POST",
 		"/v1/trade/traderecord",
@@ -625,13 +625,13 @@ var V1Routes = Routes{
 	},
 
 	// 7.1 Complain
-	Route{
+	route.Route{
 		"V1ComplainPOST",
 		"POST",
 		"/v1/complaint/complain",
 		handlers.V1Complain,
 	},
-	Route{
+	route.Route{
 		"V1ComplainGET",
 		"GET",
 		"/v1/complaint/complain",
@@ -639,26 +639,26 @@ var V1Routes = Routes{
 	},
 
 	// 7.2 Handle Complaint
-	Route{
+	route.Route{
 		"V1HandleComplaintPOST",
 		"POST",
 		"/v1/complaint/handle",
 		handlers.V1HandleComplaint,
 	},
-	Route{
+	route.Route{
 		"V1HandleComplaintGET",
 		"GET",
 		"/v1/complaint/handle",
 		handlers.V1HandleComplaint,
 	},
 	// 7.3 Check Complaint Exsits
-	Route{
+	route.Route{
 		"V1CheckComplaintExsitsPOST",
 		"POST",
 		"/v1/complaint/check",
 		handlers.V1CheckComplaintExsits,
 	},
-	Route{
+	route.Route{
 		"V1CheckComplaintExsitsGET",
 		"GET",
 		"/v1/complaint/check",
@@ -666,26 +666,26 @@ var V1Routes = Routes{
 	},
 
 	// 8.1 Search Teachers
-	Route{
+	route.Route{
 		"V1SearchTeachersPOST",
 		"POST",
 		"/v1/search/teacher",
 		handlers.V1SearchTeachers,
 	},
-	Route{
+	route.Route{
 		"V1SearchTeachersGET",
 		"GET",
 		"/v1/search/teacher",
 		handlers.V1SearchTeachers,
 	},
 	// 8.2 Search Users
-	Route{
+	route.Route{
 		"V1SearchUsersPOST",
 		"POST",
 		"/v1/search/user",
 		handlers.V1SearchUsers,
 	},
-	Route{
+	route.Route{
 		"V1SearchUsersGET",
 		"GET",
 		"/v1/search/user",
@@ -693,14 +693,14 @@ var V1Routes = Routes{
 	},
 
 	// 9.1 Insert Evaluation
-	Route{
+	route.Route{
 		"V1EvaluatePOST",
 		"POST",
 		"/v1/evaluation/insert",
 		handlers.V1Evaluate,
 	},
 
-	Route{
+	route.Route{
 		"V1EvaluateGET",
 		"GET",
 		"/v1/evaluation/insert",
@@ -708,13 +708,13 @@ var V1Routes = Routes{
 	},
 
 	// 9.2 Query Evaluation
-	Route{
+	route.Route{
 		"V1GetEvaluationPOST",
 		"POST",
 		"/v1/evaluation/query",
 		handlers.V1GetEvaluation,
 	},
-	Route{
+	route.Route{
 		"V1GetEvaluationGET",
 		"GET",
 		"/v1/evaluation/query",
@@ -722,13 +722,13 @@ var V1Routes = Routes{
 	},
 
 	// 9.3 Query Evaluation Labels
-	Route{
+	route.Route{
 		"V1GetEvaluationLabelPOST",
 		"POST",
 		"/v1/evaluation/label",
 		handlers.V1GetEvaluationLabels,
 	},
-	Route{
+	route.Route{
 		"V1GetEvaluationLabelGET",
 		"GET",
 		"/v1/evaluation/label",
@@ -736,13 +736,13 @@ var V1Routes = Routes{
 	},
 
 	// 10.1 Activity Notification
-	Route{
+	route.Route{
 		"V1GetActivitiesPOST",
 		"POST",
 		"/v1/activity/notification",
 		handlers.V1ActivityNotification,
 	},
-	Route{
+	route.Route{
 		"V1GetActivitiesGET",
 		"GET",
 		"/v1/activity/notification",
@@ -750,13 +750,13 @@ var V1Routes = Routes{
 	},
 
 	// 11.1 Bind User with InvitatoinCode
-	Route{
+	route.Route{
 		"V1BindInvitationCodePOST",
 		"POST",
 		"/v1/invitation/bind",
 		handlers.V1BindUserWithInvitationCode,
 	},
-	Route{
+	route.Route{
 		"V1BindInvitationCodeGET",
 		"GET",
 		"/v1/invitation/bind",
@@ -764,13 +764,13 @@ var V1Routes = Routes{
 	},
 
 	// 11.2 Check User Has binded with invitationCode
-	Route{
+	route.Route{
 		"V1CheckUserBindWithInvitationCodePOST",
 		"POST",
 		"/v1/invitation/check",
 		handlers.V1CheckUserHasBindWithInvitationCode,
 	},
-	Route{
+	route.Route{
 		"V1CheckUserBindWithInvitationCodeGET",
 		"GET",
 		"/v1/invitation/check",
@@ -778,78 +778,78 @@ var V1Routes = Routes{
 	},
 
 	// 12.1 GetCourses
-	Route{
+	route.Route{
 		"V1GetCoursesPOST",
 		"POST",
 		"/v1/course/list",
 		handlers.V1GetCourses,
 	},
-	Route{
+	route.Route{
 		"V1GetCoursesGET",
 		"GET",
 		"/v1/course/list",
 		handlers.V1GetCourses,
 	},
 	// 12.2 Join course
-	Route{
+	route.Route{
 		"V1JoinCoursesPOST",
 		"POST",
 		"/v1/course/join",
 		handlers.V1JoinCourse,
 	},
-	Route{
+	route.Route{
 		"V1JoinCoursesGET",
 		"GET",
 		"/v1/course/join",
 		handlers.V1JoinCourse,
 	},
 	// 12.3 Active course
-	Route{
+	route.Route{
 		"V1ActiveCoursesPOST",
 		"POST",
 		"/v1/course/active",
 		handlers.V1ActiveCourse,
 	},
-	Route{
+	route.Route{
 		"V1ActiveCourseGET",
 		"GET",
 		"/v1/course/active",
 		handlers.V1ActiveCourse,
 	},
 	// 12.4 User Renew course
-	Route{
+	route.Route{
 		"V1RenewCoursePOST",
 		"POST",
 		"/v1/course/renew",
 		handlers.V1RenewCourse,
 	},
-	Route{
+	route.Route{
 		"V1RenewCoursesGET",
 		"GET",
 		"/v1/course/renew",
 		handlers.V1RenewCourse,
 	},
 	// 12.5 Support Renew course
-	Route{
+	route.Route{
 		"V1SupportRenewCoursePOST",
 		"POST",
 		"/v1/course/support/renew",
 		handlers.V1SupportRenewCourse,
 	},
-	Route{
+	route.Route{
 		"V1SupportRenewCourseGET",
 		"GET",
 		"/v1/course/support/renew",
 		handlers.V1SupportRenewCourse,
 	},
 	// 12.6 Support reject course apply
-	Route{
+	route.Route{
 		"V1SupportRejectCoursePOST",
 		"POST",
 		"/v1/course/support/reject",
 		handlers.V1SupportRejectCourse,
 	},
-	Route{
+	route.Route{
 		"V1SupportRejectCourseGET",
 		"GET",
 		"/v1/course/support/reject",
@@ -857,13 +857,13 @@ var V1Routes = Routes{
 	},
 
 	// 13.1 Insert experience
-	Route{
+	route.Route{
 		"V1InsertExperiencePOST",
 		"POST",
 		"/v1/experience/insert",
 		handlers.V1InsertExperience,
 	},
-	Route{
+	route.Route{
 		"V1InsertExperienceGET",
 		"GET",
 		"/v1/experience/insert",
@@ -871,169 +871,169 @@ var V1Routes = Routes{
 	},
 
 	// 14.1 pingpp pay
-	Route{
+	route.Route{
 		"V1PayByPingppPOST",
 		"POST",
 		"/v1/pingpp/pay",
 		handlers.V1PayByPingpp,
 	},
-	Route{
+	route.Route{
 		"V1PayByPingppGET",
 		"GET",
 		"/v1/pingpp/pay",
 		handlers.V1PayByPingpp,
 	},
 	// 14.2 pingpp refund
-	Route{
+	route.Route{
 		"V1RefundByPingppPOST",
 		"POST",
 		"/v1/pingpp/refund",
 		handlers.V1RefundByPingpp,
 	},
-	Route{
+	route.Route{
 		"V1RefundByPingppGET",
 		"GET",
 		"/v1/pingpp/refund",
 		handlers.V1RefundByPingpp,
 	},
 	// 14.3 pingpp query payment
-	Route{
+	route.Route{
 		"V1QueryPaymentByPingppPOST",
 		"POST",
 		"/v1/pingpp/pay/query",
 		handlers.V1QueryPaymentByPingpp,
 	},
-	Route{
+	route.Route{
 		"V1QueryPaymentByPingppGET",
 		"GET",
 		"/v1/pingpp/pay/query",
 		handlers.V1QueryPaymentByPingpp,
 	},
 	// 14.4 pingpp query payment list
-	Route{
+	route.Route{
 		"V1QueryPaymentListByPingppPOST",
 		"POST",
 		"/v1/pingpp/pay/list",
 		handlers.V1QueryPaymentListByPingpp,
 	},
-	Route{
+	route.Route{
 		"V1QueryPaymentListByPingppGET",
 		"GET",
 		"/v1/pingpp/pay/list",
 		handlers.V1QueryPaymentListByPingpp,
 	},
 	// 14.5 pingpp query refund
-	Route{
+	route.Route{
 		"V1QueryRefundByPingppPOST",
 		"POST",
 		"/v1/pingpp/refund/query",
 		handlers.V1QueryRefundByPingpp,
 	},
-	Route{
+	route.Route{
 		"V1QueryRefundByPingppGET",
 		"GET",
 		"/v1/pingpp/refund/query",
 		handlers.V1QueryRefundByPingpp,
 	},
 	// 14.6 pingpp query refund list
-	Route{
+	route.Route{
 		"V1QueryRefundListByPingppPOST",
 		"POST",
 		"/v1/pingpp/refund/list",
 		handlers.V1QueryRefundListByPingpp,
 	},
-	Route{
+	route.Route{
 		"V1QueryRefundListByPingppGET",
 		"GET",
 		"/v1/pingpp/refund/list",
 		handlers.V1QueryRefundListByPingpp,
 	},
 	// 14.7 pingpp webhook
-	Route{
+	route.Route{
 		"V1WebhookByPingppPOST",
 		"POST",
 		"/v1/pingpp/webhook",
 		handlers.V1WebhookByPingpp,
 	},
-	Route{
+	route.Route{
 		"V1WebhookByPingppGET",
 		"GET",
 		"/v1/pingpp/webhook",
 		handlers.V1WebhookByPingpp,
 	},
 	// 14.8 pingpp result
-	Route{
+	route.Route{
 		"V1GetPingResultPOST",
 		"POST",
 		"/v1/pingpp/result",
 		handlers.V1GetPingppResult,
 	},
-	Route{
+	route.Route{
 		"V1GetPingResultGET",
 		"GET",
 		"/v1/pingpp/result",
 		handlers.V1GetPingppResult,
 	},
 	// 15.1 sendcloud smshook
-	Route{
+	route.Route{
 		"V1WSMSHookPOST",
 		"POST",
 		"/v1/sendcloud/smshook",
 		handlers.V1SmsHook,
 	},
 	// 15.2 senccloud sendmessage
-	Route{
+	route.Route{
 		"V1SCSendMessagePOST",
 		"POST",
 		"/v1/sendcloud/sendmessage",
 		handlers.V1SendMessage,
 	},
 
-	Route{
+	route.Route{
 		"V1BannerPOST",
 		"POST",
 		"/v1/banner",
 		handlers.V1Banner,
 	},
-	Route{
+	route.Route{
 		"V1BannerGET",
 		"GET",
 		"/v1/banner",
 		handlers.V1Banner,
 	},
 
-	Route{
+	route.Route{
 		"V1StatusLivePOST",
 		"POST",
 		"/v1/status/live",
 		handlers.V1StatusLive,
 	},
-	Route{
+	route.Route{
 		"V1StatusLiveGET",
 		"GET",
 		"/v1/status/live",
 		handlers.V1StatusLive,
 	},
 
-	Route{
+	route.Route{
 		"V1SendAdvMessagePOST",
 		"POST",
 		"/v1/send/adv",
 		handlers.V1SendAdvMessage,
 	},
-	Route{
+	route.Route{
 		"V1SendAdvMessageGET",
 		"GET",
 		"/v1/send/adv",
 		handlers.V1SendAdvMessage,
 	},
-	Route{
+	route.Route{
 		"V1GetHelpItemsPOST",
 		"POST",
 		"/v1/help/get",
 		handlers.V1GetHelpItems,
 	},
-	Route{
+	route.Route{
 		"V1GetHelpItemsGET",
 		"GET",
 		"/v1/help/get",
@@ -1041,97 +1041,97 @@ var V1Routes = Routes{
 	},
 
 	//---------POI Monitor------//
-	Route{
+	route.Route{
 		"V1MonitorUserPOST",
 		"POST",
 		"/v1/monitor/user",
 		handlers.GetUserMonitorInfo,
 	},
-	Route{
+	route.Route{
 		"V1MonitorUserGET",
 		"GET",
 		"/v1/monitor/user",
 		handlers.GetUserMonitorInfo,
 	},
-	Route{
+	route.Route{
 		"V1MonitorOrderPOST",
 		"POST",
 		"/v1/monitor/order",
 		handlers.GetOrderMonitorInfo,
 	},
-	Route{
+	route.Route{
 		"V1MonitorOrderGET",
 		"GET",
 		"/v1/monitor/order",
 		handlers.GetOrderMonitorInfo,
 	},
-	Route{
+	route.Route{
 		"V1MonitorSessionPOST",
 		"POST",
 		"/v1/monitor/session",
 		handlers.GetSessionMonitorInfo,
 	},
-	Route{
+	route.Route{
 		"V1MonitorSessionGET",
 		"GET",
 		"/v1/monitor/session",
 		handlers.GetSessionMonitorInfo,
 	},
-	Route{
+	route.Route{
 		"V1PostSeekHelpPOST",
 		"POST",
 		"/v1/seekhelp/post",
 		handlers.V1SetSeekHelp,
 	},
-	Route{
+	route.Route{
 		"V1PostSeekHelpGET",
 		"GET",
 		"/v1/seekhelp/post",
 		handlers.V1SetSeekHelp,
 	},
-	Route{
+	route.Route{
 		"V1GetSeekHelpsPOST",
 		"POST",
 		"/v1/seekhelp/get",
 		handlers.V1GetSeekHelps,
 	},
-	Route{
+	route.Route{
 		"V1GetSeekHelpsGET",
 		"GET",
 		"/v1/seekhelp/get",
 		handlers.V1GetSeekHelps,
 	},
-	Route{
+	route.Route{
 		"V1GetSeekHelpsCountGET",
 		"GET",
 		"/v1/seekhelp/count",
 		handlers.V1GetSeekHelpsCount,
 	},
-	Route{
+	route.Route{
 		"V1GetSeekHelpsCountPOST",
 		"POST",
 		"/v1/seekhelp/count",
 		handlers.V1GetSeekHelpsCount,
 	},
-	Route{
+	route.Route{
 		"V1GetMessageLogsPOST",
 		"POST",
 		"/v1/messagelog/list",
 		handlers.V1GetMessageLogs,
 	},
-	Route{
+	route.Route{
 		"V1GetMessageLogsGET",
 		"GET",
 		"/v1/messagelog/list",
 		handlers.V1GetMessageLogs,
 	},
-	Route{
+	route.Route{
 		"V1GetMessageLogsCountPOST",
 		"POST",
 		"/v1/messagelog/count",
 		handlers.V1GetMessageLogsCount,
 	},
-	Route{
+	route.Route{
 		"V1GetMessageLogsCountGET",
 		"GET",
 		"/v1/messagelog/count",
@@ -1139,19 +1139,19 @@ var V1Routes = Routes{
 	},
 
 	// Dummy
-	Route{
+	route.Route{
 		"Dummy",
 		"GET",
 		"/dummy",
 		handlers.Dummy,
 	},
-	Route{
+	route.Route{
 		"Dummy2",
 		"GET",
 		"/dummy2",
 		handlers.Dummy2,
 	},
-	Route{
+	route.Route{
 		"TestGET",
 		"GET",
 		"/test",
