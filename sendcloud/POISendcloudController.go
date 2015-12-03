@@ -8,6 +8,7 @@ import (
 	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -18,8 +19,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	seelog "github.com/cihub/seelog"
 )
 
 const (
@@ -31,9 +30,15 @@ const (
 )
 
 var (
-	ErrMsgRepeatSend   = errors.New("不能在一分钟内多次获取验证码")
+	ErrMsgRepeatSend   = errors.New("验证码发送过于频繁")
 	ErrRandCodeTimeout = errors.New("验证码已失效")
 )
+
+type SendcloudResponse struct {
+	Message    string `json:"message"`
+	Result     bool   `json:"result"`
+	StatusCode int64  `json:"statusCode"`
+}
 
 type RandInfoCode struct {
 	RandCode  string
@@ -109,7 +114,11 @@ func SCSendMessage(phone string, randCode string) error {
 	if err != nil {
 		return err
 	}
-	seelog.Info("send message to ", phone, " ", string(bodyByte))
+	var sendcloudResponse SendcloudResponse
+	json.Unmarshal(bodyByte, &sendcloudResponse)
+	if !sendcloudResponse.Result {
+		return errors.New(sendcloudResponse.Message)
+	}
 	return nil
 }
 
@@ -145,10 +154,8 @@ func SMSHook(token, timestamp, signature, event string, phones string) {
 func SendMessage(phone string) error {
 	oldRandCode, timestamp := redis.RedisManager.GetSendcloudRandCode(phone)
 	currTimeUnix := time.Now().Unix()
-	if oldRandCode != "" {
-		if currTimeUnix-timestamp <= 60 {
-			return ErrMsgRepeatSend
-		}
+	if oldRandCode != "" && (currTimeUnix-timestamp <= 60) {
+		return ErrMsgRepeatSend
 	} else {
 		newRandCode := GenerateRandCode()
 		err := SCSendMessage(phone, newRandCode)
