@@ -25,7 +25,7 @@ var feedRoutes = route.Routes{
 		"GetFeedFlow",
 		"POST",
 		"/atrium",
-		handlerv2.Dummy,
+		handlerv2.FeedAtrium,
 	},
 
 	// 3.1.2
@@ -33,7 +33,7 @@ var feedRoutes = route.Routes{
 		"GetFeedFlowStick",
 		"POST",
 		"/atrium/stick",
-		handlerv2.Dummy,
+		handlerv2.FeedAtriumStick,
 	},
 
 	// 3.1.3
@@ -41,7 +41,7 @@ var feedRoutes = route.Routes{
 		"PostFeed",
 		"POST",
 		"/post",
-		handlerv2.Dummy,
+		handlerv2.FeedPost,
 	},
 
 	// 3.1.4
@@ -49,7 +49,7 @@ var feedRoutes = route.Routes{
 		"GetFeedDetail",
 		"POST",
 		"/detail",
-		handlerv2.Dummy,
+		handlerv2.FeedDetail,
 	},
 
 	// 3.1.5
@@ -57,7 +57,7 @@ var feedRoutes = route.Routes{
 		"LikeFeed",
 		"POST",
 		"/like",
-		handlerv2.Dummy,
+		handlerv2.FeedLike,
 	},
 
 	// 3.1.6
@@ -65,7 +65,7 @@ var feedRoutes = route.Routes{
 		"CommentFeed",
 		"POST",
 		"/comment",
-		handlerv2.Dummy,
+		handlerv2.FeedComment,
 	},
 
 	// 3.2.1

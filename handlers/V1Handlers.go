@@ -9,30 +9,27 @@ import (
 	"strings"
 	"time"
 
-	"WolaiWebservice/controllers"
-	"WolaiWebservice/utils"
-
-	"WolaiWebservice/controllers/trade"
-
-	"WolaiWebservice/leancloud"
-	"WolaiWebservice/models"
-	"WolaiWebservice/redis"
-	"WolaiWebservice/websocket"
-
 	pingxx "WolaiWebservice/pingpp"
-
-	"WolaiWebservice/sendcloud"
-
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/mux"
 	"github.com/pingplusplus/pingpp-go/pingpp"
+
+	"WolaiWebservice/controllers"
+	"WolaiWebservice/controllers/trade"
+	"WolaiWebservice/handlers/response"
+	"WolaiWebservice/leancloud"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
+	"WolaiWebservice/sendcloud"
+	"WolaiWebservice/utils"
+	"WolaiWebservice/websocket"
 )
 
 /*
  * 1.1 Login
  */
 func V1Login(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -40,23 +37,23 @@ func V1Login(w http.ResponseWriter, r *http.Request) {
 	vars := r.Form
 	phone := vars["phone"][0]
 	status, content := controllers.POIUserLogin(phone)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 
 }
 
 func V1LoginGETURL(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	vars := mux.Vars(r)
 	phone := vars["phone"]
 	status, content := controllers.POIUserLogin(phone)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 }
 
 /*
  * 1.2 Update Profile
  */
 func V1UpdateProfile(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -71,11 +68,11 @@ func V1UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
 	status, content := controllers.POIUserUpdateProfile(userId, nickname, avatar, gender)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 }
 
 func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	vars := mux.Vars(r)
 	userIdStr := vars["userId"]
 	nickname := vars["nickname"]
@@ -86,14 +83,14 @@ func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
 	status, content := controllers.POIUserUpdateProfile(userId, nickname, avatar, gender)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 }
 
 /*
  * 1.3 Oauth Login
  */
 func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -102,9 +99,9 @@ func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
 	openId := vars["openId"][0]
 	status, content := controllers.POIUserOauthLogin(openId)
 	if content == nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
 
@@ -112,7 +109,7 @@ func V1OauthLogin(w http.ResponseWriter, r *http.Request) {
  * 1.4 Oauth Register
  */
 func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -128,14 +125,14 @@ func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
 	status, content := controllers.POIUserOauthRegister(openId, phone, nickname, avatar, gender)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 }
 
 /*
  * 1.5 My Orders
  */
 func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -176,9 +173,9 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
 		content, err = models.QueryOrderInSession4Both(userId, int(pageNum), int(pageCount))
 	}
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -186,7 +183,7 @@ func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
  * 1.6 Teacher Recommendation
  */
 func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -211,9 +208,9 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := controllers.GetTeacherRecommendationList(userId, page, count)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -221,7 +218,7 @@ func V1TeacherRecommendation(w http.ResponseWriter, r *http.Request) {
  * 1.7 Teacher Profile
  */
 func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -233,7 +230,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 
 	teacher := models.QueryUserById(teacherId)
 	if teacher.AccessRight == models.USER_ACCESSRIGHT_STUDENT {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, "", NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullObject))
 		return
 	}
 
@@ -241,9 +238,9 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	content, err := controllers.GetTeacherProfile(userId, teacherId)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -251,7 +248,7 @@ func V1TeacherProfile(w http.ResponseWriter, r *http.Request) {
 * 1.8 Teacher Post
  */
 func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -261,12 +258,12 @@ func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
 		teacherInfo := vars["teacherInfo"][0]
 		content, err := controllers.InsertTeacher(teacherInfo)
 		if err != nil {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+			json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 		} else {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+			json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 		}
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, "teacherInfo is needed.", NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, "teacherInfo is needed.", response.NullSlice))
 	}
 }
 
@@ -274,7 +271,7 @@ func V1TeacherPost(w http.ResponseWriter, r *http.Request) {
  * 1.9 support and teacher list
  */
 func V1SupportAndTeacherList(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -299,9 +296,9 @@ func V1SupportAndTeacherList(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := controllers.GetSupportAndTeacherList(userId, page, count)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -309,7 +306,7 @@ func V1SupportAndTeacherList(w http.ResponseWriter, r *http.Request) {
  * 1.10 Insert user loginInfo
  */
 func V1InsertUserLoginInfo(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -323,9 +320,9 @@ func V1InsertUserLoginInfo(w http.ResponseWriter, r *http.Request) {
 	userAgent := r.UserAgent()
 	content, err := controllers.InsertUserLoginInfo(userId, objectId, address, ip, userAgent)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -333,7 +330,7 @@ func V1InsertUserLoginInfo(w http.ResponseWriter, r *http.Request) {
  * 2.1 Atrium
  */
 func V1Atrium(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -362,9 +359,9 @@ func V1Atrium(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := controllers.GetAtrium(userId, page, count, plateTypeStr)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -372,7 +369,7 @@ func V1Atrium(w http.ResponseWriter, r *http.Request) {
  * 2.2 Feed Post
  */
 func V1FeedPost(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -408,9 +405,9 @@ func V1FeedPost(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := controllers.PostPOIFeed(userId, timestamp, feedType, text, imageStr, originFeedId, attributeStr)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -418,7 +415,7 @@ func V1FeedPost(w http.ResponseWriter, r *http.Request) {
  * 2.3 Feed Detail
  */
 func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -433,9 +430,9 @@ func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
 
 	content, err := controllers.GetFeedDetail(feedId, userId)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -443,7 +440,7 @@ func V1FeedDetail(w http.ResponseWriter, r *http.Request) {
  * 2.4 Feed Like
  */
 func V1FeedLike(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -464,9 +461,9 @@ func V1FeedLike(w http.ResponseWriter, r *http.Request) {
 	content, err := controllers.GetFeedDetail(feedId, userId)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -474,7 +471,7 @@ func V1FeedLike(w http.ResponseWriter, r *http.Request) {
  * 2.6 Feed Comment
  */
 func V1FeedComment(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -507,9 +504,9 @@ func V1FeedComment(w http.ResponseWriter, r *http.Request) {
 	content, err := controllers.GetFeedDetail(feedId, userId)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -517,20 +514,20 @@ func V1FeedComment(w http.ResponseWriter, r *http.Request) {
  * 2.7 Feed Comment Like
  */
 func V1FeedCommentLike(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
 	}
 
-	json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+	json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 }
 
 /*
  * 2.9 Feed Mark
  */
 func V1FeedMark(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -547,9 +544,9 @@ func V1FeedMark(w http.ResponseWriter, r *http.Request) {
 	content, err := controllers.MarkPOIFeed(feedIdStr, plateType, action)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -557,7 +554,7 @@ func V1FeedMark(w http.ResponseWriter, r *http.Request) {
  * 2.10 GET TOP FEED
  */
 func V1GetTopFeed(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -572,9 +569,9 @@ func V1GetTopFeed(w http.ResponseWriter, r *http.Request) {
 	content, err := controllers.GetTopFeed(userId, plateType)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -582,7 +579,7 @@ func V1GetTopFeed(w http.ResponseWriter, r *http.Request) {
  * 2.11 Delete Feed
  */
 func V1FeedDelete(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -590,14 +587,14 @@ func V1FeedDelete(w http.ResponseWriter, r *http.Request) {
 	vars := r.Form
 	feedIdStr := vars["feedId"][0]
 	controllers.DeleteFeed(feedIdStr)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
 
 /*
  * 2.12 Recover Feed
  */
 func V1FeedRecover(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -605,14 +602,14 @@ func V1FeedRecover(w http.ResponseWriter, r *http.Request) {
 	vars := r.Form
 	feedIdStr := vars["feedId"][0]
 	controllers.RecoverFeed(feedIdStr)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
 
 /*
  * 2.13 Top Feed
  */
 func V1FeedTop(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -622,14 +619,14 @@ func V1FeedTop(w http.ResponseWriter, r *http.Request) {
 	plateType := vars["plateType"][0]
 	action := vars["action"][0]
 	controllers.TopFeed(feedIdStr, plateType, action)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
 
 /*
  * 3.1 User MyProfile
  */
 func V1UserInfo(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -643,9 +640,9 @@ func V1UserInfo(w http.ResponseWriter, r *http.Request) {
 	content := controllers.LoadPOIUser(userId)
 
 	if content == nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, "", NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -654,7 +651,7 @@ func V1UserInfo(w http.ResponseWriter, r *http.Request) {
  */
 
 func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -666,10 +663,10 @@ func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	user := models.QueryUserById(userId)
 	if user == nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, "user "+userIdStr+" doesn't exist!", NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, "user "+userIdStr+" doesn't exist!", response.NullObject))
 	} else {
 		content := user.Balance
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -677,7 +674,7 @@ func V1UserMyWallet(w http.ResponseWriter, r *http.Request) {
  * 3.3 User MyFeed
  */
 func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -704,9 +701,9 @@ func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
 	content, err := controllers.GetUserFeed(userId, page, count)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -714,7 +711,7 @@ func V1UserMyFeed(w http.ResponseWriter, r *http.Request) {
  * 3.4 User MyFollowing
  */
 func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -740,9 +737,9 @@ func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
 	content := controllers.GetUserFollowing(userId, page, count)
 
 	if content == nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, "", NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -750,7 +747,7 @@ func V1UserMyFollowing(w http.ResponseWriter, r *http.Request) {
  * 3.5 User MyLike
  */
 func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -776,9 +773,9 @@ func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
 	content, err := controllers.GetUserLike(userId, page, count)
 
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -786,7 +783,7 @@ func V1UserMyLike(w http.ResponseWriter, r *http.Request) {
  * 3.6 User Follow
  */
 func V1UserFollow(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -802,14 +799,14 @@ func V1UserFollow(w http.ResponseWriter, r *http.Request) {
 
 	status, content := controllers.POIUserFollow(userId, followId)
 
-	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 }
 
 /*
  * 3.7 User UnFollow
  */
 func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -825,14 +822,14 @@ func V1UserUnfollow(w http.ResponseWriter, r *http.Request) {
 
 	status, content := controllers.POIUserUnfollow(userId, followId)
 
-	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 }
 
 /*
  * 4.1 Get Conversation ID
  */
 func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -848,14 +845,14 @@ func V1GetConversationID(w http.ResponseWriter, r *http.Request) {
 
 	status, content := controllers.GetUserConversation(userId, targetId)
 
-	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 }
 
 /*
  * 5.1 Grade List
  */
 func V1GradeList(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -869,16 +866,16 @@ func V1GradeList(w http.ResponseWriter, r *http.Request) {
 
 		content, err := models.QueryGradeListByPid(pid)
 		if err != nil {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+			json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 		} else {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+			json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 		}
 	} else {
 		content, err := models.QueryGradeList()
 		if err != nil {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+			json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 		} else {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+			json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 		}
 	}
 }
@@ -887,7 +884,7 @@ func V1GradeList(w http.ResponseWriter, r *http.Request) {
  *
  */
 func V1SubjectList(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -901,16 +898,16 @@ func V1SubjectList(w http.ResponseWriter, r *http.Request) {
 	if gradeId == 0 {
 		content, err := models.QuerySubjectList()
 		if err != nil {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+			json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 		} else {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+			json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 		}
 	} else {
 		content, err := models.QuerySubjectListByGrade(gradeId)
 		if err != nil {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+			json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 		} else {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+			json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 		}
 	}
 }
@@ -919,7 +916,7 @@ func V1SubjectList(w http.ResponseWriter, r *http.Request) {
  * 5.3 Order Create
  */
 func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -969,9 +966,9 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
 	status, content, err := controllers.OrderCreate(userId, teacherId, gradeId, subjectId, date,
 		periodId, length, orderType, ignoreCourseFlag)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(status, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
 
@@ -979,7 +976,7 @@ func V1OrderCreate(w http.ResponseWriter, r *http.Request) {
  * 5.4 Personal Order Confirm
  */
 func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1000,14 +997,14 @@ func V1OrderPersonalConfirm(w http.ResponseWriter, r *http.Request) {
 	accept, _ := strconv.ParseInt(acceptStr, 10, 64)
 
 	status := controllers.OrderPersonalConfirm(userId, orderId, accept, timestamp)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", NullObject))
+	json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
 }
 
 /*
  * 5.5 Teacher Expect Price
  */
 func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1035,13 +1032,13 @@ func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
 			"price":     4000,
 			"realPrice": -1,
 		}
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	} else {
 		content := map[string]interface{}{
 			"price":     4000,
 			"realPrice": 6000,
 		}
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1049,7 +1046,7 @@ func V1TeacherExpect(w http.ResponseWriter, r *http.Request) {
  * 5.6 RealTime Order Create
  */
 func V1RealTimeOrderCreate(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1083,9 +1080,9 @@ func V1RealTimeOrderCreate(w http.ResponseWriter, r *http.Request) {
 	status, content, err := controllers.RealTimeOrderCreate(userId, teacherId, gradeId, subjectId, date,
 		periodId, length, orderType)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(status, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
 
@@ -1093,7 +1090,7 @@ func V1RealTimeOrderCreate(w http.ResponseWriter, r *http.Request) {
  * 5.7 RealTime Order Confirm
  */
 func V1RealTimeOrderConfirm(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1114,14 +1111,14 @@ func V1RealTimeOrderConfirm(w http.ResponseWriter, r *http.Request) {
 	accept, _ := strconv.ParseInt(acceptStr, 10, 64)
 
 	status := controllers.OrderPersonalConfirm(userId, orderId, accept, timestamp)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(status, "", NullObject))
+	json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
 }
 
 /*
  * 6.1 Trade Charge
  */
 func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1139,10 +1136,10 @@ func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := trade.HandleSystemTrade(userId, amount, models.TRADE_CHARGE, "S", comment)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
 		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "交易提醒", "用户充值", "你已充值成功")
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1150,7 +1147,7 @@ func V1TradeCharge(w http.ResponseWriter, r *http.Request) {
  * 6.2 Trade Withdraw
  */
 func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1168,10 +1165,10 @@ func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := trade.HandleSystemTrade(userId, amount, models.TRADE_WITHDRAW, "S", comment)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
 		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_EXPENSE, "交易提醒", "用户提现", "你已提现成功")
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1179,7 +1176,7 @@ func V1TradeWithdraw(w http.ResponseWriter, r *http.Request) {
  * 6.3 Trade Award
  */
 func V1TradeAward(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1197,10 +1194,10 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := trade.HandleSystemTrade(userId, amount, models.TRADE_AWARD, "S", comment)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
 		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "交易提醒", "导师奖励", "系统充值成功")
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1208,7 +1205,7 @@ func V1TradeAward(w http.ResponseWriter, r *http.Request) {
  * 6.4 Trade Promotion
  */
 func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1226,10 +1223,10 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := trade.HandleSystemTrade(userId, amount, models.TRADE_PROMOTION, "S", comment)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
 		go leancloud.SendTradeNotificationSystem(userId, amount, leancloud.LC_TRADE_STATUS_INCOME, "交易提醒", "活动赠送", "系统充值成功")
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1237,7 +1234,7 @@ func V1TradePromotion(w http.ResponseWriter, r *http.Request) {
  * 6.5 Get User TradeRecord
  */
 func V1TradeRecord(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1261,9 +1258,9 @@ func V1TradeRecord(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := models.QuerySessionTradeRecords(userId, int(page), int(count))
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1271,7 +1268,7 @@ func V1TradeRecord(w http.ResponseWriter, r *http.Request) {
  * 7.1 Student Complain
  */
 func V1Complain(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1292,9 +1289,9 @@ func V1Complain(w http.ResponseWriter, r *http.Request) {
 	complaint := models.POIComplaint{UserId: userId, SessionId: sessionId, Reasons: reasons, Comment: comment, Status: "pending"}
 	content, err := models.InsertPOIComplaint(&complaint)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1302,7 +1299,7 @@ func V1Complain(w http.ResponseWriter, r *http.Request) {
  * 7.2 Handle Complaint
  */
 func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1317,9 +1314,9 @@ func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
 	complaintMap := map[string]interface{}{"Status": "processed", "Suggestion": suggestion}
 	err = models.UpdateComplaintInfo(complaintId, complaintMap)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 	}
 }
 
@@ -1327,7 +1324,7 @@ func V1HandleComplaint(w http.ResponseWriter, r *http.Request) {
  * 7.3 Check Complaint Exsits
  */
 func V1CheckComplaintExsits(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1338,14 +1335,14 @@ func V1CheckComplaintExsits(w http.ResponseWriter, r *http.Request) {
 	sessionIdStr := vars["sessionId"][0]
 	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 60)
 	status := models.GetComplaintStatus(userId, sessionId)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", status))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", status))
 }
 
 /*
  *  8.1 Search Teachers
  */
 func V1SearchTeachers(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1374,9 +1371,9 @@ func V1SearchTeachers(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := controllers.SearchTeachers(userId, keyword, pageNum, pageCount)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1384,7 +1381,7 @@ func V1SearchTeachers(w http.ResponseWriter, r *http.Request) {
  *  8.2 Search Userss
  */
 func V1SearchUsers(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1413,9 +1410,9 @@ func V1SearchUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := controllers.SearchUsers(userId, keyword, pageNum, pageCount)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1423,7 +1420,7 @@ func V1SearchUsers(w http.ResponseWriter, r *http.Request) {
  * 9.1 Insert Evaluation
  */
 func V1Evaluate(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1440,9 +1437,9 @@ func V1Evaluate(w http.ResponseWriter, r *http.Request) {
 	evaluation := models.POIEvaluation{UserId: userId, SessionId: sessionId, Content: evaluationContent}
 	content, err := models.InsertEvaluation(&evaluation)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1450,7 +1447,7 @@ func V1Evaluate(w http.ResponseWriter, r *http.Request) {
  * 9.2 Query Evaluation
  */
 func V1GetEvaluation(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1464,9 +1461,9 @@ func V1GetEvaluation(w http.ResponseWriter, r *http.Request) {
 
 	content, err := models.QueryEvaluationInfo(userId, sessionId)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1474,7 +1471,7 @@ func V1GetEvaluation(w http.ResponseWriter, r *http.Request) {
  * 9.3 Query Evaluation Labels
  */
 func V1GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1494,9 +1491,9 @@ func V1GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := controllers.QuerySystemEvaluationLabels(userId, sessionId, count)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1504,7 +1501,7 @@ func V1GetEvaluationLabels(w http.ResponseWriter, r *http.Request) {
  * 10.1 Activities
  */
 func V1ActivityNotification(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1515,14 +1512,14 @@ func V1ActivityNotification(w http.ResponseWriter, r *http.Request) {
 
 	content := redis.RedisManager.GetActivityNotification(userId)
 
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
 
 /*
  * 11.1 Bind User with InvitationCode
  */
 func V1BindUserWithInvitationCode(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1533,14 +1530,14 @@ func V1BindUserWithInvitationCode(w http.ResponseWriter, r *http.Request) {
 	invitationCode := vars["code"][0]
 	valid := models.CheckInvitationCodeValid(invitationCode)
 	if !valid {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, "邀请码无效", NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, "邀请码无效", response.NullObject))
 	} else {
 		userToInvitation := models.POIUserToInvitation{UserId: userId, InvitationCode: invitationCode}
 		_, err := models.InsertUserToInvitation(&userToInvitation)
 		if err != nil {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+			json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 		} else {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+			json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 		}
 	}
 }
@@ -1549,7 +1546,7 @@ func V1BindUserWithInvitationCode(w http.ResponseWriter, r *http.Request) {
  * 11.1 Check user has binded with InvitationCode
  */
 func V1CheckUserHasBindWithInvitationCode(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1558,14 +1555,14 @@ func V1CheckUserHasBindWithInvitationCode(w http.ResponseWriter, r *http.Request
 	userIdStr := vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	bindFlag := models.CheckUserHasBindWithInvitationCode(userId)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", bindFlag))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", bindFlag))
 }
 
 /*
  * 12.1 Get Courses
  */
 func V1GetCourses(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1575,9 +1572,9 @@ func V1GetCourses(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	content, err := controllers.QueryUserCourses(userId)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1585,7 +1582,7 @@ func V1GetCourses(w http.ResponseWriter, r *http.Request) {
  * 12.2 Join Course
  */
 func V1JoinCourse(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1603,9 +1600,9 @@ func V1JoinCourse(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := controllers.JoinCourse(userId, courseId)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1613,7 +1610,7 @@ func V1JoinCourse(w http.ResponseWriter, r *http.Request) {
  * 12.3 active Course
  */
 func V1ActiveCourse(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1631,9 +1628,9 @@ func V1ActiveCourse(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := controllers.ActiveUserCourse(userId, courseId)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1641,7 +1638,7 @@ func V1ActiveCourse(w http.ResponseWriter, r *http.Request) {
  * 12.4 user renew Course
  */
 func V1RenewCourse(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1659,9 +1656,9 @@ func V1RenewCourse(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := controllers.UserRenewCourse(userId, courseId)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1669,7 +1666,7 @@ func V1RenewCourse(w http.ResponseWriter, r *http.Request) {
  * 12.5 support renew Course
  */
 func V1SupportRenewCourse(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1694,9 +1691,9 @@ func V1SupportRenewCourse(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := controllers.SupportRenewUserCourse(userId, courseId, renewCount)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1704,7 +1701,7 @@ func V1SupportRenewCourse(w http.ResponseWriter, r *http.Request) {
  * 12.6 support reject Course apply
  */
 func V1SupportRejectCourse(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1722,9 +1719,9 @@ func V1SupportRejectCourse(w http.ResponseWriter, r *http.Request) {
 	}
 	content, err := controllers.SupportRejectUserCourse(userId, courseId)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1732,7 +1729,7 @@ func V1SupportRejectCourse(w http.ResponseWriter, r *http.Request) {
  * 13.1 Insert experience
  */
 func V1InsertExperience(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1742,12 +1739,12 @@ func V1InsertExperience(w http.ResponseWriter, r *http.Request) {
 	phone := vars["phone"][0]
 	content, err := controllers.InsertExperience(nickname, phone)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
 		if content == nil {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(2, "该号码已存在", NullObject))
+			json.NewEncoder(w).Encode(response.NewResponse(2, "该号码已存在", response.NullObject))
 		} else {
-			json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+			json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 		}
 	}
 }
@@ -1756,7 +1753,7 @@ func V1InsertExperience(w http.ResponseWriter, r *http.Request) {
  * 14.1 pingpp pay
  */
 func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1813,9 +1810,9 @@ func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
 
 	content, err := pingxx.PayByPingpp(orderNo, amount, channel, currency, clientIp, subject, body, phone, extraMap)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1823,7 +1820,7 @@ func V1PayByPingpp(w http.ResponseWriter, r *http.Request) {
  * 14.2 pingpp refund
  */
 func V1RefundByPingpp(w http.ResponseWriter, r *http.Request) {
-	//	defer ThrowsPanicException(w, NullObject)
+	//	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1835,9 +1832,9 @@ func V1RefundByPingpp(w http.ResponseWriter, r *http.Request) {
 	chargeId := vars["chargeId"][0]
 	content, err := pingxx.RefundByPingpp(amount, description, chargeId)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1845,7 +1842,7 @@ func V1RefundByPingpp(w http.ResponseWriter, r *http.Request) {
  * 14.3 pingpp query payment
  */
 func V1QueryPaymentByPingpp(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1854,9 +1851,9 @@ func V1QueryPaymentByPingpp(w http.ResponseWriter, r *http.Request) {
 	chargeId := vars["chargeId"][0]
 	content, err := pingxx.QueryPaymentByChargeId(chargeId)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1864,7 +1861,7 @@ func V1QueryPaymentByPingpp(w http.ResponseWriter, r *http.Request) {
  * 14.4 pingpp query payment list
  */
 func V1QueryPaymentListByPingpp(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1883,14 +1880,14 @@ func V1QueryPaymentListByPingpp(w http.ResponseWriter, r *http.Request) {
 		limit = "10"
 	}
 	content := pingxx.QueryPaymentList(limit, page)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
 
 /*
  * 14.5 pingpp query refund
  */
 func V1QueryRefundByPingpp(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1900,9 +1897,9 @@ func V1QueryRefundByPingpp(w http.ResponseWriter, r *http.Request) {
 	refundId := vars["refundId"][0]
 	content, err := pingxx.QueryRefundByChargeIdAndRefundId(chargeId, refundId)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1910,7 +1907,7 @@ func V1QueryRefundByPingpp(w http.ResponseWriter, r *http.Request) {
  * 14.6 pingpp query refund list
  */
 func V1QueryRefundListByPingpp(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1930,7 +1927,7 @@ func V1QueryRefundListByPingpp(w http.ResponseWriter, r *http.Request) {
 		limit = "10"
 	}
 	content := pingxx.QueryRefundList(chargeId, limit, page)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
 
 /*
@@ -1970,7 +1967,7 @@ func V1WebhookByPingpp(w http.ResponseWriter, r *http.Request) {
  * 14.8 pingpp charge or refund result
  */
 func V1GetPingppResult(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -1979,9 +1976,9 @@ func V1GetPingppResult(w http.ResponseWriter, r *http.Request) {
 	chargeId := vars["chargeId"][0]
 	content, err := models.QueryPingppRecordByChargeId(chargeId)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
@@ -1989,7 +1986,7 @@ func V1GetPingppResult(w http.ResponseWriter, r *http.Request) {
  * 15.1 send cloud smshook
  */
 func V1SmsHook(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -2001,14 +1998,14 @@ func V1SmsHook(w http.ResponseWriter, r *http.Request) {
 	timestamp := vars["timestamp"][0]
 	phones := vars["phones"][0]
 	sendcloud.SMSHook(token, timestamp, signature, event, phones)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
 
 /*
  * 15.2 sendcloud send message
  */
 func V1SendMessage(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -2017,9 +2014,9 @@ func V1SendMessage(w http.ResponseWriter, r *http.Request) {
 	phone := vars["phone"][0]
 	err = sendcloud.SendMessage(phone)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 	}
 }
 
@@ -2027,7 +2024,7 @@ func V1SendMessage(w http.ResponseWriter, r *http.Request) {
  * 15.3 sendcloud verify rand code
  */
 func V1VerifyRandCode(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -2037,26 +2034,26 @@ func V1VerifyRandCode(w http.ResponseWriter, r *http.Request) {
 	randCode := vars["randCode"][0]
 	rc, timestamp := redis.RedisManager.GetSendcloudRandCode(phone)
 	if randCode != rc {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, "验证码不匹配", NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, "验证码不匹配", response.NullObject))
 	} else if time.Now().Unix()-timestamp > 10*60 {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, "验证码已失效", NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, "验证码已失效", response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 	}
 }
 
 func V1Banner(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	content, err := models.QueryBannerList()
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
 func V1StatusLive(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	liveUser := len(websocket.WsManager.OnlineUserMap)
 	onlineUserCount := 0
 	onlineTeacherCount := 0
@@ -2075,11 +2072,11 @@ func V1StatusLive(w http.ResponseWriter, r *http.Request) {
 		"onlineTeacherCount": onlineTeacherCount,
 	}
 
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
 
 func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -2088,14 +2085,14 @@ func V1CheckPhoneBindWithQQ(w http.ResponseWriter, r *http.Request) {
 	phone := vars["phone"][0]
 	content, err := models.HasPhoneBindWithQQ(phone)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
 func V1GetConversationParticipants(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -2104,14 +2101,14 @@ func V1GetConversationParticipants(w http.ResponseWriter, r *http.Request) {
 	convInfo := vars["convInfo"][0]
 	content, err := leancloud.GetConversationParticipants(convInfo)
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
 func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -2131,22 +2128,22 @@ func V1SendAdvMessage(w http.ResponseWriter, r *http.Request) {
 	url := vars["url"][0]
 	leancloud.SendAdvertisementMessage(title, description, mediaId, url, userId)
 
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 
 }
 
 func V1GetHelpItems(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	content, err := models.QueryHelpItems()
 	if err != nil {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(2, err.Error(), NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
 
 func V1SetSeekHelp(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -2154,11 +2151,11 @@ func V1SetSeekHelp(w http.ResponseWriter, r *http.Request) {
 	vars := r.Form
 	convId := vars["convId"][0]
 	redis.RedisManager.SetSeekHelp(time.Now().Unix(), convId)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", NullObject))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
 
 func V1GetSeekHelps(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -2182,21 +2179,21 @@ func V1GetSeekHelps(w http.ResponseWriter, r *http.Request) {
 	}
 	content := redis.RedisManager.GetSeekHelps(pageNum, pageCount)
 	fmt.Println("content:", content)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
 
 func V1GetSeekHelpsCount(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
 	}
 	content := redis.RedisManager.GetSeekHelpsCount()
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
 
 func V1GetMessageLogs(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullSlice)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -2219,15 +2216,15 @@ func V1GetMessageLogs(w http.ResponseWriter, r *http.Request) {
 		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
 	}
 	content := redis.RedisManager.GetLCBakeMessageLogs(pageNum, pageCount)
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
 
 func V1GetMessageLogsCount(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
 	}
 	content := redis.RedisManager.GetLCBakeMessageLogsCount()
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", content))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
