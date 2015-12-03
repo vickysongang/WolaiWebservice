@@ -229,3 +229,87 @@ func FeedComment(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
+
+// 3.2.1
+func FeedUserHistory(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewUnauthResponse(response.NullSlice))
+	}
+	vars := r.Form
+
+	targetId := userId
+	if len(vars["userId"]) > 0 {
+		targetIdStr := vars["userId"][0]
+		targetId, _ = strconv.ParseInt(targetIdStr, 10, 64)
+	}
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	content, err := controllers.GetUserFeed(targetId, page, count)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	}
+}
+
+// 3.2.2
+func FeedUserLike(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewUnauthResponse(response.NullSlice))
+	}
+	vars := r.Form
+
+	targetId := userId
+	if len(vars["userId"]) > 0 {
+		targetIdStr := vars["userId"][0]
+		targetId, _ = strconv.ParseInt(targetIdStr, 10, 64)
+	}
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	content, err := controllers.GetUserLike(targetId, page, count)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	}
+}

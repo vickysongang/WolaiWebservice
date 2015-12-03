@@ -73,7 +73,7 @@ var feedRoutes = route.Routes{
 		"UserFeedHistory",
 		"POST",
 		"/user/history",
-		handlerv2.Dummy,
+		handlerv2.FeedUserHistory,
 	},
 
 	// 3.2.2
@@ -81,6 +81,6 @@ var feedRoutes = route.Routes{
 		"UserFeedLike",
 		"POST",
 		"/user/like",
-		handlerv2.Dummy,
+		handlerv2.FeedUserLike,
 	},
 }
