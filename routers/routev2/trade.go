@@ -34,4 +34,28 @@ var tradeRoutes = route.Routes{
 		"/user/record",
 		handlerv2.Dummy,
 	},
+
+	// 7.2.1
+	route.Route{
+		"TradeChargeBanner",
+		"POST",
+		"/charge/banner",
+		handlerv2.Dummy,
+	},
+
+	// 7.2.2
+	route.Route{
+		"TradeChargeShortcut",
+		"POST",
+		"/charge/shortcut",
+		handlerv2.Dummy,
+	},
+
+	// 7.2.3
+	route.Route{
+		"TradeChargePremium",
+		"POST",
+		"/charge/premium",
+		handlerv2.Dummy,
+	},
 }
