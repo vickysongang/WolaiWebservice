@@ -24,6 +24,14 @@ var orderRoutes = route.Routes{
 		"CreateOrder",
 		"POST",
 		"/create",
-		handlerv2.Dummy,
+		handlerv2.OrderCreate,
+	},
+
+	// 5.1.2
+	route.Route{
+		"OrderExpectPrice",
+		"POST",
+		"/expectation",
+		handlerv2.OrderExpectation,
 	},
 }
