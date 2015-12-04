@@ -23,7 +23,8 @@ func FeedAtrium(w http.ResponseWriter, r *http.Request) {
 	userIdStr := r.Header.Get("X-Wolai-ID")
 	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
-		json.NewEncoder(w).Encode(response.NewUnauthResponse(response.NullSlice))
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
 	}
 	vars := r.Form
 
@@ -63,7 +64,8 @@ func FeedAtriumStick(w http.ResponseWriter, r *http.Request) {
 	userIdStr := r.Header.Get("X-Wolai-ID")
 	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
-		json.NewEncoder(w).Encode(response.NewUnauthResponse(response.NullSlice))
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
 	}
 	vars := r.Form
 
@@ -92,7 +94,8 @@ func FeedPost(w http.ResponseWriter, r *http.Request) {
 	userIdStr := r.Header.Get("X-Wolai-ID")
 	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
-		json.NewEncoder(w).Encode(response.NewUnauthResponse(response.NullObject))
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
 	}
 	vars := r.Form
 
@@ -144,7 +147,8 @@ func FeedDetail(w http.ResponseWriter, r *http.Request) {
 	userIdStr := r.Header.Get("X-Wolai-ID")
 	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
-		json.NewEncoder(w).Encode(response.NewUnauthResponse(response.NullObject))
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
 	}
 	vars := r.Form
 
@@ -169,7 +173,8 @@ func FeedLike(w http.ResponseWriter, r *http.Request) {
 	userIdStr := r.Header.Get("X-Wolai-ID")
 	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
-		json.NewEncoder(w).Encode(response.NewUnauthResponse(response.NullObject))
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
 	}
 	vars := r.Form
 
@@ -199,7 +204,8 @@ func FeedComment(w http.ResponseWriter, r *http.Request) {
 	userIdStr := r.Header.Get("X-Wolai-ID")
 	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
-		json.NewEncoder(w).Encode(response.NewUnauthResponse(response.NullObject))
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
 	}
 	vars := r.Form
 
@@ -241,7 +247,8 @@ func FeedUserHistory(w http.ResponseWriter, r *http.Request) {
 	userIdStr := r.Header.Get("X-Wolai-ID")
 	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
-		json.NewEncoder(w).Encode(response.NewUnauthResponse(response.NullSlice))
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
 	}
 	vars := r.Form
 
@@ -283,7 +290,8 @@ func FeedUserLike(w http.ResponseWriter, r *http.Request) {
 	userIdStr := r.Header.Get("X-Wolai-ID")
 	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
-		json.NewEncoder(w).Encode(response.NewUnauthResponse(response.NullSlice))
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
 	}
 	vars := r.Form
 
