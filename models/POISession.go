@@ -182,7 +182,7 @@ func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) (POIOrder
 			orderInSession.TimeToStr = timeTo.Format(time.RFC3339)
 			orderInSession.TotalCoat = orderInSession.PricePerHour * orderInSession.EstimateLength / 60
 		}
-		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId)
+		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId, userId)
 		if orderInSession.CourseId == 0 {
 			orderInSession.Free = false
 		} else {
@@ -233,7 +233,7 @@ func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) (POIOrder
 			orderInSession.TotalCoat = orderInSession.RealPricePerHour * orderInSession.EstimateLength / 60
 		}
 		orderInSession.OrderType = OrderTypeRevDict[orderInSession.Type]
-		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId)
+		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId, userId)
 		orderInSession.Identity = "teacher"
 	}
 	return orderInSessions, nil
@@ -290,7 +290,7 @@ func QueryOrderInSession4Both(userId int64, pageNum, pageCount int) (POIOrderInS
 			orderInSession.TotalCoat = orderInSession.RealPricePerHour * orderInSession.EstimateLength / 60
 		}
 		orderInSession.OrderType = OrderTypeRevDict[orderInSession.Type]
-		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId)
+		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId, userId)
 	}
 	return orderInSessions, nil
 }

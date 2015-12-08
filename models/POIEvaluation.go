@@ -166,13 +166,13 @@ func QueryEvaluationInfo(userId, sessionId int64) (*POIEvaluationInfos, error) {
 	return &evalutionInfos, nil
 }
 
-func HasOrderInSessionEvaluated(sessionId int64) bool {
+func HasOrderInSessionEvaluated(sessionId int64, userId int64) bool {
 	o := orm.NewOrm()
-	count, err := o.QueryTable("evaluation").Filter("session_id", sessionId).Count()
+	count, err := o.QueryTable("evaluation").Filter("session_id", sessionId).Filter("user_id", userId).Count()
 	if err != nil {
 		return false
 	}
-	if count > 1 {
+	if count > 0 {
 		return true
 	}
 	return false
