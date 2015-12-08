@@ -220,7 +220,7 @@ func QuerySupportList() (POITeachers, error) {
 
 func QueryTeacher(userId int64) *POITeacher {
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("users.id,users.nickname,users.avatar, users.gender,teacher_profile.service_time, teacher_profile.price_per_hour,teacher_profile.real_price_per_hour,school.name school_name,department.name dept_name").
+	qb.Select("users.id,users.nickname,users.avatar,users.access_right,users.gender,teacher_profile.service_time, teacher_profile.price_per_hour,teacher_profile.real_price_per_hour,school.name school_name,department.name dept_name").
 		From("users").LeftJoin("teacher_profile").On("users.id = teacher_profile.user_id").
 		LeftJoin("school").On("teacher_profile.school_id = school.id").
 		LeftJoin("department").On("teacher_profile.department_id = department.id").
@@ -235,10 +235,11 @@ func QueryTeacher(userId int64) *POITeacher {
 	}
 	teacher := POITeacher{
 		POIUser: POIUser{
-			UserId:   teacherModel.Id,
-			Nickname: teacherModel.Nickname,
-			Avatar:   teacherModel.Avatar,
-			Gender:   teacherModel.Gender},
+			UserId:      teacherModel.Id,
+			Nickname:    teacherModel.Nickname,
+			Avatar:      teacherModel.Avatar,
+			Gender:      teacherModel.Gender,
+			AccessRight: teacherModel.AccessRight},
 		ServiceTime:      teacherModel.ServiceTime,
 		School:           teacherModel.SchoolName,
 		Department:       teacherModel.DeptName,
