@@ -19,43 +19,49 @@ func attachMiscRoute(router *mux.Router) {
 }
 
 var miscRoutes = route.Routes{
-	// 8.1.1
+	// 9.1.1
 	route.Route{
-		"SendCloudHook",
+		"SendCloudHookPOST",
 		"POST",
 		"/hook/sendcloud",
-		handlerv2.Dummy,
+		handlerv2.HookSendcloud,
+	},
+	route.Route{
+		"SendCloudHookGET",
+		"GET",
+		"/hook/sendcloud",
+		handlerv2.HookSendcloud,
 	},
 
-	// 8.1.2
+	// 9.1.2
 	route.Route{
 		"PingppHook",
 		"POST",
 		"/hook/pingpp",
-		handlerv2.Dummy,
+		handlerv2.HookPingpp,
 	},
 
-	// 8.2.1
+	// 9.2.1
 	route.Route{
 		"HelpList",
 		"POST",
 		"/help/list",
-		handlerv2.Dummy,
+		handlerv2.HelpList,
 	},
 
-	// 8.2.2
+	// 9.2.2
 	route.Route{
 		"GradeList",
 		"POST",
 		"/grade/list",
-		handlerv2.Dummy,
+		handlerv2.GradeList,
 	},
 
-	// 8.2.3
+	// 9.2.3
 	route.Route{
 		"SubjectList",
 		"POST",
 		"/subject/list",
-		handlerv2.Dummy,
+		handlerv2.SubjectList,
 	},
 }

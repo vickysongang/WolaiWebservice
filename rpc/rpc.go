@@ -4,6 +4,7 @@ package rpc
 import (
 	"WolaiWebservice/controllers"
 	"WolaiWebservice/handlers"
+	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/leancloud"
 	"WolaiWebservice/models"
 	pingxx "WolaiWebservice/pingpp"
@@ -19,7 +20,7 @@ type POIRpcRequest struct {
 	Args map[string]string
 }
 
-func (watcher *RpcWatcher) GetStatusLive(request *POIRpcRequest, response *models.POIResponse) error {
+func (watcher *RpcWatcher) GetStatusLive(request *POIRpcRequest, resp *response.Response) error {
 	allOnlineUsers := len(websocket.WsManager.OnlineUserMap)
 	onlineStudentsCount := 0
 	onlineTeachersCount := 0
@@ -38,22 +39,22 @@ func (watcher *RpcWatcher) GetStatusLive(request *POIRpcRequest, response *model
 		"liveTeachersCount":     liveTeachersCount,
 		"assignOnTeachersCount": assignOnTeachersCount,
 	}
-	*response = models.NewPOIResponse(0, "", content)
+	resp = response.NewResponse(0, "", content)
 	return nil
 }
 
-func (watcher *RpcWatcher) SendLikeNotification(request *POIRpcRequest, response *models.POIResponse) error {
+func (watcher *RpcWatcher) SendLikeNotification(request *POIRpcRequest, resp *response.Response) error {
 	userIdStr := request.Args["userId"]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	timestampStr := request.Args["timestamp"]
 	timestamp, _ := strconv.ParseFloat(timestampStr, 64)
 	feedId := request.Args["feedId"]
 	leancloud.SendLikeNotification(userId, timestamp, feedId)
-	*response = models.NewPOIResponse(0, "", "")
+	resp = response.NewResponse(0, "", "")
 	return nil
 }
 
-func (watcher *RpcWatcher) SendTradeNotificationSystem(request *POIRpcRequest, response *models.POIResponse) error {
+func (watcher *RpcWatcher) SendTradeNotificationSystem(request *POIRpcRequest, resp *response.Response) error {
 	userId, _ := strconv.ParseInt(request.Args["userId"], 10, 64)
 	amount, _ := strconv.ParseInt(request.Args["amount"], 10, 64)
 	status := request.Args["status"]
@@ -61,11 +62,11 @@ func (watcher *RpcWatcher) SendTradeNotificationSystem(request *POIRpcRequest, r
 	subtitle := request.Args["subtitle"]
 	extra := request.Args["extra"]
 	leancloud.SendTradeNotificationSystem(userId, amount, status, title, subtitle, extra)
-	*response = models.NewPOIResponse(0, "", "")
+	resp = response.NewResponse(0, "", "")
 	return nil
 }
 
-func (watcher *RpcWatcher) PayByPingpp(request *POIRpcRequest, response *models.POIResponse) error {
+func (watcher *RpcWatcher) PayByPingpp(request *POIRpcRequest, resp *response.Response) error {
 	orderNo := request.Args["orderNo"]
 	if orderNo == "" || len(orderNo) == 0 {
 		orderNo = strconv.Itoa(int(time.Now().UnixNano()))
@@ -79,33 +80,33 @@ func (watcher *RpcWatcher) PayByPingpp(request *POIRpcRequest, response *models.
 	phone := request.Args["phone"]
 	content, err := pingxx.PayByPingpp(orderNo, amount, channel, currency, clientIp, subject, body, phone, map[string]interface{}{})
 	if err != nil {
-		*response = models.NewPOIResponse(2, err.Error(), handlers.NullObject)
+		resp = response.NewResponse(2, err.Error(), response.NullObject)
 	} else {
-		*response = models.NewPOIResponse(0, "", content)
+		resp = response.NewResponse(0, "", content)
 	}
 	return nil
 }
 
-func (watcher *RpcWatcher) QueryPingppRecordByChargeId(request *POIRpcRequest, response *models.POIResponse) error {
+func (watcher *RpcWatcher) QueryPingppRecordByChargeId(request *POIRpcRequest, resp *response.Response) error {
 	chargeId := request.Args["chargeId"]
 	content, err := models.QueryPingppRecordByChargeId(chargeId)
 	if err != nil {
-		*response = models.NewPOIResponse(2, err.Error(), handlers.NullObject)
+		resp = response.NewResponse(2, err.Error(), response.NullObject)
 	} else {
-		*response = models.NewPOIResponse(0, "", content)
+		resp = response.NewResponse(0, "", content)
 	}
 	return nil
 }
 
-func (watcher *RpcWatcher) GetUserConversation(request *POIRpcRequest, response *models.POIResponse) error {
+func (watcher *RpcWatcher) GetUserConversation(request *POIRpcRequest, resp *response.Response) error {
 	userId, _ := strconv.ParseInt(request.Args["userId"], 10, 64)
 	targetId, _ := strconv.ParseInt(request.Args["targetId"], 10, 64)
 	status, content := controllers.GetUserConversation(userId, targetId)
-	*response = models.NewPOIResponse(status, "", content)
+	resp = response.NewResponse(status, "", content)
 	return nil
 }
 
-func (watcher *RpcWatcher) GetUserMonitorInfo(request *POIRpcRequest, response *models.POIResponse) error {
+func (watcher *RpcWatcher) GetUserMonitorInfo(request *POIRpcRequest, resp *response.Response) error {
 	users := handlers.NewPOIMonitorUsers()
 	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
 		user := models.QueryUserById(userId)
@@ -126,6 +127,6 @@ func (watcher *RpcWatcher) GetUserMonitorInfo(request *POIRpcRequest, response *
 		locked := websocket.WsManager.IsUserSessionLocked(teacherId)
 		users.AssignOnTeachers = append(users.AssignOnTeachers, handlers.POIMonitorUser{User: user, LoginTime: user.LastLoginTime.Unix(), Locked: locked})
 	}
-	*response = models.NewPOIResponse(0, "", users)
+	resp = response.NewResponse(0, "", users)
 	return nil
 }

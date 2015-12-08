@@ -24,39 +24,39 @@ var sessionRoutes = route.Routes{
 		"SessionSeekHelp",
 		"POST",
 		"/seek_help",
-		handlerv2.Dummy,
+		handlerv2.SessionSeekHelp,
 	},
 
 	// 6.2.1
 	route.Route{
 		"SessionEvaluationLabel",
 		"POST",
-		"/evaluation/label",
-		handlerv2.Dummy,
+		"/evaluation/label/list",
+		handlerv2.SessionEvaluationLabelList,
 	},
 
 	// 6.2.2
 	route.Route{
 		"SessionEvaluationCreate",
 		"POST",
-		"/evaluation/create",
-		handlerv2.Dummy,
+		"/evaluation/label/post",
+		handlerv2.SessionEvaluationLabelPost,
 	},
 
 	// 6.2.3
 	route.Route{
 		"SessionEvaluationResult",
 		"POST",
-		"/evaluation/result",
-		handlerv2.Dummy,
+		"/evaluation/label/result",
+		handlerv2.SessionEvaluationLabelResult,
 	},
 
 	// 6.3.1
 	route.Route{
 		"SessionComplain",
 		"POST",
-		"/complain/create",
-		handlerv2.Dummy,
+		"/complain/post",
+		handlerv2.SessionComplainPost,
 	},
 
 	// 6.3.2
@@ -64,7 +64,7 @@ var sessionRoutes = route.Routes{
 		"SessionComplainCheck",
 		"POST",
 		"/complain/check",
-		handlerv2.Dummy,
+		handlerv2.SessionComplainCheck,
 	},
 
 	// 6.4.1

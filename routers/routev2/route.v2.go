@@ -48,5 +48,5 @@ func AttachRoute(r *mux.Router) {
 		"X-Wolai-ID", "").Subrouter()
 	attachPingppRoute(pingppRouter)
 
-	//miscRouter := v2Router
+	attachMiscRoute(v2Router)
 }

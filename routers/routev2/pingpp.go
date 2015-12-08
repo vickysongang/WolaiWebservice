@@ -19,7 +19,7 @@ func attachPingppRoute(router *mux.Router) {
 }
 
 var pingppRoutes = route.Routes{
-	// 7.2.1
+	// 8.1.1
 	route.Route{
 		"PingppPay",
 		"POST",
@@ -27,15 +27,7 @@ var pingppRoutes = route.Routes{
 		handlerv2.Dummy,
 	},
 
-	// 7.2.2
-	route.Route{
-		"PingppRefund",
-		"POST",
-		"/refund",
-		handlerv2.Dummy,
-	},
-
-	// 7.2.3
+	// 8.1.2
 	route.Route{
 		"PingppPayQuery",
 		"POST",
@@ -43,7 +35,7 @@ var pingppRoutes = route.Routes{
 		handlerv2.Dummy,
 	},
 
-	// 7.2.4
+	// 8.1.3
 	route.Route{
 		"PingppPayRecord",
 		"POST",
@@ -51,7 +43,15 @@ var pingppRoutes = route.Routes{
 		handlerv2.Dummy,
 	},
 
-	// 7.2.5
+	// 8.2.1
+	route.Route{
+		"PingppRefund",
+		"POST",
+		"/refund",
+		handlerv2.Dummy,
+	},
+
+	// 8.2.2
 	route.Route{
 		"PingppRefundQuery",
 		"POST",
@@ -59,7 +59,7 @@ var pingppRoutes = route.Routes{
 		handlerv2.Dummy,
 	},
 
-	// 7.2.6
+	// 8.2.3
 	route.Route{
 		"PingppRefundRecord",
 		"POST",
@@ -67,7 +67,7 @@ var pingppRoutes = route.Routes{
 		handlerv2.Dummy,
 	},
 
-	// 7.2.7
+	// 8.3.1
 	route.Route{
 		"PingppResult",
 		"POST",

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 	"WolaiWebservice/websocket"
 )
@@ -66,7 +67,7 @@ func NewPOIMonitorOrders() POIMonitorOrders {
 }
 
 func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	users := NewPOIMonitorUsers()
 	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
 		user := models.QueryUserById(userId)
@@ -81,7 +82,7 @@ func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	orders := NewPOIMonitorOrders()
 	// for orderId, teacherMap := range websocket.WsManager.OrderDispatchMap {
 	// 	master := POIOrderDispatchMaster{MasterId: orderId, Slaves: make([]POIOrderDispatchSlave, 0)}

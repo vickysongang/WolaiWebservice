@@ -24,6 +24,6 @@ var messageRoutes = route.Routes{
 		"GetConversationID",
 		"POST",
 		"/conversation/create",
-		handlerv2.Dummy,
+		handlerv2.MessageConversationCreate,
 	},
 }
