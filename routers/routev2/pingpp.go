@@ -24,7 +24,7 @@ var pingppRoutes = route.Routes{
 		"PingppPay",
 		"POST",
 		"/pay",
-		handlerv2.Dummy,
+		handlerv2.PingppPay,
 	},
 
 	// 8.1.2
@@ -32,7 +32,7 @@ var pingppRoutes = route.Routes{
 		"PingppPayQuery",
 		"POST",
 		"/pay/query",
-		handlerv2.Dummy,
+		handlerv2.PingppPayQuery,
 	},
 
 	// 8.1.3
@@ -40,7 +40,7 @@ var pingppRoutes = route.Routes{
 		"PingppPayRecord",
 		"POST",
 		"/pay/record",
-		handlerv2.Dummy,
+		handlerv2.PingppPayRecord,
 	},
 
 	// 8.2.1
@@ -48,7 +48,7 @@ var pingppRoutes = route.Routes{
 		"PingppRefund",
 		"POST",
 		"/refund",
-		handlerv2.Dummy,
+		handlerv2.PingppRefund,
 	},
 
 	// 8.2.2
@@ -56,7 +56,7 @@ var pingppRoutes = route.Routes{
 		"PingppRefundQuery",
 		"POST",
 		"/refund/query",
-		handlerv2.Dummy,
+		handlerv2.PingppRefundQuery,
 	},
 
 	// 8.2.3
@@ -64,7 +64,7 @@ var pingppRoutes = route.Routes{
 		"PingppRefundRecord",
 		"POST",
 		"/refund/record",
-		handlerv2.Dummy,
+		handlerv2.PingppRefundRecord,
 	},
 
 	// 8.3.1
@@ -72,6 +72,6 @@ var pingppRoutes = route.Routes{
 		"PingppResult",
 		"POST",
 		"/result",
-		handlerv2.Dummy,
+		handlerv2.PingppResult,
 	},
 }

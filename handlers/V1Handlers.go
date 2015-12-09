@@ -9,8 +9,7 @@ import (
 	"strings"
 	"time"
 
-	pingxx "WolaiWebservice/pingpp"
-	seelog "github.com/cihub/seelog"
+	"github.com/cihub/seelog"
 	"github.com/gorilla/mux"
 	"github.com/pingplusplus/pingpp-go/pingpp"
 
@@ -19,6 +18,7 @@ import (
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/leancloud"
 	"WolaiWebservice/models"
+	pingxx "WolaiWebservice/pingpp"
 	"WolaiWebservice/redis"
 	"WolaiWebservice/sendcloud"
 	"WolaiWebservice/utils"
