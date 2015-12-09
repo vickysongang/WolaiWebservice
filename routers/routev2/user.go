@@ -33,7 +33,7 @@ var userRoutes = route.Routes{
 		"GetUserInfo",
 		"POST",
 		"/info",
-		handlerv2.Dummy,
+		handlerv2.UserInfo,
 	},
 
 	// 2.1.3
@@ -41,7 +41,7 @@ var userRoutes = route.Routes{
 		"UpdateUserInfo",
 		"POST",
 		"/info/update",
-		handlerv2.Dummy,
+		handlerv2.UserInfoUpdate,
 	},
 
 	// 2.1.4
@@ -49,7 +49,7 @@ var userRoutes = route.Routes{
 		"UserGreeting",
 		"POST",
 		"/greeting",
-		handlerv2.Dummy,
+		handlerv2.UserGreeting,
 	},
 
 	// 2.1.5
@@ -57,7 +57,7 @@ var userRoutes = route.Routes{
 		"UserNotification",
 		"POST",
 		"/notification",
-		handlerv2.Dummy,
+		handlerv2.UserNotification,
 	},
 
 	// 2.1.6
