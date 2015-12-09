@@ -1,9 +1,10 @@
 package handlerv2
 
 import (
-	"WolaiWebservice/handlers/response"
 	"encoding/json"
 	"net/http"
+
+	"WolaiWebservice/handlers/response"
 )
 
 func Dummy(w http.ResponseWriter, r *http.Request) {

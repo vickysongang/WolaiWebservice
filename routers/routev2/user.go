@@ -65,7 +65,7 @@ var userRoutes = route.Routes{
 		"PromotionOnLogin",
 		"POST",
 		"/promotion/onlogin",
-		handlerv2.Dummy,
+		handlerv2.UserPromotionOnLogin,
 	},
 
 	// 2.2.1
@@ -81,7 +81,7 @@ var userRoutes = route.Routes{
 		"TeacherProfile",
 		"POST",
 		"/teacher/profile",
-		handlerv2.Dummy,
+		handlerv2.UserTeacherProfile,
 	},
 
 	// 2.2.3
@@ -92,7 +92,31 @@ var userRoutes = route.Routes{
 		handlerv2.Dummy,
 	},
 
-	// 2.2.4
+	// 2.3.1
+	route.Route{
+		"UserSearch",
+		"POST",
+		"/search",
+		handlerv2.UserSearch,
+	},
+
+	// 2.3.2
+	route.Route{
+		"UserTeacherSearch",
+		"POST",
+		"/teacher/search",
+		handlerv2.UserTeacherSearch,
+	},
+
+	// 2.3.3
+	route.Route{
+		"UserStudentSearch",
+		"POST",
+		"/student/search",
+		handlerv2.Dummy,
+	},
+
+	// 2.3.4
 	route.Route{
 		"TeacherRecent",
 		"POST",
@@ -100,20 +124,20 @@ var userRoutes = route.Routes{
 		handlerv2.Dummy,
 	},
 
-	// 2.2.5
+	// 2.3.5
 	route.Route{
 		"TeacherRecommendation",
 		"POST",
 		"/teacher/recommendation",
-		handlerv2.Dummy,
+		handlerv2.UserTeacherRecommendation,
 	},
 
-	// 2.2.6
+	// 2.3.6
 	route.Route{
 		"ContactRecommendation",
 		"POST",
 		"/contact/recommendation",
-		handlerv2.Dummy,
+		handlerv2.UserContactRecommendation,
 	},
 
 	// 2.4.1
