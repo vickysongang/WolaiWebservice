@@ -24,7 +24,7 @@ var tradeRoutes = route.Routes{
 		"UserBalance",
 		"POST",
 		"/user/balance",
-		handlerv2.Dummy,
+		handlerv2.TradeUserBalance,
 	},
 
 	// 7.1.2
@@ -40,7 +40,7 @@ var tradeRoutes = route.Routes{
 		"TradeChargeBanner",
 		"POST",
 		"/charge/banner",
-		handlerv2.Dummy,
+		handlerv2.TradeChargeBanner,
 	},
 
 	// 7.2.2
@@ -48,7 +48,7 @@ var tradeRoutes = route.Routes{
 		"TradeChargeShortcut",
 		"POST",
 		"/charge/shortcut",
-		handlerv2.Dummy,
+		handlerv2.TradeChargeShortcut,
 	},
 
 	// 7.2.3
@@ -56,6 +56,6 @@ var tradeRoutes = route.Routes{
 		"TradeChargePremium",
 		"POST",
 		"/charge/premium",
-		handlerv2.Dummy,
+		handlerv2.TradeChargePremium,
 	},
 }
