@@ -139,7 +139,7 @@ func (tts *POITeacherToSubject) TableName() string {
 }
 
 func init() {
-	orm.RegisterModel(new(POITeacherResume), new(POITeacherLabel), new(POITeacherToLabel), new(POITeacherToSubject), new(POITeacherProfileModel))
+	//orm.RegisterModel(new(POITeacherResume), new(POITeacherLabel), new(POITeacherToLabel), new(POITeacherToSubject), new(POITeacherProfileModel))
 }
 
 /*
