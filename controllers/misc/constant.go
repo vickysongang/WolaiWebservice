@@ -11,15 +11,36 @@ func GetGradeList(pid int64) (int64, []*models.Grade) {
 
 	var grades []*models.Grade
 
-	qs := o.QueryTable("grade")
-	if pid != 0 {
-		qs = qs.Filter("pid", pid)
-	}
-
-	_, err := qs.All(&grades)
+	_, err := o.QueryTable("grade").Filter("pid", pid).All(&grades)
 	if err != nil {
 		return 2, nil
 	}
 
 	return 0, grades
+}
+
+func GetSubjectList(pid int64) (int64, []*models.Subject) {
+	o := orm.NewOrm()
+
+	var subjects []*models.Subject
+
+	_, err := o.QueryTable("subject").All(&subjects)
+	if err != nil {
+		return 2, nil
+	}
+
+	return 0, subjects
+}
+
+func GetHelpItemList() (int64, []*models.HelpItem) {
+	o := orm.NewOrm()
+
+	var items []*models.HelpItem
+
+	_, err := o.QueryTable("help_item").OrderBy("rank").All(&items)
+	if err != nil {
+		return 2, nil
+	}
+
+	return 0, items
 }

@@ -71,11 +71,11 @@ func HookPingpp(w http.ResponseWriter, r *http.Request) {
 func HelpList(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullSlice)
 
-	content, err := models.QueryHelpItems()
-	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
+	status, content := miscController.GetHelpItemList()
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
 
@@ -97,7 +97,7 @@ func GradeList(w http.ResponseWriter, r *http.Request) {
 
 	status, content := miscController.GetGradeList(pid)
 	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
@@ -119,21 +119,10 @@ func SubjectList(w http.ResponseWriter, r *http.Request) {
 		gradeId, _ = strconv.ParseInt(gradeIdStr, 10, 64)
 	}
 
-	if gradeId == 0 {
-		content, err := models.QuerySubjectList()
-
-		if err != nil {
-			json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
-		} else {
-			json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
-		}
+	status, content := miscController.GetSubjectList(gradeId)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
 	} else {
-		content, err := models.QuerySubjectListByGrade(gradeId)
-
-		if err != nil {
-			json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
-		} else {
-			json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
-		}
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }

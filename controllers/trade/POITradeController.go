@@ -72,11 +72,11 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 	subjectName := ""
 	order := models.QueryOrderById(session.OrderId)
 	if order.GradeId > 0 {
-		grade := models.QueryGradeById(order.GradeId)
+		grade, _ := models.ReadGrade(order.GradeId)
 		gradeName = grade.Name
 	}
 	if order.SubjectId > 0 {
-		subject := models.QuerySubjectById(order.SubjectId)
+		subject, _ := models.ReadSubject(order.SubjectId)
 		subjectName = subject.Name
 	}
 

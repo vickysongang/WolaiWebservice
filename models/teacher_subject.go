@@ -16,5 +16,5 @@ func init() {
 }
 
 func (ts *TeacherSubject) TableName() string {
-	return "teacher_subject"
+	return "teacher_to_subject"
 }

@@ -34,7 +34,7 @@ type teacherProfile struct {
 	Major       string                  `json:"major"`
 	SubjectList []string                `json:"subjectList,omitempty"`
 	Intro       string                  `json:"intro"`
-	Resume      []*models.TeacherResume `json:"resume"`
+	Resume      []*models.TeacherResume `json:"resume,omitempty"`
 }
 
 func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
@@ -43,11 +43,13 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
 	teacher := models.TeacherProfile{UserId: teacherId}
 	err := o.Read(&teacher)
 	if err != nil {
+		println(err.Error())
 		return 2, nil
 	}
 
 	user, err := models.ReadUser(teacherId)
 	if err != nil {
+		println(err.Error())
 		return 2, nil
 	}
 
@@ -58,7 +60,12 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
 	}
 
 	var teacherResumes []*models.TeacherResume
-	_, err = o.QueryTable("teacher_resume").Filter("user_id", teacherId).All(&teacherResumes)
+	_, err = o.QueryTable("teacher_to_resume").Filter("user_id", teacherId).All(&teacherResumes)
+	if err != nil {
+		println(err.Error())
+		return 2, nil
+	}
+
 	profile := teacherProfile{
 		Id:          user.Id,
 		Nickname:    user.Nickname,

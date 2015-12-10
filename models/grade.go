@@ -13,3 +13,15 @@ type Grade struct {
 func init() {
 	orm.RegisterModel(new(Grade))
 }
+
+func ReadGrade(gradeId int64) (*Grade, error) {
+	o := orm.NewOrm()
+
+	grade := Grade{Id: gradeId}
+	err := o.Read(&grade)
+	if err != nil {
+		return nil, err
+	}
+
+	return &grade, nil
+}
