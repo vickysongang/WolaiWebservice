@@ -6,7 +6,7 @@ import (
 
 type TeacherResume struct {
 	Id     int64 `json:"-" orm:"column(id);pk"`
-	UserId int64 `json:"-" orm:"column(userId)"`
+	UserId int64 `json:"-" orm:"column(user_id)"`
 	Start  int64 `json:"start" orm:"column(start)"`
 	Stop   int64 `json:"stop" orm:"column(stop)"`
 	Name   int64 `json:"name" orm:"column(name)"`

@@ -17,7 +17,7 @@ type POIGrade struct {
 type POIGrades []POIGrade
 
 func init() {
-	orm.RegisterModel(new(POIGrade))
+	//orm.RegisterModel(new(POIGrade))
 }
 
 func QueryGradeList() (POIGrades, error) {

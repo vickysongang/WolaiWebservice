@@ -11,6 +11,7 @@ import (
 	"github.com/cihub/seelog"
 	"github.com/pingplusplus/pingpp-go/pingpp"
 
+	miscController "WolaiWebservice/controllers/misc"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 	pingxx "WolaiWebservice/pingpp"
@@ -94,22 +95,11 @@ func GradeList(w http.ResponseWriter, r *http.Request) {
 		pid, _ = strconv.ParseInt(pidStr, 10, 64)
 	}
 
-	if pid == 0 {
-		content, err := models.QueryGradeList()
-
-		if err != nil {
-			json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
-		} else {
-			json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
-		}
+	status, content := miscController.GetGradeList(pid)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullSlice))
 	} else {
-		content, err := models.QueryGradeListByPid(pid)
-
-		if err != nil {
-			json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
-		} else {
-			json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
-		}
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
 
