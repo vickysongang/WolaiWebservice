@@ -121,7 +121,7 @@ var userRoutes = route.Routes{
 		"TeacherRecent",
 		"POST",
 		"/teacher/recent",
-		handlerv2.Dummy,
+		handlerv2.UserTeacherRecent,
 	},
 
 	// 2.3.5

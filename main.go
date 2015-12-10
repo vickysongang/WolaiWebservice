@@ -6,14 +6,13 @@ import (
 	"net/rpc"
 	"net/rpc/jsonrpc"
 
-	"WolaiWebservice/handlers"
-	"WolaiWebservice/routers"
-	"WolaiWebservice/utils"
-
-	myrpc "WolaiWebservice/rpc"
-
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"
+
+	"WolaiWebservice/handlers"
+	"WolaiWebservice/routers"
+	myrpc "WolaiWebservice/rpc"
+	"WolaiWebservice/utils"
 )
 
 func init() {

@@ -8,6 +8,7 @@ import (
 	"github.com/cihub/seelog"
 
 	"WolaiWebservice/controllers"
+	userController "WolaiWebservice/controllers/user"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
@@ -32,8 +33,8 @@ func UserInfo(w http.ResponseWriter, r *http.Request) {
 	userIdStr = vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
-	content := controllers.LoadPOIUser(userId)
-	if content == nil {
+	status, content := userController.GetUserInfo(userId)
+	if status != 0 {
 		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullObject))
 	} else {
 		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
@@ -61,7 +62,7 @@ func UserInfoUpdate(w http.ResponseWriter, r *http.Request) {
 	genderStr := vars["gender"][0]
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
-	status, content := controllers.POIUserUpdateProfile(userId, nickname, avatar, gender)
+	status, content := userController.UpdateUserInfo(userId, nickname, avatar, gender)
 	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 }
 
@@ -264,6 +265,43 @@ func UserTeacherSearch(w http.ResponseWriter, r *http.Request) {
 }
 
 // 2.3.5
+func UserTeacherRecent(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, content := userController.GetTeacherRecommendation(userId, page, count)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 2.3.5
 func UserTeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
@@ -292,11 +330,11 @@ func UserTeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 		count = 10
 	}
 
-	content, err := controllers.GetTeacherRecommendationList(userId, page, count)
-	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
+	status, content := userController.GetTeacherRecommendation(userId, page, count)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
 
