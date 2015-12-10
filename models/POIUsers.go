@@ -54,7 +54,7 @@ const (
 )
 
 func init() {
-	orm.RegisterModel(new(POIUser), new(POIOAuth), new(POIUserLoginInfo))
+	//orm.RegisterModel(new(POIUser), new(POIOAuth), new(POIUserLoginInfo))
 }
 
 /*
