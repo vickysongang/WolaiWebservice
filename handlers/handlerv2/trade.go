@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/cihub/seelog"
 
@@ -35,6 +36,61 @@ func TradeUserBalance(w http.ResponseWriter, r *http.Request) {
 		}
 		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
+}
+
+// 7.1.2
+func TradeUserRecord(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	content := []map[string]interface{}{
+		map[string]interface{}{
+			"avatar": "FqeUvGlefw9KKDbqSKCScHTuw0La",
+			"title":  "邀请注册",
+			"time":   time.Now().Format(time.RFC3339),
+			"type":   "income",
+			"amount": "1500",
+		},
+		map[string]interface{}{
+			"avatar": "FqeUvGlefw9KKDbqSKCScHTuw0La",
+			"title":  "高中语文 6m",
+			"time":   time.Now().Add(-5 * time.Minute).Format(time.RFC3339),
+			"type":   "expense",
+			"amount": "8700",
+		},
+		map[string]interface{}{
+			"avatar": "FqeUvGlefw9KKDbqSKCScHTuw0La",
+			"title":  "钱包充值",
+			"time":   time.Now().Add(-10 * time.Minute).Format(time.RFC3339),
+			"type":   "income",
+			"amount": "1000",
+		},
+		map[string]interface{}{
+			"avatar": "FqeUvGlefw9KKDbqSKCScHTuw0La",
+			"title":  "充值奖励",
+			"time":   time.Now().Add(-15 * time.Minute).Format(time.RFC3339),
+			"type":   "income",
+			"amount": "5000",
+		},
+		map[string]interface{}{
+			"avatar": "FqeUvGlefw9KKDbqSKCScHTuw0La",
+			"title":  "新用户注册",
+			"time":   time.Now().Add(-120 * time.Minute).Format(time.RFC3339),
+			"type":   "income",
+			"amount": "1800",
+		},
+	}
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
 
 // 7.2.1

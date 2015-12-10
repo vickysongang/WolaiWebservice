@@ -7,11 +7,9 @@ import (
 
 	"github.com/cihub/seelog"
 
-	"WolaiWebservice/controllers"
 	userController "WolaiWebservice/controllers/user"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
-	"WolaiWebservice/redis"
 )
 
 // 2.1.2
@@ -135,14 +133,14 @@ func UserPromotionOnLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userIdStr := r.Header.Get("X-Wolai-ID")
-	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 
-	content := redis.RedisManager.GetActivityNotification(userId)
-	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	//content := redis.RedisManager.GetActivityNotification(userId)
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
 
 // 2.2.2
@@ -163,15 +161,15 @@ func UserTeacherProfile(w http.ResponseWriter, r *http.Request) {
 
 	teacherIdStr := vars["userId"][0]
 	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
-	teacher := models.QueryUserById(teacherId)
+	teacher, err := models.ReadUser(teacherId)
 	if teacher.AccessRight == models.USER_ACCESSRIGHT_STUDENT {
 		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullObject))
 		return
 	}
 
-	content, err := controllers.GetTeacherProfile(userId, teacherId)
-	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
+	status, content := userController.GetTeacherProfile(userId, teacherId)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullObject))
 	} else {
 		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
@@ -212,11 +210,11 @@ func UserSearch(w http.ResponseWriter, r *http.Request) {
 		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
 	}
 
-	content, err := controllers.SearchUsers(userId, keyword, pageNum, pageCount)
-	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
+	status, content := userController.SearchUser(userId, keyword, pageNum, pageCount)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
 
@@ -256,11 +254,11 @@ func UserTeacherSearch(w http.ResponseWriter, r *http.Request) {
 		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
 	}
 
-	content, err := controllers.SearchTeachers(userId, keyword, pageNum, pageCount)
-	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
+	status, content := userController.SearchUser(userId, keyword, pageNum, pageCount)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
 
@@ -367,10 +365,10 @@ func UserContactRecommendation(w http.ResponseWriter, r *http.Request) {
 		count = 10
 	}
 
-	content, err := controllers.GetSupportAndTeacherList(userId, page, count)
-	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
+	status, content := userController.GetContactRecommendation(userId, page, count)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }

@@ -32,7 +32,7 @@ var tradeRoutes = route.Routes{
 		"UserTradeRecord",
 		"POST",
 		"/user/record",
-		handlerv2.Dummy,
+		handlerv2.TradeUserRecord,
 	},
 
 	// 7.2.1

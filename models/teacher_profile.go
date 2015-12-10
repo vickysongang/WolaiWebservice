@@ -12,8 +12,8 @@ type TeacherProfile struct {
 	ServiceTime      int64  `json:"serviceTime" orm:"column(service_time)"`
 	Intro            string `json:"intro" orm:"column(intro)"`
 	Extra            string `json:"extra" orm:"column(extra)"`
-	PricePerHour     int64  `json:"pricePerHour" orm:"column(price_per_hour)"`
-	RealPricePerHour int64  `json:"real_price_per_hour" orm:"column(real_price_per_hour)"`
+	PricePerHour     int64  `json:"-" orm:"column(price_per_hour)"`
+	RealPricePerHour int64  `json:"-" orm:"column(real_price_per_hour)"`
 }
 
 func init() {

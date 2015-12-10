@@ -31,6 +31,19 @@ func (u *User) TableName() string {
 	return "users"
 }
 
+const (
+	USER_ACCESSRIGHT_TEACHER = 2
+	USER_ACCESSRIGHT_STUDENT = 3
+
+	USER_GENDER_FEMALE = 0
+	USER_GENDER_MALE   = 1
+
+	USER_STATUS_ACTIVE   = 0
+	USER_STATUS_INACTIVE = 1
+
+	USER_WOLAI_TEAM = 1003
+)
+
 func ReadUser(userId int64) (*User, error) {
 	o := orm.NewOrm()
 

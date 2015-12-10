@@ -8,10 +8,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-const (
-	USER_WOLAI_TEAM = 1003
-)
-
 type POITeacher struct {
 	POIUser
 	School           string   `json:"school"`
