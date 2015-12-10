@@ -112,55 +112,6 @@ func POIUserOauthRegister(openId string, phone string, nickname string, avatar s
 	return 1003, user
 }
 
-func POIUserFollow(userId, followId int64) (int64, bool) {
-	user := models.QueryUserById(userId)
-	follow := models.QueryUserById(followId)
-	if user == nil || follow == nil {
-		return 2, false
-	}
-
-	if follow.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
-		return 2, false
-	}
-	if redis.RedisManager.RedisError == nil {
-		if redis.RedisManager.HasFollowedUser(userId, followId) {
-			redis.RedisManager.RemoveUserFollow(userId, followId)
-			return 0, false
-		}
-		redis.RedisManager.SetUserFollow(userId, followId)
-	}
-	return 0, true
-}
-
-func POIUserUnfollow(userId, followId int64) (int64, bool) {
-	user := models.QueryUserById(userId)
-	follow := models.QueryUserById(followId)
-	if user == nil || follow == nil {
-		return 2, false
-	}
-	if redis.RedisManager.RedisError == nil {
-		if !redis.RedisManager.HasFollowedUser(userId, followId) {
-			return 2, false
-		}
-
-		redis.RedisManager.RemoveUserFollow(userId, followId)
-	}
-
-	return 0, false
-}
-
-func GetUserFollowing(userId, pageNum, pageCount int64) models.POITeachers {
-	user := models.QueryUserById(userId)
-	if user == nil {
-		return nil
-	}
-	var teachers models.POITeachers
-	if redis.RedisManager.RedisError == nil {
-		teachers = redis.RedisManager.GetUserFollowList(userId, pageNum, pageCount)
-	}
-	return teachers
-}
-
 func GetUserConversation(userId1, userId2 int64) (int64, string) {
 	user1 := models.QueryUserById(userId1)
 	user2 := models.QueryUserById(userId2)

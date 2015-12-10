@@ -34,13 +34,18 @@ func SearchUser(userId int64, keyword string, page, count int64) (int64, []teach
 
 	result := make([]teacherItem, 0)
 	for _, user := range users {
+		var school string
+		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+			school = "湖南大学"
+		}
+
 		item := teacherItem{
 			Id:           user.Id,
 			Nickname:     user.Nickname,
 			Avatar:       user.Avatar,
 			Gender:       user.Gender,
 			AccessRight:  user.AccessRight,
-			School:       "",
+			School:       school,
 			SubjectList:  nil,
 			OnlineStatus: "",
 		}
