@@ -47,9 +47,15 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 		}
 
 		order, _ := models.ReadOrder(session.OrderId)
-		grade, _ := models.ReadGrade(order.GradeId)
-		subject, _ := models.ReadSubject(order.SubjectId)
-		title := grade.Name + subject.Name
+		grade, err1 := models.ReadGrade(order.GradeId)
+		subject, err2 := models.ReadSubject(order.SubjectId)
+
+		var title string
+		if err1 == nil && err2 == nil {
+			title = grade.Name + subject.Name
+		} else {
+			title = "实时课堂"
+		}
 
 		record := sessionRecord{
 			SessionId:    session.Id,

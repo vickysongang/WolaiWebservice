@@ -44,10 +44,11 @@ func GetRandNumSlice(sliceSize int64, length int64) []int64 {
 
 func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.EvaluationLabel, error) {
 	labels := []*models.EvaluationLabel{}
-	session := models.QuerySessionById(sessionId)
+	session, _ := models.ReadSession(sessionId)
+
 	//如果当前用户是学生，则要返回老师的标签信息，如果当前用户是老师，则要返回学生的标签信息
 	//学生
-	if userId == session.Created {
+	if userId == session.Creator {
 		teacher := models.QueryUserById(session.Tutor)
 		//个人标签
 		teacherPersonalLabels, err := models.QueryEvaluationLabels(teacher.Gender, models.PERSONAL_EVALUATION_LABEL, models.TEACHER_EVALUATION_LABEL)
@@ -76,7 +77,7 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 			labels = append(labels, teacherSubjectLabels[v])
 		}
 	} else if userId == session.Tutor { //老师
-		student := models.QueryUserById(session.Created)
+		student := models.QueryUserById(session.Creator)
 		//个人标签
 		studentPersonalLabels, err := models.QueryEvaluationLabels(student.Gender, models.PERSONAL_EVALUATION_LABEL, models.STUDENT_EVALUATION_LABEL)
 		if err != nil {

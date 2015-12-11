@@ -19,7 +19,7 @@ func POIWSSessionHandler(sessionId int64) {
 		}
 	}()
 
-	session := models.QuerySessionById(sessionId)
+	session, _ := models.ReadSession(sessionId)
 	order, _ := models.ReadOrder(session.OrderId)
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	sessionChan := WsManager.GetSessionChan(sessionId)
@@ -60,18 +60,18 @@ func POIWSSessionHandler(sessionId int64) {
 			"Status":   models.SESSION_STATUS_SERVING,
 			"TimeFrom": time.Now(),
 		}
-		models.UpdateSessionInfo(sessionId, sessionInfo)
+		models.UpdateSession(sessionId, sessionInfo)
 
-		teacherOnline := WsManager.HasUserChan(session.Teacher.UserId)
-		studentOnline := WsManager.HasUserChan(session.Creator.UserId)
+		teacherOnline := WsManager.HasUserChan(session.Tutor)
+		studentOnline := WsManager.HasUserChan(session.Creator)
 
 		if !teacherOnline {
 			//如果老师不在线，学生在线，则向学生发送课程中断消息
 			if studentOnline {
-				breakMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK)
+				breakMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_BREAK)
 				breakMsg.Attribute["sessionId"] = sessionIdStr
-				breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
-				breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+				breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+				breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 				breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 				breakChan := WsManager.GetUserChan(breakMsg.UserId)
 				breakChan <- breakMsg
@@ -81,10 +81,10 @@ func POIWSSessionHandler(sessionId int64) {
 		} else if !studentOnline {
 			//如果学生不在线老师在线，则向老师发送课程中断消息
 			if teacherOnline {
-				breakMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_BREAK)
+				breakMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_BREAK)
 				breakMsg.Attribute["sessionId"] = sessionIdStr
-				breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
-				breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+				breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+				breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 				breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 				breakChan := WsManager.GetUserChan(breakMsg.UserId)
 				breakChan <- breakMsg
@@ -103,17 +103,17 @@ func POIWSSessionHandler(sessionId int64) {
 	for {
 		select {
 		case <-waitingTimer.C:
-			expireMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_EXPIRE)
+			expireMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_EXPIRE)
 			expireMsg.Attribute["sessionId"] = sessionIdStr
 			//如果学生在线，则给学生发送课程过时消息
-			if WsManager.HasUserChan(session.Creator.UserId) {
-				userChan := WsManager.GetUserChan(session.Creator.UserId)
+			if WsManager.HasUserChan(session.Creator) {
+				userChan := WsManager.GetUserChan(session.Creator)
 				userChan <- expireMsg
 			}
 			//如果老师在线，则给老师发送课程过时消息
-			if WsManager.HasUserChan(session.Teacher.UserId) {
-				userChan := WsManager.GetUserChan(session.Teacher.UserId)
-				expireMsg.UserId = session.Teacher.UserId
+			if WsManager.HasUserChan(session.Tutor) {
+				userChan := WsManager.GetUserChan(session.Tutor)
+				expireMsg.UserId = session.Tutor
 				userChan <- expireMsg
 			}
 
@@ -122,30 +122,30 @@ func POIWSSessionHandler(sessionId int64) {
 				sessionInfo := map[string]interface{}{
 					"Status": models.SESSION_STATUS_CANCELLED,
 				}
-				models.UpdateSessionInfo(sessionId, sessionInfo)
+				models.UpdateSession(sessionId, sessionInfo)
 			} else {
 				sessionInfo := map[string]interface{}{
 					"Status": models.SESSION_STATUS_COMPLETE,
 					"TimeTo": time.Now(),
 					"Length": length,
 				}
-				models.UpdateSessionInfo(sessionId, sessionInfo)
+				models.UpdateSession(sessionId, sessionInfo)
 
 				//修改老师的辅导时长
-				models.UpdateTeacherServiceTime(session.Teacher.UserId, length)
-				session = models.QuerySessionById(sessionId)
+				models.UpdateTeacherServiceTime(session.Tutor, length)
+				session, _ = models.ReadSession(sessionId)
 				//课后结算，产生交易记录
 				trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, true)
-				go leancloud.SendSessionBreakMsg(session.Creator.UserId, session.Teacher.UserId)
+				go leancloud.SendSessionBreakMsg(session.Creator, session.Tutor)
 			}
 
 			WsManager.RemoveSessionLive(sessionId)
-			WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
+			WsManager.RemoveUserSession(sessionId, session.Tutor, session.Creator)
 			WsManager.RemoveSessionChan(sessionId)
 
 			//将老师和学生从内存中解锁
-			WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
-			WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
+			WsManager.SetUserSessionLock(session.Creator, false, timestamp)
+			WsManager.SetUserSessionLock(session.Tutor, false, timestamp)
 
 			logger.InsertSessionEventLog(sessionId, 0, "课程超时结束", "")
 			seelog.Debug("POIWSSessionHandler: session expired: " + sessionIdStr)
@@ -164,17 +164,17 @@ func POIWSSessionHandler(sessionId int64) {
 			lastSync = timestamp
 
 			//向老师和学生同步时间
-			syncMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_SYNC)
+			syncMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_SYNC)
 			syncMsg.Attribute["sessionId"] = sessionIdStr
 			syncMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 
-			if WsManager.HasUserChan(session.Teacher.UserId) {
-				teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+			if WsManager.HasUserChan(session.Tutor) {
+				teacherChan := WsManager.GetUserChan(session.Tutor)
 				teacherChan <- syncMsg
 			}
-			if WsManager.HasUserChan(session.Creator.UserId) {
-				syncMsg.UserId = session.Creator.UserId
-				stuChan := WsManager.GetUserChan(session.Creator.UserId)
+			if WsManager.HasUserChan(session.Creator) {
+				syncMsg.UserId = session.Creator
+				stuChan := WsManager.GetUserChan(session.Creator)
 				stuChan <- syncMsg
 			}
 
@@ -184,14 +184,14 @@ func POIWSSessionHandler(sessionId int64) {
 				timestamp = time.Now().Unix()
 
 				userChan := WsManager.GetUserChan(msg.UserId)
-				session = models.QuerySessionById(sessionId)
+				session, _ = models.ReadSession(sessionId)
 
 				switch msg.OperationCode {
 
 				case WS_SESSION_START: //预约课程，到时间点后老师拨号发起上课请求
 					//向老师发送响应消息
 					startResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_START_RESP)
-					if msg.UserId != session.Teacher.UserId {
+					if msg.UserId != session.Tutor {
 						startResp.Attribute["errCode"] = "2"
 						startResp.Attribute["errMsg"] = "You are not the teacher of this session"
 						userChan <- startResp
@@ -201,15 +201,15 @@ func POIWSSessionHandler(sessionId int64) {
 					userChan <- startResp
 
 					//向学生发送上课请求消息
-					if WsManager.HasUserChan(session.Creator.UserId) {
-						startMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_START)
+					if WsManager.HasUserChan(session.Creator) {
+						startMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_START)
 						startMsg.Attribute["sessionId"] = sessionIdStr
-						startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-						creatorChan := WsManager.GetUserChan(session.Creator.UserId)
+						startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+						creatorChan := WsManager.GetUserChan(session.Creator)
 						creatorChan <- startMsg
 					}
 					go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-						WS_SESSION_START, session.Creator.UserId))
+						WS_SESSION_START, session.Creator))
 
 					//将状态设置为正在拨号中
 					isCalling = true
@@ -217,7 +217,7 @@ func POIWSSessionHandler(sessionId int64) {
 				case WS_SESSION_ACCEPT: //预约课程，学生响应老师的上课请求
 					//学生响应上课请求后，向学生发送响应消息
 					acceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_ACCEPT_RESP)
-					if msg.UserId != session.Creator.UserId {
+					if msg.UserId != session.Creator {
 						acceptResp.Attribute["errCode"] = "2"
 						acceptResp.Attribute["errMsg"] = "You are not the creator of this session"
 						userChan <- acceptResp
@@ -248,11 +248,11 @@ func POIWSSessionHandler(sessionId int64) {
 					isCalling = false
 
 					//向老师发送学生的响应结果
-					acceptMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_ACCEPT)
+					acceptMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_ACCEPT)
 					acceptMsg.Attribute["sessionId"] = sessionIdStr
 					acceptMsg.Attribute["accept"] = acceptStr
-					if WsManager.HasUserChan(session.Teacher.UserId) {
-						teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+					if WsManager.HasUserChan(session.Tutor) {
+						teacherChan := WsManager.GetUserChan(session.Tutor)
 						teacherChan <- acceptMsg
 					}
 
@@ -279,7 +279,7 @@ func POIWSSessionHandler(sessionId int64) {
 							"Status":   models.SESSION_STATUS_SERVING,
 							"TimeFrom": time.Now(),
 						}
-						models.UpdateSessionInfo(sessionId, sessionInfo)
+						models.UpdateSession(sessionId, sessionInfo)
 
 						seelog.Debug("POIWSSessionHandler: session start: " + sessionIdStr)
 						logger.InsertSessionEventLog(sessionId, 0, "开始上课", "")
@@ -293,7 +293,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 					//向老师发送取消拨号后的响应消息
 					cancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_CANCEL_RESP)
-					if msg.UserId != session.Teacher.UserId {
+					if msg.UserId != session.Tutor {
 						cancelResp.Attribute["errCode"] = "2"
 						cancelResp.Attribute["errMsg"] = "You are not the teacher of this session"
 						userChan <- cancelResp
@@ -308,18 +308,18 @@ func POIWSSessionHandler(sessionId int64) {
 					isAccepted = false
 
 					//向学生发送老师取消拨号的请求
-					cancelMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_CANCEL)
+					cancelMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_CANCEL)
 					cancelMsg.Attribute["sessionId"] = sessionIdStr
-					cancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-					if WsManager.HasUserChan(session.Creator.UserId) {
-						creatorChan := WsManager.GetUserChan(session.Creator.UserId)
+					cancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+					if WsManager.HasUserChan(session.Creator) {
+						creatorChan := WsManager.GetUserChan(session.Creator)
 						creatorChan <- cancelMsg
 					}
 
 				case WS_SESSION_FINISH: //老师下课
 					//向老师发送下课的响应消息
 					finishResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_FINISH_RESP)
-					if msg.UserId != session.Teacher.UserId {
+					if msg.UserId != session.Tutor {
 						finishResp.Attribute["errCode"] = "2"
 						finishResp.Attribute["errMsg"] = "You are not the teacher of this session"
 						userChan <- finishResp
@@ -329,10 +329,10 @@ func POIWSSessionHandler(sessionId int64) {
 					userChan <- finishResp
 
 					//向学生发送下课消息
-					finishMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_FINISH)
+					finishMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_FINISH)
 					finishMsg.Attribute["sessionId"] = sessionIdStr
-					if WsManager.HasUserChan(session.Creator.UserId) {
-						creatorChan := WsManager.GetUserChan(session.Creator.UserId)
+					if WsManager.HasUserChan(session.Creator) {
+						creatorChan := WsManager.GetUserChan(session.Creator)
 						creatorChan <- finishMsg
 					}
 
@@ -349,26 +349,26 @@ func POIWSSessionHandler(sessionId int64) {
 						"TimeTo": timeTo,
 						"Length": length,
 					}
-					models.UpdateSessionInfo(sessionId, sessionInfo)
+					models.UpdateSession(sessionId, sessionInfo)
 
 					//修改老师的辅导时长
-					models.UpdateTeacherServiceTime(session.Teacher.UserId, length)
+					models.UpdateTeacherServiceTime(session.Tutor, length)
 
 					//下课后结算，产生交易记录
-					session = models.QuerySessionById(sessionId)
+					session, _ = models.ReadSession(sessionId)
 					trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, false)
 
 					seelog.Debug("POIWSSessionHandler: session end: " + sessionIdStr)
 
 					WsManager.RemoveSessionLive(sessionId)
-					WsManager.RemoveUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
+					WsManager.RemoveUserSession(sessionId, session.Tutor, session.Creator)
 					WsManager.RemoveSessionChan(sessionId)
 
 					//将老师和学生从内存中解锁
-					WsManager.SetUserSessionLock(session.Creator.UserId, false, timestamp)
-					WsManager.SetUserSessionLock(session.Teacher.UserId, false, timestamp)
+					WsManager.SetUserSessionLock(session.Creator, false, timestamp)
+					WsManager.SetUserSessionLock(session.Tutor, false, timestamp)
 
-					go leancloud.SendSessionFinishMsg(session.Creator.UserId, session.Teacher.UserId)
+					go leancloud.SendSessionFinishMsg(session.Creator, session.Tutor)
 
 					logger.InsertSessionEventLog(sessionId, 0, "导师下课，课程结束", "")
 					return
@@ -396,13 +396,13 @@ func POIWSSessionHandler(sessionId int64) {
 					syncTicker.Stop()
 
 					//如果学生掉线，则向老师发送课程中断消息，如果老师掉线，则向学生发送课程中断消息
-					breakMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK)
-					if msg.UserId == session.Creator.UserId {
-						breakMsg.UserId = session.Teacher.UserId
+					breakMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_BREAK)
+					if msg.UserId == session.Creator {
+						breakMsg.UserId = session.Tutor
 					}
 					breakMsg.Attribute["sessionId"] = sessionIdStr
-					breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
-					breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+					breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+					breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 					breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 					if WsManager.HasUserChan(breakMsg.UserId) {
 						breakChan := WsManager.GetUserChan(breakMsg.UserId)
@@ -419,24 +419,24 @@ func POIWSSessionHandler(sessionId int64) {
 					}
 
 					//向老师发送恢复课程信息
-					recoverTeacherMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_RECOVER_TEACHER)
+					recoverTeacherMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_RECOVER_TEACHER)
 					recoverTeacherMsg.Attribute["sessionId"] = sessionIdStr
-					recoverTeacherMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
+					recoverTeacherMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
 					recoverTeacherMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 
-					if !WsManager.HasUserChan(session.Teacher.UserId) {
+					if !WsManager.HasUserChan(session.Tutor) {
 						break
 					}
-					teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+					teacherChan := WsManager.GetUserChan(session.Tutor)
 					teacherChan <- recoverTeacherMsg
 
 					//如果老师所在的课程正在进行中，则通知老师该课正在进行中
 					if !isPaused && isServing {
-						seelog.Debug("send session:", sessionId, " live status message to teacher:", session.Teacher.UserId)
-						sessionStatusMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
+						seelog.Debug("send session:", sessionId, " live status message to teacher:", session.Tutor)
+						sessionStatusMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
-						sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
-						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+						sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 						sessionStatusMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 						teacherChan <- sessionStatusMsg
 					}
@@ -451,24 +451,24 @@ func POIWSSessionHandler(sessionId int64) {
 					}
 
 					//向学生发送恢复课程信息
-					recoverStuMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_RECOVER_STU)
+					recoverStuMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_RECOVER_STU)
 					recoverStuMsg.Attribute["sessionId"] = sessionIdStr
-					recoverStuMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+					recoverStuMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 					recoverStuMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 
-					if !WsManager.HasUserChan(session.Creator.UserId) {
+					if !WsManager.HasUserChan(session.Creator) {
 						break
 					}
-					studentChan := WsManager.GetUserChan(session.Creator.UserId)
+					studentChan := WsManager.GetUserChan(session.Creator)
 					studentChan <- recoverStuMsg
 
 					//如果学生所在的课程正在进行中，则通知学生该课正在进行中
 					if !isPaused && isServing {
-						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator.UserId)
-						sessionStatusMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
+						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator)
+						sessionStatusMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
-						sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
-						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+						sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 						sessionStatusMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 						studentChan <- sessionStatusMsg
 					}
@@ -499,15 +499,15 @@ func POIWSSessionHandler(sessionId int64) {
 					syncTicker.Stop()
 
 					//向学生发送课程暂停的消息
-					pauseMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_PAUSE)
+					pauseMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_PAUSE)
 					pauseMsg.Attribute["sessionId"] = sessionIdStr
-					pauseMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+					pauseMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 					pauseMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 
-					if !WsManager.HasUserChan(session.Creator.UserId) {
+					if !WsManager.HasUserChan(session.Creator) {
 						break
 					}
-					studentChan := WsManager.GetUserChan(session.Creator.UserId)
+					studentChan := WsManager.GetUserChan(session.Creator)
 					studentChan <- pauseMsg
 
 				case WS_SESSION_RESUME: //老师发起恢复上课的请求
@@ -523,15 +523,15 @@ func POIWSSessionHandler(sessionId int64) {
 					userChan <- resumeResp
 
 					//向学生发送恢复上课的消息
-					resumeMsg := NewPOIWSMessage("", session.Creator.UserId, WS_SESSION_RESUME)
+					resumeMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_RESUME)
 					resumeMsg.Attribute["sessionId"] = sessionIdStr
-					resumeMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-					if WsManager.HasUserChan(session.Creator.UserId) {
-						studentChan := WsManager.GetUserChan(session.Creator.UserId)
+					resumeMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+					if WsManager.HasUserChan(session.Creator) {
+						studentChan := WsManager.GetUserChan(session.Creator)
 						studentChan <- resumeMsg
 					}
 					go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-						WS_SESSION_RESUME, session.Creator.UserId))
+						WS_SESSION_RESUME, session.Creator))
 
 					//设置上课状态为拨号中
 					isCalling = true
@@ -556,11 +556,11 @@ func POIWSSessionHandler(sessionId int64) {
 					//向学生发送老师取消恢复上课的消息
 					resCancelMsg := NewPOIWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
 					resCancelMsg.Attribute["sessionId"] = sessionIdStr
-					resCancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
-					if !WsManager.HasUserChan(session.Creator.UserId) {
+					resCancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+					if !WsManager.HasUserChan(session.Creator) {
 						break
 					}
-					studentChan := WsManager.GetUserChan(session.Creator.UserId)
+					studentChan := WsManager.GetUserChan(session.Creator)
 					studentChan <- resCancelMsg
 
 					//拨号停止
@@ -593,11 +593,11 @@ func POIWSSessionHandler(sessionId int64) {
 					isCalling = false
 
 					//向老师发送响应恢复上课请求的消息
-					resAcceptMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_RESUME_ACCEPT)
+					resAcceptMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_RESUME_ACCEPT)
 					resAcceptMsg.Attribute["sessionId"] = sessionIdStr
 					resAcceptMsg.Attribute["accept"] = acceptStr
-					if WsManager.HasUserChan(session.Teacher.UserId) {
-						teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+					if WsManager.HasUserChan(session.Tutor) {
+						teacherChan := WsManager.GetUserChan(session.Tutor)
 						teacherChan <- resAcceptMsg
 					}
 
@@ -641,7 +641,7 @@ func InitSessionMonitor(sessionId int64) bool {
 
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 
-	session := models.QuerySessionById(sessionId)
+	session, _ := models.ReadSession(sessionId)
 	if session == nil {
 		return false
 	}
@@ -654,42 +654,42 @@ func InitSessionMonitor(sessionId int64) bool {
 	//提示课程即将开始，给客户端发送倒计时消息
 	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
 		order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
-		alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_ALERT)
+		alertMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_ALERT)
 		alertMsg.Attribute["sessionId"] = sessionIdStr
-		alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
-		alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+		alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+		alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 		alertMsg.Attribute["planTime"] = session.PlanTime
 
-		if WsManager.HasUserChan(session.Teacher.UserId) {
-			teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+		if WsManager.HasUserChan(session.Tutor) {
+			teacherChan := WsManager.GetUserChan(session.Tutor)
 			teacherChan <- alertMsg
 		}
 
 		go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-			alertMsg.OperationCode, session.Teacher.UserId))
+			alertMsg.OperationCode, session.Tutor))
 		go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-			alertMsg.OperationCode, session.Creator.UserId))
+			alertMsg.OperationCode, session.Creator))
 
 	} else if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
-		startMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_INSTANT_START)
+		startMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_INSTANT_START)
 		startMsg.Attribute["sessionId"] = sessionIdStr
-		startMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
-		startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+		startMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+		startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 		startMsg.Attribute["planTime"] = session.PlanTime
 
-		if WsManager.HasUserChan(session.Teacher.UserId) {
-			teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+		if WsManager.HasUserChan(session.Tutor) {
+			teacherChan := WsManager.GetUserChan(session.Tutor)
 			teacherChan <- startMsg
 		}
-		if WsManager.HasUserChan(session.Creator.UserId) {
-			startMsg.UserId = session.Creator.UserId
-			studentChan := WsManager.GetUserChan(session.Creator.UserId)
+		if WsManager.HasUserChan(session.Creator) {
+			startMsg.UserId = session.Creator
+			studentChan := WsManager.GetUserChan(session.Creator)
 			studentChan <- startMsg
 		}
 	}
 
-	// course, err := models.QueryServingCourse4User(session.Creator.UserId)
+	// course, err := models.QueryServingCourse4User(session.Creator)
 	// if err == nil {
 	// 	orderInfo := map[string]interface{}{
 	// 		"CourseId": course.CourseId,
@@ -702,9 +702,9 @@ func InitSessionMonitor(sessionId int64) bool {
 
 	timestamp := time.Now().Unix()
 	WsManager.SetSessionLive(sessionId, timestamp)
-	WsManager.SetUserSession(sessionId, session.Teacher.UserId, session.Creator.UserId)
-	WsManager.SetUserSessionLock(session.Creator.UserId, true, timestamp)
-	WsManager.SetUserSessionLock(session.Teacher.UserId, true, timestamp)
+	WsManager.SetUserSession(sessionId, session.Tutor, session.Creator)
+	WsManager.SetUserSessionLock(session.Creator, true, timestamp)
+	WsManager.SetUserSessionLock(session.Tutor, true, timestamp)
 
 	go POIWSSessionHandler(sessionId)
 
@@ -772,7 +772,7 @@ func RecoverUserSession(userId int64) {
 	}
 
 	for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
-		session := models.QuerySessionById(sessionId)
+		session, _ := models.ReadSession(sessionId)
 		if session == nil {
 			continue
 		}
@@ -790,24 +790,24 @@ func RecoverUserSession(userId int64) {
 		sessionIdStr := strconv.FormatInt(sessionId, 10)
 		//如果是预约的课还未开始的话，则发送201，否则发送回溯
 		if (order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT || order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT) && sessionStatus == models.SESSION_STATUS_CREATED {
-			alertMsg := NewPOIWSMessage("", session.Teacher.UserId, WS_SESSION_ALERT)
+			alertMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_ALERT)
 			alertMsg.Attribute["sessionId"] = sessionIdStr
-			alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator.UserId, 10)
-			alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Teacher.UserId, 10)
+			alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+			alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 			alertMsg.Attribute["planTime"] = session.PlanTime
 
-			if WsManager.HasUserChan(session.Teacher.UserId) {
-				teacherChan := WsManager.GetUserChan(session.Teacher.UserId)
+			if WsManager.HasUserChan(session.Tutor) {
+				teacherChan := WsManager.GetUserChan(session.Tutor)
 				teacherChan <- alertMsg
 			}
 
 			go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-				alertMsg.OperationCode, session.Teacher.UserId))
+				alertMsg.OperationCode, session.Tutor))
 			go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-				alertMsg.OperationCode, session.Creator.UserId))
+				alertMsg.OperationCode, session.Creator))
 		} else {
 			recoverMsg := NewPOIWSMessage("", userId, WS_SESSION_RECOVER_STU)
-			if session.Teacher.UserId == userId {
+			if session.Tutor == userId {
 				recoverMsg.OperationCode = WS_SESSION_RECOVER_TEACHER
 			}
 			sessionChan := WsManager.GetSessionChan(sessionId)

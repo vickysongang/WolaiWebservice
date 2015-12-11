@@ -109,7 +109,7 @@ func (osm *OrderStatusManager) SetOrderDispatching(orderId int64) error {
 	orderInfo := map[string]interface{}{
 		"Status": models.ORDER_STATUS_DISPATHCING,
 	}
-	models.UpdateOrderInfo(orderId, orderInfo)
+	models.UpdateOrder(orderId, orderInfo)
 
 	return nil
 }
@@ -118,7 +118,7 @@ func (osm *OrderStatusManager) SetOrderCancelled(orderId int64) error {
 	orderInfo := map[string]interface{}{
 		"Status": models.ORDER_STATUS_CANCELLED,
 	}
-	models.UpdateOrderInfo(orderId, orderInfo)
+	models.UpdateOrder(orderId, orderInfo)
 	return nil
 }
 
@@ -129,7 +129,7 @@ func (osm *OrderStatusManager) SetOrderConfirm(orderId int64, teacherId int64) e
 		"PricePerHour":     teacher.PricePerHour,
 		"RealPricePerHour": teacher.RealPricePerHour,
 	}
-	models.UpdateOrderInfo(orderId, orderInfo)
+	models.UpdateOrder(orderId, orderInfo)
 	return nil
 }
 

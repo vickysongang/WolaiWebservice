@@ -23,11 +23,28 @@ type Session struct {
 
 func init() {
 	orm.RegisterModel(new(Session))
-
 }
 
 func (s *Session) TableName() string {
 	return "sessions"
+}
+
+const (
+	SESSION_STATUS_CREATED   = "created"
+	SESSION_STATUS_SERVING   = "serving"
+	SESSION_STATUS_COMPLETE  = "complete"
+	SESSION_STATUS_CANCELLED = "cancelled"
+)
+
+func CreateSession(session *Session) (*Session, error) {
+	o := orm.NewOrm()
+
+	id, err := o.Insert(session)
+	if err != nil {
+		return nil, err
+	}
+	session.Id = id
+	return session, nil
 }
 
 func ReadSession(sessionId int64) (*Session, error) {
@@ -40,4 +57,17 @@ func ReadSession(sessionId int64) (*Session, error) {
 	}
 
 	return &session, nil
+}
+
+func UpdateSession(sessionId int64, sessionInfo map[string]interface{}) {
+	o := orm.NewOrm()
+
+	var params orm.Params = make(orm.Params)
+	for k, v := range sessionInfo {
+		params[k] = v
+	}
+
+	o.QueryTable("sessions").Filter("id", sessionId).Update(params)
+
+	return
 }

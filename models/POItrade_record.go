@@ -32,7 +32,7 @@ type POITradeToSession struct {
 type POISessionTradeRecord struct {
 	Id                int64     `json:"-"`
 	UserId            int64     `json:"-"`
-	User              *POIUser  `json:"userInfo"`
+	User              *User     `json:"userInfo"`
 	TradeType         string    `json:"tradeType"`
 	TradeAmount       int64     `json:"tradeAmount"`
 	OrderType         int64     `json:"orderType"`
@@ -149,18 +149,18 @@ func QuerySessionTradeRecords(userId int64, pageNum, pageCount int) (*POISession
 		return nil, err
 	}
 	returnRecords := make(POISessionTradeRecords, 0)
-	user := QueryUserById(userId)
+	user, _ := ReadUser(userId)
 	for i := range records {
 		record := records[i]
 		sessionId := QuerySessionIdByTradeRecord(record.Id)
 		if sessionId == 0 {
 			record.User = user
 		} else {
-			session := QuerySessionById(sessionId)
+			session, _ := ReadSession(sessionId)
 			if userId == session.Tutor {
-				record.User = QueryUserById(session.Created)
-			} else if userId == session.Created {
-				record.User = QueryUserById(session.Tutor)
+				record.User, _ = ReadUser(session.Creator)
+			} else if userId == session.Creator {
+				record.User, _ = ReadUser(session.Tutor)
 			}
 		}
 		if strings.Contains(record.Comment, " ") {

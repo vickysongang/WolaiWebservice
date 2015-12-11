@@ -342,8 +342,8 @@ func SendPersonalOrderAutoIgnoreNotification(studentId int64, teacherId int64) {
 }
 
 func SendSessionCreatedNotification(sessionId int64) {
-	session := models.QuerySessionById(sessionId)
-	if session == nil {
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
 		return
 	}
 
@@ -365,12 +365,12 @@ func SendSessionCreatedNotification(sessionId int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg, true)
+	LCSendTypedMessage(session.Creator, session.Tutor, &lcTMsg, true)
 }
 
 func SendSessionReminderNotification(sessionId int64, seconds int64) {
-	session := models.QuerySessionById(sessionId)
-	if session == nil {
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
 		return
 	}
 
@@ -395,12 +395,12 @@ func SendSessionReminderNotification(sessionId int64, seconds int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg, true)
+	LCSendTypedMessage(session.Creator, session.Tutor, &lcTMsg, true)
 }
 
 func SendSessionCancelNotification(sessionId int64) {
-	session := models.QuerySessionById(sessionId)
-	if session == nil {
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
 		return
 	}
 
@@ -422,17 +422,17 @@ func SendSessionCancelNotification(sessionId int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &lcTMsg, true)
+	LCSendTypedMessage(session.Creator, session.Tutor, &lcTMsg, true)
 }
 
 func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice int64) {
-	session := models.QuerySessionById(sessionId)
-	if session == nil {
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
 		return
 	}
 
-	teacher := models.QueryTeacher(session.Teacher.UserId)
-	student := models.QueryUserById(session.Creator.UserId)
+	teacher := models.QueryTeacher(session.Tutor)
+	student := models.QueryUserById(session.Creator)
 	if teacher == nil || student == nil {
 		return
 	}
@@ -453,7 +453,7 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 		Text:      "您有一条结算提醒",
 		Attribute: attr,
 	}
-	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &teacherTMsg, false)
+	LCSendTypedMessage(session.Creator, session.Tutor, &teacherTMsg, false)
 
 	attr["price"] = strconv.FormatInt(studentPrice, 10)
 	freeFlag := false
@@ -468,17 +468,17 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 		Text:      "您有一条结算提醒",
 		Attribute: attr,
 	}
-	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &studentTMsg, false)
+	LCSendTypedMessage(session.Tutor, session.Creator, &studentTMsg, false)
 }
 
 func SendSessionExpireNotification(sessionId int64, teacherPrice int64) {
-	session := models.QuerySessionById(sessionId)
-	if session == nil {
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
 		return
 	}
 
-	teacher := models.QueryTeacher(session.Teacher.UserId)
-	student := models.QueryUserById(session.Creator.UserId)
+	teacher := models.QueryTeacher(session.Tutor)
+	student := models.QueryUserById(session.Creator)
 	if teacher == nil || student == nil {
 		return
 	}
@@ -505,7 +505,7 @@ func SendSessionExpireNotification(sessionId int64, teacherPrice int64) {
 		Text:      "您有一堂课已超时",
 		Attribute: attr,
 	}
-	LCSendTypedMessage(session.Teacher.UserId, session.Creator.UserId, &teacherTMsg, false)
+	LCSendTypedMessage(session.Tutor, session.Creator, &teacherTMsg, false)
 }
 
 func SendAdvertisementMessage(title, desc, mediaId, url string, userId int64) {

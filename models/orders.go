@@ -67,3 +67,15 @@ func ReadOrder(orderId int64) (*Order, error) {
 
 	return &order, nil
 }
+
+func UpdateOrder(orderId int64, orderInfo map[string]interface{}) {
+	o := orm.NewOrm()
+
+	var params orm.Params = make(orm.Params)
+	for k, v := range orderInfo {
+		params[k] = v
+	}
+
+	o.QueryTable("orders").Filter("id", orderId).Update(params)
+	return
+}

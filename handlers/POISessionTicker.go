@@ -28,8 +28,8 @@ func POISessionTickerHandler() {
 			_ = json.Unmarshal([]byte(sessionTicks[i]), &tickInfo)
 
 			sessionId := tickInfo["sessionId"]
-			session := models.QuerySessionById(sessionId)
-			if session == nil {
+			_, err := models.ReadSession(sessionId)
+			if err != nil {
 				continue
 			}
 

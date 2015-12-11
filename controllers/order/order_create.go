@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"WolaiWebservice/models"
+	"WolaiWebservice/websocket"
 )
 
 func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64) (int64, *models.Order) {
@@ -41,6 +42,10 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64) (int6
 	orderPtr, err := models.CreateOrder(&order)
 	if err != nil {
 		return 2, nil
+	}
+
+	if orderPtr.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+		go websocket.InitOrderMonitor(orderPtr.Id, teacherId)
 	}
 
 	return 0, orderPtr

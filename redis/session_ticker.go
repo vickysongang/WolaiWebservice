@@ -40,12 +40,12 @@ func (rm *POIRedisManager) GetSessionTicks(timestamp int64) []string {
  * 将老师的计划开始时间和预计结束时间存入redis
  */
 func (rm *POIRedisManager) SetSessionUserTick(sessionId int64) bool {
-	session := models.QuerySessionById(sessionId)
-	if session == nil {
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
 		return false
 	}
 
-	_, err := models.ReadOrder(session.OrderId)
+	_, err = models.ReadOrder(session.OrderId)
 	if err != nil {
 		return false
 	}
@@ -57,12 +57,12 @@ func (rm *POIRedisManager) SetSessionUserTick(sessionId int64) bool {
 	timeFrom := planTime.Add(-blockDuration)
 
 	teacherStartMap := map[string]int64{
-		"userId":    session.Teacher.UserId,
+		"userId":    session.Tutor,
 		"sessionId": sessionId,
 		"lock":      1,
 	}
 	studentStartMap := map[string]int64{
-		"userId":    session.Creator.UserId,
+		"userId":    session.Creator,
 		"sessionId": sessionId,
 		"lock":      1,
 	}
@@ -70,8 +70,8 @@ func (rm *POIRedisManager) SetSessionUserTick(sessionId int64) bool {
 	teacherStartStr, _ := json.Marshal(teacherStartMap)
 	studentStartStr, _ := json.Marshal(studentStartMap)
 
-	teacherIdStr := strconv.FormatInt(session.Teacher.UserId, 10)
-	studentIdStr := strconv.FormatInt(session.Creator.UserId, 10)
+	teacherIdStr := strconv.FormatInt(session.Tutor, 10)
+	studentIdStr := strconv.FormatInt(session.Creator, 10)
 
 	teacherTimeFromZ := redis.Z{Member: string(teacherStartStr), Score: float64(timeFrom.Unix())}
 	studentTimeFromZ := redis.Z{Member: string(studentStartStr), Score: float64(timeFrom.Unix())}
@@ -82,7 +82,7 @@ func (rm *POIRedisManager) SetSessionUserTick(sessionId int64) bool {
 	rm.RedisClient.ZAdd(SESSION_USER_TICKER, teacherTimeFromZ)
 	rm.RedisClient.ZAdd(SESSION_USER_TICKER, studentTimeFromZ)
 
-	seelog.Debug("SetSessionLock: sessionId:", sessionId, "teacherId:", session.Teacher.UserId, " studentId:", session.Creator.UserId)
+	seelog.Debug("SetSessionLock: sessionId:", sessionId, "teacherId:", session.Tutor, " studentId:", session.Creator)
 
 	if time.Now().Unix() > timeFrom.Unix() {
 		return true

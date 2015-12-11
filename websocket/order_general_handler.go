@@ -445,11 +445,13 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 	orderSessionCountdown := redis.RedisManager.GetConfig(
 		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
 
-	sessionInfo := models.NewPOISession(order.Id,
-		models.QueryUserById(order.Creator),
-		models.QueryUserById(teacherId),
-		planTime)
-	session := models.InsertSession(&sessionInfo)
+	sessionInfo := models.Session{
+		OrderId:  order.Id,
+		Creator:  order.Creator,
+		Tutor:    teacherId,
+		PlanTime: planTime,
+	}
+	session, _ := models.CreateSession(&sessionInfo)
 
 	// 发送Leancloud订单成功通知
 	go leancloud.SendSessionCreatedNotification(session.Id)
@@ -457,8 +459,8 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 	// 发起上课请求或者设置计时器
 	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
-		WsManager.SetUserSessionLock(session.Creator.UserId, true, timestamp)
-		WsManager.SetUserSessionLock(session.Teacher.UserId, true, timestamp)
+		WsManager.SetUserSessionLock(session.Creator, true, timestamp)
+		WsManager.SetUserSessionLock(session.Tutor, true, timestamp)
 
 		time.Sleep(time.Second * time.Duration(orderSessionCountdown))
 		_ = InitSessionMonitor(session.Id)
@@ -466,8 +468,8 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 	} else if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
 		order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
 		if redis.RedisManager.SetSessionUserTick(session.Id) {
-			WsManager.SetUserSessionLock(session.Teacher.UserId, true, timestamp)
-			WsManager.SetUserSessionLock(session.Creator.UserId, true, timestamp)
+			WsManager.SetUserSessionLock(session.Tutor, true, timestamp)
+			WsManager.SetUserSessionLock(session.Creator, true, timestamp)
 		}
 		planTime, _ := time.Parse(time.RFC3339, planTime)
 		planTimeTS := planTime.Unix()
