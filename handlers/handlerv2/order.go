@@ -115,7 +115,7 @@ func OrderExpectation(w http.ResponseWriter, r *http.Request) {
 	// }
 	//
 	var content = map[string]float64{
-		"price": 1.8,
+		"price": 180,
 	}
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
