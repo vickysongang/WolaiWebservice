@@ -11,7 +11,6 @@ import (
 	"WolaiWebservice/leancloud"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
-	"WolaiWebservice/utils"
 )
 
 func generalOrderHandler(orderId int64) {
@@ -466,32 +465,5 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 		time.Sleep(time.Second * time.Duration(orderSessionCountdown))
 		_ = InitSessionMonitor(session.Id)
 
-	} else if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
-		order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
-		if redis.RedisManager.SetSessionUserTick(session.Id) {
-			WsManager.SetUserSessionLock(session.Tutor, true, timestamp)
-			WsManager.SetUserSessionLock(session.Creator, true, timestamp)
-		}
-		planTime, _ := time.Parse(time.RFC3339, planTime)
-		planTimeTS := planTime.Unix()
-
-		sessionStart := make(map[string]int64)
-		sessionStart["type"] = leancloud.LC_MSG_SESSION_SYS
-		sessionStart["sessionId"] = session.Id
-		jsonStart, _ := json.Marshal(sessionStart)
-		redis.RedisManager.SetSessionTicker(planTimeTS, string(jsonStart))
-
-		sessionReminder := make(map[string]int64)
-		sessionReminder["type"] = leancloud.LC_MSG_SESSION
-		sessionReminder["sessionId"] = session.Id
-		for d := range utils.Config.Reminder.Durations {
-			duration := utils.Config.Reminder.Durations[d]
-			seconds := int64(duration.Seconds())
-			sessionReminder["seconds"] = seconds
-			jsonReminder, _ := json.Marshal(sessionReminder)
-			if timestamp < planTimeTS-seconds {
-				redis.RedisManager.SetSessionTicker(planTimeTS-seconds, string(jsonReminder))
-			}
-		}
 	}
 }

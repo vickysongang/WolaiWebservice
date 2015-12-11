@@ -81,9 +81,9 @@ func UpdateOrder(orderId int64, orderInfo map[string]interface{}) {
 }
 
 type orderInfo struct {
-	OrderId  int64  `json:"orderId"`
-	UserInfo *User  `json:"userInfo"`
-	Title    string `json:"title"`
+	OrderId     int64  `json:"orderId"`
+	CreatorInfo *User  `json:"creatorInfo"`
+	Title       string `json:"title"`
 }
 
 func GetOrderInfo(orderId int64) *orderInfo {
@@ -101,9 +101,9 @@ func GetOrderInfo(orderId int64) *orderInfo {
 	}
 
 	info := orderInfo{
-		OrderId:  order.Id,
-		UserInfo: user,
-		Title:    title,
+		OrderId:     order.Id,
+		CreatorInfo: user,
+		Title:       title,
 	}
 
 	return &info
