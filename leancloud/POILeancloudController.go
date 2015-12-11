@@ -7,7 +7,6 @@ import (
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
-	"WolaiWebservice/utils"
 )
 
 const (
@@ -195,7 +194,7 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 	}
 	LCSendTypedMessage(USER_TRADE_RECORD, teacherId, &teacherTMsg, false)
 
-	freeFlag := models.IsUserFree4Session(student.UserId, time.Now().Format(utils.TIME_FORMAT))
+	freeFlag := false
 	attrStudent := map[string]string{
 		"type":      LC_TRADE_TYPE_STUDENT,
 		"title":     "交易提醒",
@@ -457,7 +456,7 @@ func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice i
 	LCSendTypedMessage(session.Creator.UserId, session.Teacher.UserId, &teacherTMsg, false)
 
 	attr["price"] = strconv.FormatInt(studentPrice, 10)
-	freeFlag := models.IsUserFree4Session(student.UserId, time.Now().Format(utils.TIME_FORMAT))
+	freeFlag := false
 	if freeFlag {
 		attr["free"] = "1"
 	} else {
@@ -494,7 +493,7 @@ func SendSessionExpireNotification(sessionId int64, teacherPrice int64) {
 	attr["price"] = strconv.FormatInt(teacherPrice, 10)
 	attr["teacherInfo"] = string(teacherStr)
 	attr["studentInfo"] = string(studentStr)
-	freeFlag := models.IsUserFree4Session(student.UserId, time.Now().Format(utils.TIME_FORMAT))
+	freeFlag := false
 	if freeFlag {
 		attr["free"] = "1"
 	} else {

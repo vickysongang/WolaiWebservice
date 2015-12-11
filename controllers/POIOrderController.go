@@ -32,19 +32,19 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 	}
 
 	//检查用户是否为包月用户
-	var courseId int64
-	course, err := models.QueryServingCourse4User(creatorId)
-	if err != nil {
-		courseId = 0
-	} else {
-		if ignoreCourseFlag == "N" {
-			err = CheckCourseValid4Order(course.TimeTo, date)
-			if err != nil {
-				return 5004, nil, err
-			}
-		}
-		courseId = course.CourseId
-	}
+	// var courseId int64
+	// course, err := models.QueryServingCourse4User(creatorId)
+	// if err != nil {
+	// 	courseId = 0
+	// } else {
+	// 	if ignoreCourseFlag == "N" {
+	// 		err = CheckCourseValid4Order(course.TimeTo, date)
+	// 		if err != nil {
+	// 			return 5004, nil, err
+	// 		}
+	// 	}
+	// 	courseId = course.CourseId
+	// }
 	//检查用户是否余额不足
 	if creator.Balance <= 0 {
 		err = errors.New("余额不足")
@@ -68,7 +68,7 @@ func OrderCreate(creatorId int64, teacherId int64, gradeId int64, subjectId int6
 		Type:      orderType,
 		Status:    models.ORDER_STATUS_CREATED,
 		TeacherId: teacherId,
-		CourseId:  courseId,
+		//CourseId:  courseId,
 	}
 
 	switch orderType {

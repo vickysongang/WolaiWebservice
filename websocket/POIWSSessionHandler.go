@@ -689,13 +689,13 @@ func InitSessionMonitor(sessionId int64) bool {
 		}
 	}
 
-	course, err := models.QueryServingCourse4User(session.Creator.UserId)
-	if err == nil {
-		orderInfo := map[string]interface{}{
-			"CourseId": course.CourseId,
-		}
-		models.UpdateOrderInfo(order.Id, orderInfo)
-	}
+	// course, err := models.QueryServingCourse4User(session.Creator.UserId)
+	// if err == nil {
+	// 	orderInfo := map[string]interface{}{
+	// 		"CourseId": course.CourseId,
+	// 	}
+	// 	models.UpdateOrderInfo(order.Id, orderInfo)
+	// }
 
 	sessionChan := make(chan POIWSMessage)
 	WsManager.SetSessionChan(sessionId, sessionChan)

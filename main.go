@@ -55,7 +55,7 @@ func main() {
 
 	go handlers.POISessionTickerHandler()
 	go handlers.POILeanCloudTickerHandler()
-	go handlers.POICourseExpiredHandler()
+	// go handlers.POICourseExpiredHandler()
 	go startRpcServer()
 
 	router := routers.NewRouter()
