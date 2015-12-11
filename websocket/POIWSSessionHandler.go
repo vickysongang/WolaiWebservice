@@ -20,7 +20,7 @@ func POIWSSessionHandler(sessionId int64) {
 	}()
 
 	session := models.QuerySessionById(sessionId)
-	order := models.QueryOrderById(session.OrderId)
+	order, _ := models.ReadOrder(session.OrderId)
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	sessionChan := WsManager.GetSessionChan(sessionId)
 
@@ -646,8 +646,8 @@ func InitSessionMonitor(sessionId int64) bool {
 		return false
 	}
 
-	order := models.QueryOrderById(session.OrderId)
-	if order == nil {
+	order, err := models.ReadOrder(session.OrderId)
+	if err != nil {
 		return false
 	}
 
@@ -781,8 +781,8 @@ func RecoverUserSession(userId int64) {
 			continue
 		}
 
-		order := models.QueryOrderById(session.OrderId)
-		if order == nil {
+		order, err := models.ReadOrder(session.OrderId)
+		if err != nil {
 			continue
 		}
 

@@ -20,10 +20,10 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 		}
 	}()
 
-	order := models.QueryOrderById(orderId)
+	order, _ := models.ReadOrder(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
-	studentId := order.Creator.UserId
+	studentId := order.Creator
 
 	var orderLifespan int64
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
@@ -61,7 +61,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 				case WS_ORDER2_PERSONAL_REPLY:
 					resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
 
-					if WsManager.IsUserSessionLocked(order.Creator.UserId) &&
+					if WsManager.IsUserSessionLocked(order.Creator) &&
 						order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 						resp.Attribute["errCode"] = "2"
 						resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
@@ -70,7 +70,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						OrderManager.SetOrderCancelled(orderId)
 						OrderManager.SetOffline(orderId)
 
-						go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator.UserId, msg.UserId)
+						go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator, msg.UserId)
 						return
 					}
 					if WsManager.IsUserSessionLocked(msg.UserId) &&
@@ -94,21 +94,21 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					userChan <- resultMsg
 
 					if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
-						acceptMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER2_PERSONAL_REPLY)
+						acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_PERSONAL_REPLY)
 						acceptMsg.Attribute["orderId"] = orderIdStr
 						acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 						acceptMsg.Attribute["teacherId"] = strconv.FormatInt(msg.UserId, 10)
-						if WsManager.HasUserChan(order.Creator.UserId) {
-							creatorChan := WsManager.GetUserChan(order.Creator.UserId)
+						if WsManager.HasUserChan(order.Creator) {
+							creatorChan := WsManager.GetUserChan(order.Creator)
 							creatorChan <- acceptMsg
 						}
 					} else if order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
-						acceptMsg := NewPOIWSMessage("", order.Creator.UserId, WS_ORDER2_PERSONAL_REPLY)
+						acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_PERSONAL_REPLY)
 						acceptMsg.Attribute["orderId"] = orderIdStr
 						acceptMsg.Attribute["countdown"] = "0"
 						acceptMsg.Attribute["teacherId"] = strconv.FormatInt(msg.UserId, 10)
-						if WsManager.HasUserChan(order.Creator.UserId) {
-							creatorChan := WsManager.GetUserChan(order.Creator.UserId)
+						if WsManager.HasUserChan(order.Creator) {
+							creatorChan := WsManager.GetUserChan(order.Creator)
 							creatorChan <- acceptMsg
 						}
 
@@ -129,8 +129,8 @@ func checkOrderValidation(orderId int64) (int64, error) {
 		return 0, nil
 	}
 
-	order := models.QueryOrderById(orderId)
-	if order == nil {
+	order, err := models.ReadOrder(orderId)
+	if err != nil {
 		return -1, errors.New("Invalid OrderId")
 	}
 
@@ -148,9 +148,9 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 		}
 	}()
 
-	order := models.QueryOrderById(orderId)
+	order, _ := models.ReadOrder(orderId)
 	orderByte, _ := json.Marshal(order)
-	studentId := order.Creator.UserId
+	studentId := order.Creator
 
 	OrderManager.SetOnline(orderId)
 

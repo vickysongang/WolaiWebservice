@@ -32,6 +32,30 @@ func (o *Order) TableName() string {
 	return "orders"
 }
 
+const (
+	ORDER_STATUS_CREATED     = "created"
+	ORDER_STATUS_DISPATHCING = "dispatching"
+	ORDER_STATUS_CONFIRMED   = "confirmed"
+	ORDER_STATUS_CANCELLED   = "cancelled"
+
+	ORDER_TYPE_GENERAL_INSTANT       = "general_instant"
+	ORDER_TYPE_GENERAL_APPOINTMENT   = "general_appointment"
+	ORDER_TYPE_PERSONAL_INSTANT      = "personal_instant"
+	ORDER_TYPE_PERSONAL_APPOINTEMENT = "personal_appointment"
+	ORDER_TYPE_REALTIME_SESSION      = "realtime_session"
+)
+
+func CreateOrder(order *Order) (*Order, error) {
+	o := orm.NewOrm()
+
+	id, err := o.Insert(order)
+	if err != nil {
+		return nil, err
+	}
+	order.Id = id
+	return order, nil
+}
+
 func ReadOrder(orderId int64) (*Order, error) {
 	o := orm.NewOrm()
 

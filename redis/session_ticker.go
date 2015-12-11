@@ -44,8 +44,9 @@ func (rm *POIRedisManager) SetSessionUserTick(sessionId int64) bool {
 	if session == nil {
 		return false
 	}
-	order := models.QueryOrderById(session.OrderId)
-	if order == nil {
+
+	_, err := models.ReadOrder(session.OrderId)
+	if err != nil {
 		return false
 	}
 

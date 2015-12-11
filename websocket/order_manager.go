@@ -9,7 +9,7 @@ import (
 
 type OrderStatus struct {
 	orderId         int64
-	orderInfo       *models.POIOrder
+	orderInfo       *models.Order
 	orderChan       chan POIWSMessage
 	onlineTimestamp int64
 	isDispatching   bool
@@ -36,7 +36,7 @@ func init() {
 
 func NewOrderStatus(orderId int64) *OrderStatus {
 	timestamp := time.Now().Unix()
-	order := models.QueryOrderById(orderId)
+	order, _ := models.ReadOrder(orderId)
 	orderStatus := OrderStatus{
 		orderId:         orderId,
 		orderInfo:       order,

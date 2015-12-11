@@ -62,21 +62,6 @@ var (
 )
 
 const (
-	ORDER_STATUS_CREATED     = "created"
-	ORDER_STATUS_DISPATHCING = "dispatching"
-	ORDER_STATUS_CONFIRMED   = "confirmed"
-	ORDER_STATUS_CANCELLED   = "cancelled"
-
-	ORDER_TYPE_GENERAL_INSTANT       = 1
-	ORDER_TYPE_GENERAL_APPOINTMENT   = 2
-	ORDER_TYPE_PERSONAL_INSTANT      = 3
-	ORDER_TYPE_PERSONAL_APPOINTEMENT = 4
-	ORDER_TYPE_REALTIME_SESSION      = 5
-
-	ORDER_PERIOD_MORNING   = 1
-	ORDER_PERIOD_AFTERNOON = 2
-	ORDER_PERIOD_EVENING   = 3
-
 	ORDER_DISPATCH_TYPE_DISPATCH = "dispatch"
 	ORDER_DISPATCH_TYPE_ASSIGN   = "assign"
 )
@@ -107,21 +92,21 @@ func NewPOIOrder(creator *POIUser, gradeId int64, subjectId int64, date string, 
 	}
 }
 
-func InsertOrder(order *POIOrder) (*POIOrder, error) {
-	o := orm.NewOrm()
-	orderTypeStr := OrderTypeDict[order.Type]
-	order.OrderType = orderTypeStr
-	if order.Created == 0 {
-		order.Created = order.Creator.UserId
-	}
-	orderId, err := o.Insert(order)
-	if err != nil {
-		seelog.Error("order:", order, " ", err.Error())
-		return nil, err
-	}
-	order.Id = orderId
-	return order, nil
-}
+// func InsertOrder(order *POIOrder) (*POIOrder, error) {
+// 	o := orm.NewOrm()
+// 	orderTypeStr := OrderTypeDict[order.Type]
+// 	order.OrderType = orderTypeStr
+// 	if order.Created == 0 {
+// 		order.Created = order.Creator.UserId
+// 	}
+// 	orderId, err := o.Insert(order)
+// 	if err != nil {
+// 		seelog.Error("order:", order, " ", err.Error())
+// 		return nil, err
+// 	}
+// 	order.Id = orderId
+// 	return order, nil
+// }
 
 func InsertOrderDispatch(orderDispatch *POIOrderDispatch) *POIOrderDispatch {
 	o := orm.NewOrm()
@@ -140,23 +125,23 @@ func InsertOrderDispatch(orderDispatch *POIOrderDispatch) *POIOrderDispatch {
 	return orderDispatch
 }
 
-func QueryOrderById(orderId int64) *POIOrder {
-	order := POIOrder{}
-	o := orm.NewOrm()
-	db, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	db.Select("id,creator,grade_id,subject_id,date,period_id,length,type,status,price_per_hour,real_price_per_hour,teacher_id,course_id").
-		From("orders").Where("id = ?")
-	sql := db.String()
-	err := o.Raw(sql, orderId).QueryRow(&order)
-	if err != nil {
-		seelog.Error("orderId:", orderId, " ", err.Error())
-		return nil
-	}
-	order.Type = OrderTypeRevDict[order.OrderType]
-	creator := QueryUserById(order.Created)
-	order.Creator = creator
-	return &order
-}
+// func QueryOrderById(orderId int64) *POIOrder {
+// 	order := POIOrder{}
+// 	o := orm.NewOrm()
+// 	db, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+// 	db.Select("id,creator,grade_id,subject_id,date,period_id,length,type,status,price_per_hour,real_price_per_hour,teacher_id,course_id").
+// 		From("orders").Where("id = ?")
+// 	sql := db.String()
+// 	err := o.Raw(sql, orderId).QueryRow(&order)
+// 	if err != nil {
+// 		seelog.Error("orderId:", orderId, " ", err.Error())
+// 		return nil
+// 	}
+// 	order.Type = OrderTypeRevDict[order.OrderType]
+// 	creator := QueryUserById(order.Created)
+// 	order.Creator = creator
+// 	return &order
+// }
 
 func UpdateOrderInfo(orderId int64, orderInfo map[string]interface{}) {
 	o := orm.NewOrm()

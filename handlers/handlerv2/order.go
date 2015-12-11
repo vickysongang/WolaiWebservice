@@ -4,13 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/cihub/seelog"
 
-	"WolaiWebservice/controllers"
+	orderController "WolaiWebservice/controllers/order"
 	"WolaiWebservice/handlers/response"
-	"WolaiWebservice/models"
 )
 
 // 5.1.1
@@ -47,29 +45,15 @@ func OrderCreate(w http.ResponseWriter, r *http.Request) {
 	subjectIdStr := vars["subjectId"][0]
 	subjectId, _ := strconv.ParseInt(subjectIdStr, 10, 64)
 
-	var orderType int64
-	if teacherId != 0 {
-		orderType = models.ORDER_TYPE_PERSONAL_INSTANT
-	} else {
-		orderType = models.ORDER_TYPE_GENERAL_INSTANT
-	}
-
-	//// TODO
-	date := time.Now().Format(time.RFC3339)
-	var periodId int64
-	var length int64
-	ignoreCourseFlag := "N"
-	_ = teacherTier
-
-	status, content, err := controllers.OrderCreate(userId, teacherId, gradeId, subjectId, date,
-		periodId, length, orderType, ignoreCourseFlag)
-	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullObject))
+	status, content := orderController.CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId)
+	if status == 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
 	} else {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
 
+// 5.1.2
 func OrderExpectation(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()

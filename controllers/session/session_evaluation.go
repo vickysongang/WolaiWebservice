@@ -67,7 +67,7 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 			labels = append(labels, teacherStyleLabels[v])
 		}
 		//科目标签
-		order := models.QueryOrderById(session.OrderId)
+		order, _ := models.ReadOrder(session.OrderId)
 		teacherSubjectLabels, err := models.QueryEvaluationLabelsBySubject(order.SubjectId)
 		if err != nil {
 			return nil, err

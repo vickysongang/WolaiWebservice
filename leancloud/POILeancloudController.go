@@ -220,7 +220,7 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 }
 
 func SendPersonalOrderNotification(orderId int64, teacherId int64) {
-	order := models.QueryOrderById(orderId)
+	order, _ := models.ReadOrder(orderId)
 	teacher := models.QueryUserById(teacherId)
 	if order == nil || teacher == nil {
 		return
@@ -239,11 +239,11 @@ func SendPersonalOrderNotification(orderId int64, teacherId int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(order.Creator.UserId, teacherId, &lcTMsg, false)
+	LCSendTypedMessage(order.Creator, teacherId, &lcTMsg, false)
 }
 
 func SendPersonalOrderRejectNotification(orderId int64, teacherId int64) {
-	order := models.QueryOrderById(orderId)
+	order, _ := models.ReadOrder(orderId)
 	teacher := models.QueryUserById(teacherId)
 	if order == nil || teacher == nil {
 		return
@@ -261,7 +261,7 @@ func SendPersonalOrderRejectNotification(orderId int64, teacherId int64) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(teacherId, order.Creator.UserId, &lcTMsg, false)
+	LCSendTypedMessage(teacherId, order.Creator, &lcTMsg, false)
 }
 
 func SendPersonalOrderSentMsg(studentId int64, teacherId int64) {
@@ -347,8 +347,8 @@ func SendSessionCreatedNotification(sessionId int64) {
 		return
 	}
 
-	order := models.QueryOrderById(session.OrderId)
-	if order == nil {
+	order, err := models.ReadOrder(session.OrderId)
+	if err != nil {
 		return
 	}
 
@@ -374,8 +374,8 @@ func SendSessionReminderNotification(sessionId int64, seconds int64) {
 		return
 	}
 
-	order := models.QueryOrderById(session.OrderId)
-	if order == nil {
+	order, err := models.ReadOrder(session.OrderId)
+	if err != nil {
 		return
 	}
 
@@ -404,8 +404,8 @@ func SendSessionCancelNotification(sessionId int64) {
 		return
 	}
 
-	order := models.QueryOrderById(session.OrderId)
-	if order == nil {
+	order, err := models.ReadOrder(session.OrderId)
+	if err != nil {
 		return
 	}
 
