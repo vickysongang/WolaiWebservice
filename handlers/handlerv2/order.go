@@ -46,7 +46,7 @@ func OrderCreate(w http.ResponseWriter, r *http.Request) {
 	subjectId, _ := strconv.ParseInt(subjectIdStr, 10, 64)
 
 	status, content := orderController.CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId)
-	if status == 0 {
+	if status != 0 {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
 	} else {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
