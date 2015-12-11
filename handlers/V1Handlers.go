@@ -120,57 +120,6 @@ func V1OauthRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
- * 1.5 My Orders
- */
-func V1OrderInSession(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
-	err := r.ParseForm()
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-	vars := r.Form
-	userIdStr := vars["userId"][0]
-	userId, err := strconv.ParseInt(userIdStr, 10, 64)
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-	var pageNum int64
-	if len(vars["page"]) == 0 {
-		pageNum = 0
-	} else {
-		pageNumStr := vars["page"][0]
-		pageNum, _ = strconv.ParseInt(pageNumStr, 10, 64)
-	}
-
-	var pageCount int64
-	if len(vars["count"]) == 0 {
-		pageCount = 10
-	} else {
-		pageCountStr := vars["count"][0]
-		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
-	}
-	var typeStr string
-	if len(vars["type"]) == 0 {
-		typeStr = "both"
-	} else {
-		typeStr = vars["type"][0]
-	}
-	var content models.POIOrderInSessions
-	if typeStr == "student" {
-		content, err = models.QueryOrderInSession4Student(userId, int(pageNum), int(pageCount))
-	} else if typeStr == "teacher" {
-		content, err = models.QueryOrderInSession4Teacher(userId, int(pageNum), int(pageCount))
-	} else if typeStr == "both" {
-		content, err = models.QueryOrderInSession4Both(userId, int(pageNum), int(pageCount))
-	}
-	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
-	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
-	}
-}
-
-/*
  * 1.10 Insert user loginInfo
  */
 func V1InsertUserLoginInfo(w http.ResponseWriter, r *http.Request) {

@@ -1,14 +1,13 @@
 package models
 
 import (
-	"strconv"
 	"time"
-
-	"WolaiWebservice/utils"
 
 	"github.com/astaxie/beego/orm"
 	seelog "github.com/cihub/seelog"
 	_ "github.com/go-sql-driver/mysql"
+
+	"WolaiWebservice/utils"
 )
 
 type POISession struct {
@@ -128,169 +127,4 @@ func UpdateSessionInfo(sessionId int64, sessionInfo map[string]interface{}) {
 		seelog.Error("sessionId:", sessionId, " sessionInfo:", sessionInfo, " ", err.Error())
 	}
 	return
-}
-
-func QueryOrderInSession(sessionId int64) (*POIOrderInSession, error) {
-	orderInSession := POIOrderInSession{}
-	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
-		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.type,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour,orders.course_id").
-		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
-		Where("sessions.id = ?").OrderBy("sessions.create_time")
-	sql := qb.String()
-	err := o.Raw(sql, sessionId).QueryRow(&orderInSession)
-	if err != nil {
-		return nil, err
-	}
-	return &orderInSession, nil
-}
-
-func QueryOrderInSession4Student(userId int64, pageNum, pageCount int) (POIOrderInSessions, error) {
-	orderInSessions := make(POIOrderInSessions, 0)
-	o := orm.NewOrm()
-	start := pageNum * pageCount
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
-		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.type,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour,orders.course_id").
-		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
-		Where("sessions.creator = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
-	sql := qb.String()
-	_, err := o.Raw(sql, userId).QueryRows(&orderInSessions)
-	if err != nil {
-		seelog.Error("userId:", userId, " ", err.Error())
-		return orderInSessions, err
-	}
-	for i := range orderInSessions {
-		orderInSession := orderInSessions[i]
-		user := QueryTeacher(orderInSession.Tutor)
-		orderInSession.UserInfo = user
-		if orderInSession.Status == SESSION_STATUS_COMPLETE {
-			orderInSession.TimeFromStr = orderInSession.TimeFrom.Format(time.RFC3339)
-			orderInSession.TimeToStr = orderInSession.TimeTo.Format(time.RFC3339)
-			orderInSession.Length = orderInSession.RealLength
-			orderInSession.TotalCoat = QueryTradeAmount(orderInSession.SessionId, userId)
-			if orderInSession.TotalCoat < 0 {
-				orderInSession.TotalCoat = 0 - orderInSession.TotalCoat
-			}
-		} else {
-			orderInSession.TimeFromStr = orderInSession.PlanTime
-			orderInSession.Length = orderInSession.EstimateLength
-			d, _ := time.ParseDuration("+" + strconv.FormatInt(orderInSession.EstimateLength, 10) + "m")
-			planTime, _ := time.Parse(time.RFC3339, orderInSession.PlanTime)
-			timeTo := planTime.Add(d)
-			orderInSession.TimeToStr = timeTo.Format(time.RFC3339)
-			orderInSession.TotalCoat = orderInSession.PricePerHour * orderInSession.EstimateLength / 60
-		}
-		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId, userId)
-		if orderInSession.CourseId == 0 {
-			orderInSession.Free = false
-		} else {
-			orderInSession.Free = true
-		}
-		orderInSession.OrderType = OrderTypeRevDict[orderInSession.Type]
-		orderInSession.Identity = "student"
-	}
-	return orderInSessions, nil
-}
-
-func QueryOrderInSession4Teacher(userId int64, pageNum, pageCount int) (POIOrderInSessions, error) {
-	orderInSessions := make(POIOrderInSessions, 0)
-	o := orm.NewOrm()
-	start := pageNum * pageCount
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
-		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.type,orders.length estimate_length,orders.price_per_hour,orders.real_price_per_hour,orders.course_id").
-		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
-		Where("sessions.tutor = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
-	sql := qb.String()
-	_, err := o.Raw(sql, userId).QueryRows(&orderInSessions)
-	if err != nil {
-		seelog.Error("userId:", userId, " ", err.Error())
-		return orderInSessions, err
-	}
-	for i := range orderInSessions {
-		orderInSession := orderInSessions[i]
-		user := *(QueryUserById(orderInSession.Creator))
-		teacher := POITeacher{POIUser: user}
-		orderInSession.UserInfo = &teacher
-
-		if orderInSession.Status == SESSION_STATUS_COMPLETE {
-			orderInSession.TimeFromStr = orderInSession.TimeFrom.Format(time.RFC3339)
-			orderInSession.TimeToStr = orderInSession.TimeTo.Format(time.RFC3339)
-			orderInSession.Length = orderInSession.RealLength
-			orderInSession.TotalCoat = QueryTradeAmount(orderInSession.SessionId, userId)
-			if orderInSession.TotalCoat < 0 {
-				orderInSession.TotalCoat = 0 - orderInSession.TotalCoat
-			}
-		} else {
-			orderInSession.TimeFromStr = orderInSession.PlanTime
-			orderInSession.Length = orderInSession.EstimateLength
-			d, _ := time.ParseDuration("+" + strconv.FormatInt(orderInSession.EstimateLength, 10) + "m")
-			planTime, _ := time.Parse(time.RFC3339, orderInSession.PlanTime)
-			timeTo := planTime.Add(d)
-			orderInSession.TimeToStr = timeTo.Format(time.RFC3339)
-			orderInSession.TotalCoat = orderInSession.RealPricePerHour * orderInSession.EstimateLength / 60
-		}
-		orderInSession.OrderType = OrderTypeRevDict[orderInSession.Type]
-		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId, userId)
-		orderInSession.Identity = "teacher"
-	}
-	return orderInSessions, nil
-}
-
-func QueryOrderInSession4Both(userId int64, pageNum, pageCount int) (POIOrderInSessions, error) {
-	orderInSessions := make(POIOrderInSessions, 0)
-	o := orm.NewOrm()
-	start := pageNum * pageCount
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("sessions.order_id,sessions.id session_id,sessions.creator,sessions.tutor,sessions.plan_time,sessions.time_from,sessions.time_to,sessions.status," +
-		"orders.grade_id,orders.subject_id,sessions.length real_length,orders.length estimate_length,orders.type,orders.price_per_hour,orders.real_price_per_hour,orders.course_id").
-		From("sessions").InnerJoin("orders").On("sessions.order_id = orders.id").
-		Where("sessions.creator = ? or sessions.tutor = ?").OrderBy("sessions.create_time").Desc().Limit(pageCount).Offset(start)
-	sql := qb.String()
-	_, err := o.Raw(sql, userId, userId).QueryRows(&orderInSessions)
-	if err != nil {
-		seelog.Error("userId:", userId, " ", err.Error())
-		return orderInSessions, err
-	}
-	for i := range orderInSessions {
-		orderInSession := orderInSessions[i]
-		if userId == orderInSession.Creator {
-			teacher := QueryTeacher(orderInSession.Tutor)
-			orderInSession.UserInfo = teacher
-			if orderInSession.CourseId == 0 {
-				orderInSession.Free = false
-			} else {
-				orderInSession.Free = true
-			}
-
-			orderInSession.Identity = "student"
-		} else if userId == orderInSession.Tutor {
-			user := *(QueryUserById(orderInSession.Creator))
-			creator := POITeacher{POIUser: user}
-			orderInSession.UserInfo = &creator
-			orderInSession.Identity = "teacher"
-		}
-		if orderInSession.Status == SESSION_STATUS_COMPLETE {
-			orderInSession.TimeFromStr = orderInSession.TimeFrom.Format(time.RFC3339)
-			orderInSession.TimeToStr = orderInSession.TimeTo.Format(time.RFC3339)
-			orderInSession.Length = orderInSession.RealLength
-			orderInSession.TotalCoat = QueryTradeAmount(orderInSession.SessionId, userId)
-			if orderInSession.TotalCoat < 0 {
-				orderInSession.TotalCoat = 0 - orderInSession.TotalCoat
-			}
-		} else {
-			orderInSession.TimeFromStr = orderInSession.PlanTime
-			orderInSession.Length = orderInSession.EstimateLength
-			d, _ := time.ParseDuration("+" + strconv.FormatInt(orderInSession.EstimateLength, 10) + "m")
-			planTime, _ := time.Parse(time.RFC3339, orderInSession.PlanTime)
-			timeTo := planTime.Add(d)
-			orderInSession.TimeToStr = timeTo.Format(time.RFC3339)
-			orderInSession.TotalCoat = orderInSession.RealPricePerHour * orderInSession.EstimateLength / 60
-		}
-		orderInSession.OrderType = OrderTypeRevDict[orderInSession.Type]
-		orderInSession.HasEvaluated = HasOrderInSessionEvaluated(orderInSession.SessionId, userId)
-	}
-	return orderInSessions, nil
 }

@@ -19,7 +19,7 @@ type sessionRecord struct {
 	HasEvaluated bool         `json:"hasEvaluated"`
 }
 
-func GetUserSessionRecord(userId int64, page int64, count int64) (int64, []*sessionRecord) {
+func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRecord) {
 	o := orm.NewOrm()
 
 	_, err := models.ReadUser(userId)
@@ -59,7 +59,7 @@ func GetUserSessionRecord(userId int64, page int64, count int64) (int64, []*sess
 			StartTime:    session.TimeFrom.Format(time.RFC3339),
 			Length:       session.Length,
 			Status:       session.Status,
-			HasEvaluated: models.HasOrderInSessionEvaluated(session.Id, userId),
+			HasEvaluated: HasOrderInSessionEvaluated(session.Id, userId),
 		}
 
 		result = append(result, &record)

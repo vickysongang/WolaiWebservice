@@ -111,20 +111,6 @@ var routesV1 = route.Routes{
 		handlers.V1InsertUserLoginInfo,
 	},
 
-	// 3.8 User Order
-	route.Route{
-		"V1MyOrdersGET",
-		"GET",
-		"/v1/user/myorders",
-		handlers.V1OrderInSession,
-	},
-	route.Route{
-		"V1MyOrdersPost",
-		"POST",
-		"/v1/user/myorders",
-		handlers.V1OrderInSession,
-	},
-
 	// 15.1 sendcloud smshook
 	route.Route{
 		"V1WSMSHookPOST",

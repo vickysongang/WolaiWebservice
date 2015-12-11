@@ -8,7 +8,6 @@ import (
 
 	"github.com/cihub/seelog"
 
-	"WolaiWebservice/controllers"
 	sessionController "WolaiWebservice/controllers/session"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
@@ -66,7 +65,7 @@ func SessionEvaluationLabelList(w http.ResponseWriter, r *http.Request) {
 		count = 8
 	}
 
-	content, err := controllers.QuerySystemEvaluationLabels(userId, sessionId, count)
+	content, err := sessionController.QuerySystemEvaluationLabels(userId, sessionId, count)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
@@ -95,8 +94,8 @@ func SessionEvaluationLabelPost(w http.ResponseWriter, r *http.Request) {
 
 	evaluationContent := vars["content"][0]
 
-	evaluation := models.POIEvaluation{UserId: userId, SessionId: sessionId, Content: evaluationContent}
-	content, err := models.InsertEvaluation(&evaluation)
+	evaluation := models.Evaluation{UserId: userId, SessionId: sessionId, Content: evaluationContent}
+	content, err := models.CreateEvaluation(&evaluation)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
@@ -123,7 +122,7 @@ func SessionEvaluationLabelResult(w http.ResponseWriter, r *http.Request) {
 	sessionIdStr := vars["sessionId"][0]
 	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
 
-	content, err := models.QueryEvaluationInfo(userId, sessionId)
+	content, err := sessionController.QueryEvaluationInfo(userId, sessionId)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
