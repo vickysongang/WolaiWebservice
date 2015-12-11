@@ -32,32 +32,3 @@ func GetOrderInfo(orderId int64) *orderInfo {
 
 	return &info
 }
-
-type teacherInfo struct {
-	Id          int64  `json:"id"`
-	Nickname    string `json:"nickname"`
-	Avatar      string `json:"avatar"`
-	Gender      int64  `json:"Gender"`
-	AccessRight int64  `json:"accessRight"`
-	School      string `json:"school"`
-	Major       string `json:"major"`
-	ServiceTime int64  `json:"serviceTime"`
-}
-
-func GetTeacherInfo(teacherId int64) *teacherInfo {
-	teacher, _ := models.ReadTeacherProfile(teacherId)
-	user, _ := models.ReadUser(teacherId)
-
-	info := teacherInfo{
-		Id:          user.Id,
-		Nickname:    user.Nickname,
-		Avatar:      user.Avatar,
-		Gender:      user.Gender,
-		AccessRight: user.AccessRight,
-		School:      "湖南大学",
-		Major:       teacher.Major,
-		ServiceTime: teacher.ServiceTime,
-	}
-
-	return &info
-}

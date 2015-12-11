@@ -203,12 +203,15 @@ func generalOrderHandler(orderId int64) {
 					userChan <- acceptResp
 
 					//向学生发送结果
-					teacher := GetTeacherInfo(msg.UserId)
+					teacher, _ := models.ReadUser(msg.UserId)
 					teacherByte, _ := json.Marshal(teacher)
+
 					acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_ACCEPT)
 					acceptMsg.Attribute["orderId"] = orderIdStr
 					acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 					acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
+					acceptMsg.Attribute["title"] = orderInfo.Title
+
 					if WsManager.HasUserChan(order.Creator) {
 						creatorChan := WsManager.GetUserChan(order.Creator)
 						creatorChan <- acceptMsg
@@ -269,12 +272,15 @@ func generalOrderHandler(orderId int64) {
 					TeacherManager.SetAssignUnlock(msg.UserId)
 
 					//向学生发送结果
-					teacher := GetTeacherInfo(msg.UserId)
+					teacher, _ := models.ReadUser(msg.UserId)
 					teacherByte, _ := json.Marshal(teacher)
+
 					acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_ASSIGN_ACCEPT)
 					acceptMsg.Attribute["orderId"] = orderIdStr
 					acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 					acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
+					acceptMsg.Attribute["title"] = orderInfo.Title
+
 					if WsManager.HasUserChan(order.Creator) {
 						creatorChan := WsManager.GetUserChan(order.Creator)
 						creatorChan <- acceptMsg

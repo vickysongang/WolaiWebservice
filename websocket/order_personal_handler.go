@@ -23,6 +23,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	order, _ := models.ReadOrder(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
+	orderInfo := GetOrderInfo(orderId)
 	studentId := order.Creator
 
 	var orderLifespan int64
@@ -94,10 +95,15 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					userChan <- resultMsg
 
 					if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+						teacher, _ := models.ReadUser(msg.UserId)
+						teacherByte, _ := json.Marshal(teacher)
+
 						acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_PERSONAL_REPLY)
 						acceptMsg.Attribute["orderId"] = orderIdStr
 						acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
-						acceptMsg.Attribute["teacherId"] = strconv.FormatInt(msg.UserId, 10)
+						acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
+						acceptMsg.Attribute["title"] = orderInfo.Title
+
 						if WsManager.HasUserChan(order.Creator) {
 							creatorChan := WsManager.GetUserChan(order.Creator)
 							creatorChan <- acceptMsg
