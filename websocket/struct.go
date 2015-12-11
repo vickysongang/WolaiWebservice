@@ -5,7 +5,7 @@ import (
 )
 
 type orderInfo struct {
-	OrderId     int64        `json:"orderId"`
+	Id          int64        `json:"id"`
 	CreatorInfo *models.User `json:"creatorInfo"`
 	Title       string       `json:"title"`
 }
@@ -25,7 +25,7 @@ func GetOrderInfo(orderId int64) *orderInfo {
 	}
 
 	info := orderInfo{
-		OrderId:     order.Id,
+		Id:          order.Id,
 		CreatorInfo: user,
 		Title:       title,
 	}
