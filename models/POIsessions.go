@@ -70,7 +70,7 @@ func (session *POISession) TableName() string {
 }
 
 func init() {
-	orm.RegisterModel(new(POISession), new(POIOrderInSession))
+	//orm.RegisterModel(new(POISession), new(POIOrderInSession))
 }
 
 func NewPOISession(orderId int64, creator *POIUser, teacher *POIUser, planTime string) POISession {

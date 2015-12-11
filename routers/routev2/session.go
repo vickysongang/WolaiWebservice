@@ -72,6 +72,6 @@ var sessionRoutes = route.Routes{
 		"GetUserSessionRecord",
 		"POST",
 		"/user/record",
-		handlerv2.Dummy,
+		handlerv2.SessionUserRecord,
 	},
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/cihub/seelog"
 
 	"WolaiWebservice/controllers"
+	sessionController "WolaiWebservice/controllers/session"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
@@ -190,3 +191,38 @@ func SessionComplainCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 // 6.4.1
+func SessionUserRecord(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, content := sessionController.GetUserSessionRecord(userId, page, count)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}

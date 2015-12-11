@@ -22,7 +22,7 @@ type Session struct {
 }
 
 func init() {
-	//orm.RegisterModel(new(Session))
+	orm.RegisterModel(new(Session))
 
 }
 

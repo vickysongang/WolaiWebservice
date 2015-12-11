@@ -90,7 +90,7 @@ func (od *POIOrderDispatch) TableName() string {
 }
 
 func init() {
-	orm.RegisterModel(new(POIOrder), new(POIOrderDispatch))
+	//orm.RegisterModel(new(POIOrder), new(POIOrderDispatch))
 }
 
 func NewPOIOrder(creator *POIUser, gradeId int64, subjectId int64, date string, periodId int64,
