@@ -133,7 +133,7 @@ func ChargeSuccessEvent(chargeId string) {
 	models.UpdatePingppRecord(chargeId, recordInfo)
 	record, _ := models.QueryPingppRecordByChargeId(chargeId)
 	user := models.QueryUserByPhone(record.Phone)
-	trade.HandleSystemTrade(user.UserId, int64(record.Amount), models.TRADE_CHARGE, "S", "官网扫码充值")
+	trade.HandleSystemTrade(user.Id, int64(record.Amount), models.TRADE_CHARGE, "S", "官网扫码充值")
 }
 
 func RefundSuccessEvent(chargeId string, refundId string) {
@@ -144,5 +144,5 @@ func RefundSuccessEvent(chargeId string, refundId string) {
 	models.UpdatePingppRecord(chargeId, recordInfo)
 	record, _ := models.QueryPingppRecordByChargeId(chargeId)
 	user := models.QueryUserByPhone(record.Phone)
-	trade.HandleSystemTrade(user.UserId, int64(record.Amount), models.TRADE_WITHDRAW, "S", "用户申请退款")
+	trade.HandleSystemTrade(user.Id, int64(record.Amount), models.TRADE_WITHDRAW, "S", "用户申请退款")
 }

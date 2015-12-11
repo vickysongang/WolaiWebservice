@@ -93,8 +93,8 @@ func QueryUserById(userId int64) *POIUser {
 	return user
 }
 
-func QueryUserByPhone(phone string) *POIUser {
-	var user *POIUser
+func QueryUserByPhone(phone string) *User {
+	var user *User
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
 	qb.Select("id,nickname,avatar,gender,access_right,status,balance,phone").From("users").Where("phone = ?").Limit(1)
 	sql := qb.String()

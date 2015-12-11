@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -43,6 +44,19 @@ const (
 
 	USER_WOLAI_TEAM = 1003
 )
+
+func CreateUser(user *User) (*User, error) {
+	o := orm.NewOrm()
+	if user.Nickname == "" && user.Phone != nil {
+		user.Nickname = fmt.Sprintf("%s%s", "我来", (*user.Phone)[len(*user.Phone)-4:len(*user.Phone)])
+	}
+	id, err := o.Insert(user)
+	if err != nil {
+		return nil, err
+	}
+	user.Id = id
+	return user, nil
+}
 
 func ReadUser(userId int64) (*User, error) {
 	o := orm.NewOrm()
