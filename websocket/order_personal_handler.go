@@ -102,16 +102,6 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 							creatorChan := WsManager.GetUserChan(order.Creator)
 							creatorChan <- acceptMsg
 						}
-					} else if order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
-						acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_PERSONAL_REPLY)
-						acceptMsg.Attribute["orderId"] = orderIdStr
-						acceptMsg.Attribute["countdown"] = "0"
-						acceptMsg.Attribute["teacherId"] = strconv.FormatInt(msg.UserId, 10)
-						if WsManager.HasUserChan(order.Creator) {
-							creatorChan := WsManager.GetUserChan(order.Creator)
-							creatorChan <- acceptMsg
-						}
-
 					}
 
 					OrderManager.SetOrderConfirm(orderId, msg.UserId)
@@ -149,7 +139,7 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 	}()
 
 	order, _ := models.ReadOrder(orderId)
-	orderInfo := models.GetOrderInfo(orderId)
+	orderInfo := GetOrderInfo(orderId)
 	orderByte, _ := json.Marshal(orderInfo)
 	studentId := order.Creator
 

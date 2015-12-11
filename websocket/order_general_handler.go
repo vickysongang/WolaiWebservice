@@ -23,7 +23,7 @@ func generalOrderHandler(orderId int64) {
 	order, _ := models.ReadOrder(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
-	orderInfo := models.GetOrderInfo(orderId)
+	orderInfo := GetOrderInfo(orderId)
 	orderByte, _ := json.Marshal(orderInfo)
 
 	orderLifespan := redis.RedisManager.GetConfig(
@@ -203,8 +203,7 @@ func generalOrderHandler(orderId int64) {
 					userChan <- acceptResp
 
 					//向学生发送结果
-					teacher := models.QueryTeacher(msg.UserId)
-					teacher.LabelList = models.QueryTeacherLabelByUserId(msg.UserId)
+					teacher := GetTeacherInfo(msg.UserId)
 					teacherByte, _ := json.Marshal(teacher)
 					acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_ACCEPT)
 					acceptMsg.Attribute["orderId"] = orderIdStr
@@ -220,7 +219,7 @@ func generalOrderHandler(orderId int64) {
 					for dispatchId, _ := range OrderManager.orderMap[orderId].dispatchMap {
 						var status int64
 						var orderDispatchInfo map[string]interface{}
-						if dispatchId == teacher.UserId {
+						if dispatchId == teacher.Id {
 							status = 0
 							orderDispatchInfo = map[string]interface{}{
 								"Result":    "success",
@@ -246,10 +245,10 @@ func generalOrderHandler(orderId int64) {
 
 					}
 
-					seelog.Debug("orderHandler|orderAccept: ", orderId, " to teacher: ", teacher.UserId) // 更新老师发单记录
+					seelog.Debug("orderHandler|orderAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
 
 					// 结束派单流程，记录结果
-					OrderManager.SetOrderConfirm(orderId, teacher.UserId)
+					OrderManager.SetOrderConfirm(orderId, teacher.Id)
 					OrderManager.SetOffline(orderId)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator)
 
@@ -270,8 +269,7 @@ func generalOrderHandler(orderId int64) {
 					TeacherManager.SetAssignUnlock(msg.UserId)
 
 					//向学生发送结果
-					teacher := models.QueryTeacher(msg.UserId)
-					teacher.LabelList = models.QueryTeacherLabelByUserId(msg.UserId)
+					teacher := GetTeacherInfo(msg.UserId)
 					teacherByte, _ := json.Marshal(teacher)
 					acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_ASSIGN_ACCEPT)
 					acceptMsg.Attribute["orderId"] = orderIdStr
@@ -288,15 +286,15 @@ func generalOrderHandler(orderId int64) {
 					resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 					userChan <- resultMsg
 
-					seelog.Debug("orderHandler|orderAssignAccept: ", orderId, " to teacher: ", teacher.UserId) // 更新老师发单记录
+					seelog.Debug("orderHandler|orderAssignAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
 
 					// 结束派单流程，记录结果
-					OrderManager.SetOrderConfirm(orderId, teacher.UserId)
+					OrderManager.SetOrderConfirm(orderId, teacher.Id)
 					OrderManager.SetOffline(orderId)
 					WsManager.RemoveOrderDispatch(orderId, order.Creator)
 
 					//修改指派单的结果
-					models.UpdateAssignOrderResult(orderId, teacher.UserId)
+					models.UpdateAssignOrderResult(orderId, teacher.Id)
 
 					handleSessionCreation(orderId, msg.UserId)
 					return
