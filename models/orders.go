@@ -25,7 +25,7 @@ type Order struct {
 }
 
 func init() {
-	orm.RegisterModel(new(Order))
+	//orm.RegisterModel(new(Order))
 }
 
 func (o *Order) TableName() string {

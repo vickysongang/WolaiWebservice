@@ -22,10 +22,22 @@ type Session struct {
 }
 
 func init() {
-	orm.RegisterModel(new(Session))
+	//orm.RegisterModel(new(Session))
 
 }
 
 func (s *Session) TableName() string {
 	return "sessions"
+}
+
+func ReadSession(sessionId int64) (*Session, error) {
+	o := orm.NewOrm()
+
+	session := Session{Id: sessionId}
+	err := o.Read(&session)
+	if err != nil {
+		return nil, err
+	}
+
+	return &session, nil
 }
