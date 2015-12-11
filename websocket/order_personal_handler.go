@@ -149,7 +149,8 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 	}()
 
 	order, _ := models.ReadOrder(orderId)
-	orderByte, _ := json.Marshal(order)
+	orderInfo := models.GetOrderInfo(orderId)
+	orderByte, _ := json.Marshal(orderInfo)
 	studentId := order.Creator
 
 	OrderManager.SetOnline(orderId)

@@ -24,7 +24,8 @@ func generalOrderHandler(orderId int64) {
 	order, _ := models.ReadOrder(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
-	orderByte, _ := json.Marshal(order)
+	orderInfo := models.GetOrderInfo(orderId)
+	orderByte, _ := json.Marshal(orderInfo)
 
 	orderLifespan := redis.RedisManager.GetConfig(
 		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_GI)
