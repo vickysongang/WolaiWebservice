@@ -123,7 +123,7 @@ func (osm *OrderStatusManager) SetOrderCancelled(orderId int64) error {
 }
 
 func (osm *OrderStatusManager) SetOrderConfirm(orderId int64, teacherId int64) error {
-	teacher := models.QueryTeacher(teacherId)
+	teacher, _ := models.ReadTeacherProfile(teacherId)
 	orderInfo := map[string]interface{}{
 		"Status":           models.ORDER_STATUS_CONFIRMED,
 		"PricePerHour":     teacher.PricePerHour,

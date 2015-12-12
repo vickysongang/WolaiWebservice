@@ -13,6 +13,7 @@ type teacherItem struct {
 	Gender       int64    `json:"gender"`
 	AccessRight  int64    `json:"accessRight"`
 	School       string   `json:"school"`
+	Major        string   `json:"major"`
 	SubjectList  []string `json:"subjectList,omitempty"`
 	OnlineStatus string   `json:"onlineStatus,omitempty"`
 }
@@ -49,6 +50,12 @@ func SearchUser(userId int64, keyword string, page, count int64) (int64, []teach
 			SubjectList:  nil,
 			OnlineStatus: "",
 		}
+
+		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+			profile, _ := models.ReadTeacherProfile(user.Id)
+			item.Major = profile.Major
+		}
+
 		result = append(result, item)
 	}
 

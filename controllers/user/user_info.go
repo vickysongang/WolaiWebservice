@@ -32,6 +32,7 @@ type teacherProfile struct {
 	AccessRight int64                   `json:"accessRight"`
 	School      string                  `json:"school"`
 	Major       string                  `json:"major"`
+	ServiceTime int64                   `json:"serviceTime"`
 	SubjectList []string                `json:"subjectList,omitempty"`
 	Intro       string                  `json:"intro"`
 	Resume      []*models.TeacherResume `json:"resume,omitempty"`
@@ -74,6 +75,7 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
 		AccessRight: user.AccessRight,
 		School:      "湖南大学",
 		Major:       "化学系",
+		ServiceTime: teacher.ServiceTime,
 		SubjectList: subjectDummy,
 		Intro:       teacher.Intro,
 		Resume:      teacherResumes,

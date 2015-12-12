@@ -13,17 +13,17 @@ import (
 
 const WOLAI_GIVE_AMOUNT = 10000
 
-type POIUser struct {
-	UserId        int64     `json:"userId" orm:"pk;column(id)"`
-	Nickname      string    `json:"nickname"`
-	Avatar        string    `json:"avatar"`
-	Gender        int64     `json:"gender"`
-	AccessRight   int64     `json:"accessRight"`
-	LastLoginTime time.Time `json:"-" orm:auto_add;type(datetime)`
-	Phone         string    `json:"phone"`
-	Status        int64     `json:"-"`
-	Balance       int64     `json:"-"`
-}
+// type POIUser struct {
+// 	UserId        int64     `json:"userId" orm:"pk;column(id)"`
+// 	Nickname      string    `json:"nickname"`
+// 	Avatar        string    `json:"avatar"`
+// 	Gender        int64     `json:"gender"`
+// 	AccessRight   int64     `json:"accessRight"`
+// 	LastLoginTime time.Time `json:"-" orm:auto_add;type(datetime)`
+// 	Phone         string    `json:"phone"`
+// 	Status        int64     `json:"-"`
+// 	Balance       int64     `json:"-"`
+// }
 
 type POIOAuth struct {
 	UserId   int64 `orm:"pk"`
@@ -61,10 +61,10 @@ func (loginInfo *POIUserLoginInfo) TableName() string {
 	return "user_login_info"
 }
 
-func NewPOIUser(userId int64, nickname string, avatar string, gender int64, accessRight int64) POIUser {
-	user := POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender, AccessRight: accessRight}
-	return user
-}
+// func NewPOIUser(userId int64, nickname string, avatar string, gender int64, accessRight int64) POIUser {
+// 	user := POIUser{UserId: userId, Nickname: nickname, Avatar: avatar, Gender: gender, AccessRight: accessRight}
+// 	return user
+// }
 
 // func InsertPOIUser(user *POIUser) (int64, error) {
 // 	o := orm.NewOrm()
