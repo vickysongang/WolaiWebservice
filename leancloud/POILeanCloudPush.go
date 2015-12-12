@@ -18,9 +18,11 @@ import (
 const LC_PUSH = "https://leancloud.cn/1.1/push"
 
 func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface{} {
-	session := models.QuerySessionById(sessionId)
-	user := models.QueryUserById(targetId)
-	if session == nil || user == nil {
+	session, _ := models.ReadSession(sessionId)
+	creator, _ := models.ReadUser(session.Creator)
+	tutor, _ := models.ReadUser(session.Tutor)
+	user, _ := models.ReadUser(targetId)
+	if session == nil || creator == nil || tutor == nil || user == nil {
 		return nil
 	}
 
@@ -32,11 +34,11 @@ func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface
 	title := "您有一条上课提醒"
 	switch oprCode {
 	case common.WS_SESSION_ALERT:
-		title = "您有一个与" + session.Creator.Nickname + "同学的预约辅导已到上课时间。请开始上课。"
+		title = "您有一个与" + creator.Nickname + "同学的预约辅导已到上课时间。请开始上课。"
 	case common.WS_SESSION_START:
-		title = session.Teacher.Nickname + "导师向您发起上课请求。"
+		title = tutor.Nickname + "导师向您发起上课请求。"
 	case common.WS_SESSION_RESUME:
-		title = session.Teacher.Nickname + "导师向您发起恢复课堂请求。"
+		title = tutor.Nickname + "导师向您发起恢复课堂请求。"
 	case common.WS_SESSION_INSTANT_START:
 		title = "您有一个立即辅导即将开始上课"
 	}
@@ -51,8 +53,8 @@ func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface
 				"action":    "com.poi.SESSION_REQUEST",
 				"sound":     "session_sound.mp3",
 				"sessionId": strconv.FormatInt(sessionId, 10),
-				"teacherId": strconv.FormatInt(session.Teacher.UserId, 10),
-				"studentId": strconv.FormatInt(session.Creator.UserId, 10),
+				"teacherId": strconv.FormatInt(session.Tutor, 10),
+				"studentId": strconv.FormatInt(session.Creator, 10),
 				"oprCode":   strconv.FormatInt(oprCode, 10),
 				"countdown": "10",
 			},
@@ -64,7 +66,7 @@ func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface
 }
 
 func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
-	order := models.QueryOrderById(orderId)
+	order, _ := models.ReadOrder(orderId)
 	user := models.QueryUserById(targetId)
 	if order == nil || user == nil {
 		return nil
@@ -103,7 +105,7 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 }
 
 func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
-	order := models.QueryOrderById(orderId)
+	order, _ := models.ReadOrder(orderId)
 	user := models.QueryUserById(targetId)
 	if order == nil || user == nil {
 		return nil

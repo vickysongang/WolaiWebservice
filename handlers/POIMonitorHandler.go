@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 	"WolaiWebservice/websocket"
 )
@@ -66,7 +67,7 @@ func NewPOIMonitorOrders() POIMonitorOrders {
 }
 
 func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	users := NewPOIMonitorUsers()
 	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
 		user := models.QueryUserById(userId)
@@ -77,11 +78,11 @@ func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 			users.OnlineStudents = append(users.OnlineStudents, POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
 		}
 	}
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", users))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", users))
 }
 
 func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
-	defer ThrowsPanicException(w, NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	orders := NewPOIMonitorOrders()
 	// for orderId, teacherMap := range websocket.WsManager.OrderDispatchMap {
 	// 	master := POIOrderDispatchMaster{MasterId: orderId, Slaves: make([]POIOrderDispatchSlave, 0)}
@@ -115,7 +116,7 @@ func GetOrderMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	// 		orders.UserOrderDispatchInfo = append(orders.UserOrderDispatchInfo, master)
 	// 	}
 	// }
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", orders))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", orders))
 }
 
 func GetSessionMonitorInfo(w http.ResponseWriter, r *http.Request) {
@@ -126,5 +127,5 @@ func GetSessionMonitorInfo(w http.ResponseWriter, r *http.Request) {
 		session := POIMonitorSession{SessionId: sessionId, TimeStamp: timestamp, ServingStatus: servingStatus}
 		sessions = append(sessions, session)
 	}
-	json.NewEncoder(w).Encode(models.NewPOIResponse(0, "", sessions))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", sessions))
 }

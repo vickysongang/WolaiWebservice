@@ -42,19 +42,8 @@ type POIUserLoginInfo struct {
 
 type POIUsers []POIUser
 
-const (
-	USER_ACCESSRIGHT_TEACHER = 2
-	USER_ACCESSRIGHT_STUDENT = 3
-
-	USER_GENDER_FEMALE = 0
-	USER_GENDER_MALE   = 1
-
-	USER_STATUS_ACTIVE   = 0
-	USER_STATUS_INACTIVE = 1
-)
-
 func init() {
-	orm.RegisterModel(new(POIUser), new(POIOAuth), new(POIUserLoginInfo))
+	//orm.RegisterModel(new(POIUser), new(POIOAuth), new(POIUserLoginInfo))
 }
 
 /*
@@ -104,8 +93,8 @@ func QueryUserById(userId int64) *POIUser {
 	return user
 }
 
-func QueryUserByPhone(phone string) *POIUser {
-	var user *POIUser
+func QueryUserByPhone(phone string) *User {
+	var user *User
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
 	qb.Select("id,nickname,avatar,gender,access_right,status,balance,phone").From("users").Where("phone = ?").Limit(1)
 	sql := qb.String()

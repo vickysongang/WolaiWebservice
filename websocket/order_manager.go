@@ -9,7 +9,7 @@ import (
 
 type OrderStatus struct {
 	orderId         int64
-	orderInfo       *models.POIOrder
+	orderInfo       *models.Order
 	orderChan       chan POIWSMessage
 	onlineTimestamp int64
 	isDispatching   bool
@@ -36,7 +36,7 @@ func init() {
 
 func NewOrderStatus(orderId int64) *OrderStatus {
 	timestamp := time.Now().Unix()
-	order := models.QueryOrderById(orderId)
+	order, _ := models.ReadOrder(orderId)
 	orderStatus := OrderStatus{
 		orderId:         orderId,
 		orderInfo:       order,
@@ -109,7 +109,7 @@ func (osm *OrderStatusManager) SetOrderDispatching(orderId int64) error {
 	orderInfo := map[string]interface{}{
 		"Status": models.ORDER_STATUS_DISPATHCING,
 	}
-	models.UpdateOrderInfo(orderId, orderInfo)
+	models.UpdateOrder(orderId, orderInfo)
 
 	return nil
 }
@@ -118,7 +118,7 @@ func (osm *OrderStatusManager) SetOrderCancelled(orderId int64) error {
 	orderInfo := map[string]interface{}{
 		"Status": models.ORDER_STATUS_CANCELLED,
 	}
-	models.UpdateOrderInfo(orderId, orderInfo)
+	models.UpdateOrder(orderId, orderInfo)
 	return nil
 }
 
@@ -129,7 +129,7 @@ func (osm *OrderStatusManager) SetOrderConfirm(orderId int64, teacherId int64) e
 		"PricePerHour":     teacher.PricePerHour,
 		"RealPricePerHour": teacher.RealPricePerHour,
 	}
-	models.UpdateOrderInfo(orderId, orderInfo)
+	models.UpdateOrder(orderId, orderInfo)
 	return nil
 }
 

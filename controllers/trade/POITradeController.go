@@ -17,18 +17,18 @@ import (
 *  comment为交易的备注
 *  返回交易记录的id，如果id为0，代表插入交易记录失败
  */
-func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) (*models.POITradeRecord, error) {
+func HandleSystemTrade(Id, amount int64, tradeType, result, comment string) (*models.POITradeRecord, error) {
 	var tradeRecordId int64
 	var err error
 	var tradeRecord models.POITradeRecord
-	user := models.QueryUserById(userId)
+	user := models.QueryUserById(Id)
 	switch tradeType {
 	case models.TRADE_CHARGE:
 		{
 			//增加用户的余额
-			models.AddUserBalance(userId, amount)
+			models.AddUserBalance(Id, amount)
 			//插入充值记录
-			tradeRecord = models.POITradeRecord{UserId: userId, TradeType: models.TRADE_CHARGE, TradeAmount: amount, OrderType: models.SYSTEM_ORDER, Result: result, Comment: comment}
+			tradeRecord = models.POITradeRecord{Id: Id, TradeType: models.TRADE_CHARGE, TradeAmount: amount, OrderType: models.SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance + amount
 			tradeRecordId, err = models.InsertTradeRecord(&tradeRecord)
 		}
@@ -36,26 +36,26 @@ func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) 
 	case models.TRADE_AWARD:
 		{
 			//增加用户的余额
-			models.AddUserBalance(userId, amount)
+			models.AddUserBalance(Id, amount)
 			//插入充值记录
-			tradeRecord = models.POITradeRecord{UserId: userId, TradeType: models.TRADE_AWARD, TradeAmount: amount, OrderType: models.SYSTEM_ORDER, Result: result, Comment: comment}
+			tradeRecord = models.POITradeRecord{Id: Id, TradeType: models.TRADE_AWARD, TradeAmount: amount, OrderType: models.SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance + amount
 			tradeRecordId, err = models.InsertTradeRecord(&tradeRecord)
 		}
 	case models.TRADE_PROMOTION:
 		{
-			models.AddUserBalance(userId, amount)
+			models.AddUserBalance(Id, amount)
 			//插入充值记录
-			tradeRecord = models.POITradeRecord{UserId: userId, TradeType: models.TRADE_PROMOTION, TradeAmount: amount, OrderType: models.SYSTEM_ORDER, Result: result, Comment: comment}
+			tradeRecord = models.POITradeRecord{Id: Id, TradeType: models.TRADE_PROMOTION, TradeAmount: amount, OrderType: models.SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance + amount
 			tradeRecordId, err = models.InsertTradeRecord(&tradeRecord)
 		}
 	case models.TRADE_WITHDRAW:
 		{
 			//减少用户的余额
-			models.MinusUserBalance(userId, amount)
+			models.MinusUserBalance(Id, amount)
 			//插入提现记录
-			tradeRecord = models.POITradeRecord{UserId: userId, TradeType: models.TRADE_WITHDRAW, TradeAmount: (0 - amount), OrderType: models.SYSTEM_ORDER, Result: result, Comment: comment}
+			tradeRecord = models.POITradeRecord{Id: Id, TradeType: models.TRADE_WITHDRAW, TradeAmount: (0 - amount), OrderType: models.SYSTEM_ORDER, Result: result, Comment: comment}
 			tradeRecord.Balance = user.Balance - amount
 			tradeRecordId, err = models.InsertTradeRecord(&tradeRecord)
 		}
@@ -64,19 +64,19 @@ func HandleSystemTrade(userId, amount int64, tradeType, result, comment string) 
 	return &tradeRecord, err
 }
 
-func HandleSessionTrade(session *models.POISession, result string, expireFlag bool) {
-	student := session.Creator
-	teacher := session.Teacher
+func HandleSessionTrade(session *models.Session, result string, expireFlag bool) {
+	student, _ := models.ReadUser(session.Creator)
+	teacher, _ := models.ReadUser(session.Tutor)
 	gradeName := ""
 	parentGradeName := ""
 	subjectName := ""
-	order := models.QueryOrderById(session.OrderId)
+	order, _ := models.ReadOrder(session.OrderId)
 	if order.GradeId > 0 {
-		grade := models.QueryGradeById(order.GradeId)
+		grade, _ := models.ReadGrade(order.GradeId)
 		gradeName = grade.Name
 	}
 	if order.SubjectId > 0 {
-		subject := models.QuerySubjectById(order.SubjectId)
+		subject, _ := models.ReadSubject(order.SubjectId)
 		subjectName = subject.Name
 	}
 
@@ -85,7 +85,7 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 
 	var comment string
 	gradeSubjectDisplayName := fmt.Sprintf("%s%s", gradeName, subjectName)
-	if models.OrderTypeRevDict[order.OrderType] == models.ORDER_TYPE_REALTIME_SESSION {
+	if order.Type == models.ORDER_TYPE_REALTIME_SESSION {
 		gradeSubjectDisplayName = "实时课堂"
 	}
 	if hour != 0 && minute != 0 {
@@ -104,8 +104,8 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 		if studentAmount < 100 && order.RealPricePerHour != 0 && session.Length != 0 {
 			studentAmount = 100
 		}
-		models.MinusUserBalance(student.UserId, studentAmount)
-		studentTradeRecord := models.POITradeRecord{UserId: student.UserId, TradeType: models.TRADE_PAYMENT, TradeAmount: (0 - studentAmount), OrderType: models.STUDENT_ORDER, Result: result, Comment: comment}
+		models.MinusUserBalance(student.Id, studentAmount)
+		studentTradeRecord := models.POITradeRecord{Id: student.Id, TradeType: models.TRADE_PAYMENT, TradeAmount: (0 - studentAmount), OrderType: models.STUDENT_ORDER, Result: result, Comment: comment}
 		studentTradeRecord.Balance = student.Balance - studentAmount
 		studentTradeRecordId, _ := models.InsertTradeRecord(&studentTradeRecord)
 		studentTradeToSession := models.POITradeToSession{SessionId: session.Id, TradeRecordId: studentTradeRecordId}
@@ -118,8 +118,8 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 	if teacherAmount < 100 && order.RealPricePerHour != 0 && session.Length != 0 {
 		teacherAmount = 100
 	}
-	models.AddUserBalance(teacher.UserId, teacherAmount)
-	teacherTradeRecord := models.POITradeRecord{UserId: teacher.UserId, TradeType: models.TRADE_RECEIVEMENT, TradeAmount: teacherAmount, OrderType: models.TEACHER_ORDER, Result: result, Comment: comment}
+	models.AddUserBalance(teacher.Id, teacherAmount)
+	teacherTradeRecord := models.POITradeRecord{Id: teacher.Id, TradeType: models.TRADE_RECEIVEMENT, TradeAmount: teacherAmount, OrderType: models.TEACHER_ORDER, Result: result, Comment: comment}
 	teacherTradeRecord.Balance = teacher.Balance + teacherAmount
 	teacherTradeRecordId, _ := models.InsertTradeRecord(&teacherTradeRecord)
 	teacherTradeToSession := models.POITradeToSession{SessionId: session.Id, TradeRecordId: teacherTradeRecordId}
@@ -127,14 +127,14 @@ func HandleSessionTrade(session *models.POISession, result string, expireFlag bo
 
 	go leancloud.SendSessionReportNotification(session.Id, teacherAmount, studentAmount)
 	//课程超时时，如果老师不在线，则给老师补发课程超时消息
-	//	if expireFlag && !managers.WsManager.HasUserChan(session.Teacher.UserId) {
+	//	if expireFlag && !managers.WsManager.HasUserChan(session.Teacher.Id) {
 	//		go leancloud.SendSessionExpireNotification(session.Id, teacherAmount)
 	//	}
 	tradeSubjectDisplayName := parentGradeName + gradeName + subjectName
 	if order.Type == models.ORDER_TYPE_REALTIME_SESSION {
 		tradeSubjectDisplayName = "实时课堂"
 	}
-	go leancloud.SendTradeNotificationSession(teacher.UserId, student.UserId,
+	go leancloud.SendTradeNotificationSession(teacher.Id, student.Id,
 		tradeSubjectDisplayName, studentAmount, teacherAmount,
 		session.TimeFrom.Format(time.RFC3339), session.TimeTo.Format(time.RFC3339), strconv.Itoa(int(session.Length)))
 }
