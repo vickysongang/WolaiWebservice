@@ -15,6 +15,70 @@ import (
 )
 
 // 6.1.1
+func SessionInfo(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	sessionIdStr := vars["sessionId"][0]
+	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
+
+	status, content := sessionController.GetSessionInfo(sessionId)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 6.1.2
+func SessionUserRecord(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, content := sessionController.GetUserSessionRecord(userId, page, count)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 6.2.1
 func SessionSeekHelp(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
@@ -38,7 +102,7 @@ func SessionSeekHelp(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
 
-// 6.2.1
+// 6.3.1
 func SessionEvaluationLabelList(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
@@ -73,7 +137,7 @@ func SessionEvaluationLabelList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 6.2.2
+// 6.3.2
 func SessionEvaluationLabelPost(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
@@ -103,7 +167,7 @@ func SessionEvaluationLabelPost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 6.2.3
+// 6.3.3
 func SessionEvaluationLabelResult(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
@@ -130,7 +194,7 @@ func SessionEvaluationLabelResult(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 6.3.1
+// 6.4.1
 func SessionComplainPost(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
@@ -166,7 +230,7 @@ func SessionComplainPost(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 6.3.2
+// 6.4.2
 func SessionComplainCheck(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
@@ -187,41 +251,4 @@ func SessionComplainCheck(w http.ResponseWriter, r *http.Request) {
 
 	status := models.GetComplaintStatus(userId, sessionId)
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", status))
-}
-
-// 6.4.1
-func SessionUserRecord(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullSlice)
-	err := r.ParseForm()
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-
-	userIdStr := r.Header.Get("X-Wolai-ID")
-	userId, err := strconv.ParseInt(userIdStr, 10, 64)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		return
-	}
-	vars := r.Form
-
-	var page int64
-	if len(vars["page"]) > 0 {
-		pageStr := vars["page"][0]
-		page, _ = strconv.ParseInt(pageStr, 10, 64)
-	}
-	var count int64
-	if len(vars["count"]) > 0 {
-		countStr := vars["count"][0]
-		count, _ = strconv.ParseInt(countStr, 10, 64)
-	} else {
-		count = 10
-	}
-
-	status, content := sessionController.GetUserSessionRecord(userId, page, count)
-	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
-	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
-	}
 }

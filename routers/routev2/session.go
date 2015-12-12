@@ -21,13 +21,29 @@ func attachSessionRoute(router *mux.Router) {
 var sessionRoutes = route.Routes{
 	// 6.1.1
 	route.Route{
+		"GetSessionInfo",
+		"POST",
+		"/info",
+		handlerv2.SessionInfo,
+	},
+
+	// 6.1.2
+	route.Route{
+		"GetUserSessionRecord",
+		"POST",
+		"/user/record",
+		handlerv2.SessionUserRecord,
+	},
+
+	// 6.2.1
+	route.Route{
 		"SessionSeekHelp",
 		"POST",
 		"/seek_help",
 		handlerv2.SessionSeekHelp,
 	},
 
-	// 6.2.1
+	// 6.3.1
 	route.Route{
 		"SessionEvaluationLabel",
 		"POST",
@@ -35,7 +51,7 @@ var sessionRoutes = route.Routes{
 		handlerv2.SessionEvaluationLabelList,
 	},
 
-	// 6.2.2
+	// 6.3.2
 	route.Route{
 		"SessionEvaluationCreate",
 		"POST",
@@ -43,7 +59,7 @@ var sessionRoutes = route.Routes{
 		handlerv2.SessionEvaluationLabelPost,
 	},
 
-	// 6.2.3
+	// 6.3.3
 	route.Route{
 		"SessionEvaluationResult",
 		"POST",
@@ -51,7 +67,7 @@ var sessionRoutes = route.Routes{
 		handlerv2.SessionEvaluationLabelResult,
 	},
 
-	// 6.3.1
+	// 6.4.1
 	route.Route{
 		"SessionComplain",
 		"POST",
@@ -59,19 +75,11 @@ var sessionRoutes = route.Routes{
 		handlerv2.SessionComplainPost,
 	},
 
-	// 6.3.2
+	// 6.4.2
 	route.Route{
 		"SessionComplainCheck",
 		"POST",
 		"/complain/check",
 		handlerv2.SessionComplainCheck,
-	},
-
-	// 6.4.1
-	route.Route{
-		"GetUserSessionRecord",
-		"POST",
-		"/user/record",
-		handlerv2.SessionUserRecord,
 	},
 }
