@@ -16,3 +16,26 @@ func init() {
 func (uo *UserOauth) TableName() string {
 	return "user_oauth"
 }
+
+func CreateUserOauth(uo *UserOauth) (*UserOauth, error) {
+	o := orm.NewOrm()
+
+	_, err := o.Insert(uo)
+	if err != nil {
+		return nil, err
+	}
+
+	return uo, nil
+}
+
+func ReadUserOauth(userId int64) (*UserOauth, error) {
+	o := orm.NewOrm()
+
+	uo := UserOauth{UserId: userId}
+	err := o.Read(&uo)
+	if err != nil {
+		return nil, err
+	}
+
+	return &uo, nil
+}
