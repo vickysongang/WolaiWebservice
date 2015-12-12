@@ -9,10 +9,6 @@ import (
 	"WolaiWebservice/redis"
 )
 
-// func LoadPOIUser(userId int64) *models.User {
-// 	return models.ReadUser(userId)
-// }
-
 func UpdateTeacherStatusAfterLogin(user *models.User) {
 	//如果老师是第一次登陆，则修改老师的status字段为0，0代表不是第一次登陆，1代表从未登陆过
 	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER &&
@@ -140,14 +136,14 @@ func GetUserConversation(userId1, userId2 int64) (int64, string) {
 	return 0, convId
 }
 
-func InsertUserLoginInfo(userId int64, objectId, address, ip, userAgent string) (*models.POIUserLoginInfo, error) {
-	loginInfo := models.POIUserLoginInfo{
+func InsertUserLoginInfo(userId int64, objectId, address, ip, userAgent string) (interface{}, error) {
+	loginInfo := models.UserLoginInfo{
 		UserId:    userId,
 		ObjectId:  objectId,
 		Address:   address,
-		Ip:        ip,
+		IP:        ip,
 		UserAgent: userAgent,
 	}
-	l, err := models.InsertUserLoginInfo(&loginInfo)
+	l, err := models.CreateUserLoginInfo(&loginInfo)
 	return l, err
 }

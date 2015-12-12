@@ -7,6 +7,10 @@ import (
 )
 
 const (
+	CONFIG_GENERAL               = "config:general"
+	CONFIG_KEY_GENERAL_WEBSOCKET = "websocket"
+	CONFIG_KEY_GENERAL_KAMAILIO  = "kamailio"
+
 	CONFIG_ORDER                        = "config:order"
 	CONFIG_KEY_ORDER_LIFESPAN_GI        = "lifespan_gi"
 	CONFIG_KEY_ORDER_LIFESPAN_PI        = "lifespan_pi"
@@ -37,6 +41,10 @@ var defaultMap = map[string]map[string]string{
 		CONFIG_KEY_WEBSOCKET_PONG_WAIT:   "10",
 		CONFIG_KEY_WEBSOCKET_WRITE_WAIT:  "10",
 	},
+	CONFIG_GENERAL: map[string]string{
+		CONFIG_KEY_GENERAL_WEBSOCKET: "115.29.207.236:8080/v1/ws",
+		CONFIG_KEY_GENERAL_KAMAILIO:  "115.29.207.236:5060",
+	},
 }
 
 func (rm *POIRedisManager) GetConfig(key string, field string) int64 {
@@ -48,4 +56,13 @@ func (rm *POIRedisManager) GetConfig(key string, field string) int64 {
 	}
 	result, err = strconv.ParseInt(value, 10, 64)
 	return result
+}
+
+func (rm *POIRedisManager) GetConfigStr(key string, field string) string {
+	value, err := rm.RedisClient.HGet(key, field).Result()
+	if err == redis.Nil {
+		_ = rm.RedisClient.HSet(key, field, defaultMap[key][field])
+		value = defaultMap[key][field]
+	}
+	return value
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 )
 
 func GetUserInfo(userId int64) (int64, *models.User) {
@@ -24,6 +25,30 @@ func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) 
 	return 0, user
 }
 
+func UserLaunch(userId int64, objectId, address, ip, userAgent string) (int64, interface{}) {
+	info := models.UserLoginInfo{
+		UserId:    userId,
+		ObjectId:  objectId,
+		Address:   address,
+		IP:        ip,
+		UserAgent: userAgent,
+	}
+
+	models.CreateUserLoginInfo(&info)
+
+	return 0, map[string]string{
+		"websocket": redis.RedisManager.GetConfigStr(redis.CONFIG_GENERAL,
+			redis.CONFIG_KEY_GENERAL_WEBSOCKET),
+		"kamailio": redis.RedisManager.GetConfigStr(redis.CONFIG_GENERAL,
+			redis.CONFIG_KEY_GENERAL_KAMAILIO),
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///
+///
+////////////////////////////////////////////////////////////////////////////////
+
 type teacherProfile struct {
 	Id          int64                   `json:"id"`
 	Nickname    string                  `json:"nickname"`
@@ -41,16 +66,18 @@ type teacherProfile struct {
 func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
 	o := orm.NewOrm()
 
-	teacher := models.TeacherProfile{UserId: teacherId}
-	err := o.Read(&teacher)
+	teacher, err := models.ReadTeacherProfile(teacherId)
 	if err != nil {
-		println(err.Error())
+		return 2, nil
+	}
+
+	school, err := models.ReadSchool(teacher.SchoolId)
+	if err != nil {
 		return 2, nil
 	}
 
 	user, err := models.ReadUser(teacherId)
 	if err != nil {
-		println(err.Error())
 		return 2, nil
 	}
 
@@ -73,8 +100,8 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
 		Avatar:      user.Avatar,
 		Gender:      user.Gender,
 		AccessRight: user.AccessRight,
-		School:      "湖南大学",
-		Major:       "化学系",
+		School:      school.Name,
+		Major:       teacher.Major,
 		ServiceTime: teacher.ServiceTime,
 		SubjectList: subjectDummy,
 		Intro:       teacher.Intro,

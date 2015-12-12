@@ -31,10 +31,11 @@ func GetSessionInfo(sessionId int64) (int64, *sessionInfo) {
 	creator, _ := models.ReadUser(session.Creator)
 	tutor, _ := models.ReadUser(session.Tutor)
 	tutorProfile, _ := models.ReadTeacherProfile(session.Tutor)
+	school, _ := models.ReadSchool(tutorProfile.SchoolId)
 
 	teacher := teacherInfo{
 		User:        *tutor,
-		School:      "湖南大学",
+		School:      school.Name,
 		Major:       tutorProfile.Major,
 		ServiceTime: tutorProfile.ServiceTime,
 	}

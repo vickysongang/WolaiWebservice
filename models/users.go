@@ -121,3 +121,29 @@ func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) 
 
 	return &user, nil
 }
+
+func QueryUserAllId() []int64 {
+	var userIds []int64
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb.Select("id").From("users").Where("status = 0 AND id >= 10000")
+	sql := qb.String()
+	o := orm.NewOrm()
+	_, err := o.Raw(sql).QueryRows(&userIds)
+	if err != nil {
+		//seelog.Error("QueryAlluserId: ", err.Error())
+		return nil
+	}
+	return userIds
+}
+
+func CheckUserExist(userId int64) bool {
+	o := orm.NewOrm()
+	count, err := o.QueryTable("users").Filter("id", userId).Count()
+	if err != nil {
+		return false
+	}
+	if count > 0 {
+		return true
+	}
+	return false
+}
