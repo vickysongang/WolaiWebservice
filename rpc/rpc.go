@@ -36,7 +36,7 @@ func (watcher *RpcWatcher) GetStatusLive(request *RpcRequest, resp *RpcResponse)
 	onlineStudentsCount := 0
 	onlineTeachersCount := 0
 	for userId, _ := range websocket.WsManager.OnlineUserMap {
-		user := models.QueryUserById(userId)
+		user, _ := models.ReadUser(userId)
 		if user.AccessRight == 2 {
 			onlineTeachersCount++
 		}
@@ -120,7 +120,7 @@ func (watcher *RpcWatcher) GetUserConversation(request *RpcRequest, resp *RpcRes
 func (watcher *RpcWatcher) GetUserMonitorInfo(request *RpcRequest, resp *RpcResponse) error {
 	users := handlers.NewPOIMonitorUsers()
 	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
-		user := models.QueryUserById(userId)
+		user, _ := models.ReadUser(userId)
 		locked := websocket.WsManager.IsUserSessionLocked(userId)
 		if user.AccessRight == 2 {
 			users.OnlineTeachers = append(users.OnlineTeachers, handlers.POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
@@ -129,12 +129,12 @@ func (watcher *RpcWatcher) GetUserMonitorInfo(request *RpcRequest, resp *RpcResp
 		}
 	}
 	for _, teacherId := range websocket.TeacherManager.GetLiveTeachers() {
-		user := models.QueryUserById(teacherId)
+		user, _ := models.ReadUser(teacherId)
 		locked := websocket.WsManager.IsUserSessionLocked(teacherId)
 		users.LiveTeachers = append(users.LiveTeachers, handlers.POIMonitorUser{User: user, LoginTime: user.LastLoginTime.Unix(), Locked: locked})
 	}
 	for _, teacherId := range websocket.TeacherManager.GetAssignOnTeachers() {
-		user := models.QueryUserById(teacherId)
+		user, _ := models.ReadUser(teacherId)
 		locked := websocket.WsManager.IsUserSessionLocked(teacherId)
 		users.AssignOnTeachers = append(users.AssignOnTeachers, handlers.POIMonitorUser{User: user, LoginTime: user.LastLoginTime.Unix(), Locked: locked})
 	}

@@ -49,7 +49,7 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 	//如果当前用户是学生，则要返回老师的标签信息，如果当前用户是老师，则要返回学生的标签信息
 	//学生
 	if userId == session.Creator {
-		teacher := models.QueryUserById(session.Tutor)
+		teacher, _ := models.ReadUser(session.Tutor)
 		//个人标签
 		teacherPersonalLabels, err := models.QueryEvaluationLabels(teacher.Gender, models.PERSONAL_EVALUATION_LABEL, models.TEACHER_EVALUATION_LABEL)
 		if err != nil {
@@ -77,7 +77,7 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 			labels = append(labels, teacherSubjectLabels[v])
 		}
 	} else if userId == session.Tutor { //老师
-		student := models.QueryUserById(session.Creator)
+		student, _ := models.ReadUser(session.Creator)
 		//个人标签
 		studentPersonalLabels, err := models.QueryEvaluationLabels(student.Gender, models.PERSONAL_EVALUATION_LABEL, models.STUDENT_EVALUATION_LABEL)
 		if err != nil {

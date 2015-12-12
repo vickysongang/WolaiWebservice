@@ -18,7 +18,7 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	replyToId int64) (*models.POIFeedComment, error) {
 	feedComment := models.POIFeedComment{}
 	var err error
-	user := models.QueryUserById(userId)
+	user, _ := models.ReadUser(userId)
 	if user == nil {
 		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")
 		seelog.Error(err.Error())
@@ -45,7 +45,7 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	feedComment.ImageList = tmpList
 
 	if replyToId != 0 {
-		user := models.QueryUserById(replyToId)
+		user, _ := models.ReadUser(replyToId)
 		feedComment.ReplyTo = user
 	}
 

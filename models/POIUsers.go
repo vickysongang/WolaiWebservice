@@ -1,29 +1,29 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
 	"WolaiWebservice/utils"
 
 	"github.com/astaxie/beego/orm"
-	seelog "github.com/cihub/seelog"
+	"github.com/cihub/seelog"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
 const WOLAI_GIVE_AMOUNT = 10000
 
-type POIUser struct {
-	UserId        int64     `json:"userId" orm:"pk;column(id)"`
-	Nickname      string    `json:"nickname"`
-	Avatar        string    `json:"avatar"`
-	Gender        int64     `json:"gender"`
-	AccessRight   int64     `json:"accessRight"`
-	LastLoginTime time.Time `json:"-" orm:auto_add;type(datetime)`
-	Phone         string    `json:"phone"`
-	Status        int64     `json:"-"`
-	Balance       int64     `json:"-"`
-}
+// type POIUser struct {
+// 	UserId        int64     `json:"userId" orm:"pk;column(id)"`
+// 	Nickname      string    `json:"nickname"`
+// 	Avatar        string    `json:"avatar"`
+// 	Gender        int64     `json:"gender"`
+// 	AccessRight   int64     `json:"accessRight"`
+// 	LastLoginTime time.Time `json:"-" orm:auto_add;type(datetime)`
+// 	Phone         string    `json:"phone"`
+// 	Status        int64     `json:"-"`
+// 	Balance       int64     `json:"-"`
+// }
 
 type POIOAuth struct {
 	UserId   int64 `orm:"pk"`
@@ -40,7 +40,7 @@ type POIUserLoginInfo struct {
 	Time      time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
 }
 
-type POIUsers []POIUser
+// type POIUsers []POIUser
 
 func init() {
 	//orm.RegisterModel(new(POIUser), new(POIOAuth), new(POIUserLoginInfo))
@@ -49,9 +49,9 @@ func init() {
 /*
 *设置结构体与数据库表的对应关系
  */
-func (u *POIUser) TableName() string {
-	return "users"
-}
+// func (u *POIUser) TableName() string {
+// 	return "users"
+// }
 
 func (a *POIOAuth) TableName() string {
 	return "user_oauth"
@@ -66,46 +66,32 @@ func NewPOIUser(userId int64, nickname string, avatar string, gender int64, acce
 	return user
 }
 
-func InsertPOIUser(user *POIUser) (int64, error) {
-	o := orm.NewOrm()
-	if user.Nickname == "" && user.Phone != "" {
-		user.Nickname = fmt.Sprintf("%s%s", "我来", user.Phone[len(user.Phone)-4:len(user.Phone)])
-	}
-	id, err := o.Insert(user)
-	if err != nil {
-		seelog.Error("user:", user, " ", err.Error())
-		return 0, err
-	}
-	return id, nil
-}
+// func InsertPOIUser(user *POIUser) (int64, error) {
+// 	o := orm.NewOrm()
+// 	if user.Nickname == "" && user.Phone != "" {
+// 		user.Nickname = fmt.Sprintf("%s%s", "我来", user.Phone[len(user.Phone)-4:len(user.Phone)])
+// 	}
+// 	id, err := o.Insert(user)
+// 	if err != nil {
+// 		seelog.Error("user:", user, " ", err.Error())
+// 		return 0, err
+// 	}
+// 	return id, nil
+// }
 
-func QueryUserById(userId int64) *POIUser {
-	var user *POIUser
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("id,nickname,avatar,gender,access_right,status,balance,phone").From("users").Where("id = ?")
-	sql := qb.String()
-	o := orm.NewOrm()
-	err := o.Raw(sql, userId).QueryRow(&user)
-	if err != nil {
-		seelog.Error("userId:", userId, " ", err.Error())
-		return nil
-	}
-	return user
-}
-
-func QueryUserByPhone(phone string) *User {
-	var user *User
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
-	qb.Select("id,nickname,avatar,gender,access_right,status,balance,phone").From("users").Where("phone = ?").Limit(1)
-	sql := qb.String()
-	o := orm.NewOrm()
-	err := o.Raw(sql, phone).QueryRow(&user)
-	if err != nil {
-		seelog.Error("phone:", phone, " ", err.Error())
-		return nil
-	}
-	return user
-}
+// func QueryUserById(userId int64) *POIUser {
+// 	var user *POIUser
+// 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+// 	qb.Select("id,nickname,avatar,gender,access_right,status,balance,phone").From("users").Where("id = ?")
+// 	sql := qb.String()
+// 	o := orm.NewOrm()
+// 	err := o.Raw(sql, userId).QueryRow(&user)
+// 	if err != nil {
+// 		seelog.Error("userId:", userId, " ", err.Error())
+// 		return nil
+// 	}
+// 	return user
+// }
 
 func QueryUserAllId() []int64 {
 	var userIds []int64
@@ -121,18 +107,16 @@ func QueryUserAllId() []int64 {
 	return userIds
 }
 
-func UpdateUserInfo(userId int64, userInfo map[string]interface{}) *POIUser {
+func CheckUserExist(userId int64) bool {
 	o := orm.NewOrm()
-	var params orm.Params = make(orm.Params)
-	for k, v := range userInfo {
-		params[k] = v
-	}
-	_, err := o.QueryTable("users").Filter("id", userId).Update(params)
+	count, err := o.QueryTable("users").Filter("id", userId).Count()
 	if err != nil {
-		seelog.Error("userId:", userId, " userInfo:", userInfo, " ", err.Error())
+		return false
 	}
-	user := QueryUserById(userId)
-	return user
+	if count > 0 {
+		return true
+	}
+	return false
 }
 
 func InsertUserOauth(userId int64, qqOpenId string) {
@@ -173,18 +157,6 @@ func HasPhoneBindWithQQ(phone string) (bool, error) {
 		return true, nil
 	}
 	return false, nil
-}
-
-func CheckUserExist(userId int64) bool {
-	o := orm.NewOrm()
-	count, err := o.QueryTable("users").Filter("id", userId).Count()
-	if err != nil {
-		return false
-	}
-	if count > 0 {
-		return true
-	}
-	return false
 }
 
 func InsertUserLoginInfo(loginInfo *POIUserLoginInfo) (*POIUserLoginInfo, error) {

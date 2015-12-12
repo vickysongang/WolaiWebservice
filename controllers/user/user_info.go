@@ -16,7 +16,7 @@ func GetUserInfo(userId int64) (int64, *models.User) {
 }
 
 func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) (int64, *models.User) {
-	user, err := models.UpdateUser(userId, nickname, avatar, gender)
+	user, err := models.UpdateUserInfo(userId, nickname, avatar, gender)
 	if err != nil {
 		return 2, nil
 	}

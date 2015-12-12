@@ -124,8 +124,8 @@ func (rm *POIRedisManager) GetLCBakeMessageLogs(page, count int64) []*models.LCB
 		messageLog := rm.GetLCBakeMessageLog(convId)
 		fromUserId, _ := strconv.ParseInt(messageLog.From, 10, 64)
 		toUserId, _ := strconv.ParseInt(messageLog.To, 10, 64)
-		fromUser := models.QueryUserById(fromUserId)
-		toUser := models.QueryUserById(toUserId)
+		fromUser, _ := models.ReadUser(fromUserId)
+		toUser, _ := models.ReadUser(toUserId)
 		messageLog.FromUser = fromUser
 		messageLog.ToUser = toUser
 		messageLogs = append(messageLogs, messageLog)

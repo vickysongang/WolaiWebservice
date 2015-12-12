@@ -30,7 +30,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 		return userChan, false
 	}
 
-	if user := models.QueryUserById(msg.UserId); user == nil {
+	if _, err := models.ReadUser(msg.UserId); err != nil {
 		return userChan, false
 	}
 

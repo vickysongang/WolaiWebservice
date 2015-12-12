@@ -86,14 +86,14 @@ func SendCommentNotification(feedCommentId string) {
 	}
 
 	// if someone comments himself...
-	if feedComment.Creator.UserId != feed.Creator.UserId {
-		LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.UserId, &lcTMsg, false)
+	if feedComment.Creator.Id != feed.Creator.Id {
+		LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.Id, &lcTMsg, false)
 	}
 
 	if feedComment.ReplyTo != nil {
 		// if someone replies the author... the poor man should not be notified twice
-		if feedComment.ReplyTo.UserId != feed.Creator.UserId {
-			LCSendTypedMessage(USER_SYSTEM_MESSAGE, feedComment.ReplyTo.UserId, &lcTMsg, false)
+		if feedComment.ReplyTo.Id != feed.Creator.Id {
+			LCSendTypedMessage(USER_SYSTEM_MESSAGE, feedComment.ReplyTo.Id, &lcTMsg, false)
 		}
 	}
 
@@ -101,7 +101,7 @@ func SendCommentNotification(feedCommentId string) {
 }
 
 func SendLikeNotification(userId int64, timestamp float64, feedId string) {
-	user := models.QueryUserById(userId)
+	user, _ := models.ReadUser(userId)
 	var feed *models.POIFeed
 	if redis.RedisManager.RedisError == nil {
 		feed = redis.RedisManager.GetFeed(feedId)
@@ -113,7 +113,7 @@ func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 		return
 	}
 
-	if user.UserId == feed.Creator.UserId {
+	if user.Id == feed.Creator.Id {
 		return
 	}
 
@@ -135,13 +135,13 @@ func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.UserId, &lcTMsg, false)
+	LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.Id, &lcTMsg, false)
 
 	return
 }
 
 func SendTradeNotificationSystem(userId int64, amount int64, status, title, subtitle, extra string) {
-	user := models.QueryUserById(userId)
+	user, _ := models.ReadUser(userId)
 	if user == nil {
 		return
 	}
@@ -167,8 +167,8 @@ func SendTradeNotificationSystem(userId int64, amount int64, status, title, subt
 
 func SendTradeNotificationSession(teacherId int64, studentId int64, subject string,
 	studentAmount int64, teacherAmount int64, timeStart, timeEnd string, length string) {
-	teacher := models.QueryUserById(teacherId)
-	student := models.QueryUserById(studentId)
+	teacher, _ := models.ReadUser(teacherId)
+	student, _ := models.ReadUser(studentId)
 	if teacher == nil || student == nil {
 		return
 	}
@@ -568,8 +568,8 @@ func GetConversationParticipants(conversationInfo string) (*POIConversationParti
 
 //该方法从POIUserController里拷贝过来的
 func GetUserConversation(userId1, userId2 int64) (int64, string) {
-	user1 := models.QueryUserById(userId1)
-	user2 := models.QueryUserById(userId2)
+	user1, _ := models.ReadUser(userId1)
+	user2, _ := models.ReadUser(userId2)
 
 	if user1 == nil || user2 == nil {
 		return 2, ""

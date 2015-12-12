@@ -10,11 +10,11 @@ import (
 type POIFeedComment struct {
 	Id              string    `json:"id" orm:"pk;column(comment_id)"`
 	FeedId          string    `json:"feedId"`
-	Creator         *POIUser  `json:"creatorInfo" orm:"-"`
+	Creator         *User     `json:"creatorInfo" orm:"-"`
 	CreateTimestamp float64   `json:"createTimestamp" orm:"-"`
 	Text            string    `json:"text"`
 	ImageList       []string  `json:"imageList,omitempty" orm:"-"`
-	ReplyTo         *POIUser  `json:"replyTo,omitempty" orm:"-"`
+	ReplyTo         *User     `json:"replyTo,omitempty" orm:"-"`
 	LikeCount       int64     `json:"-" orm:"-"`
 	HasLiked        bool      `json:"-" orm:"-"`
 	Created         int64     `json:"-" orm:"column(creator)"`

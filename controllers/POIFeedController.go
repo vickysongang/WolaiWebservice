@@ -18,7 +18,7 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 	originFeedId string, attributeStr string) (*models.POIFeed, error) {
 	feed := models.POIFeed{}
 	var err error
-	user := models.QueryUserById(userId)
+	user, _ := models.ReadUser(userId)
 	if user == nil {
 		err = errors.New("userId:" + strconv.Itoa(int(userId)) + " doesn't exsit.")
 		return nil, err
@@ -107,7 +107,7 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) (*models.POIFee
 			return nil, err
 		}
 	}
-	user := models.QueryUserById(userId)
+	user, _ := models.ReadUser(userId)
 	if user == nil {
 		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")
 		seelog.Error(err.Error())
@@ -151,7 +151,7 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) (*models.POIFee
 func GetFeedDetail(feedId string, userId int64) (*models.POIFeedDetail, error) {
 	var feed *models.POIFeed
 	var err error
-	var likedUserList models.POIUsers
+	var likedUserList []models.User
 	if redis.RedisManager.RedisError == nil {
 		feed = redis.RedisManager.GetFeed(feedId)
 		likedUserList = redis.RedisManager.GetFeedLikeList(feedId)
@@ -162,7 +162,7 @@ func GetFeedDetail(feedId string, userId int64) (*models.POIFeedDetail, error) {
 		}
 		likedUserList = models.GetFeedLikeList(feedId)
 	}
-	user := models.QueryUserById(userId)
+	user, _ := models.ReadUser(userId)
 	if user == nil {
 		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")
 		seelog.Error(err.Error())
@@ -186,7 +186,7 @@ func GetFeedDetail(feedId string, userId int64) (*models.POIFeedDetail, error) {
 }
 
 func GetAtrium(userId int64, page int64, count int64, plateType string) (models.POIFeeds, error) {
-	user := models.QueryUserById(userId)
+	user, _ := models.ReadUser(userId)
 	var err error
 	if user == nil {
 		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")
@@ -221,7 +221,7 @@ func GetAtrium(userId int64, page int64, count int64, plateType string) (models.
 }
 
 func GetUserFeed(userId int64, page int64, count int64) (models.POIFeeds, error) {
-	user := models.QueryUserById(userId)
+	user, _ := models.ReadUser(userId)
 	var err error
 	if user == nil {
 		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")
@@ -250,7 +250,7 @@ func GetUserFeed(userId int64, page int64, count int64) (models.POIFeeds, error)
 }
 
 func GetTopFeed(userId int64, plateType string) (models.POIFeeds, error) {
-	user := models.QueryUserById(userId)
+	user, _ := models.ReadUser(userId)
 	var err error
 	if user == nil {
 		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")
@@ -330,7 +330,7 @@ func UpdateFeedTopSeq(feedId, topSeq string) {
 }
 
 func GetUserLike(userId int64, page int64, count int64) (models.POIFeeds, error) {
-	user := models.QueryUserById(userId)
+	user, _ := models.ReadUser(userId)
 	var err error
 	if user == nil {
 		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")

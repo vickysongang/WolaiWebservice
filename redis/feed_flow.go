@@ -26,7 +26,7 @@ func (rm *POIRedisManager) GetFeedFlowAtrium(start, stop int64, plateType string
 	for i := range feedZs {
 		str, _ := feedZs[i].Member.(string)
 		feed := *rm.GetFeed(str)
-		if feed.Creator != nil && models.CheckUserExist(feed.Creator.UserId) {
+		if feed.Creator != nil && models.CheckUserExist(feed.Creator.Id) {
 			feeds = append(feeds, feed)
 		}
 	}
@@ -96,7 +96,7 @@ func (rm *POIRedisManager) GetTopFeeds(plateType string) models.POIFeeds {
 		str, _ := feedZs[i].Member.(string)
 		feed := *rm.GetFeed(str)
 		feed.TopFlag = true
-		if feed.Creator != nil && models.CheckUserExist(feed.Creator.UserId) {
+		if feed.Creator != nil && models.CheckUserExist(feed.Creator.Id) {
 			feeds = append(feeds, feed)
 		}
 	}

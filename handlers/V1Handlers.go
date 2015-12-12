@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"WolaiWebservice/controllers"
+	userController "WolaiWebservice/controllers/user"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
@@ -58,7 +59,7 @@ func V1UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
-	status, content := controllers.POIUserUpdateProfile(userId, nickname, avatar, gender)
+	status, content := userController.UpdateUserInfo(userId, nickname, avatar, gender)
 	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 }
 
@@ -73,7 +74,7 @@ func V1UpdateProfileGETURL(w http.ResponseWriter, r *http.Request) {
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
-	status, content := controllers.POIUserUpdateProfile(userId, nickname, avatar, gender)
+	status, content := userController.UpdateUserInfo(userId, nickname, avatar, gender)
 	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 }
 

@@ -19,7 +19,7 @@ const (
 
 type POIFeed struct {
 	Id              string            `json:"id" orm:"pk;column(feed_id)"`
-	Creator         *POIUser          `json:"creatorInfo" orm:"-"`
+	Creator         *User             `json:"creatorInfo" orm:"-"`
 	CreateTimestamp float64           `json:"createTimestamp" orm:"-"`
 	FeedType        int64             `json:"feedType"`
 	Text            string            `json:"text"`
@@ -51,7 +51,7 @@ type POIFeedLike struct {
 
 type POIFeedDetail struct {
 	Feed       *POIFeed        `json:"feedInfo"`
-	LikedUsers POIUsers        `json:"likedUsers"`
+	LikedUsers []User          `json:"likedUsers"`
 	Comments   POIFeedComments `json:"comments"`
 }
 
@@ -134,7 +134,7 @@ func GetFeed(feedId string) (*POIFeed, error) {
 	timestampMillis := timestampNano / 1000
 	timestamp := float64(timestampMillis) / 1000000.0
 	feed.CreateTimestamp = timestamp
-	creator := QueryUserById(feed.Created)
+	creator, _ := ReadUser(feed.Created)
 	feed.Creator = creator
 	var imageList []string
 	err = json.Unmarshal([]byte(feed.ImageInfo), &imageList)
@@ -211,7 +211,7 @@ func GETPOIFeedCommentCount(feedId string) int64 {
 	return count
 }
 
-func GetFeedLikeList(feedId string) POIUsers {
+func GetFeedLikeList(feedId string) []User {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
 	qb.Select("user_id").From("feed_like").Where("feed_id=?")
@@ -221,16 +221,17 @@ func GetFeedLikeList(feedId string) POIUsers {
 	if err != nil {
 		seelog.Error("feedId:", feedId, " ", err.Error())
 	}
-	users := make(POIUsers, len(userIds))
+	users := make([]User, len(userIds))
 	for i := range userIds {
-		users[i] = *(QueryUserById(userIds[i]))
+		user, _ := ReadUser(userIds[i])
+		users[i] = *(user)
 	}
 	return users
 }
 
-func HasLikedFeed(feed *POIFeed, user *POIUser) bool {
+func HasLikedFeed(feed *POIFeed, user *User) bool {
 	o := orm.NewOrm()
-	count, err := o.QueryTable("feed_like").Filter("feed_id", feed.Id).Filter("user_id", user.UserId).Count()
+	count, err := o.QueryTable("feed_like").Filter("feed_id", feed.Id).Filter("user_id", user.Id).Count()
 	if err != nil {
 		seelog.Error("feed:", feed, " user:", user, " ", err.Error())
 		return false
@@ -257,7 +258,7 @@ func GetFeedComment(feedCommentId string) (*POIFeedComment, error) {
 	timestampMillis := timestampNano / 1000
 	timestamp := float64(timestampMillis) / 1000000.0
 	feedComment.CreateTimestamp = timestamp
-	feedComment.Creator = QueryUserById(feedComment.Created)
+	feedComment.Creator, _ = ReadUser(feedComment.Created)
 
 	var imageList []string
 	err = json.Unmarshal([]byte(feedComment.ImageInfo), &imageList)
@@ -268,7 +269,7 @@ func GetFeedComment(feedCommentId string) (*POIFeedComment, error) {
 		return nil, err
 	}
 	if feedComment.ReplyToId != 0 {
-		feedComment.ReplyTo = QueryUserById(feedComment.ReplyToId)
+		feedComment.ReplyTo, _ = ReadUser(feedComment.ReplyToId)
 	}
 	return &feedComment, nil
 }
