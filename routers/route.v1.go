@@ -28,12 +28,6 @@ var routesV1 = route.Routes{
 		"/v1/login",
 		handlers.V1Login,
 	},
-	route.Route{
-		"V1LoginGETURL",
-		"GET",
-		"/v1/login/{phone}",
-		handlers.V1LoginGETURL,
-	},
 
 	// 1.2 Update profile
 	route.Route{
@@ -47,68 +41,6 @@ var routesV1 = route.Routes{
 		"GET",
 		"/v1/update_profile",
 		handlers.V1UpdateProfile,
-	},
-	route.Route{
-		"V1UpdateProfileGETURL",
-		"GET",
-		"/v1/update_profile/{userId}/{nickname}/{avatar}/{gender}",
-		handlers.V1UpdateProfileGETURL,
-	},
-
-	// 1.3 Oauth Login
-	route.Route{
-		"V1OauthLoginPOST",
-		"POST",
-		"/v1/oauth/qq/login",
-		handlers.V1OauthLogin,
-	},
-	route.Route{
-		"V1OauthLoginGET",
-		"GET",
-		"/v1/oauth/qq/login",
-		handlers.V1OauthLogin,
-	},
-
-	// 1.4 Oauth Register
-	route.Route{
-		"V1OauthRegisterPOST",
-		"POST",
-		"/v1/oauth/qq/register",
-		handlers.V1OauthRegister,
-	},
-	route.Route{
-		"V1OauthRegisterGET",
-		"GET",
-		"/v1/oauth/qq/register",
-		handlers.V1OauthRegister,
-	},
-
-	//1.9 Check Phone
-	route.Route{
-		"V1CheckPhoneGET",
-		"GET",
-		"/v1/oauth/qq/checkphone",
-		handlers.V1CheckPhoneBindWithQQ,
-	},
-	route.Route{
-		"V1CheckPhonePost",
-		"POST",
-		"/v1/oauth/qq/checkphone",
-		handlers.V1CheckPhoneBindWithQQ,
-	},
-
-	// 1.11 user login info insert
-	route.Route{
-		"V1InsertUserLoginInfoPOST",
-		"POST",
-		"/v1/user/logininfo/insert",
-		handlers.V1InsertUserLoginInfo,
-	},
-	route.Route{
-		"V1InsertUserLoginInfoGET",
-		"GET",
-		"/v1/user/logininfo/insert",
-		handlers.V1InsertUserLoginInfo,
 	},
 
 	// 15.1 sendcloud smshook
@@ -131,25 +63,5 @@ var routesV1 = route.Routes{
 		"POST",
 		"/v1/sendcloud/verify",
 		handlers.V1VerifyRandCode,
-	},
-
-	// Dummy
-	route.Route{
-		"Dummy",
-		"GET",
-		"/dummy",
-		handlers.Dummy,
-	},
-	route.Route{
-		"Dummy2",
-		"GET",
-		"/dummy2",
-		handlers.Dummy2,
-	},
-	route.Route{
-		"TestGET",
-		"GET",
-		"/test",
-		handlers.Test,
 	},
 }

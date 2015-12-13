@@ -2,7 +2,7 @@
 package rpc
 
 import (
-	"WolaiWebservice/controllers"
+	"WolaiWebservice/controllers/message"
 	"WolaiWebservice/handlers"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/leancloud"
@@ -112,7 +112,7 @@ func (watcher *RpcWatcher) QueryPingppRecordByChargeId(request *RpcRequest, resp
 func (watcher *RpcWatcher) GetUserConversation(request *RpcRequest, resp *RpcResponse) error {
 	userId, _ := strconv.ParseInt(request.Args["userId"], 10, 64)
 	targetId, _ := strconv.ParseInt(request.Args["targetId"], 10, 64)
-	status, content := controllers.GetUserConversation(userId, targetId)
+	status, content := message.GetConversation(userId, targetId)
 	*resp = NewRpcResponse(status, "", content)
 	return nil
 }

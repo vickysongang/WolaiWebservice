@@ -7,7 +7,7 @@ import (
 
 	"github.com/cihub/seelog"
 
-	"WolaiWebservice/controllers"
+	messageController "WolaiWebservice/controllers/message"
 	"WolaiWebservice/handlers/response"
 )
 
@@ -30,7 +30,7 @@ func MessageConversationCreate(w http.ResponseWriter, r *http.Request) {
 	targetIdStr := vars["userId"][0]
 	targetId, _ := strconv.ParseInt(targetIdStr, 10, 64)
 
-	status, content := controllers.GetUserConversation(userId, targetId)
+	status, content := messageController.GetConversation(userId, targetId)
 
 	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 }
