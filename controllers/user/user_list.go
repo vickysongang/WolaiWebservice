@@ -74,16 +74,18 @@ func GetTeacherRecommendation(userId int64, page int64, count int64) (int64, []t
 		return 2, nil
 	}
 
-	subjectDummy := []string{
-		"数学",
-		"英语",
-		"物理",
-	}
-
 	result := make([]teacherItem, 0)
 	for _, teacher := range teachers {
 		user, _ := models.ReadUser(teacher.UserId)
 		school, _ := models.ReadSchool(teacher.SchoolId)
+
+		subjects := GetTeacherSubject(teacher.UserId)
+		var subjectNames []string
+		if subjects != nil {
+			subjectNames = parseSubjectNameSlice(subjects)
+		} else {
+			subjectNames = make([]string, 0)
+		}
 
 		item := teacherItem{
 			Id:           teacher.UserId,
@@ -92,7 +94,7 @@ func GetTeacherRecommendation(userId int64, page int64, count int64) (int64, []t
 			Gender:       user.Gender,
 			AccessRight:  user.AccessRight,
 			School:       school.Name,
-			SubjectList:  subjectDummy,
+			SubjectList:  subjectNames,
 			OnlineStatus: "online",
 		}
 		result = append(result, item)
