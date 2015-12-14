@@ -13,6 +13,7 @@ type teacherItem struct {
 	Gender       int64    `json:"gender"`
 	AccessRight  int64    `json:"accessRight"`
 	School       string   `json:"school"`
+	Major        string   `json:"major"`
 	SubjectList  []string `json:"subjectList,omitempty"`
 	OnlineStatus string   `json:"onlineStatus,omitempty"`
 }
@@ -34,9 +35,11 @@ func SearchUser(userId int64, keyword string, page, count int64) (int64, []teach
 
 	result := make([]teacherItem, 0)
 	for _, user := range users {
-		var school string
+		var schoolStr string
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-			school = "湖南大学"
+			profile, _ := models.ReadTeacherProfile(user.Id)
+			school, _ := models.ReadSchool(profile.SchoolId)
+			schoolStr = school.Name
 		}
 
 		item := teacherItem{
@@ -45,10 +48,16 @@ func SearchUser(userId int64, keyword string, page, count int64) (int64, []teach
 			Avatar:       user.Avatar,
 			Gender:       user.Gender,
 			AccessRight:  user.AccessRight,
-			School:       school,
+			School:       schoolStr,
 			SubjectList:  nil,
 			OnlineStatus: "",
 		}
+
+		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+			profile, _ := models.ReadTeacherProfile(user.Id)
+			item.Major = profile.Major
+		}
+
 		result = append(result, item)
 	}
 
@@ -65,23 +74,27 @@ func GetTeacherRecommendation(userId int64, page int64, count int64) (int64, []t
 		return 2, nil
 	}
 
-	subjectDummy := []string{
-		"数学",
-		"英语",
-		"物理",
-	}
-
 	result := make([]teacherItem, 0)
 	for _, teacher := range teachers {
 		user, _ := models.ReadUser(teacher.UserId)
+		school, _ := models.ReadSchool(teacher.SchoolId)
+
+		subjects := GetTeacherSubject(teacher.UserId)
+		var subjectNames []string
+		if subjects != nil {
+			subjectNames = parseSubjectNameSlice(subjects)
+		} else {
+			subjectNames = make([]string, 0)
+		}
+
 		item := teacherItem{
 			Id:           teacher.UserId,
 			Nickname:     user.Nickname,
 			Avatar:       user.Avatar,
 			Gender:       user.Gender,
 			AccessRight:  user.AccessRight,
-			School:       "湖南大学",
-			SubjectList:  subjectDummy,
+			School:       school.Name,
+			SubjectList:  subjectNames,
 			OnlineStatus: "online",
 		}
 		result = append(result, item)
@@ -135,13 +148,15 @@ func GetContactRecommendation(userId int64, page int64, count int64) (int64, []t
 
 	for _, teacher := range teachers {
 		user, _ := models.ReadUser(teacher.UserId)
+		school, _ := models.ReadSchool(teacher.SchoolId)
+
 		item := teacherItem{
 			Id:           teacher.UserId,
 			Nickname:     user.Nickname,
 			Avatar:       user.Avatar,
 			Gender:       user.Gender,
 			AccessRight:  user.AccessRight,
-			School:       "湖南大学",
+			School:       school.Name,
 			SubjectList:  nil,
 			OnlineStatus: "",
 		}

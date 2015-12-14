@@ -62,8 +62,8 @@ func (rm *POIRedisManager) GetSeekHelps(page, count int64) []map[string]interfac
 		if len(participantArray) == 2 {
 			userId1, _ := strconv.ParseInt(participantArray[0], 10, 64)
 			userId2, _ := strconv.ParseInt(participantArray[1], 10, 64)
-			participant1 := models.QueryUserById(userId1)
-			participant2 := models.QueryUserById(userId2)
+			participant1, _ := models.ReadUser(userId1)
+			participant2, _ := models.ReadUser(userId2)
 			helpMap["participant1"] = participant1
 			helpMap["participant2"] = participant2
 		}

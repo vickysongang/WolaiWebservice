@@ -21,7 +21,7 @@ func HandleSystemTrade(Id, amount int64, tradeType, result, comment string) (*mo
 	var tradeRecordId int64
 	var err error
 	var tradeRecord models.POITradeRecord
-	user := models.QueryUserById(Id)
+	user, _ := models.ReadUser(Id)
 	switch tradeType {
 	case models.TRADE_CHARGE:
 		{

@@ -67,7 +67,7 @@ func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface
 
 func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 	order, _ := models.ReadOrder(orderId)
-	user := models.QueryUserById(targetId)
+	user, _ := models.ReadUser(targetId)
 	if order == nil || user == nil {
 		return nil
 	}
@@ -106,7 +106,7 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 
 func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 	order, _ := models.ReadOrder(orderId)
-	user := models.QueryUserById(targetId)
+	user, _ := models.ReadUser(targetId)
 	if order == nil || user == nil {
 		return nil
 	}

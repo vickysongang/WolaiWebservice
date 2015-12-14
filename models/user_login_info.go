@@ -23,3 +23,14 @@ func init() {
 func (uli *UserLoginInfo) TableName() string {
 	return "user_login_info"
 }
+
+func CreateUserLoginInfo(info *UserLoginInfo) (*UserLoginInfo, error) {
+	o := orm.NewOrm()
+
+	id, err := o.Insert(info)
+	if err != nil {
+		return nil, err
+	}
+	info.Id = id
+	return info, nil
+}

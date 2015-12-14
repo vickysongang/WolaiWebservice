@@ -112,7 +112,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 建立处理用户连接的独立goroutine
 	userId := msg.UserId
-	user := models.QueryUserById(userId)
+	user, _ := models.ReadUser(userId)
 	go WebSocketWriteHandler(conn, userId, userChan)
 
 	// 恢复可能存在的用户被中断的发单请求

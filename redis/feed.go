@@ -20,7 +20,7 @@ func (rm *POIRedisManager) GetFeed(feedId string) *models.POIFeed {
 	feed.Id = hashMap["id"]
 
 	tmpInt, _ := strconv.ParseInt(hashMap["creator_id"], 10, 64)
-	feed.Creator = models.QueryUserById(tmpInt)
+	feed.Creator, _ = models.ReadUser(tmpInt)
 
 	tmpFloat, _ := strconv.ParseFloat(hashMap["create_timestamp"], 64)
 	feed.CreateTimestamp = tmpFloat
@@ -49,7 +49,7 @@ func (rm *POIRedisManager) GetFeed(feedId string) *models.POIFeed {
 
 func (rm *POIRedisManager) SetFeed(feed *models.POIFeed) {
 	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "id", feed.Id)
-	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "creator_id", strconv.FormatInt(feed.Creator.UserId, 10))
+	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "creator_id", strconv.FormatInt(feed.Creator.Id, 10))
 	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "create_timestamp", strconv.FormatFloat(feed.CreateTimestamp, 'f', 6, 64))
 	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "feed_type", strconv.FormatInt(feed.FeedType, 10))
 	_ = rm.RedisClient.HSet(CACHE_FEED+feed.Id, "text", feed.Text)
@@ -78,7 +78,7 @@ func (rm *POIRedisManager) PostFeed(feed *models.POIFeed) {
 	}
 
 	feedZ := redis.Z{Member: feed.Id, Score: feed.CreateTimestamp}
-	userIdStr := strconv.FormatInt(feed.Creator.UserId, 10)
+	userIdStr := strconv.FormatInt(feed.Creator.Id, 10)
 
 	_ = rm.RedisClient.ZAdd(FEEDFLOW_ATRIUM, feedZ)
 	_ = rm.RedisClient.ZAdd(USER_FEED+userIdStr, feedZ)
@@ -96,25 +96,25 @@ func (rm *POIRedisManager) DeleteFeed(feedId string, plateType string) {
 	_ = rm.RedisClient.ZRem(feedFlowType, feedId)
 }
 
-func (rm *POIRedisManager) LikeFeed(feed *models.POIFeed, user *models.POIUser, timestamp float64) {
+func (rm *POIRedisManager) LikeFeed(feed *models.POIFeed, user *models.User, timestamp float64) {
 	if feed == nil || user == nil {
 		return
 	}
 
 	feedZ := redis.Z{Member: feed.Id, Score: timestamp}
-	userZ := redis.Z{Member: strconv.FormatInt(user.UserId, 10), Score: timestamp}
-	userIdStr := strconv.FormatInt(user.UserId, 10)
+	userZ := redis.Z{Member: strconv.FormatInt(user.Id, 10), Score: timestamp}
+	userIdStr := strconv.FormatInt(user.Id, 10)
 
 	_ = rm.RedisClient.ZAdd(FEED_LIKE+feed.Id, userZ)
 	_ = rm.RedisClient.ZAdd(USER_FEED_LIKE+userIdStr, feedZ)
 }
 
-func (rm *POIRedisManager) UnlikeFeed(feed *models.POIFeed, user *models.POIUser) {
+func (rm *POIRedisManager) UnlikeFeed(feed *models.POIFeed, user *models.User) {
 	if feed == nil || user == nil {
 		return
 	}
 
-	userIdStr := strconv.FormatInt(user.UserId, 10)
+	userIdStr := strconv.FormatInt(user.Id, 10)
 
 	_ = rm.RedisClient.ZRem(FEED_LIKE+feed.Id, userIdStr)
 	_ = rm.RedisClient.ZRem(USER_FEED_LIKE+userIdStr, feed.Id)
@@ -138,13 +138,13 @@ func (rm *POIRedisManager) SetFeedLikeCount(feedId string, userId int64) {
 	rm.RedisClient.HSet(FEED_LIKE_COUNT+feedId, userIdStr, newCountStr)
 }
 
-func (rm *POIRedisManager) HasLikedFeed(feed *models.POIFeed, user *models.POIUser) bool {
+func (rm *POIRedisManager) HasLikedFeed(feed *models.POIFeed, user *models.User) bool {
 	if feed == nil || user == nil {
 		return false
 	}
 
 	feedId := feed.Id
-	userId := strconv.FormatInt(user.UserId, 10)
+	userId := strconv.FormatInt(user.Id, 10)
 
 	var result bool
 	_, err := rm.RedisClient.ZRank(FEED_LIKE+feedId, userId).Result()
@@ -157,19 +157,20 @@ func (rm *POIRedisManager) HasLikedFeed(feed *models.POIFeed, user *models.POIUs
 	return result
 }
 
-func (rm *POIRedisManager) HasFavedFeed(feed *models.POIFeed, user *models.POIUser) bool {
+func (rm *POIRedisManager) HasFavedFeed(feed *models.POIFeed, user *models.User) bool {
 	return false
 }
 
-func (rm *POIRedisManager) GetFeedLikeList(feedId string) models.POIUsers {
+func (rm *POIRedisManager) GetFeedLikeList(feedId string) []models.User {
 	userStrs := rm.RedisClient.ZRange(FEED_LIKE+feedId, 0, -1).Val()
 
-	users := make(models.POIUsers, len(userStrs))
+	users := make([]models.User, len(userStrs))
 
 	for i := range users {
 		str := userStrs[i]
 		userId, _ := strconv.ParseInt(str, 10, 64)
-		users[i] = *(models.QueryUserById(userId))
+		user, _ := models.ReadUser(userId)
+		users[i] = *(user)
 	}
 
 	return users

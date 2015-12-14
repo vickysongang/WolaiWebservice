@@ -32,7 +32,7 @@ var authRoutes = route.Routes{
 	route.Route{
 		"Login",
 		"POST",
-		"/register",
+		"/login",
 		handlerv2.Dummy,
 	},
 
@@ -57,7 +57,7 @@ var authRoutes = route.Routes{
 		"SendSMSCode",
 		"POST",
 		"/phone/sms/code",
-		handlerv2.Dummy,
+		handlerv2.AuthPhoneSMSCode,
 	},
 
 	// 1.2.2
@@ -65,7 +65,7 @@ var authRoutes = route.Routes{
 		"VerifySMSCode",
 		"POST",
 		"/phone/sms/verify",
-		handlerv2.Dummy,
+		handlerv2.AuthPhoneSMSVerify,
 	},
 
 	// 1.2.3
@@ -73,6 +73,6 @@ var authRoutes = route.Routes{
 		"PhoneNumLogin",
 		"POST",
 		"/phone/login",
-		handlerv2.Dummy,
+		handlerv2.AuthPhoneLogin,
 	},
 }

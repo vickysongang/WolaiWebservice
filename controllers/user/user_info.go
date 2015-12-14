@@ -1,9 +1,8 @@
 package user
 
 import (
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 )
 
 func GetUserInfo(userId int64) (int64, *models.User) {
@@ -16,7 +15,7 @@ func GetUserInfo(userId int64) (int64, *models.User) {
 }
 
 func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) (int64, *models.User) {
-	user, err := models.UpdateUser(userId, nickname, avatar, gender)
+	user, err := models.UpdateUserInfo(userId, nickname, avatar, gender)
 	if err != nil {
 		return 2, nil
 	}
@@ -24,60 +23,21 @@ func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) 
 	return 0, user
 }
 
-type teacherProfile struct {
-	Id          int64                   `json:"id"`
-	Nickname    string                  `json:"nickname"`
-	Avatar      string                  `json:"avatar"`
-	Gender      int64                   `json:"gender"`
-	AccessRight int64                   `json:"accessRight"`
-	School      string                  `json:"school"`
-	Major       string                  `json:"major"`
-	SubjectList []string                `json:"subjectList,omitempty"`
-	Intro       string                  `json:"intro"`
-	Resume      []*models.TeacherResume `json:"resume,omitempty"`
-}
-
-func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
-	o := orm.NewOrm()
-
-	teacher := models.TeacherProfile{UserId: teacherId}
-	err := o.Read(&teacher)
-	if err != nil {
-		println(err.Error())
-		return 2, nil
+func UserLaunch(userId int64, objectId, address, ip, userAgent string) (int64, interface{}) {
+	info := models.UserLoginInfo{
+		UserId:    userId,
+		ObjectId:  objectId,
+		Address:   address,
+		IP:        ip,
+		UserAgent: userAgent,
 	}
 
-	user, err := models.ReadUser(teacherId)
-	if err != nil {
-		println(err.Error())
-		return 2, nil
-	}
+	models.CreateUserLoginInfo(&info)
 
-	subjectDummy := []string{
-		"数学",
-		"英语",
-		"物理",
+	return 0, map[string]string{
+		"websocket": redis.RedisManager.GetConfigStr(redis.CONFIG_GENERAL,
+			redis.CONFIG_KEY_GENERAL_WEBSOCKET),
+		"kamailio": redis.RedisManager.GetConfigStr(redis.CONFIG_GENERAL,
+			redis.CONFIG_KEY_GENERAL_KAMAILIO),
 	}
-
-	var teacherResumes []*models.TeacherResume
-	_, err = o.QueryTable("teacher_to_resume").Filter("user_id", teacherId).All(&teacherResumes)
-	if err != nil {
-		println(err.Error())
-		return 2, nil
-	}
-
-	profile := teacherProfile{
-		Id:          user.Id,
-		Nickname:    user.Nickname,
-		Avatar:      user.Avatar,
-		Gender:      user.Gender,
-		AccessRight: user.AccessRight,
-		School:      "湖南大学",
-		Major:       "化学系",
-		SubjectList: subjectDummy,
-		Intro:       teacher.Intro,
-		Resume:      teacherResumes,
-	}
-
-	return 0, &profile
 }

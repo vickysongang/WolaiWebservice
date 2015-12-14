@@ -19,16 +19,16 @@ type LCMessageLog struct {
 }
 
 type LCBakeMessageLog struct {
-	MsgId      string   `json:"msgId"`
-	ConvId     string   `json:"convId"`
-	From       string   `json:"from"`
-	FromUser   *POIUser `json:"fromUserInfo"`
-	CreateTime string   `json:"createTime""`
-	FromIp     string   `json:"fromIp"`
-	To         string   `json:"to"`
-	ToUser     *POIUser `json:"toUserInfo"`
-	Data       string   `json:"data"`
-	Timestamp  string   `json:"timestamp"`
+	MsgId      string `json:"msgId"`
+	ConvId     string `json:"convId"`
+	From       string `json:"from"`
+	FromUser   *User  `json:"fromUserInfo"`
+	CreateTime string `json:"createTime""`
+	FromIp     string `json:"fromIp"`
+	To         string `json:"to"`
+	ToUser     *User  `json:"toUserInfo"`
+	Data       string `json:"data"`
+	Timestamp  string `json:"timestamp"`
 }
 
 type LCSupportMessageLog struct {

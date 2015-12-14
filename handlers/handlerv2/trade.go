@@ -27,7 +27,7 @@ func TradeUserBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := models.QueryUserById(userId)
+	user, _ := models.ReadUser(userId)
 	if user == nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, "user "+userIdStr+" doesn't exist!", response.NullObject))
 	} else {

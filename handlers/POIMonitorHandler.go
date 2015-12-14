@@ -11,7 +11,7 @@ import (
 )
 
 type POIMonitorUser struct {
-	User      *models.POIUser `json:"userInfo"`
+	User      *models.User `json:"userInfo"`
 	LoginTime int64
 	Locked    bool
 }
@@ -70,7 +70,7 @@ func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	users := NewPOIMonitorUsers()
 	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
-		user := models.QueryUserById(userId)
+		user, _ := models.ReadUser(userId)
 		locked := websocket.WsManager.IsUserSessionLocked(userId)
 		if user.AccessRight == 2 {
 			users.OnlineTeachers = append(users.OnlineTeachers, POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})

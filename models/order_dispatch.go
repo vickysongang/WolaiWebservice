@@ -11,16 +11,16 @@ import (
 )
 
 type POIOrderDispatch struct {
-	Id           int64       `json:"id" orm:"pk"`
-	Order        *Order      `json:"orderInfo" orm:"-"`
-	Teacher      *POITeacher `json:"teacherInfo" orm:"-"`
-	OrderId      int64       `json:"-"`
-	TeacherId    int64       `json:"-"`
-	DispatchTime time.Time   `json:"dispatchTime" orm:"auto_now_add;type(datetime)"`
-	ReplyTime    time.Time   `json:"replyTime"`
-	PlanTime     string      `json:"planTime"`
-	DispatchType string      `json:"dispatchType"` //分发类型，assign代表指派，dispatch代表分发
-	Result       string      `json:"result"`
+	Id    int64  `json:"id" orm:"pk"`
+	Order *Order `json:"orderInfo" orm:"-"`
+	//Teacher      *POITeacher `json:"teacherInfo" orm:"-"`
+	OrderId      int64     `json:"-"`
+	TeacherId    int64     `json:"-"`
+	DispatchTime time.Time `json:"dispatchTime" orm:"auto_now_add;type(datetime)"`
+	ReplyTime    time.Time `json:"replyTime"`
+	PlanTime     string    `json:"planTime"`
+	DispatchType string    `json:"dispatchType"` //分发类型，assign代表指派，dispatch代表分发
+	Result       string    `json:"result"`
 }
 
 const (
@@ -42,7 +42,7 @@ func InsertOrderDispatch(orderDispatch *POIOrderDispatch) *POIOrderDispatch {
 		orderDispatch.OrderId = orderDispatch.Order.Id
 	}
 	if orderDispatch.TeacherId == 0 {
-		orderDispatch.TeacherId = orderDispatch.Teacher.UserId
+		orderDispatch.TeacherId = orderDispatch.TeacherId
 	}
 	orderDispatchId, err := o.Insert(orderDispatch)
 	if err != nil {

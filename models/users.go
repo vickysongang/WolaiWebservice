@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+
+	"WolaiWebservice/utils"
 )
 
 type User struct {
@@ -70,7 +72,38 @@ func ReadUser(userId int64) (*User, error) {
 	return &user, nil
 }
 
-func UpdateUser(userId int64, nickname string, avatar string, gender int64) (*User, error) {
+func UpdateUser(userId int64, userInfo map[string]interface{}) (*User, error) {
+	o := orm.NewOrm()
+
+	var params orm.Params = make(orm.Params)
+	for k, v := range userInfo {
+		params[k] = v
+	}
+
+	_, err := o.QueryTable("users").Filter("id", userId).Update(params)
+	if err != nil {
+		return nil, err
+
+	}
+
+	user, _ := ReadUser(userId)
+	return user, nil
+}
+
+func QueryUserByPhone(phone string) *User {
+	var user *User
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb.Select("id,nickname,avatar,gender,access_right,status,balance,phone").From("users").Where("phone = ?").Limit(1)
+	sql := qb.String()
+	o := orm.NewOrm()
+	err := o.Raw(sql, phone).QueryRow(&user)
+	if err != nil {
+		return nil
+	}
+	return user
+}
+
+func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) (*User, error) {
 	o := orm.NewOrm()
 
 	user := User{Id: userId}
@@ -87,4 +120,30 @@ func UpdateUser(userId int64, nickname string, avatar string, gender int64) (*Us
 	}
 
 	return &user, nil
+}
+
+func QueryUserAllId() []int64 {
+	var userIds []int64
+	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb.Select("id").From("users").Where("status = 0 AND id >= 10000")
+	sql := qb.String()
+	o := orm.NewOrm()
+	_, err := o.Raw(sql).QueryRows(&userIds)
+	if err != nil {
+		//seelog.Error("QueryAlluserId: ", err.Error())
+		return nil
+	}
+	return userIds
+}
+
+func CheckUserExist(userId int64) bool {
+	o := orm.NewOrm()
+	count, err := o.QueryTable("users").Filter("id", userId).Count()
+	if err != nil {
+		return false
+	}
+	if count > 0 {
+		return true
+	}
+	return false
 }

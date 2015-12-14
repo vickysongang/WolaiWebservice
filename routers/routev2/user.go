@@ -25,7 +25,7 @@ var userRoutes = route.Routes{
 		"LaunchApp",
 		"POST",
 		"/launch",
-		handlerv2.Dummy,
+		handlerv2.UserLaunch,
 	},
 
 	// 2.1.2

@@ -61,8 +61,8 @@ type LCTypedMessage struct {
 }
 
 func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage, twoway bool) {
-	user := models.QueryUserById(userId)
-	target := models.QueryUserById(targetId)
+	user, _ := models.ReadUser(userId)
+	target, _ := models.ReadUser(targetId)
 	if user == nil || target == nil {
 		return
 	}

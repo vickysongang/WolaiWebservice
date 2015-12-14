@@ -12,6 +12,35 @@ import (
 	"WolaiWebservice/models"
 )
 
+// 2.1.1
+func UserLaunch(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	objectId := vars["objectId"][0]
+	address := vars["address"][0]
+	ip := r.RemoteAddr
+	userAgent := r.UserAgent()
+
+	status, content := userController.UserLaunch(userId, objectId, address, ip, userAgent)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
 // 2.1.2
 func UserInfo(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
@@ -33,9 +62,9 @@ func UserInfo(w http.ResponseWriter, r *http.Request) {
 
 	status, content := userController.GetUserInfo(userId)
 	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
 
