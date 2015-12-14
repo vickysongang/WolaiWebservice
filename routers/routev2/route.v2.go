@@ -48,5 +48,10 @@ func AttachRoute(r *mux.Router) {
 		"X-Wolai-ID", "").Subrouter()
 	attachPingppRoute(pingppRouter)
 
+	courseRouter := v2Router.PathPrefix("/course/").Headers(
+		"X-Wolai-Token", "",
+		"X-Wolai-ID", "").Subrouter()
+	attachCourseRoute(courseRouter)
+
 	attachMiscRoute(v2Router)
 }

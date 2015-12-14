@@ -18,7 +18,7 @@ import (
 	"WolaiWebservice/sendcloud"
 )
 
-// 9.1.1
+// 10.1.1
 func HookSendcloud(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
@@ -37,7 +37,7 @@ func HookSendcloud(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
 
-// 9.1.2
+// 10.1.2
 func HookPingpp(w http.ResponseWriter, r *http.Request) {
 	if strings.ToUpper(r.Method) == "POST" {
 		buf := new(bytes.Buffer)
@@ -67,7 +67,7 @@ func HookPingpp(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 9.2.1
+// 10.2.1
 func HelpList(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullSlice)
 
@@ -79,7 +79,7 @@ func HelpList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 9.2.2
+// 10.2.2
 func GradeList(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
@@ -103,7 +103,7 @@ func GradeList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 9.2.3
+// 10.2.3
 func SubjectList(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
