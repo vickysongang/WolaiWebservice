@@ -19,14 +19,22 @@ func GetGradeList(pid int64) (int64, []*models.Grade) {
 	return 0, grades
 }
 
-func GetSubjectList(pid int64) (int64, []*models.Subject) {
+func GetSubjectList(gradeId int64) (int64, []*models.Subject) {
 	o := orm.NewOrm()
 
-	var subjects []*models.Subject
-
-	_, err := o.QueryTable("subject").All(&subjects)
+	var gradeSubjects []*models.GradeToSubject
+	_, err := o.QueryTable("grade_to_subject").Filter("grade_id", gradeId).All(&gradeSubjects)
 	if err != nil {
 		return 2, nil
+	}
+
+	subjects := make([]*models.Subject, 0)
+	for _, gradeSubject := range gradeSubjects {
+		subject, err := models.ReadSubject(gradeSubject.SubjectId)
+		if err != nil {
+			continue
+		}
+		subjects = append(subjects, subject)
 	}
 
 	return 0, subjects
