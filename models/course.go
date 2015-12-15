@@ -7,18 +7,21 @@ import (
 )
 
 type Course struct {
-	Id         int64     `json:"id" orm:"pk"`
-	Name       string    `json:"name"`
-	Type       string    `json:"type"`
-	GradeId    int64     `json:"gradeId"`
-	SubjectId  int64     `json:"subjectId"`
-	TimeFrom   time.Time `json:"timeFrom"`
-	TimeTo     time.Time `json:"timeTo"`
-	Cover      string    `json:"cover"`
-	LongCover  string    `json:"longCover"`
-	Intro      string    `json:"intro"`
-	CreateTime time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
-	Creator    int64     `json:"creator"`
+	Id             int64     `json:"id" orm:"pk"`
+	Name           string    `json:"name"`
+	Type           string    `json:"type"`
+	GradeId        int64     `json:"gradeId"`
+	SubjectId      int64     `json:"subjectId"`
+	TimeFrom       time.Time `json:"timeFrom"`
+	TimeTo         time.Time `json:"timeTo"`
+	ImgCover       string    `json:"imgCover"`
+	ImgLongCover   string    `json:"imgLongCover"`
+	ImgBackground  string    `json:"imgBackground"`
+	RecommendIntro string    `json:"recommendIntro"`
+	Intro          string    `json:"intro"`
+	CreateTime     time.Time `json:"createTime" orm:"type(datetime);auto_now"`
+	Creator        int64     `json:"creator"`
+	LastUpdateTime time.Time `json:"-"`
 }
 
 func init() {

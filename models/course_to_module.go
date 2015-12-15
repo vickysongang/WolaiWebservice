@@ -5,9 +5,11 @@ import (
 )
 
 type CourseToModule struct {
-	Id       int64 `json:"-" orm:"pk"`
-	CourseId int64 `json:"courseId"`
-	ModuleId int64 `json:"moduleId"`
+	Id        int64 `json:"-" orm:"pk"`
+	CourseId  int64 `json:"courseId"`
+	ModuleId  int64 `json:"moduleId"`
+	Rank      int64 `json:"rank"`
+	Recommend int64 `json:"recommend"`
 }
 
 func init() {

@@ -10,8 +10,8 @@ import (
 type courseItem struct {
 	Id           int64  `json:"id"`
 	Name         string `json:"name"`
-	Cover        string `json:"cover"`
-	LongCover    string `json:"longcover"`
+	ImgCover     string `json:"imgCover"`
+	ImgLongCover string `json:"imgLongCover"`
 	StudentCount int64  `json:"studentCount"`
 	ChapterCount int64  `json:"chapterCount"`
 }
@@ -25,8 +25,8 @@ func GetCourseModuleList(moduleType, page, count int64) (int64, []*courseItem) {
 		moduleCourseDisplayInfo := courseItem{}
 		moduleCourseDisplayInfo.Id = course.Id
 		moduleCourseDisplayInfo.Name = course.Name
-		moduleCourseDisplayInfo.Cover = course.Cover
-		moduleCourseDisplayInfo.LongCover = course.LongCover
+		moduleCourseDisplayInfo.ImgCover = course.ImgCover
+		moduleCourseDisplayInfo.ImgLongCover = course.ImgLongCover
 
 		//获取课程的在学学生数
 		studentCount := queryCourseStudentCount(course.Id)
