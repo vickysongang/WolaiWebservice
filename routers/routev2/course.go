@@ -81,6 +81,6 @@ var courseRoutes = route.Routes{
 		"CourseAttachs",
 		"POST",
 		"/attachs",
-		handlerv2.Dummy,
+		handlerv2.CourseAttachs,
 	},
 }

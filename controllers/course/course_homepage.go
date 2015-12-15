@@ -12,7 +12,6 @@ type coursePreview struct {
 	Cover          string `json:"cover"`
 	LongCover      string `json:"longcover"`
 	RecommendIntro string `json:"recommendIntro"`
-	RecommendCover string `json:"recommendCover"`
 }
 
 type moduleInfo struct {
@@ -50,7 +49,6 @@ func GetCourseHomePage() (int64, *courseHomePage) {
 			Cover:          course.Cover,
 			LongCover:      course.LongCover,
 			RecommendIntro: "",
-			RecommendCover: "",
 		}
 
 		masterPreviews = append(masterPreviews, &preview)
@@ -82,7 +80,6 @@ func GetCourseHomePage() (int64, *courseHomePage) {
 			Cover:          course.Cover,
 			LongCover:      course.LongCover,
 			RecommendIntro: "",
-			RecommendCover: "",
 		}
 
 		synchPreviews = append(synchPreviews, &preview)
@@ -108,20 +105,12 @@ func GetCourseHomePage() (int64, *courseHomePage) {
 
 	hotPreviews := make([]*coursePreview, 0)
 	for _, course := range hotCourses {
-		var recommend *models.CourseRecommend
-		err := o.QueryTable("course_recommend").Filter("course_id", course.Id).
-			One(&recommend)
-		if err != nil {
-			continue
-		}
-
 		preview := coursePreview{
 			Id:             course.Id,
 			Name:           course.Name,
 			Cover:          course.Cover,
 			LongCover:      course.LongCover,
-			RecommendIntro: recommend.Intro,
-			RecommendCover: recommend.Cover,
+			RecommendIntro: "",
 		}
 
 		hotPreviews = append(hotPreviews, &preview)

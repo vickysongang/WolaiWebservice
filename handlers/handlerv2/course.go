@@ -94,5 +94,31 @@ func CourseModuleAll(w http.ResponseWriter, r *http.Request) {
 	} else {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
+}
 
+// 9.5.1
+func CourseAttachs(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	courseIdStr := vars["courseId"][0]
+	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
+
+	status, content := courseController.GetCourseAttachs(courseId)
+	if content == nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
 }
