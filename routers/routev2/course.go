@@ -75,4 +75,12 @@ var courseRoutes = route.Routes{
 		"/detail/teacher",
 		handlerv2.Dummy,
 	},
+
+	// 9.5.1
+	route.Route{
+		"CourseAttachs",
+		"POST",
+		"/attachs",
+		handlerv2.Dummy,
+	},
 }
