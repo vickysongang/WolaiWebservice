@@ -68,7 +68,7 @@ func ReadUser(userId int64) (*User, error) {
 	user := User{Id: userId}
 	err := o.Read(&user)
 	if err != nil {
-		seelog.Error(err.Error())
+		seelog.Error(err.Error(), " ", userId)
 		return nil, err
 	}
 
@@ -115,7 +115,7 @@ func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) 
 
 	user := User{Id: userId}
 	if err := o.Read(&user); err != nil {
-		seelog.Error(err.Error())
+		seelog.Error(err.Error(), " ", userId)
 		return nil, err
 	}
 
