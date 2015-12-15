@@ -89,7 +89,7 @@ func (watcher *RpcWatcher) PayByPingpp(request *RpcRequest, resp *RpcResponse) e
 	subject := request.Args["subject"]
 	body := request.Args["body"]
 	phone := request.Args["phone"]
-	content, err := pingxx.PayByPingpp(orderNo, amount, channel, currency, clientIp, subject, body, phone, map[string]interface{}{})
+	content, err := pingxx.PayByPingpp(orderNo, 0, amount, channel, currency, clientIp, subject, body, phone, map[string]interface{}{})
 	if err != nil {
 		*resp = NewRpcResponse(2, err.Error(), response.NullObject)
 	} else {

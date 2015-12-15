@@ -23,7 +23,7 @@ func PingppPay(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userIdStr := r.Header.Get("X-Wolai-ID")
-	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
@@ -51,7 +51,7 @@ func PingppPay(w http.ResponseWriter, r *http.Request) {
 	body := vars["body"][0]
 
 	//// TODO userId
-	phone := vars["phone"][0]
+	//phone := vars["phone"][0]
 
 	var extraMap map[string]interface{}
 	if channel == "alipay_wap" {
@@ -81,7 +81,7 @@ func PingppPay(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	content, err := pingxx.PayByPingpp(orderNo, amount, channel, currency, clientIp, subject, body, phone, extraMap)
+	content, err := pingxx.PayByPingpp(orderNo, userId, amount, channel, currency, clientIp, subject, body, "", extraMap)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
