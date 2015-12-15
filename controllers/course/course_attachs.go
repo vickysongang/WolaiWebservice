@@ -57,3 +57,39 @@ func GetCourseAttachs(courseId int64) (int64, []*chapterAttachInfo) {
 
 	return 0, infos
 }
+
+func GetCourseChapterAttachs(chapterId int64) (int64, *chapterAttachInfo) {
+	o := orm.NewOrm()
+
+	courseChapter, err := models.ReadCourseChapter(chapterId)
+	if err != nil {
+		return 2, nil
+	}
+
+	var courseChapterAttach models.CourseChapterAttach
+	err = o.QueryTable("course_chapter_attach").Filter("chapter_id", courseChapter.Id).One(&courseChapterAttach)
+	if err != nil {
+		return 2, nil
+	}
+
+	var attachPics []*models.CourseChapterAttachPic
+	_, err = o.QueryTable("course_chapter_attach_pic").Filter("attach_id", courseChapterAttach.Id).All(&attachPics)
+	if err != nil {
+		return 2, nil
+	}
+
+	aInfo := attachInfo{
+		CourseChapterAttach: courseChapterAttach,
+		AttachPics:          attachPics,
+	}
+
+	aInfos := make([]*attachInfo, 0)
+	aInfos = append(aInfos, &aInfo)
+
+	cInfo := chapterAttachInfo{
+		CourseChapter: *courseChapter,
+		AttachList:    aInfos,
+	}
+
+	return 0, &cInfo
+}
