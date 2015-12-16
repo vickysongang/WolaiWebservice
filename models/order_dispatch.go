@@ -16,7 +16,7 @@ type POIOrderDispatch struct {
 	//Teacher      *POITeacher `json:"teacherInfo" orm:"-"`
 	OrderId      int64     `json:"-"`
 	TeacherId    int64     `json:"-"`
-	DispatchTime time.Time `json:"dispatchTime" orm:"auto_now_add;type(datetime)"`
+	DispatchTime time.Time `json:"dispatchTime" orm:"type(datetime);auto_now_add"`
 	ReplyTime    time.Time `json:"replyTime"`
 	PlanTime     string    `json:"planTime"`
 	DispatchType string    `json:"dispatchType"` //分发类型，assign代表指派，dispatch代表分发

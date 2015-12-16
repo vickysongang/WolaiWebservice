@@ -13,7 +13,7 @@ type CourseChapterAttachPic struct {
 	PicName    string    `json:"picName"`
 	MediaId    string    `json:"mediaId"`
 	Rank       int64     `json:"rank"`
-	CreateTime time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+	CreateTime time.Time `json:"-" orm:"type(datetime);auto_now_add"`
 }
 
 func init() {

@@ -13,7 +13,7 @@ type CourseChapterToUser struct {
 	UserId     int64     `json:"studentId"`
 	TeacherId  int64     `json:"teacherId"`
 	Period     int64     `json:"period"`
-	CreateTime time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
+	CreateTime time.Time `json:"createTime" orm:"type(datetime);auto_now_add"`
 }
 
 func init() {

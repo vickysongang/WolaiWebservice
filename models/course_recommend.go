@@ -11,7 +11,7 @@ type CourseRecommend struct {
 	CourseId   int64     `json:"courseId"`
 	Intro      string    `json:"intro"`
 	Cover      string    `json:"cover"`
-	CreateTime time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+	CreateTime time.Time `json:"-" orm:"type(datetime);auto_now_add"`
 }
 
 func init() {

@@ -19,7 +19,7 @@ type Course struct {
 	ImgBackground  string    `json:"imgBackground"`
 	RecommendIntro string    `json:"recommendIntro"`
 	Intro          string    `json:"intro"`
-	CreateTime     time.Time `json:"createTime" orm:"type(datetime);auto_now"`
+	CreateTime     time.Time `json:"createTime" orm:"type(datetime);auto_now_add"`
 	Creator        int64     `json:"creator"`
 	LastUpdateTime time.Time `json:"-"`
 }

@@ -11,7 +11,7 @@ type CourseChapterAttach struct {
 	ChapterId  int64     `json:"-"`
 	AttachName string    `json:"attachName"`
 	MediaId    string    `json:"mediaId"`
-	CreateTime time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+	CreateTime time.Time `json:"-" orm:"type(datetime);auto_now_add"`
 }
 
 func init() {

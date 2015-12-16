@@ -17,7 +17,7 @@ type User struct {
 	Email         *string   `json:"-" orm:"column(email);null"`
 	Password      *string   `json:"-" orm:"column(password);null"`
 	Salt          *string   `json:"-" orm:"column(salt);null"`
-	CreateTime    time.Time `json:"-" orm:"column(create_time);type(datetime);auto_now"`
+	CreateTime    time.Time `json:"-" orm:"column(create_time);type(datetime);auto_now_add"`
 	LastLoginTime time.Time `json:"-" orm:"column(last_login_time);type(datetime);auto_now"`
 	Status        int64     `json:"-" orm:"column(status);default(0)"`
 	AccessRight   int64     `json:"accessRight" orm:"column(access_right)"`
