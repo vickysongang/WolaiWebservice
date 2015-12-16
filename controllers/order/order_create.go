@@ -20,8 +20,8 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64) (int6
 		if err != nil {
 			return 2, nil
 		}
-		pricePerHour = teacher.PricePerHour
-		realPricePerHour = teacher.RealPricePerHour
+		pricePerHour = teacher.PriceHourly
+		realPricePerHour = teacher.SalaryHourly
 
 	} else {
 		orderType = models.ORDER_TYPE_GENERAL_INSTANT

@@ -9,18 +9,18 @@ import (
 type Course struct {
 	Id             int64     `json:"id" orm:"pk"`
 	Name           string    `json:"name"`
-	Type           string    `json:"type"`
-	GradeId        int64     `json:"gradeId"`
-	SubjectId      int64     `json:"subjectId"`
-	TimeFrom       time.Time `json:"timeFrom"`
-	TimeTo         time.Time `json:"timeTo"`
+	Type           string    `json:"-"`
+	GradeId        int64     `json:"-"`
+	SubjectId      int64     `json:"-"`
+	TimeFrom       time.Time `json:"-"`
+	TimeTo         time.Time `json:"-"`
 	ImgCover       string    `json:"imgCover"`
 	ImgLongCover   string    `json:"imgLongCover"`
 	ImgBackground  string    `json:"imgBackground"`
 	RecommendIntro string    `json:"recommendIntro"`
 	Intro          string    `json:"intro"`
-	CreateTime     time.Time `json:"createTime" orm:"type(datetime);auto_now_add"`
-	Creator        int64     `json:"creator"`
+	CreateTime     time.Time `json:"-" orm:"type(datetime);auto_now_add"`
+	Creator        int64     `json:"-"`
 	LastUpdateTime time.Time `json:"-"`
 }
 

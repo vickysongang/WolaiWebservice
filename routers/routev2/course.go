@@ -65,7 +65,7 @@ var courseRoutes = route.Routes{
 		"CourseDetailStudent",
 		"POST",
 		"/detail/student",
-		handlerv2.Dummy,
+		handlerv2.CourseDetailStudent,
 	},
 
 	// 9.3.2

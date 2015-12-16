@@ -5,15 +5,16 @@ import (
 )
 
 type TeacherProfile struct {
-	UserId           int64  `json:"userId" orm:"column(user_id);pk"`
-	SchoolId         int64  `json:"schoolId" orm:"column(school_id)"`
-	StudyGrade       string `json:"studyGrade" orm:"column(study_grade)"`
-	Major            string `json:"major" orm:"column(major)"`
-	ServiceTime      int64  `json:"serviceTime" orm:"column(service_time)"`
-	Intro            string `json:"intro" orm:"column(intro)"`
-	Extra            string `json:"extra" orm:"column(extra)"`
-	PricePerHour     int64  `json:"-" orm:"column(price_per_hour)"`
-	RealPricePerHour int64  `json:"-" orm:"column(real_price_per_hour)"`
+	UserId       int64  `json:"userId" orm:"column(user_id);pk"`
+	SchoolId     int64  `json:"schoolId" orm:"column(school_id)"`
+	StudyGrade   string `json:"studyGrade" orm:"column(study_grade)"`
+	Major        string `json:"major" orm:"column(major)"`
+	ServiceTime  int64  `json:"serviceTime" orm:"column(service_time)"`
+	Intro        string `json:"intro" orm:"column(intro)"`
+	Extra        string `json:"extra" orm:"column(extra)"`
+	TieId        int64  `json:"tierId" orm:"column(tier_id)"`
+	PriceHourly  int64  `json:"-" orm:"column(price_hourly)"`
+	SalaryHourly int64  `json:"-" orm:"column(salary_hourly)"`
 }
 
 func init() {

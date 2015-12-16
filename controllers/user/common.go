@@ -28,7 +28,7 @@ func GetTeacherSubject(teacherId int64) []*models.Subject {
 	return subjects
 }
 
-func parseSubjectNameSlice(subjects []*models.Subject) []string {
+func ParseSubjectNameSlice(subjects []*models.Subject) []string {
 	subjectNames := make([]string, len(subjects))
 	for i, subject := range subjects {
 		subjectNames[i] = subject.Name

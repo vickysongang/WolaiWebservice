@@ -126,8 +126,8 @@ func (osm *OrderStatusManager) SetOrderConfirm(orderId int64, teacherId int64) e
 	teacher, _ := models.ReadTeacherProfile(teacherId)
 	orderInfo := map[string]interface{}{
 		"Status":           models.ORDER_STATUS_CONFIRMED,
-		"PricePerHour":     teacher.PricePerHour,
-		"RealPricePerHour": teacher.RealPricePerHour,
+		"PricePerHour":     teacher.SalaryHourly,
+		"RealPricePerHour": teacher.PriceHourly,
 	}
 	models.UpdateOrder(orderId, orderInfo)
 	return nil

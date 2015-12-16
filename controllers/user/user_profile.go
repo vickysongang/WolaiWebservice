@@ -41,7 +41,7 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
 	subjects := GetTeacherSubject(teacherId)
 	var subjectNames []string
 	if subjects != nil {
-		subjectNames = parseSubjectNameSlice(subjects)
+		subjectNames = ParseSubjectNameSlice(subjects)
 	} else {
 		subjectNames = make([]string, 0)
 	}
