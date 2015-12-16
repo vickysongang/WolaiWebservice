@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/cihub/seelog"
 
 	"WolaiWebservice/utils"
 )
@@ -16,7 +17,7 @@ type User struct {
 	Email         *string   `json:"-" orm:"column(email);null"`
 	Password      *string   `json:"-" orm:"column(password);null"`
 	Salt          *string   `json:"-" orm:"column(salt);null"`
-	CreateTime    time.Time `json:"-" orm:"column(create_time);type(datetime);auto_now"`
+	CreateTime    time.Time `json:"-" orm:"column(create_time);type(datetime);auto_now_add"`
 	LastLoginTime time.Time `json:"-" orm:"column(last_login_time);type(datetime);auto_now"`
 	Status        int64     `json:"-" orm:"column(status);default(0)"`
 	AccessRight   int64     `json:"accessRight" orm:"column(access_right)"`
@@ -54,6 +55,7 @@ func CreateUser(user *User) (*User, error) {
 	}
 	id, err := o.Insert(user)
 	if err != nil {
+		seelog.Error(err.Error())
 		return nil, err
 	}
 	user.Id = id
@@ -66,6 +68,7 @@ func ReadUser(userId int64) (*User, error) {
 	user := User{Id: userId}
 	err := o.Read(&user)
 	if err != nil {
+		seelog.Error(err.Error(), " ", userId)
 		return nil, err
 	}
 
@@ -82,8 +85,8 @@ func UpdateUser(userId int64, userInfo map[string]interface{}) (*User, error) {
 
 	_, err := o.QueryTable("users").Filter("id", userId).Update(params)
 	if err != nil {
+		seelog.Error(err.Error())
 		return nil, err
-
 	}
 
 	user, _ := ReadUser(userId)
@@ -92,13 +95,17 @@ func UpdateUser(userId int64, userInfo map[string]interface{}) (*User, error) {
 
 func QueryUserByPhone(phone string) *User {
 	var user *User
+
 	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
 	qb.Select("id,nickname,avatar,gender,access_right,status,balance,phone").From("users").Where("phone = ?").Limit(1)
 	sql := qb.String()
+
 	o := orm.NewOrm()
 	err := o.Raw(sql, phone).QueryRow(&user)
+
 	if err != nil {
 		return nil
+		seelog.Error(err.Error())
 	}
 	return user
 }
@@ -108,6 +115,7 @@ func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) 
 
 	user := User{Id: userId}
 	if err := o.Read(&user); err != nil {
+		seelog.Error(err.Error(), " ", userId)
 		return nil, err
 	}
 
@@ -116,6 +124,7 @@ func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) 
 	user.Gender = gender
 
 	if _, err := o.Update(&user); err != nil {
+		seelog.Error(err.Error())
 		return nil, err
 	}
 
@@ -130,7 +139,7 @@ func QueryUserAllId() []int64 {
 	o := orm.NewOrm()
 	_, err := o.Raw(sql).QueryRows(&userIds)
 	if err != nil {
-		//seelog.Error("QueryAlluserId: ", err.Error())
+		seelog.Error(err.Error())
 		return nil
 	}
 	return userIds

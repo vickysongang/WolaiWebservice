@@ -12,6 +12,7 @@ import (
 
 type POIPingppRecord struct {
 	Id         int64     `json:"id" orm:"pk"`
+	UserId     int64     `json:"id"`
 	Phone      string    `json:"phone"`
 	ChargeId   string    `json:"chargeId"`
 	OrderNo    string    `json:"orderNo"`

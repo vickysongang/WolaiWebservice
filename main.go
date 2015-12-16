@@ -7,9 +7,8 @@ import (
 	"net/rpc/jsonrpc"
 
 	"github.com/astaxie/beego/orm"
-	seelog "github.com/cihub/seelog"
+	"github.com/cihub/seelog"
 
-	"WolaiWebservice/handlers"
 	"WolaiWebservice/routers"
 	myrpc "WolaiWebservice/rpc"
 	"WolaiWebservice/utils"
@@ -53,7 +52,6 @@ func startRpcServer() {
 func main() {
 	orm.Debug = false
 
-	go handlers.POILeanCloudTickerHandler()
 	go startRpcServer()
 
 	router := routers.NewRouter()

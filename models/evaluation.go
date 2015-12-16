@@ -13,7 +13,7 @@ type Evaluation struct {
 	UserId     int64     `json:"userId" orm:"column(user_id)"`
 	SessionId  int64     `json:"sessionId" orm:"column(session_id"`
 	Content    string    `json:"content" orm:"column(content)"`
-	CreateTime time.Time `json:"createTime" orm:"column(create_time);type(datetime);auto_now"`
+	CreateTime time.Time `json:"createTime" orm:"column(create_time);type(datetime);auto_now_add"`
 }
 
 func init() {

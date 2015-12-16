@@ -265,80 +265,80 @@ func SendPersonalOrderRejectNotification(orderId int64, teacherId int64) {
 }
 
 func SendPersonalOrderSentMsg(studentId int64, teacherId int64) {
-	attr := make(map[string]string)
-	studentTMsg := LCTypedMessage{
-		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]约课通知已发送，请耐心等待导师回复",
-		Attribute: attr,
-	}
-	LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+	// attr := make(map[string]string)
+	// studentTMsg := LCTypedMessage{
+	// 	Type:      LC_MSG_TEXT,
+	// 	Text:      "[系统提示]约课通知已发送，请耐心等待导师回复",
+	// 	Attribute: attr,
+	// }
+	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
 }
 
 func SendPersonalOrderTeacherBusyMsg(studentId int64, teacherId int64) {
-	attr := make(map[string]string)
-	studentTMsg := LCTypedMessage{
-		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]导师正在上课，可能无法及时回复。建议换个时间或者再等等",
-		Attribute: attr,
-	}
-	LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+	// attr := make(map[string]string)
+	// studentTMsg := LCTypedMessage{
+	// 	Type:      LC_MSG_TEXT,
+	// 	Text:      "[系统提示]导师正在上课，可能无法及时回复。建议换个时间或者再等等",
+	// 	Attribute: attr,
+	// }
+	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
 }
 
 func SendPersonalOrderTeacherOfflineMsg(studentId int64, teacherId int64) {
-	attr := make(map[string]string)
-	studentTMsg := LCTypedMessage{
-		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]导师暂时不在线，可能无法及时回复。建议换个时间或者再等等",
-		Attribute: attr,
-	}
-	LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+	// attr := make(map[string]string)
+	// studentTMsg := LCTypedMessage{
+	// 	Type:      LC_MSG_TEXT,
+	// 	Text:      "[系统提示]导师暂时不在线，可能无法及时回复。建议换个时间或者再等等",
+	// 	Attribute: attr,
+	// }
+	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
 }
 
 func SendPersonalorderExpireMsg(studentId int64, teacherId int64) {
-	attr := make(map[string]string)
-	studentTMsg := LCTypedMessage{
-		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]导师未回复，约课请求超时，已自动取消",
-		Attribute: attr,
-	}
-	LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+	// attr := make(map[string]string)
+	// studentTMsg := LCTypedMessage{
+	// 	Type:      LC_MSG_TEXT,
+	// 	Text:      "[系统提示]导师未回复，约课请求超时，已自动取消",
+	// 	Attribute: attr,
+	// }
+	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
 }
 
 func SendSessionFinishMsg(studentId int64, teacherId int64) {
-	attr := make(map[string]string)
-	msg := LCTypedMessage{
-		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]课程结束，别忘了给ta写评价噢",
-		Attribute: attr,
-	}
-	LCSendTypedMessage(teacherId, studentId, &msg, true)
+	// attr := make(map[string]string)
+	// msg := LCTypedMessage{
+	// 	Type:      LC_MSG_TEXT,
+	// 	Text:      "[系统提示]课程结束，别忘了给ta写评价噢",
+	// 	Attribute: attr,
+	// }
+	// LCSendTypedMessage(teacherId, studentId, &msg, true)
 }
 
 func SendSessionBreakMsg(studentId int64, teacherId int64) {
-	attr := make(map[string]string)
-	msg := LCTypedMessage{
-		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]课程中断，建议尝试重新发起上课请求",
-		Attribute: attr,
-	}
-	LCSendTypedMessage(teacherId, studentId, &msg, true)
+	// attr := make(map[string]string)
+	// msg := LCTypedMessage{
+	// 	Type:      LC_MSG_TEXT,
+	// 	Text:      "[系统提示]课程中断，建议尝试重新发起上课请求",
+	// 	Attribute: attr,
+	// }
+	// LCSendTypedMessage(teacherId, studentId, &msg, true)
 }
 
 func SendPersonalOrderAutoIgnoreNotification(studentId int64, teacherId int64) {
-	attr := make(map[string]string)
-	studentTMsg := LCTypedMessage{
-		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]老师回复了您的约课请求，但是你有课程正在进行中，暂时不能开始此次辅导，记得联系他换个时间再约喔！",
-		Attribute: attr,
-	}
-	teacherTMsg := LCTypedMessage{
-		Type:      LC_MSG_TEXT,
-		Text:      "[系统提示]学生正在忙，暂时不能开始这次辅导，记得联系他换个时间再约喔！",
-		Attribute: attr,
-	}
+	// attr := make(map[string]string)
+	// studentTMsg := LCTypedMessage{
+	// 	Type:      LC_MSG_TEXT,
+	// 	Text:      "[系统提示]老师回复了您的约课请求，但是你有课程正在进行中，暂时不能开始此次辅导，记得联系他换个时间再约喔！",
+	// 	Attribute: attr,
+	// }
+	// teacherTMsg := LCTypedMessage{
+	// 	Type:      LC_MSG_TEXT,
+	// 	Text:      "[系统提示]学生正在忙，暂时不能开始这次辅导，记得联系他换个时间再约喔！",
+	// 	Attribute: attr,
+	// }
 
-	LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
-	LCSendTypedMessage(studentId, teacherId, &teacherTMsg, false)
+	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+	// LCSendTypedMessage(studentId, teacherId, &teacherTMsg, false)
 }
 
 func SendSessionCreatedNotification(sessionId int64) {
@@ -399,30 +399,30 @@ func SendSessionReminderNotification(sessionId int64, seconds int64) {
 }
 
 func SendSessionCancelNotification(sessionId int64) {
-	session, err := models.ReadSession(sessionId)
-	if err != nil {
-		return
-	}
+	// session, err := models.ReadSession(sessionId)
+	// if err != nil {
+	// 	return
+	// }
 
-	order, err := models.ReadOrder(session.OrderId)
-	if err != nil {
-		return
-	}
+	// order, err := models.ReadOrder(session.OrderId)
+	// if err != nil {
+	// 	return
+	// }
 
-	attr := make(map[string]string)
-	orderStr, _ := json.Marshal(order)
+	// attr := make(map[string]string)
+	// orderStr, _ := json.Marshal(order)
 
-	attr["oprCode"] = LC_SESSION_CANCEL
-	attr["orderInfo"] = string(orderStr)
-	attr["planTime"] = session.PlanTime
+	// attr["oprCode"] = LC_SESSION_CANCEL
+	// attr["orderInfo"] = string(orderStr)
+	// attr["planTime"] = session.PlanTime
 
-	lcTMsg := LCTypedMessage{
-		Type:      LC_MSG_SESSION,
-		Text:      "您有一条约课提醒",
-		Attribute: attr,
-	}
+	// lcTMsg := LCTypedMessage{
+	// 	Type:      LC_MSG_SESSION,
+	// 	Text:      "您有一条约课提醒",
+	// 	Attribute: attr,
+	// }
 
-	LCSendTypedMessage(session.Creator, session.Tutor, &lcTMsg, true)
+	// LCSendTypedMessage(session.Creator, session.Tutor, &lcTMsg, true)
 }
 
 func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice int64) {
@@ -508,72 +508,7 @@ func SendSessionExpireNotification(sessionId int64, teacherPrice int64) {
 	// LCSendTypedMessage(session.Tutor, session.Creator, &teacherTMsg, false)
 }
 
-func SendAdvertisementMessage(title, desc, mediaId, url string, userId int64) {
-	attr := map[string]string{
-		"title":       title,
-		"description": desc,
-		"mediaId":     mediaId,
-		"url":         url,
-	}
-
-	lcTMsg := LCTypedMessage{
-		Type:      LC_MSG_AD,
-		Text:      "[活动消息]",
-		Attribute: attr,
-	}
-	if userId != 0 {
-		LCSendTypedMessage(USER_WOLAI_TEAM, userId, &lcTMsg, false)
-		return
-	}
-
-	userIds := models.QueryUserAllId()
-	for _, id := range userIds {
-		go LCSendTypedMessage(USER_WOLAI_TEAM, id, &lcTMsg, false)
-	}
-
-	return
-}
-
-/*
- * 根据对话id获取对话的参与者
- * 参数conversationInfo为JSON串，是对话id的集合
- * 返回结果为JSON串，是对话参与人的集合
- */
-func GetConversationParticipants(conversationInfo string) (*POIConversationParticipants, error) {
-	var convIds []string
-	err := json.Unmarshal([]byte(conversationInfo), &convIds)
-	if err != nil {
-		return nil, err
-	}
-	participants := make(POIConversationParticipants, 0)
-	if redis.RedisManager.RedisError == nil {
-		for i := range convIds {
-			convId := convIds[i]
-			conversationParticipant := POIConversationParticipant{}
-			participant := redis.RedisManager.GetConversationParticipant(convId)
-			//Modified:20150909
-			if participant == "" {
-				participant = QueryConversationParticipants(convId)
-			}
-
-			conversationParticipant.ConversationId = convId
-			conversationParticipant.Participant = participant
-			participants = append(participants, conversationParticipant)
-		}
-	} else {
-		return nil, redis.RedisManager.RedisError
-	}
-	return &participants, nil
-}
-
-//该方法从POIUserController里拷贝过来的
-func GetUserConversation(userId1, userId2 int64) (int64, string) {
-	user1, _ := models.ReadUser(userId1)
-	user2, _ := models.ReadUser(userId2)
-
-	if user1 == nil || user2 == nil {
-		return 2, ""
-	}
+func GetConversation(userId1, userId2 int64) string {
 	var convId string
 	if redis.RedisManager.RedisError == nil {
 		convId = redis.RedisManager.GetConversation(userId1, userId2)
@@ -583,13 +518,9 @@ func GetUserConversation(userId1, userId2 int64) (int64, string) {
 			if convId == "" {
 				convId = convId2
 				redis.RedisManager.SetConversation(convId, userId1, userId2)
-			} else {
-				redis.RedisManager.SetConversationParticipant(convId, userId1, userId2)
 			}
-		} else {
-			redis.RedisManager.SetConversationParticipant(convId, userId1, userId2)
 		}
 	}
 
-	return 0, convId
+	return convId
 }
