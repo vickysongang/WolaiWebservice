@@ -35,11 +35,11 @@ func queryCourseChapterStatus(courseId int64, current int64) ([]*courseChapterSt
 		}
 
 		if chapter.Period < current {
-			status.Status = COURSE_CHAPTER_STATUS_IDLE
+			status.Status = COURSE_CHAPTER_STATUS_COMPLETE
 		} else if chapter.Period == current {
 			status.Status = COURSE_CHAPTER_STATUS_CURRENT
 		} else {
-			status.Status = COURSE_CHAPTER_STATUS_COMPLETE
+			status.Status = COURSE_CHAPTER_STATUS_IDLE
 		}
 
 		statusList[i] = &status
@@ -52,7 +52,7 @@ func queryCourseChapterStatus(courseId int64, current int64) ([]*courseChapterSt
 //查询课程在学的学生数,此处的判断逻辑为只要学生购买了该课程，就认为学生在学该课程
 func queryCourseStudentCount(courseId int64) int64 {
 	o := orm.NewOrm()
-	count, _ := o.QueryTable("course_purchase_record").Filter("course_id", courseId).Filter("status__gte", 6).Count()
+	count, _ := o.QueryTable("course_purchase_record").Filter("course_id", courseId).Count()
 	return count
 }
 

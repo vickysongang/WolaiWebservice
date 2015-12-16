@@ -72,6 +72,10 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 		detail.TeacherList, _ = queryCourseTeacherList(courseId)
 	} else {
 		detail.ChapterCompletedPeriod = queryLatestCourseChapterPeriod(courseId, userId)
+		detail.AuditionStatus = purchaseRecord.AuditionStatus
+		detail.PurchaseStatus = purchaseRecord.PurchaseStatus
+		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod+1)
+		detail.TeacherList, _ = queryCourseCurrentTeacher(purchaseRecord.TeacherId)
 	}
 
 	return 0, &detail
@@ -113,6 +117,36 @@ func queryCourseTeacherList(courseId int64) ([]*teacherItem, error) {
 		}
 		result = append(result, &item)
 	}
+
+	return result, nil
+}
+
+func queryCourseCurrentTeacher(teacherId int64) ([]*teacherItem, error) {
+	result := make([]*teacherItem, 0)
+
+	user, _ := models.ReadUser(teacherId)
+	profile, _ := models.ReadTeacherProfile(teacherId)
+	school, _ := models.ReadSchool(profile.SchoolId)
+
+	subjects := userController.GetTeacherSubject(teacherId)
+	var subjectNames []string
+	if subjects != nil {
+		subjectNames = userController.ParseSubjectNameSlice(subjects)
+	} else {
+		subjectNames = make([]string, 0)
+	}
+
+	item := teacherItem{
+		Id:           user.Id,
+		Nickname:     user.Nickname,
+		Avatar:       user.Avatar,
+		Gender:       user.Gender,
+		AccessRight:  user.AccessRight,
+		School:       school.Name,
+		SubjectList:  subjectNames,
+		OnlineStatus: "online",
+	}
+	result = append(result, &item)
 
 	return result, nil
 }
