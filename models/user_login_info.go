@@ -13,7 +13,7 @@ type UserLoginInfo struct {
 	Address   string    `orm:"column(address)"`
 	IP        string    `orm:"column(ip)"`
 	UserAgent string    `orm:"column(user_agent)"`
-	time      time.Time `orm:"column(time);type(datetime);auto_now"`
+	time      time.Time `orm:"column(time);type(datetime);auto_now_add"`
 }
 
 func init() {

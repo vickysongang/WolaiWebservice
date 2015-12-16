@@ -24,6 +24,11 @@ func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) 
 }
 
 func UserLaunch(userId int64, objectId, address, ip, userAgent string) (int64, interface{}) {
+	_, err := models.ReadUser(userId)
+	if err != nil {
+		return 2, nil
+	}
+
 	info := models.UserLoginInfo{
 		UserId:    userId,
 		ObjectId:  objectId,
