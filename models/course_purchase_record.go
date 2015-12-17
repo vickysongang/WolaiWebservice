@@ -30,8 +30,9 @@ func (c *CoursePurchaseRecord) TableName() string {
 }
 
 const (
-	PURCHASE_RECORD_STATUS_IDLE    = "idle"
-	PURCHASE_RECORD_STATUS_APPLY   = "apply"
-	PURCHASE_RECORD_STATUS_WAITING = "waiting"
-	PURCHASE_RECORD_STATUS_PAID    = "paid"
+	PURCHASE_RECORD_STATUS_IDLE     = "idle"
+	PURCHASE_RECORD_STATUS_APPLY    = "apply"
+	PURCHASE_RECORD_STATUS_WAITING  = "waiting"
+	PURCHASE_RECORD_STATUS_PAID     = "paid"
+	PURCHASE_RECORD_STATUS_COMPLETE = "complete"
 )
