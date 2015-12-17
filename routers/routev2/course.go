@@ -76,6 +76,30 @@ var courseRoutes = route.Routes{
 		handlerv2.CourseDetailTeacher,
 	},
 
+	// 9.4.1
+	route.Route{
+		"CourseActionProceed",
+		"POST",
+		"/action/proceed",
+		handlerv2.CourseActionProceed,
+	},
+
+	// 9.4.2
+	route.Route{
+		"CourseActionQuickbuy",
+		"POST",
+		"/action/quickbuy",
+		handlerv2.CourseActionQuickbuy,
+	},
+
+	// 9.4.3
+	route.Route{
+		"CourseActionPay",
+		"POST",
+		"/action/pay",
+		handlerv2.CourseActionPay,
+	},
+
 	// 9.5.1
 	route.Route{
 		"CourseAttachs",

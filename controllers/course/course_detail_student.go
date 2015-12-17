@@ -30,13 +30,6 @@ type courseDetailStudent struct {
 	TeacherList            []*teacherItem         `json:"teacherList"`
 }
 
-const (
-	STUDENT_DETAIL_STATUS_IDLE    = "idle"
-	STUDENT_DETAIL_STATUS_APPLY   = "apply"
-	STUDENT_DETAIL_STATUS_WAITING = "waiting"
-	STUDENT_DETAIL_STATUS_PAID    = "paid"
-)
-
 func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailStudent) {
 	o := orm.NewOrm()
 
@@ -66,8 +59,8 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 
 	if !purchaseFlag {
 		detail.ChapterCompletedPeriod = 0
-		detail.AuditionStatus = STUDENT_DETAIL_STATUS_IDLE
-		detail.PurchaseStatus = STUDENT_DETAIL_STATUS_IDLE
+		detail.AuditionStatus = models.PURCHASE_RECORD_STATUS_IDLE
+		detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0)
 		detail.TeacherList, _ = queryCourseTeacherList(courseId)
 	} else {
