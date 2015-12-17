@@ -49,7 +49,7 @@ var courseRoutes = route.Routes{
 		"CourseListStudent",
 		"POST",
 		"/user/list/student",
-		handlerv2.Dummy,
+		handlerv2.CourseListStudent,
 	},
 
 	// 9.2.2
@@ -57,7 +57,7 @@ var courseRoutes = route.Routes{
 		"CourseListTeacher",
 		"POST",
 		"/user/list/teacher",
-		handlerv2.Dummy,
+		handlerv2.CourseListTeacher,
 	},
 
 	// 9.3.1
@@ -73,7 +73,7 @@ var courseRoutes = route.Routes{
 		"CourseDetailTeacher",
 		"POST",
 		"/detail/teacher",
-		handlerv2.Dummy,
+		handlerv2.CourseDetailTeacher,
 	},
 
 	// 9.5.1
