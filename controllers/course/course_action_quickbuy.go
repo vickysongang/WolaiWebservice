@@ -15,9 +15,10 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 	}
 
 	// 先查询该用户是否有购买（或试图购买）过这个课程
+	var currentRecord models.CoursePurchaseRecord
 	var record *models.CoursePurchaseRecord
 	err = o.QueryTable("course_purchase_record").Filter("course_id", courseId).Filter("user_id", userId).
-		One(record)
+		One(&currentRecord)
 
 	if err == orm.ErrNoRows {
 
@@ -25,11 +26,11 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 		newRecord := models.CoursePurchaseRecord{
 			CourseId:       courseId,
 			UserId:         userId,
-			AuditionStatus: models.PURCHASE_RECORD_STATUS_IDLE,
-			PurchaseStatus: models.PURCHASE_RECORD_STATUS_APPLY,
+			AuditionStatus: models.PURCHASE_RECORD_STATUS_APPLY,
+			PurchaseStatus: models.PURCHASE_RECORD_STATUS_IDLE,
 		}
 
-		record, err = models.CreateCoursePurchaseRecord(&newRecord)
+		_, err = models.CreateCoursePurchaseRecord(&newRecord)
 		if err != nil {
 			return 2, nil
 		}
@@ -46,6 +47,7 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 		// 如果到了这里说明数据库报错了...
 		return 2, nil
 	}
+	record = &currentRecord
 
 	var response actionProceedResponse
 

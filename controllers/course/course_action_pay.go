@@ -15,12 +15,15 @@ func HandleCourseActionPay(userId int64, courseId int64, payType string) int64 {
 	}
 
 	// 先查询该用户是否有购买（或试图购买）过这个课程
+	var currentRecord models.CoursePurchaseRecord
 	var record *models.CoursePurchaseRecord
 	err = o.QueryTable("course_purchase_record").Filter("course_id", courseId).Filter("user_id", userId).
-		One(record)
+		One(&currentRecord)
 	if err != nil {
 		return 2
 	}
+
+	record = &currentRecord
 
 	switch payType {
 	case PAYMENT_TYPE_AUDITION:
