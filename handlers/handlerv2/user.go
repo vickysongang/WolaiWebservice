@@ -204,6 +204,51 @@ func UserTeacherProfile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// 2.2.3
+func UserTeacherProfileCourse(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	teacherIdStr := vars["userId"][0]
+	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
+	teacher, err := models.ReadUser(teacherId)
+	if teacher.AccessRight == models.USER_ACCESSRIGHT_STUDENT {
+		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullSlice))
+		return
+	}
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, content := userController.GetTeacherCourseList(teacherId, page, count)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	}
+}
+
 // 2.3.1
 func UserSearch(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullSlice)

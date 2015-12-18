@@ -53,33 +53,13 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
 		subjectNames = make([]string, 0)
 	}
 
+	_, courseList := GetTeacherCourseList(teacherId, 0, 10)
+
 	var teacherResumes []*models.TeacherResume
 	_, err = o.QueryTable("teacher_to_resume").Filter("user_id", teacherId).All(&teacherResumes)
 	if err != nil {
 		println(err.Error())
 		return 2, nil
-	}
-
-	courseList := make([]*teacherCourseInfo, 0)
-
-	var teacherCourses []*models.CourseToTeacher
-	o.QueryTable("course_to_teachers").Filter("user_id", teacherId).All(&teacherCourses)
-
-	for _, teacherCourse := range teacherCourses {
-		studentCount, _ := o.QueryTable("course_purchase_record").Filter("course_id", teacherCourse.CourseId).Count()
-		chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", teacherCourse.CourseId).Count()
-		course, err := models.ReadCourse(teacherCourse.CourseId)
-		if err != nil {
-			continue
-		}
-
-		courseInfo := teacherCourseInfo{
-			Course:       *course,
-			StudentCount: studentCount,
-			ChapterCount: chapterCount,
-		}
-
-		courseList = append(courseList, &courseInfo)
 	}
 
 	profile := teacherProfile{
@@ -98,4 +78,32 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
 	}
 
 	return 0, &profile
+}
+
+func GetTeacherCourseList(teacherId, page, count int64) (int64, []*teacherCourseInfo) {
+	o := orm.NewOrm()
+
+	courseList := make([]*teacherCourseInfo, 0)
+
+	var teacherCourses []*models.CourseToTeacher
+	o.QueryTable("course_to_teachers").Filter("user_id", teacherId).Limit(10).All(&teacherCourses)
+
+	for _, teacherCourse := range teacherCourses {
+		studentCount, _ := o.QueryTable("course_purchase_record").Filter("course_id", teacherCourse.CourseId).Count()
+		chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", teacherCourse.CourseId).Count()
+		course, err := models.ReadCourse(teacherCourse.CourseId)
+		if err != nil {
+			continue
+		}
+
+		courseInfo := teacherCourseInfo{
+			Course:       *course,
+			StudentCount: studentCount,
+			ChapterCount: chapterCount,
+		}
+
+		courseList = append(courseList, &courseInfo)
+	}
+
+	return 0, courseList
 }
