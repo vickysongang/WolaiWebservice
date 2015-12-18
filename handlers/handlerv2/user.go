@@ -190,11 +190,6 @@ func UserTeacherProfile(w http.ResponseWriter, r *http.Request) {
 
 	teacherIdStr := vars["userId"][0]
 	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
-	teacher, err := models.ReadUser(teacherId)
-	if teacher.AccessRight == models.USER_ACCESSRIGHT_STUDENT {
-		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullObject))
-		return
-	}
 
 	status, content := userController.GetTeacherProfile(userId, teacherId)
 	if status != 0 {

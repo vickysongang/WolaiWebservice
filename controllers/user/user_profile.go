@@ -20,6 +20,7 @@ type teacherProfile struct {
 	AccessRight int64                   `json:"accessRight"`
 	School      string                  `json:"school"`
 	Major       string                  `json:"major"`
+	Extra       string                  `json:"extra"`
 	ServiceTime int64                   `json:"serviceTime"`
 	SubjectList []string                `json:"subjectList,omitempty"`
 	Intro       string                  `json:"intro"`
@@ -36,9 +37,6 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
 	}
 
 	school, err := models.ReadSchool(teacher.SchoolId)
-	if err != nil {
-		return 2, nil
-	}
 
 	user, err := models.ReadUser(teacherId)
 	if err != nil {
@@ -68,13 +66,17 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
 		Avatar:      user.Avatar,
 		Gender:      user.Gender,
 		AccessRight: user.AccessRight,
-		School:      school.Name,
 		Major:       teacher.Major,
 		ServiceTime: teacher.ServiceTime,
 		SubjectList: subjectNames,
 		Intro:       teacher.Intro,
+		Extra:       teacher.Extra,
 		Resume:      teacherResumes,
 		CourseList:  courseList,
+	}
+
+	if school != nil {
+		profile.School = school.Name
 	}
 
 	return 0, &profile

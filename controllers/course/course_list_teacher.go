@@ -1,6 +1,8 @@
 package course
 
 import (
+	"time"
+
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
@@ -13,6 +15,7 @@ type courseTeacherListItem struct {
 	AuditionStatus         string       `json:"auditionStatus"`
 	PurchaseStatus         string       `json:"purchaseStatus"`
 	ChapterCompletedPeriod int64        `json:"chapterCompletePeriod"`
+	LastUpdateTime         string       `json:"lastUpdateTime"`
 	StudentInfo            *models.User `json:"studentInfo"`
 }
 
@@ -49,6 +52,7 @@ func GetCourseListTeacher(userId, page, count int64) (int64, []*courseTeacherLis
 			AuditionStatus:         record.AuditionStatus,
 			PurchaseStatus:         record.PurchaseStatus,
 			ChapterCompletedPeriod: chapterCompletePeriod,
+			LastUpdateTime:         record.LastUpdateTime.Format(time.RFC3339),
 			StudentInfo:            student,
 		}
 
