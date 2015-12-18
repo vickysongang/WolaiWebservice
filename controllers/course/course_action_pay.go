@@ -24,7 +24,6 @@ func HandleCourseActionPay(userId int64, courseId int64, payType string) int64 {
 	}
 
 	record = &currentRecord
-
 	switch payType {
 	case PAYMENT_TYPE_AUDITION:
 		if record.AuditionStatus != models.PURCHASE_RECORD_STATUS_WAITING {
