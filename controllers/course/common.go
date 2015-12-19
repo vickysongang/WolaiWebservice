@@ -3,8 +3,8 @@ package course
 import (
 	"github.com/astaxie/beego/orm"
 
+	"WolaiWebservice/config"
 	"WolaiWebservice/models"
-	"WolaiWebservice/utils"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ func queryCourseStudentCount(courseId int64) int64 {
 //查询课程的章节
 func queryCourseChapters(courseId int64) ([]models.CourseChapter, error) {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("id,course_id,title,abstract,period,create_time").
 		From("course_chapter").
 		Where("course_id = ?").
@@ -73,7 +73,7 @@ func queryCourseChapters(courseId int64) ([]models.CourseChapter, error) {
 //查询最近完成的课时号
 func queryLatestCourseChapterPeriod(courseId, userId int64) int64 {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("period").From("course_chapter_to_user").Where("course_id = ? and user_id = ?").OrderBy("period").Desc().Limit(1)
 	sql := qb.String()
 	var period int64

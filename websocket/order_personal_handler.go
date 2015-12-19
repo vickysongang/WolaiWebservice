@@ -8,9 +8,9 @@ import (
 
 	seelog "github.com/cihub/seelog"
 
-	"WolaiWebservice/leancloud"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
+	"WolaiWebservice/utils/leancloud"
 )
 
 func personalOrderHandler(orderId int64, teacherId int64) {

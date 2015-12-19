@@ -7,7 +7,7 @@ import (
 	"github.com/astaxie/beego/orm"
 	"github.com/cihub/seelog"
 
-	"WolaiWebservice/utils"
+	"WolaiWebservice/config"
 )
 
 type User struct {
@@ -96,7 +96,7 @@ func UpdateUser(userId int64, userInfo map[string]interface{}) (*User, error) {
 func QueryUserByPhone(phone string) *User {
 	var user *User
 
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("id,nickname,avatar,gender,access_right,status,balance,phone").From("users").Where("phone = ?").Limit(1)
 	sql := qb.String()
 
@@ -133,7 +133,7 @@ func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) 
 
 func QueryUserAllId() []int64 {
 	var userIds []int64
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("id").From("users").Where("status = 0 AND id >= 10000")
 	sql := qb.String()
 	o := orm.NewOrm()

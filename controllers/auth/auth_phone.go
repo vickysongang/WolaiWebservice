@@ -3,8 +3,8 @@ package auth
 import (
 	"time"
 
-	"WolaiWebservice/leancloud"
 	"WolaiWebservice/models"
+	"WolaiWebservice/utils/leancloud"
 )
 
 func LoginByPhone(phone string) (int64, *authInfo) {

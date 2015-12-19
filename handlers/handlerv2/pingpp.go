@@ -11,7 +11,7 @@ import (
 
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
-	pingxx "WolaiWebservice/pingpp"
+	"WolaiWebservice/utils/pingxx"
 )
 
 // 8.1.1

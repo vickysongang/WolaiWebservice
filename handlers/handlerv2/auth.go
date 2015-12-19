@@ -10,7 +10,7 @@ import (
 	authController "WolaiWebservice/controllers/auth"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/redis"
-	"WolaiWebservice/sendcloud"
+	"WolaiWebservice/utils/sendcloud"
 )
 
 // 1.2.1

@@ -1,10 +1,10 @@
 package redis
 
 import (
-	seelog "github.com/cihub/seelog"
+	"github.com/cihub/seelog"
 	"gopkg.in/redis.v3"
 
-	"WolaiWebservice/utils"
+	"WolaiWebservice/config"
 )
 
 type POIRedisManager struct {
@@ -66,9 +66,9 @@ const (
 
 func NewPOIRedisManager() POIRedisManager {
 	client := redis.NewClient(&redis.Options{
-		Addr:     utils.Config.Redis.Host + utils.Config.Redis.Port,
-		Password: utils.Config.Redis.Password,
-		DB:       utils.Config.Redis.Db,
+		Addr:     config.Env.Redis.Host + config.Env.Redis.Port,
+		Password: config.Env.Redis.Password,
+		DB:       config.Env.Redis.Db,
 	})
 	pong, err := client.Ping().Result()
 	seelog.Info("Connect redis:", pong, err)

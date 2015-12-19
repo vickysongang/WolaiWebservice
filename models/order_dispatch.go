@@ -3,11 +3,10 @@ package models
 import (
 	"time"
 
-	"WolaiWebservice/utils"
-
 	"github.com/astaxie/beego/orm"
-	seelog "github.com/cihub/seelog"
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/cihub/seelog"
+
+	"WolaiWebservice/config"
 )
 
 type POIOrderDispatch struct {
@@ -91,7 +90,7 @@ func UpdateAssignOrderResult(orderId int64, userId int64) {
 
 func QueryOrderDispatch(orderId, userId int64) *POIOrderDispatch {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("id,order_id,teacher_id,dispatch_time,reply_time,plan_time,result").From("order_dispatch").
 		Where("order_id = ? and teacher_id = ?")
 	sql := qb.String()

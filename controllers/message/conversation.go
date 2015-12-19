@@ -1,8 +1,8 @@
 package message
 
 import (
-	"WolaiWebservice/leancloud"
 	"WolaiWebservice/models"
+	"WolaiWebservice/utils/leancloud"
 )
 
 func GetConversation(userId1, userId2 int64) (int64, string) {

@@ -4,10 +4,10 @@ package models
 import (
 	"time"
 
-	"WolaiWebservice/utils"
-
 	"github.com/astaxie/beego/orm"
 	"github.com/cihub/seelog"
+
+	"WolaiWebservice/config"
 )
 
 const (
@@ -71,7 +71,7 @@ func InsertUserToActivity(userToActivity *POIUserToActivity) (*POIUserToActivity
 func QueryEffectiveActivities(activityType string) (POIActivities, error) {
 	activities := make(POIActivities, 0)
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("id,theme,title,subtitle,amount,time_from,time_to,extra,media_id,status,type").From("activities").
 		Where("type = ? and now() BETWEEN time_from and time_to and status = 'open'").OrderBy("time_to").Desc()
 	sql := qb.String()
