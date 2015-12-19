@@ -457,9 +457,6 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 	}
 	session, _ := models.CreateSession(&sessionInfo)
 
-	// 发送Leancloud订单成功通知
-	go leancloud.SendSessionCreatedNotification(session.Id)
-
 	// 发起上课请求或者设置计时器
 	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {

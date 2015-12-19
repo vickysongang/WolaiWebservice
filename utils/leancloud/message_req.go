@@ -82,6 +82,34 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage, twoway b
 	}
 }
 
+func LCSendSystemMessage(senderId, userId1, userId2 int64, lcTMsg *LCTypedMessage) {
+	_, err := models.ReadUser(userId1)
+	if err != nil {
+		return
+	}
+
+	_, err = models.ReadUser(userId2)
+	if err != nil {
+		return
+	}
+
+	convId := GetConversation(userId1, userId2)
+	senderIdStr := strconv.FormatInt(senderId, 10)
+	lcTMsgByte, err := json.Marshal(&lcTMsg)
+	if err != nil {
+		return
+	}
+
+	lcMsg := LCMessage{
+		SendId:         senderIdStr,
+		ConversationId: convId,
+		Message:        string(lcTMsgByte),
+		Transient:      false,
+	}
+
+	LCSendMessage(&lcMsg)
+}
+
 func LCSendMessage(lcMsg *LCMessage) {
 	url := LC_SEND_MSG
 

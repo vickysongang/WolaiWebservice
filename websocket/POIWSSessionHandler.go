@@ -136,7 +136,7 @@ func POIWSSessionHandler(sessionId int64) {
 				session, _ = models.ReadSession(sessionId)
 				//课后结算，产生交易记录
 				trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, true)
-				go leancloud.SendSessionBreakMsg(session.Creator, session.Tutor)
+				go leancloud.SendSessionExpireMsg(sessionId)
 			}
 
 			WsManager.RemoveSessionLive(sessionId)
@@ -368,7 +368,7 @@ func POIWSSessionHandler(sessionId int64) {
 					WsManager.SetUserSessionLock(session.Creator, false, timestamp)
 					WsManager.SetUserSessionLock(session.Tutor, false, timestamp)
 
-					go leancloud.SendSessionFinishMsg(session.Creator, session.Tutor)
+					go leancloud.SendSessionFinishMsg(sessionId)
 
 					logger.InsertSessionEventLog(sessionId, 0, "导师下课，课程结束", "")
 					return
@@ -408,6 +408,8 @@ func POIWSSessionHandler(sessionId int64) {
 						breakChan := WsManager.GetUserChan(breakMsg.UserId)
 						breakChan <- breakMsg
 					}
+
+					go leancloud.SendSessionBreakMsg(sessionId)
 
 				case WS_SESSION_RECOVER_TEACHER:
 					//如果老师所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
@@ -623,6 +625,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 						seelog.Debug("POIWSSessionHandler: session resumed: " + sessionIdStr)
 						logger.InsertSessionEventLog(sessionId, 0, "课程中断后重新恢复", "")
+						go leancloud.SendSessionResumeMsg(sessionId)
 					}
 				}
 			} else {
@@ -706,6 +709,7 @@ func InitSessionMonitor(sessionId int64) bool {
 	WsManager.SetUserSessionLock(session.Creator, true, timestamp)
 	WsManager.SetUserSessionLock(session.Tutor, true, timestamp)
 
+	go leancloud.SendSessionStartMsg(sessionId)
 	go POIWSSessionHandler(sessionId)
 
 	return true

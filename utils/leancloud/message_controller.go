@@ -218,294 +218,416 @@ func SendTradeNotificationSession(teacherId int64, studentId int64, subject stri
 	}
 }
 
-func SendPersonalOrderNotification(orderId int64, teacherId int64) {
-	// order, _ := models.ReadOrder(orderId)
-	// teacher := models.QueryUserById(teacherId)
-	// if order == nil || teacher == nil {
-	// 	return
-	// }
-	// attr := make(map[string]string)
-	// teacherStr, _ := json.Marshal(teacher)
-	// orderStr, _ := json.Marshal(order)
+/*
+ * 各种系统消息
+ */
+func SendSessionStartMsg(sessionId int64) {
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
+		return
+	}
 
-	// attr["oprCode"] = LC_SESSION_PERSONAL
-	// attr["teacherInfo"] = string(teacherStr)
-	// attr["orderInfo"] = string(orderStr)
+	attr := make(map[string]string)
 
-	// lcTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_SESSION,
-	// 	Text:      "您有一条约课提醒",
-	// 	Attribute: attr,
-	// }
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SYSTEM,
+		Text:      "已进入课堂",
+		Attribute: attr,
+	}
 
-	// LCSendTypedMessage(order.Creator, teacherId, &lcTMsg, false)
+	LCSendSystemMessage(USER_SYSTEM_MESSAGE, session.Creator, session.Tutor, &lcTMsg)
 }
 
-func SendPersonalOrderRejectNotification(orderId int64, teacherId int64) {
-	// order, _ := models.ReadOrder(orderId)
-	// teacher := models.QueryUserById(teacherId)
-	// if order == nil || teacher == nil {
-	// 	return
-	// }
+func SendSessionFinishMsg(sessionId int64) {
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
+		return
+	}
 
-	// attr := make(map[string]string)
-	// orderStr, _ := json.Marshal(order)
+	attr := make(map[string]string)
 
-	// attr["oprCode"] = LC_SESSION_REJECT
-	// attr["orderInfo"] = string(orderStr)
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SYSTEM,
+		Text:      "上课结束，别忘了留下评价哦",
+		Attribute: attr,
+	}
 
-	// lcTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_SESSION,
-	// 	Text:      "您有一条约课提醒",
-	// 	Attribute: attr,
-	// }
-
-	// LCSendTypedMessage(teacherId, order.Creator, &lcTMsg, false)
+	LCSendSystemMessage(USER_SYSTEM_MESSAGE, session.Creator, session.Tutor, &lcTMsg)
 }
 
-func SendPersonalOrderSentMsg(studentId int64, teacherId int64) {
-	// attr := make(map[string]string)
-	// studentTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_TEXT,
-	// 	Text:      "[系统提示]约课通知已发送，请耐心等待导师回复",
-	// 	Attribute: attr,
-	// }
-	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+func SendSessionExpireMsg(sessionId int64) {
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
+		return
+	}
+
+	attr := make(map[string]string)
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SYSTEM,
+		Text:      "上课中断，建议沟通后继续上课哦",
+		Attribute: attr,
+	}
+
+	LCSendSystemMessage(USER_SYSTEM_MESSAGE, session.Creator, session.Tutor, &lcTMsg)
 }
 
-func SendPersonalOrderTeacherBusyMsg(studentId int64, teacherId int64) {
-	// attr := make(map[string]string)
-	// studentTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_TEXT,
-	// 	Text:      "[系统提示]导师正在上课，可能无法及时回复。建议换个时间或者再等等",
-	// 	Attribute: attr,
-	// }
-	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+func SendSessionBreakMsg(sessionId int64) {
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
+		return
+	}
+
+	attr := make(map[string]string)
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SYSTEM,
+		Text:      "上课暂时中断，需要静静重连一下",
+		Attribute: attr,
+	}
+
+	LCSendSystemMessage(USER_SYSTEM_MESSAGE, session.Creator, session.Tutor, &lcTMsg)
 }
 
-func SendPersonalOrderTeacherOfflineMsg(studentId int64, teacherId int64) {
-	// attr := make(map[string]string)
-	// studentTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_TEXT,
-	// 	Text:      "[系统提示]导师暂时不在线，可能无法及时回复。建议换个时间或者再等等",
-	// 	Attribute: attr,
-	// }
-	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+func SendSessionResumeMsg(sessionId int64) {
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
+		return
+	}
+
+	attr := make(map[string]string)
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SYSTEM,
+		Text:      "静静说可以继续上课啦",
+		Attribute: attr,
+	}
+
+	LCSendSystemMessage(USER_SYSTEM_MESSAGE, session.Creator, session.Tutor, &lcTMsg)
 }
 
-func SendPersonalorderExpireMsg(studentId int64, teacherId int64) {
-	// attr := make(map[string]string)
-	// studentTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_TEXT,
-	// 	Text:      "[系统提示]导师未回复，约课请求超时，已自动取消",
-	// 	Attribute: attr,
-	// }
-	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+func SendOrderPersonalNotification(orderId int64, teacherId int64) {
+	order, err := models.ReadOrder(orderId)
+	if err != nil {
+		return
+	}
+
+	_, err = models.ReadUser(teacherId)
+	if err != nil {
+		return
+	}
+
+	grade, err1 := models.ReadGrade(order.GradeId)
+	subject, err2 := models.ReadSubject(order.SubjectId)
+
+	var title string
+	if err1 == nil && err2 == nil {
+		title = grade.Name + "  " + subject.Name
+	} else {
+		title = "私人答疑"
+	}
+
+	attr := make(map[string]string)
+	attr["type"] = "personal"
+	attr["title"] = title
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_ORDER,
+		Text:      "静静说可以继续上课啦",
+		Attribute: attr,
+	}
+
+	LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, teacherId, &lcTMsg)
 }
 
-func SendSessionFinishMsg(studentId int64, teacherId int64) {
-	// attr := make(map[string]string)
-	// msg := LCTypedMessage{
-	// 	Type:      LC_MSG_TEXT,
-	// 	Text:      "[系统提示]课程结束，别忘了给ta写评价噢",
-	// 	Attribute: attr,
-	// }
-	// LCSendTypedMessage(teacherId, studentId, &msg, true)
-}
+// func SendPersonalOrderNotification(orderId int64, teacherId int64) {
+// 	// order, _ := models.ReadOrder(orderId)
+// 	// teacher := models.QueryUserById(teacherId)
+// 	// if order == nil || teacher == nil {
+// 	// 	return
+// 	// }
+// 	// attr := make(map[string]string)
+// 	// teacherStr, _ := json.Marshal(teacher)
+// 	// orderStr, _ := json.Marshal(order)
 
-func SendSessionBreakMsg(studentId int64, teacherId int64) {
-	// attr := make(map[string]string)
-	// msg := LCTypedMessage{
-	// 	Type:      LC_MSG_TEXT,
-	// 	Text:      "[系统提示]课程中断，建议尝试重新发起上课请求",
-	// 	Attribute: attr,
-	// }
-	// LCSendTypedMessage(teacherId, studentId, &msg, true)
-}
+// 	// attr["oprCode"] = LC_SESSION_PERSONAL
+// 	// attr["teacherInfo"] = string(teacherStr)
+// 	// attr["orderInfo"] = string(orderStr)
 
-func SendPersonalOrderAutoIgnoreNotification(studentId int64, teacherId int64) {
-	// attr := make(map[string]string)
-	// studentTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_TEXT,
-	// 	Text:      "[系统提示]老师回复了您的约课请求，但是你有课程正在进行中，暂时不能开始此次辅导，记得联系他换个时间再约喔！",
-	// 	Attribute: attr,
-	// }
-	// teacherTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_TEXT,
-	// 	Text:      "[系统提示]学生正在忙，暂时不能开始这次辅导，记得联系他换个时间再约喔！",
-	// 	Attribute: attr,
-	// }
+// 	// lcTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_SESSION,
+// 	// 	Text:      "您有一条约课提醒",
+// 	// 	Attribute: attr,
+// 	// }
 
-	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
-	// LCSendTypedMessage(studentId, teacherId, &teacherTMsg, false)
-}
+// 	// LCSendTypedMessage(order.Creator, teacherId, &lcTMsg, false)
+// }
 
-func SendSessionCreatedNotification(sessionId int64) {
-	// session, err := models.ReadSession(sessionId)
-	// if err != nil {
-	// 	return
-	// }
+// func SendPersonalOrderRejectNotification(orderId int64, teacherId int64) {
+// 	// order, _ := models.ReadOrder(orderId)
+// 	// teacher := models.QueryUserById(teacherId)
+// 	// if order == nil || teacher == nil {
+// 	// 	return
+// 	// }
 
-	// order, err := models.ReadOrder(session.OrderId)
-	// if err != nil {
-	// 	return
-	// }
+// 	// attr := make(map[string]string)
+// 	// orderStr, _ := json.Marshal(order)
 
-	// attr := make(map[string]string)
-	// orderStr, _ := json.Marshal(order)
+// 	// attr["oprCode"] = LC_SESSION_REJECT
+// 	// attr["orderInfo"] = string(orderStr)
 
-	// attr["oprCode"] = LC_SESSION_CONFIRM
-	// attr["orderInfo"] = string(orderStr)
-	// attr["planTime"] = session.PlanTime
+// 	// lcTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_SESSION,
+// 	// 	Text:      "您有一条约课提醒",
+// 	// 	Attribute: attr,
+// 	// }
 
-	// lcTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_SESSION,
-	// 	Text:      "您有一条约课提醒",
-	// 	Attribute: attr,
-	// }
+// 	// LCSendTypedMessage(teacherId, order.Creator, &lcTMsg, false)
+// }
 
-	// LCSendTypedMessage(session.Creator, session.Tutor, &lcTMsg, true)
-}
+// func SendPersonalOrderSentMsg(studentId int64, teacherId int64) {
+// 	// attr := make(map[string]string)
+// 	// studentTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_TEXT,
+// 	// 	Text:      "[系统提示]约课通知已发送，请耐心等待导师回复",
+// 	// 	Attribute: attr,
+// 	// }
+// 	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+// }
 
-func SendSessionReminderNotification(sessionId int64, seconds int64) {
-	// session, err := models.ReadSession(sessionId)
-	// if err != nil {
-	// 	return
-	// }
+// func SendPersonalOrderTeacherBusyMsg(studentId int64, teacherId int64) {
+// 	// attr := make(map[string]string)
+// 	// studentTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_TEXT,
+// 	// 	Text:      "[系统提示]导师正在上课，可能无法及时回复。建议换个时间或者再等等",
+// 	// 	Attribute: attr,
+// 	// }
+// 	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+// }
 
-	// order, err := models.ReadOrder(session.OrderId)
-	// if err != nil {
-	// 	return
-	// }
+// func SendPersonalOrderTeacherOfflineMsg(studentId int64, teacherId int64) {
+// 	// attr := make(map[string]string)
+// 	// studentTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_TEXT,
+// 	// 	Text:      "[系统提示]导师暂时不在线，可能无法及时回复。建议换个时间或者再等等",
+// 	// 	Attribute: attr,
+// 	// }
+// 	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+// }
 
-	// attr := make(map[string]string)
-	// orderStr, _ := json.Marshal(order)
+// func SendPersonalorderExpireMsg(studentId int64, teacherId int64) {
+// 	// attr := make(map[string]string)
+// 	// studentTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_TEXT,
+// 	// 	Text:      "[系统提示]导师未回复，约课请求超时，已自动取消",
+// 	// 	Attribute: attr,
+// 	// }
+// 	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+// }
 
-	// remaining := time.Duration(seconds) * time.Second
+// func SendSessionFinishMsg(studentId int64, teacherId int64) {
+// 	// attr := make(map[string]string)
+// 	// msg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_TEXT,
+// 	// 	Text:      "[系统提示]课程结束，别忘了给ta写评价噢",
+// 	// 	Attribute: attr,
+// 	// }
+// 	// LCSendTypedMessage(teacherId, studentId, &msg, true)
+// }
 
-	// attr["oprCode"] = LC_SESSION_REMINDER
-	// attr["orderInfo"] = string(orderStr)
-	// attr["planTime"] = session.PlanTime
-	// attr["remaining"] = remaining.String()
+// func SendSessionBreakMsg(studentId int64, teacherId int64) {
+// 	// attr := make(map[string]string)
+// 	// msg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_TEXT,
+// 	// 	Text:      "[系统提示]课程中断，建议尝试重新发起上课请求",
+// 	// 	Attribute: attr,
+// 	// }
+// 	// LCSendTypedMessage(teacherId, studentId, &msg, true)
+// }
 
-	// lcTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_SESSION,
-	// 	Text:      "您有一条约课提醒",
-	// 	Attribute: attr,
-	// }
+// func SendPersonalOrderAutoIgnoreNotification(studentId int64, teacherId int64) {
+// 	// attr := make(map[string]string)
+// 	// studentTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_TEXT,
+// 	// 	Text:      "[系统提示]老师回复了您的约课请求，但是你有课程正在进行中，暂时不能开始此次辅导，记得联系他换个时间再约喔！",
+// 	// 	Attribute: attr,
+// 	// }
+// 	// teacherTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_TEXT,
+// 	// 	Text:      "[系统提示]学生正在忙，暂时不能开始这次辅导，记得联系他换个时间再约喔！",
+// 	// 	Attribute: attr,
+// 	// }
 
-	// LCSendTypedMessage(session.Creator, session.Tutor, &lcTMsg, true)
-}
+// 	// LCSendTypedMessage(teacherId, studentId, &studentTMsg, false)
+// 	// LCSendTypedMessage(studentId, teacherId, &teacherTMsg, false)
+// }
 
-func SendSessionCancelNotification(sessionId int64) {
-	// session, err := models.ReadSession(sessionId)
-	// if err != nil {
-	// 	return
-	// }
+// func SendSessionCreatedNotification(sessionId int64) {
+// 	// session, err := models.ReadSession(sessionId)
+// 	// if err != nil {
+// 	// 	return
+// 	// }
 
-	// order, err := models.ReadOrder(session.OrderId)
-	// if err != nil {
-	// 	return
-	// }
+// 	// order, err := models.ReadOrder(session.OrderId)
+// 	// if err != nil {
+// 	// 	return
+// 	// }
 
-	// attr := make(map[string]string)
-	// orderStr, _ := json.Marshal(order)
+// 	// attr := make(map[string]string)
+// 	// orderStr, _ := json.Marshal(order)
 
-	// attr["oprCode"] = LC_SESSION_CANCEL
-	// attr["orderInfo"] = string(orderStr)
-	// attr["planTime"] = session.PlanTime
+// 	// attr["oprCode"] = LC_SESSION_CONFIRM
+// 	// attr["orderInfo"] = string(orderStr)
+// 	// attr["planTime"] = session.PlanTime
 
-	// lcTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_SESSION,
-	// 	Text:      "您有一条约课提醒",
-	// 	Attribute: attr,
-	// }
+// 	// lcTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_SESSION,
+// 	// 	Text:      "您有一条约课提醒",
+// 	// 	Attribute: attr,
+// 	// }
 
-	// LCSendTypedMessage(session.Creator, session.Tutor, &lcTMsg, true)
-}
+// 	// LCSendTypedMessage(session.Creator, session.Tutor, &lcTMsg, true)
+// }
 
-func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice int64) {
-	// session, err := models.ReadSession(sessionId)
-	// if err != nil {
-	// 	return
-	// }
+// func SendSessionReminderNotification(sessionId int64, seconds int64) {
+// 	// session, err := models.ReadSession(sessionId)
+// 	// if err != nil {
+// 	// 	return
+// 	// }
 
-	// teacher := models.QueryTeacher(session.Tutor)
-	// student := models.QueryUserById(session.Creator)
-	// if teacher == nil || student == nil {
-	// 	return
-	// }
+// 	// order, err := models.ReadOrder(session.OrderId)
+// 	// if err != nil {
+// 	// 	return
+// 	// }
 
-	// attr := make(map[string]string)
-	// teacherStr, _ := json.Marshal(teacher)
-	// studentStr, _ := json.Marshal(student)
+// 	// attr := make(map[string]string)
+// 	// orderStr, _ := json.Marshal(order)
 
-	// attr["oprCode"] = LC_SESSION_REPORT
-	// attr["sessionId"] = strconv.FormatInt(sessionId, 10)
-	// attr["length"] = strconv.FormatInt(session.Length, 10)
-	// attr["price"] = strconv.FormatInt(teacherPrice, 10)
-	// attr["teacherInfo"] = string(teacherStr)
-	// attr["studentInfo"] = string(studentStr)
+// 	// remaining := time.Duration(seconds) * time.Second
 
-	// teacherTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_SESSION,
-	// 	Text:      "您有一条结算提醒",
-	// 	Attribute: attr,
-	// }
-	// LCSendTypedMessage(session.Creator, session.Tutor, &teacherTMsg, false)
+// 	// attr["oprCode"] = LC_SESSION_REMINDER
+// 	// attr["orderInfo"] = string(orderStr)
+// 	// attr["planTime"] = session.PlanTime
+// 	// attr["remaining"] = remaining.String()
 
-	// attr["price"] = strconv.FormatInt(studentPrice, 10)
-	// freeFlag := false
-	// if freeFlag {
-	// 	attr["free"] = "1"
-	// } else {
-	// 	attr["free"] = "0"
-	// }
+// 	// lcTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_SESSION,
+// 	// 	Text:      "您有一条约课提醒",
+// 	// 	Attribute: attr,
+// 	// }
 
-	// studentTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_SESSION,
-	// 	Text:      "您有一条结算提醒",
-	// 	Attribute: attr,
-	// }
-	// LCSendTypedMessage(session.Tutor, session.Creator, &studentTMsg, false)
-}
+// 	// LCSendTypedMessage(session.Creator, session.Tutor, &lcTMsg, true)
+// }
 
-func SendSessionExpireNotification(sessionId int64, teacherPrice int64) {
-	// session, err := models.ReadSession(sessionId)
-	// if err != nil {
-	// 	return
-	// }
+// func SendSessionCancelNotification(sessionId int64) {
+// 	// session, err := models.ReadSession(sessionId)
+// 	// if err != nil {
+// 	// 	return
+// 	// }
 
-	// teacher := models.QueryTeacher(session.Tutor)
-	// student := models.QueryUserById(session.Creator)
-	// if teacher == nil || student == nil {
-	// 	return
-	// }
+// 	// order, err := models.ReadOrder(session.OrderId)
+// 	// if err != nil {
+// 	// 	return
+// 	// }
 
-	// attr := make(map[string]string)
-	// teacherStr, _ := json.Marshal(teacher)
-	// studentStr, _ := json.Marshal(student)
+// 	// attr := make(map[string]string)
+// 	// orderStr, _ := json.Marshal(order)
 
-	// attr["oprCode"] = LC_SESSION_EXPIRE
-	// attr["sessionId"] = strconv.FormatInt(sessionId, 10)
-	// attr["length"] = strconv.FormatInt(session.Length, 10)
-	// attr["price"] = strconv.FormatInt(teacherPrice, 10)
-	// attr["teacherInfo"] = string(teacherStr)
-	// attr["studentInfo"] = string(studentStr)
-	// freeFlag := false
-	// if freeFlag {
-	// 	attr["free"] = "1"
-	// } else {
-	// 	attr["free"] = "0"
-	// }
+// 	// attr["oprCode"] = LC_SESSION_CANCEL
+// 	// attr["orderInfo"] = string(orderStr)
+// 	// attr["planTime"] = session.PlanTime
 
-	// teacherTMsg := LCTypedMessage{
-	// 	Type:      LC_MSG_SESSION,
-	// 	Text:      "您有一堂课已超时",
-	// 	Attribute: attr,
-	// }
-	// LCSendTypedMessage(session.Tutor, session.Creator, &teacherTMsg, false)
-}
+// 	// lcTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_SESSION,
+// 	// 	Text:      "您有一条约课提醒",
+// 	// 	Attribute: attr,
+// 	// }
+
+// 	// LCSendTypedMessage(session.Creator, session.Tutor, &lcTMsg, true)
+// }
+
+// func SendSessionReportNotification(sessionId int64, teacherPrice, studentPrice int64) {
+// 	// session, err := models.ReadSession(sessionId)
+// 	// if err != nil {
+// 	// 	return
+// 	// }
+
+// 	// teacher := models.QueryTeacher(session.Tutor)
+// 	// student := models.QueryUserById(session.Creator)
+// 	// if teacher == nil || student == nil {
+// 	// 	return
+// 	// }
+
+// 	// attr := make(map[string]string)
+// 	// teacherStr, _ := json.Marshal(teacher)
+// 	// studentStr, _ := json.Marshal(student)
+
+// 	// attr["oprCode"] = LC_SESSION_REPORT
+// 	// attr["sessionId"] = strconv.FormatInt(sessionId, 10)
+// 	// attr["length"] = strconv.FormatInt(session.Length, 10)
+// 	// attr["price"] = strconv.FormatInt(teacherPrice, 10)
+// 	// attr["teacherInfo"] = string(teacherStr)
+// 	// attr["studentInfo"] = string(studentStr)
+
+// 	// teacherTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_SESSION,
+// 	// 	Text:      "您有一条结算提醒",
+// 	// 	Attribute: attr,
+// 	// }
+// 	// LCSendTypedMessage(session.Creator, session.Tutor, &teacherTMsg, false)
+
+// 	// attr["price"] = strconv.FormatInt(studentPrice, 10)
+// 	// freeFlag := false
+// 	// if freeFlag {
+// 	// 	attr["free"] = "1"
+// 	// } else {
+// 	// 	attr["free"] = "0"
+// 	// }
+
+// 	// studentTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_SESSION,
+// 	// 	Text:      "您有一条结算提醒",
+// 	// 	Attribute: attr,
+// 	// }
+// 	// LCSendTypedMessage(session.Tutor, session.Creator, &studentTMsg, false)
+// }
+
+// func SendSessionExpireNotification(sessionId int64, teacherPrice int64) {
+// 	// session, err := models.ReadSession(sessionId)
+// 	// if err != nil {
+// 	// 	return
+// 	// }
+
+// 	// teacher := models.QueryTeacher(session.Tutor)
+// 	// student := models.QueryUserById(session.Creator)
+// 	// if teacher == nil || student == nil {
+// 	// 	return
+// 	// }
+
+// 	// attr := make(map[string]string)
+// 	// teacherStr, _ := json.Marshal(teacher)
+// 	// studentStr, _ := json.Marshal(student)
+
+// 	// attr["oprCode"] = LC_SESSION_EXPIRE
+// 	// attr["sessionId"] = strconv.FormatInt(sessionId, 10)
+// 	// attr["length"] = strconv.FormatInt(session.Length, 10)
+// 	// attr["price"] = strconv.FormatInt(teacherPrice, 10)
+// 	// attr["teacherInfo"] = string(teacherStr)
+// 	// attr["studentInfo"] = string(studentStr)
+// 	// freeFlag := false
+// 	// if freeFlag {
+// 	// 	attr["free"] = "1"
+// 	// } else {
+// 	// 	attr["free"] = "0"
+// 	// }
+
+// 	// teacherTMsg := LCTypedMessage{
+// 	// 	Type:      LC_MSG_SESSION,
+// 	// 	Text:      "您有一堂课已超时",
+// 	// 	Attribute: attr,
+// 	// }
+// 	// LCSendTypedMessage(session.Tutor, session.Creator, &teacherTMsg, false)
+// }
 
 func GetConversation(userId1, userId2 int64) string {
 	var convId string

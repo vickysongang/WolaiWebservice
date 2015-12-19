@@ -125,7 +125,7 @@ func HandleSessionTrade(session *models.Session, result string, expireFlag bool)
 	teacherTradeToSession := models.POITradeToSession{SessionId: session.Id, TradeRecordId: teacherTradeRecordId}
 	models.InsertTradeToSession(&teacherTradeToSession)
 
-	go leancloud.SendSessionReportNotification(session.Id, teacherAmount, studentAmount)
+	//go leancloud.SendSessionReportNotification(session.Id, teacherAmount, studentAmount)
 	//课程超时时，如果老师不在线，则给老师补发课程超时消息
 	//	if expireFlag && !managers.WsManager.HasUserChan(session.Teacher.Id) {
 	//		go leancloud.SendSessionExpireNotification(session.Id, teacherAmount)
