@@ -9,6 +9,7 @@ import (
 
 	"github.com/astaxie/beego/orm"
 	"github.com/cihub/seelog"
+	_ "github.com/go-sql-driver/mysql"
 
 	"WolaiWebservice/config"
 	"WolaiWebservice/routers"
