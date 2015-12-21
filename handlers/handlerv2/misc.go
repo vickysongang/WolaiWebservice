@@ -14,8 +14,8 @@ import (
 	miscController "WolaiWebservice/controllers/misc"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
-	pingxx "WolaiWebservice/pingpp"
-	"WolaiWebservice/sendcloud"
+	"WolaiWebservice/utils/pingxx"
+	"WolaiWebservice/utils/sendcloud"
 )
 
 // 10.1.1

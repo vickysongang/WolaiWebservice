@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"WolaiWebservice/leancloud"
 	"WolaiWebservice/models"
+	"WolaiWebservice/utils/leancloud"
 )
 
 /*
@@ -100,8 +100,8 @@ func HandleSessionTrade(session *models.Session, result string, expireFlag bool)
 	courseId := order.CourseId
 	var studentAmount int64
 	if courseId == 0 {
-		studentAmount = (int64(math.Floor(float64(order.PricePerHour*session.Length/3600))) + 50) / 100 * 100
-		if studentAmount < 100 && order.RealPricePerHour != 0 && session.Length != 0 {
+		studentAmount = (int64(math.Floor(float64(order.PriceHourly*session.Length/3600))) + 50) / 100 * 100
+		if studentAmount < 100 && order.SalaryHourly != 0 && session.Length != 0 {
 			studentAmount = 100
 		}
 		models.MinusUserBalance(student.Id, studentAmount)
@@ -114,8 +114,8 @@ func HandleSessionTrade(session *models.Session, result string, expireFlag bool)
 
 	//老师收款
 	var teacherAmount int64
-	teacherAmount = (int64(math.Floor(float64(order.RealPricePerHour*session.Length/3600))) + 50) / 100 * 100
-	if teacherAmount < 100 && order.RealPricePerHour != 0 && session.Length != 0 {
+	teacherAmount = (int64(math.Floor(float64(order.PriceHourly*session.Length/3600))) + 50) / 100 * 100
+	if teacherAmount < 100 && order.SalaryHourly != 0 && session.Length != 0 {
 		teacherAmount = 100
 	}
 	models.AddUserBalance(teacher.Id, teacherAmount)
@@ -125,7 +125,7 @@ func HandleSessionTrade(session *models.Session, result string, expireFlag bool)
 	teacherTradeToSession := models.POITradeToSession{SessionId: session.Id, TradeRecordId: teacherTradeRecordId}
 	models.InsertTradeToSession(&teacherTradeToSession)
 
-	go leancloud.SendSessionReportNotification(session.Id, teacherAmount, studentAmount)
+	//go leancloud.SendSessionReportNotification(session.Id, teacherAmount, studentAmount)
 	//课程超时时，如果老师不在线，则给老师补发课程超时消息
 	//	if expireFlag && !managers.WsManager.HasUserChan(session.Teacher.Id) {
 	//		go leancloud.SendSessionExpireNotification(session.Id, teacherAmount)

@@ -1,16 +1,15 @@
-package controllers
+package feed
 
 import (
 	"encoding/json"
 	"errors"
-
 	"strconv"
 
-	"WolaiWebservice/leancloud"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
+	"WolaiWebservice/utils/leancloud"
 
-	seelog "github.com/cihub/seelog"
+	"github.com/cihub/seelog"
 	"github.com/satori/go.uuid"
 )
 

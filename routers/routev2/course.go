@@ -49,7 +49,7 @@ var courseRoutes = route.Routes{
 		"CourseListStudent",
 		"POST",
 		"/user/list/student",
-		handlerv2.Dummy,
+		handlerv2.CourseListStudent,
 	},
 
 	// 9.2.2
@@ -57,7 +57,7 @@ var courseRoutes = route.Routes{
 		"CourseListTeacher",
 		"POST",
 		"/user/list/teacher",
-		handlerv2.Dummy,
+		handlerv2.CourseListTeacher,
 	},
 
 	// 9.3.1
@@ -65,7 +65,7 @@ var courseRoutes = route.Routes{
 		"CourseDetailStudent",
 		"POST",
 		"/detail/student",
-		handlerv2.Dummy,
+		handlerv2.CourseDetailStudent,
 	},
 
 	// 9.3.2
@@ -73,7 +73,39 @@ var courseRoutes = route.Routes{
 		"CourseDetailTeacher",
 		"POST",
 		"/detail/teacher",
-		handlerv2.Dummy,
+		handlerv2.CourseDetailTeacher,
+	},
+
+	// 9.4.1
+	route.Route{
+		"CourseActionProceed",
+		"POST",
+		"/action/proceed",
+		handlerv2.CourseActionProceed,
+	},
+
+	// 9.4.2
+	route.Route{
+		"CourseActionQuickbuy",
+		"POST",
+		"/action/quickbuy",
+		handlerv2.CourseActionQuickbuy,
+	},
+
+	// 9.4.3
+	route.Route{
+		"CourseActionPay",
+		"POST",
+		"/action/pay",
+		handlerv2.CourseActionPay,
+	},
+
+	// 9.4.4
+	route.Route{
+		"CourseActionNextChapter",
+		"POST",
+		"/action/nextchapter",
+		handlerv2.CourseActionNextChapter,
 	},
 
 	// 9.5.1

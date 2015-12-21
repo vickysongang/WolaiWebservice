@@ -23,3 +23,14 @@ func init() {
 func (c *CourseChapterToUser) TableName() string {
 	return "course_chapter_to_user"
 }
+
+func CreateCourseChapterToUser(record *CourseChapterToUser) (*CourseChapterToUser, error) {
+	o := orm.NewOrm()
+
+	id, err := o.Insert(record)
+	if err != nil {
+		return nil, err
+	}
+	record.Id = id
+	return record, nil
+}

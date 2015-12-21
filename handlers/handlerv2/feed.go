@@ -8,7 +8,7 @@ import (
 
 	"github.com/cihub/seelog"
 
-	"WolaiWebservice/controllers"
+	feedController "WolaiWebservice/controllers/feed"
 	"WolaiWebservice/handlers/response"
 )
 
@@ -45,7 +45,7 @@ func FeedAtrium(w http.ResponseWriter, r *http.Request) {
 		plateType = vars["plateType"][0]
 	}
 
-	content, err := controllers.GetAtrium(userId, page, count, plateType)
+	content, err := feedController.GetAtrium(userId, page, count, plateType)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
@@ -74,7 +74,7 @@ func FeedAtriumStick(w http.ResponseWriter, r *http.Request) {
 		plateType = vars["plateType"][0]
 	}
 
-	content, err := controllers.GetTopFeed(userId, plateType)
+	content, err := feedController.GetTopFeed(userId, plateType)
 
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
@@ -121,7 +121,7 @@ func FeedPost(w http.ResponseWriter, r *http.Request) {
 		attributeStr = vars["attribute"][0]
 	}
 
-	content, err := controllers.PostPOIFeed(
+	content, err := feedController.PostPOIFeed(
 		userId,
 		timestamp,
 		feedType,
@@ -154,7 +154,7 @@ func FeedDetail(w http.ResponseWriter, r *http.Request) {
 
 	feedId := vars["feedId"][0]
 
-	content, err := controllers.GetFeedDetail(feedId, userId)
+	content, err := feedController.GetFeedDetail(feedId, userId)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
@@ -183,9 +183,9 @@ func FeedLike(w http.ResponseWriter, r *http.Request) {
 
 	feedId := vars["feedId"][0]
 
-	_, _ = controllers.LikePOIFeed(userId, feedId, timestamp)
+	_, _ = feedController.LikePOIFeed(userId, feedId, timestamp)
 
-	content, err := controllers.GetFeedDetail(feedId, userId)
+	content, err := feedController.GetFeedDetail(feedId, userId)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
@@ -226,9 +226,9 @@ func FeedComment(w http.ResponseWriter, r *http.Request) {
 		replyToId, _ = strconv.ParseInt(replyToStr, 10, 64)
 	}
 
-	_, _ = controllers.PostPOIFeedComment(userId, feedId, timestamp, text, imageStr, replyToId)
+	_, _ = feedController.PostPOIFeedComment(userId, feedId, timestamp, text, imageStr, replyToId)
 
-	content, err := controllers.GetFeedDetail(feedId, userId)
+	content, err := feedController.GetFeedDetail(feedId, userId)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
@@ -271,7 +271,7 @@ func FeedUserHistory(w http.ResponseWriter, r *http.Request) {
 		count = 10
 	}
 
-	content, err := controllers.GetUserFeed(targetId, page, count)
+	content, err := feedController.GetUserFeed(targetId, page, count)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
@@ -314,7 +314,7 @@ func FeedUserLike(w http.ResponseWriter, r *http.Request) {
 		count = 10
 	}
 
-	content, err := controllers.GetUserLike(targetId, page, count)
+	content, err := feedController.GetUserLike(targetId, page, count)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {

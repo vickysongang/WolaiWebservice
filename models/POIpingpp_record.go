@@ -4,10 +4,10 @@ package models
 import (
 	"time"
 
-	"WolaiWebservice/utils"
-
 	"github.com/astaxie/beego/orm"
 	"github.com/cihub/seelog"
+
+	"WolaiWebservice/config"
 )
 
 type POIPingppRecord struct {
@@ -56,7 +56,7 @@ func UpdatePingppRecord(chargeId string, recordInfo map[string]interface{}) {
 
 func QueryPingppRecordByChargeId(chargeId string) (*POIPingppRecord, error) {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	record := POIPingppRecord{}
 	qb.Select("id,phone,charge_id,order_no,amount,channel,currency,subject,body,result,comment,refund_id").From("pingpp_record").Where("charge_id = ?")
 	sql := qb.String()

@@ -8,9 +8,9 @@ import (
 
 	seelog "github.com/cihub/seelog"
 
-	"WolaiWebservice/leancloud"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
+	"WolaiWebservice/utils/leancloud"
 )
 
 func personalOrderHandler(orderId int64, teacherId int64) {
@@ -24,7 +24,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
 	orderInfo := GetOrderInfo(orderId)
-	studentId := order.Creator
+	//studentId := order.Creator
 
 	var orderLifespan int64
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
@@ -49,7 +49,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 		case <-orderTimer.C:
 			OrderManager.SetOrderCancelled(orderId)
 			OrderManager.SetOffline(orderId)
-			go leancloud.SendPersonalorderExpireMsg(studentId, teacherId)
+			//go leancloud.SendPersonalorderExpireMsg(studentId, teacherId)
 
 			return
 
@@ -71,7 +71,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						OrderManager.SetOrderCancelled(orderId)
 						OrderManager.SetOffline(orderId)
 
-						go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator, msg.UserId)
+						//go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator, msg.UserId)
 						return
 					}
 					if WsManager.IsUserSessionLocked(msg.UserId) &&
@@ -147,18 +147,24 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 	order, _ := models.ReadOrder(orderId)
 	orderInfo := GetOrderInfo(orderId)
 	orderByte, _ := json.Marshal(orderInfo)
-	studentId := order.Creator
+	//studentId := order.Creator
 
 	OrderManager.SetOnline(orderId)
 
-	go leancloud.SendPersonalOrderNotification(orderId, teacherId)
+	//go leancloud.SendPersonalOrderNotification(orderId, teacherId)
 
-	if !WsManager.HasUserChan(teacherId) {
-		go leancloud.SendPersonalOrderTeacherOfflineMsg(studentId, teacherId)
-	} else if WsManager.HasSessionWithOther(teacherId) {
-		go leancloud.SendPersonalOrderTeacherBusyMsg(studentId, teacherId)
-	} else {
-		go leancloud.SendPersonalOrderSentMsg(studentId, teacherId)
+	// if !WsManager.HasUserChan(teacherId) {
+	// 	go leancloud.SendPersonalOrderTeacherOfflineMsg(studentId, teacherId)
+	// } else if WsManager.HasSessionWithOther(teacherId) {
+	// 	go leancloud.SendPersonalOrderTeacherBusyMsg(studentId, teacherId)
+	// } else {
+	// 	go leancloud.SendPersonalOrderSentMsg(studentId, teacherId)
+	// }
+
+	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+		go leancloud.SendOrderPersonalNotification(orderId, teacherId)
+	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		go leancloud.SendOrderCourseNotification(orderId, teacherId)
 	}
 
 	if WsManager.HasUserChan(teacherId) &&

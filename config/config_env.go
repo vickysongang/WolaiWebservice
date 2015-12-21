@@ -1,37 +1,34 @@
-package utils
+package config
 
 import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	seelog "github.com/cihub/seelog"
+	"github.com/cihub/seelog"
 )
 
 const (
-	DB_TYPE              = "mysql"
-	TIME_FORMAT          = "2006-01-02 15:04:05"
-	EARLIEST_TIME_FORMAT = "0001-01-01 00:00:00"
+	CONFIG_FILE_LOC = "/var/lib/poi/WolaiWebservice.toml"
 )
 
-type POIConfig struct {
+//加载系统使用到的配置信息
+func init() {
+	if _, err := toml.DecodeFile(CONFIG_FILE_LOC, &Env); err != nil {
+		seelog.Critical(err.Error())
+	}
+}
+
+type EnvironmentConf struct {
 	Title     string
 	Server    serverConf
 	Database  databaseConf
 	Redis     redisConf
 	LeanCloud leancloudConf
-	Reminder  reminderConf
 	Pingpp    pingppConf
 	SendCloud sendcloudConf
 }
 
-var Config POIConfig
-
-func init() {
-	//加载系统使用到的配置信息
-	if _, err := toml.DecodeFile("/var/lib/poi/WolaiWebservice.toml", &Config); err != nil {
-		seelog.Critical(err.Error())
-	}
-}
+var Env EnvironmentConf
 
 type serverConf struct {
 	Port    string
@@ -39,6 +36,7 @@ type serverConf struct {
 }
 
 type databaseConf struct {
+	Type     string
 	Username string
 	Password string
 	Method   string
@@ -58,10 +56,6 @@ type leancloudConf struct {
 	AppId     string
 	AppKey    string
 	MasterKey string
-}
-
-type reminderConf struct {
-	Durations []duration
 }
 
 type pingppConf struct {

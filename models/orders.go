@@ -7,21 +7,23 @@ import (
 )
 
 type Order struct {
-	Id               int64     `json:"id" orm:"column(id);pk"`
-	Creator          int64     `json:"creator" orm:"column(creator)"`
-	CreateTime       time.Time `json:"createTime" orm:"column(create_time);type(datetime);auto_now_add"`
-	LastUpdateTime   time.Time `json:"-" orm:"column(last_update_time);type(datetime);auto_now"`
-	GradeId          int64     `json:"gradeId" orm:"column(grade_id)"`
-	SubjectId        int64     `json:"subjectId" orm:"column(subject_id)"`
-	Date             string    `json:"date" orm:"column(date)"`
-	PeriodId         int64     `json:"-" orm:"column(period_id)"`
-	Length           int64     `json:"-" orm:"column(length)"`
-	Type             string    `json:"-" orm:"column(type)"`
-	Status           string    `json:"-" orm:"column(status)"`
-	TeacherId        int64     `json:"teacherId" orm:"column(teacher_id)"`
-	PricePerHour     int64     `json:"-" orm:"column(price_per_hour)"`
-	RealPricePerHour int64     `json:"-" orm:"column(real_price_per_hour)"`
-	CourseId         int64     `json:"courseId" orm:"column(course_id)"`
+	Id             int64     `json:"id" orm:"column(id);pk"`
+	Creator        int64     `json:"creator" orm:"column(creator)"`
+	CreateTime     time.Time `json:"createTime" orm:"column(create_time);type(datetime);auto_now_add"`
+	LastUpdateTime time.Time `json:"-" orm:"column(last_update_time);type(datetime);auto_now"`
+	GradeId        int64     `json:"gradeId" orm:"column(grade_id)"`
+	SubjectId      int64     `json:"subjectId" orm:"column(subject_id)"`
+	Date           string    `json:"date" orm:"column(date)"`
+	PeriodId       int64     `json:"-" orm:"column(period_id)"`
+	Length         int64     `json:"-" orm:"column(length)"`
+	Type           string    `json:"-" orm:"column(type)"`
+	Status         string    `json:"-" orm:"column(status)"`
+	TeacherId      int64     `json:"teacherId" orm:"column(teacher_id)"`
+	TierId         int64     `json:"tier" orm:"column(tier_id)"`
+	PriceHourly    int64     `json:"-" orm:"column(price_hourly)"`
+	SalaryHourly   int64     `json:"-" orm:"column(salary_hourly)"`
+	CourseId       int64     `json:"courseId" orm:"column(course_id)"`
+	ChapterId      int64     `json:"chapterId" orm:"column(chapter_id"`
 }
 
 func init() {
@@ -43,6 +45,8 @@ const (
 	ORDER_TYPE_PERSONAL_INSTANT      = "personal_instant"
 	ORDER_TYPE_PERSONAL_APPOINTEMENT = "personal_appointment"
 	ORDER_TYPE_REALTIME_SESSION      = "realtime_session"
+	ORDER_TYPE_COURSE_INSTANT        = "course_instant"
+	ORDER_TYPE_COURSE_APPOINTMENT    = "course_appointment"
 )
 
 func CreateOrder(order *Order) (*Order, error) {

@@ -1,14 +1,13 @@
-// POIFeedCommentController
-package controllers
+package feed
 
 import (
 	"encoding/json"
 	"errors"
 	"strconv"
 
-	"WolaiWebservice/leancloud"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
+	"WolaiWebservice/utils/leancloud"
 
 	"github.com/cihub/seelog"
 	"github.com/satori/go.uuid"

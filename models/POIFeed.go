@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"time"
 
-	"WolaiWebservice/utils"
-
 	"github.com/astaxie/beego/orm"
-	seelog "github.com/cihub/seelog"
+	"github.com/cihub/seelog"
+
+	"WolaiWebservice/config"
 )
 
 const (
@@ -120,7 +120,7 @@ func UpdateFeedTopSeq() {
 
 func GetFeed(feedId string) (*POIFeed, error) {
 	feed := POIFeed{}
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("feed_id,creator,create_time,feed_type,text,image_info,attribute_info,origin_feed_id").
 		From("feed").Where("feed_id = ?")
 	sql := qb.String()
@@ -213,7 +213,7 @@ func GETPOIFeedCommentCount(feedId string) int64 {
 
 func GetFeedLikeList(feedId string) []User {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("user_id").From("feed_like").Where("feed_id=?")
 	sql := qb.String()
 	var userIds []int64
@@ -245,7 +245,7 @@ func HasLikedFeed(feed *POIFeed, user *User) bool {
 func GetFeedComment(feedCommentId string) (*POIFeedComment, error) {
 	feedComment := POIFeedComment{}
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("comment_id,feed_id,creator,create_time,text,image_info,reply_to").From("feed_comment").
 		Where("comment_id = ?").OrderBy("create_time").Asc()
 	sql := qb.String()
@@ -276,7 +276,7 @@ func GetFeedComment(feedCommentId string) (*POIFeedComment, error) {
 
 func GetFeedComments(feedId string) POIFeedComments {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("comment_id").From("feed_comment").Where("feed_id=?")
 	sql := qb.String()
 	var commentIds []string
@@ -297,7 +297,7 @@ func GetFeedComments(feedId string) POIFeedComments {
 func GetFeedFlowAtrium(start, pageCount int) (POIFeeds, error) {
 	o := orm.NewOrm()
 	var feedIds []string
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").
 		OrderBy("feed.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
@@ -320,7 +320,7 @@ func GetFeedFlowAtrium(start, pageCount int) (POIFeeds, error) {
 func GetTopFeedFlowAtrium(plateType string) (POIFeeds, error) {
 	o := orm.NewOrm()
 	var feedIds []string
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").
 		Where("feed.plate_type like ? and feed.top_seq is not null and feed.top_seq <> ''").OrderBy("feed.top_seq").Desc()
 	sql := qb.String()
@@ -344,7 +344,7 @@ func GetTopFeedFlowAtrium(plateType string) (POIFeeds, error) {
 func GetFeedFlowAtriumByPlateType(start, pageCount int, plateType string) (POIFeeds, error) {
 	o := orm.NewOrm()
 	var feedIds []string
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("feed.feed_id").From("feed").InnerJoin("users").On("feed.creator = users.id").Where("feed.plate_type like ? and (feed.top_seq is null or feed.top_seq='')").
 		OrderBy("feed.create_time").Desc().Limit(pageCount).Offset(start)
 	sql := qb.String()
@@ -367,7 +367,7 @@ func GetFeedFlowAtriumByPlateType(start, pageCount int, plateType string) (POIFe
 func GetFeedFlowUserFeed(userId int64, start, pageCount int) POIFeeds {
 	o := orm.NewOrm()
 	var feedIds []string
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("feed_id").From("feed").Where("creator = ?").OrderBy("create_time").Asc().Limit(pageCount).Offset(start)
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&feedIds)
@@ -388,7 +388,7 @@ func GetFeedFlowUserFeed(userId int64, start, pageCount int) POIFeeds {
 func GetFeedFlowUserFeedLike(userId int64, start, pageCount int) POIFeeds {
 	var feedIds []string
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("feed_id").From("feed_like").Where("user_id = ?").OrderBy("create_time").Asc().Limit(pageCount).Offset(start)
 	sql := qb.String()
 	_, err := o.Raw(sql, userId).QueryRows(&feedIds)

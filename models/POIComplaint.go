@@ -2,11 +2,12 @@
 package models
 
 import (
-	"WolaiWebservice/utils"
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	seelog "github.com/cihub/seelog"
+	"github.com/cihub/seelog"
+
+	"WolaiWebservice/config"
 )
 
 type POIComplaint struct {
@@ -55,7 +56,7 @@ func UpdateComplaintInfo(complaintId int64, complaintInfo map[string]interface{}
 
 func GetComplaintStatus(userId, sessionId int64) string {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	status := ""
 	qb.Select("status").From("complaint").Where("user_id = ? and session_id = ?")
 	sql := qb.String()

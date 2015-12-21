@@ -1,20 +1,20 @@
 // POIPingppController
-package pingpp
+package pingxx
 
 import (
-	"WolaiWebservice/models"
-	"WolaiWebservice/utils"
 	"strconv"
-
-	"WolaiWebservice/controllers/trade"
 
 	"github.com/pingplusplus/pingpp-go/pingpp"
 	"github.com/pingplusplus/pingpp-go/pingpp/charge"
 	"github.com/pingplusplus/pingpp-go/pingpp/refund"
+
+	"WolaiWebservice/config"
+	"WolaiWebservice/controllers/trade"
+	"WolaiWebservice/models"
 )
 
 func init() {
-	pingpp.Key = utils.Config.Pingpp.Key
+	pingpp.Key = config.Env.Pingpp.Key
 }
 
 /*
@@ -30,7 +30,7 @@ func init() {
 func PayByPingpp(orderNo string, userId int64, amount uint64, channel, currency, clientIp, subject, body, phone string, extra map[string]interface{}) (*pingpp.Charge, error) {
 	params := &pingpp.ChargeParams{
 		Order_no:  orderNo,
-		App:       pingpp.App{Id: utils.Config.Pingpp.AppId},
+		App:       pingpp.App{Id: config.Env.Pingpp.AppId},
 		Amount:    amount,
 		Channel:   channel,
 		Currency:  currency,

@@ -25,7 +25,7 @@ var oauthRoutes = route.Routes{
 		"QQLogin",
 		"POST",
 		"/qq/login",
-		handlerv2.Dummy,
+		handlerv2.OauthQQLogin,
 	},
 
 	// 1.3.2
@@ -33,7 +33,7 @@ var oauthRoutes = route.Routes{
 		"QQRegister",
 		"POST",
 		"/qq/register",
-		handlerv2.Dummy,
+		handlerv2.OauthQQRegister,
 	},
 
 	// 1.3.3

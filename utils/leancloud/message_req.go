@@ -7,22 +7,23 @@ import (
 	"net/http"
 	"strconv"
 
+	"WolaiWebservice/config"
 	"WolaiWebservice/models"
-	"WolaiWebservice/utils"
 
 	"github.com/cihub/seelog"
 )
 
 const (
-	LC_MSG_TEXT        = -1
-	LC_MSG_IMAGE       = 2
-	LC_MSG_VOICE       = 3
-	LC_MSG_DISCOVER    = 4
-	LC_MSG_SESSION     = 5
-	LC_MSG_SESSION_SYS = 6
-	LC_MSG_WHITEBOARD  = 7
-	LC_MSG_TRADE       = 8
-	LC_MSG_AD          = 9
+	LC_MSG_TEXT       = -1
+	LC_MSG_SYSTEM     = 1
+	LC_MSG_IMAGE      = 2
+	LC_MSG_VOICE      = 3
+	LC_MSG_DISCOVER   = 4
+	LC_MSG_ORDER      = 5
+	LC_MSG_SESSION    = 6
+	LC_MSG_WHITEBOARD = 7
+	LC_MSG_TRADE      = 8
+	LC_MSG_AD         = 9
 
 	LC_DISCOVER_TYPE_COMMENT = "0"
 	LC_DISCOVER_TYPE_LIKE    = "1"
@@ -81,6 +82,34 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage, twoway b
 	}
 }
 
+func LCSendSystemMessage(senderId, userId1, userId2 int64, lcTMsg *LCTypedMessage) {
+	_, err := models.ReadUser(userId1)
+	if err != nil {
+		return
+	}
+
+	_, err = models.ReadUser(userId2)
+	if err != nil {
+		return
+	}
+
+	convId := GetConversation(userId1, userId2)
+	senderIdStr := strconv.FormatInt(senderId, 10)
+	lcTMsgByte, err := json.Marshal(&lcTMsg)
+	if err != nil {
+		return
+	}
+
+	lcMsg := LCMessage{
+		SendId:         senderIdStr,
+		ConversationId: convId,
+		Message:        string(lcTMsgByte),
+		Transient:      false,
+	}
+
+	LCSendMessage(&lcMsg)
+}
+
 func LCSendMessage(lcMsg *LCMessage) {
 	url := LC_SEND_MSG
 
@@ -91,8 +120,8 @@ func LCSendMessage(lcMsg *LCMessage) {
 	if err != nil {
 		seelog.Error(err.Error())
 	}
-	req.Header.Set("X-AVOSCloud-Application-Id", utils.Config.LeanCloud.AppId)
-	req.Header.Set("X-AVOSCloud-Master-Key", utils.Config.LeanCloud.MasterKey)
+	req.Header.Set("X-AVOSCloud-Application-Id", config.Env.LeanCloud.AppId)
+	req.Header.Set("X-AVOSCloud-Master-Key", config.Env.LeanCloud.MasterKey)
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 	resp, err := client.Do(req)

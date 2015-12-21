@@ -3,15 +3,17 @@ package main
 import (
 	"net"
 	"net/http"
+	_ "net/http/pprof"
 	"net/rpc"
 	"net/rpc/jsonrpc"
 
 	"github.com/astaxie/beego/orm"
 	"github.com/cihub/seelog"
+	_ "github.com/go-sql-driver/mysql"
 
+	"WolaiWebservice/config"
 	"WolaiWebservice/routers"
 	myrpc "WolaiWebservice/rpc"
-	"WolaiWebservice/utils"
 )
 
 func init() {
@@ -23,19 +25,20 @@ func init() {
 	seelog.ReplaceLogger(logger)
 
 	//注册数据库
-	err = orm.RegisterDataBase("default", utils.DB_TYPE, utils.Config.Database.Username+":"+
-		utils.Config.Database.Password+"@"+
-		utils.Config.Database.Method+"("+
-		utils.Config.Database.Address+":"+
-		utils.Config.Database.Port+")/"+
-		utils.Config.Database.Database+"?charset=utf8&loc=Asia%2FShanghai", 30)
+	err = orm.RegisterDataBase("default", config.Env.Database.Type,
+		config.Env.Database.Username+":"+
+			config.Env.Database.Password+"@"+
+			config.Env.Database.Method+"("+
+			config.Env.Database.Address+":"+
+			config.Env.Database.Port+")/"+
+			config.Env.Database.Database+"?charset=utf8&loc=Asia%2FShanghai", 30)
 	if err != nil {
 		seelog.Critical(err.Error())
 	}
 }
 
 func startRpcServer() {
-	lis, err := net.Listen("tcp", utils.Config.Server.RpcPort)
+	lis, err := net.Listen("tcp", config.Env.Server.RpcPort)
 	if err != nil {
 		seelog.Critical("RPC端口被占用")
 	}
@@ -54,6 +57,12 @@ func main() {
 
 	go startRpcServer()
 
+	//pprof server
+	go func() {
+		seelog.Critical(http.ListenAndServe(":6060", nil))
+	}()
+
 	router := routers.NewRouter()
-	seelog.Critical(http.ListenAndServe(utils.Config.Server.Port, router))
+	seelog.Critical(http.ListenAndServe(config.Env.Server.Port, router))
+
 }

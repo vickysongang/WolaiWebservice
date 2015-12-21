@@ -2,8 +2,6 @@
 package sendcloud
 
 import (
-	"WolaiWebservice/redis"
-	"WolaiWebservice/utils"
 	"bytes"
 	"crypto/md5"
 	"crypto/sha256"
@@ -19,6 +17,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"WolaiWebservice/config"
+	"WolaiWebservice/redis"
 )
 
 const (
@@ -97,12 +98,12 @@ func Signature(smsKey string, params url.Values) (result string) {
 
 func SCSendMessage(phone string, randCode string) error {
 	params := url.Values{
-		"smsUser":    {utils.Config.SendCloud.SmsUser},
-		"templateId": {utils.Config.SendCloud.TemplateId},
+		"smsUser":    {config.Env.SendCloud.SmsUser},
+		"templateId": {config.Env.SendCloud.TemplateId},
 		"phone":      {phone},
 		"vars":       {"{'%Code%':'" + randCode + "'}"},
 	}
-	encodeParams := Signature(utils.Config.SendCloud.SmsKey, params)
+	encodeParams := Signature(config.Env.SendCloud.SmsKey, params)
 	params.Add("signature", encodeParams)
 	postBoby := bytes.NewBufferString(params.Encode())
 	resp, err := http.Post(SC_SMS_URL, "application/x-www-form-urlencoded", postBoby)
@@ -140,7 +141,7 @@ func verify(appKey, token, timestamp, signature string) bool {
 }
 
 func SMSHook(token, timestamp, signature, event string, phones string) {
-	verify(utils.Config.SendCloud.AppKey, token, timestamp, signature)
+	verify(config.Env.SendCloud.AppKey, token, timestamp, signature)
 	fmt.Println("event:", event)
 	fmt.Println("phones:", phones)
 	phones = phones[1 : len(phones)-1]

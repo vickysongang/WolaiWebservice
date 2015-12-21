@@ -1,14 +1,13 @@
-// POITradeRecord.go
 package models
 
 import (
 	"strings"
 	"time"
 
-	"WolaiWebservice/utils"
-
 	"github.com/astaxie/beego/orm"
-	seelog "github.com/cihub/seelog"
+	"github.com/cihub/seelog"
+
+	"WolaiWebservice/config"
 )
 
 type POITradeRecord struct {
@@ -124,7 +123,7 @@ func InsertTradeToSession(tradeToSession *POITradeToSession) int64 {
 
 func QuerySessionIdByTradeRecord(tradeRecordId int64) int64 {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("session_id").From("trade_to_session").Where("trade_record_id = ?")
 	sql := qb.String()
 	var sessionId int64
@@ -139,7 +138,7 @@ func QuerySessionTradeRecords(userId int64, pageNum, pageCount int) (*POISession
 	start := pageNum * pageCount
 	records := make(POISessionTradeRecords, 0)
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("id,user_id,trade_type,trade_amount,order_type,create_time,result,balance,comment").
 		From("trade_record").Where("user_id = ?").OrderBy("create_time").Desc().Limit(int(pageCount)).Offset(int(start))
 	sql := qb.String()
@@ -175,7 +174,7 @@ func QuerySessionTradeRecords(userId int64, pageNum, pageCount int) (*POISession
 
 func QueryTradeAmount(sessionId, userId int64) int64 {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("trade_record.trade_amount").From("trade_record").
 		InnerJoin("trade_to_session").On("trade_record.id = trade_to_session.trade_record_id").
 		Where("trade_record.user_id = ? and trade_to_session.session_id = ?")

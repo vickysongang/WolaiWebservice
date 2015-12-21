@@ -86,6 +86,14 @@ var userRoutes = route.Routes{
 
 	// 2.2.3
 	route.Route{
+		"TeacherProfile",
+		"POST",
+		"/teacher/profile/course",
+		handlerv2.UserTeacherProfileCourse,
+	},
+
+	// 2.2.4
+	route.Route{
 		"StudentProfile",
 		"POST",
 		"/student/profile",

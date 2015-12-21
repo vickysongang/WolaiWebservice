@@ -82,7 +82,7 @@ func GetTeacherRecommendation(userId int64, page int64, count int64) (int64, []t
 		subjects := GetTeacherSubject(teacher.UserId)
 		var subjectNames []string
 		if subjects != nil {
-			subjectNames = parseSubjectNameSlice(subjects)
+			subjectNames = ParseSubjectNameSlice(subjects)
 		} else {
 			subjectNames = make([]string, 0)
 		}
@@ -108,39 +108,41 @@ func GetContactRecommendation(userId int64, page int64, count int64) (int64, []t
 
 	result := make([]teacherItem, 0)
 
-	wolaiTeam, err := models.ReadUser(models.USER_WOLAI_TEAM)
-	wolaiItem := teacherItem{
-		Id:           wolaiTeam.Id,
-		Nickname:     wolaiTeam.Nickname,
-		Avatar:       wolaiTeam.Avatar,
-		Gender:       wolaiTeam.Gender,
-		AccessRight:  wolaiTeam.AccessRight,
-		School:       "",
-		SubjectList:  nil,
-		OnlineStatus: "",
-	}
-	result = append(result, wolaiItem)
+	if page == 0 {
+		wolaiTeam, err := models.ReadUser(models.USER_WOLAI_TEAM)
+		wolaiItem := teacherItem{
+			Id:           wolaiTeam.Id,
+			Nickname:     wolaiTeam.Nickname,
+			Avatar:       wolaiTeam.Avatar,
+			Gender:       wolaiTeam.Gender,
+			AccessRight:  wolaiTeam.AccessRight,
+			School:       "",
+			SubjectList:  nil,
+			OnlineStatus: "",
+		}
+		result = append(result, wolaiItem)
 
-	var users []*models.User
-	_, err = o.QueryTable("users").Filter("access_right", 1).All(&users)
-	if err == nil {
-		for _, user := range users {
-			item := teacherItem{
-				Id:           user.Id,
-				Nickname:     user.Nickname,
-				Avatar:       user.Avatar,
-				Gender:       user.Gender,
-				AccessRight:  user.AccessRight,
-				School:       "",
-				SubjectList:  nil,
-				OnlineStatus: "",
+		var users []*models.User
+		_, err = o.QueryTable("users").Filter("access_right", 1).All(&users)
+		if err == nil {
+			for _, user := range users {
+				item := teacherItem{
+					Id:           user.Id,
+					Nickname:     user.Nickname,
+					Avatar:       user.Avatar,
+					Gender:       user.Gender,
+					AccessRight:  user.AccessRight,
+					School:       "",
+					SubjectList:  nil,
+					OnlineStatus: "",
+				}
+				result = append(result, item)
 			}
-			result = append(result, item)
 		}
 	}
 
 	var teachers []*models.TeacherProfile
-	_, err = o.QueryTable("teacher_profile").OrderBy("-service_time").
+	_, err := o.QueryTable("teacher_profile").OrderBy("-service_time").
 		Offset(page * count).Limit(count).All(&teachers)
 	if err != nil {
 		return 2, nil

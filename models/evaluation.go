@@ -5,7 +5,7 @@ import (
 
 	"github.com/astaxie/beego/orm"
 
-	"WolaiWebservice/utils"
+	"WolaiWebservice/config"
 )
 
 type Evaluation struct {
@@ -36,7 +36,7 @@ func CreateEvaluation(evalution *Evaluation) (*Evaluation, error) {
 
 func QueryEvaluation4Self(userId, sessionId int64) (*Evaluation, error) {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("id,user_id,session_id,content,create_time").From("evaluation").
 		Where("user_id = ? and session_id = ?")
 	sql := qb.String()
@@ -50,7 +50,7 @@ func QueryEvaluation4Self(userId, sessionId int64) (*Evaluation, error) {
 
 func QueryEvaluation4Other(userId, sessionId int64) (*Evaluation, error) {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(utils.DB_TYPE)
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("id,user_id,session_id,content,create_time").From("evaluation").
 		Where("user_id <> ? and session_id = ?")
 	sql := qb.String()
