@@ -100,6 +100,14 @@ var courseRoutes = route.Routes{
 		handlerv2.CourseActionPay,
 	},
 
+	// 9.4.4
+	route.Route{
+		"CourseActionNextChapter",
+		"POST",
+		"/action/nextchapter",
+		handlerv2.CourseActionNextChapter,
+	},
+
 	// 9.5.1
 	route.Route{
 		"CourseAttachs",
