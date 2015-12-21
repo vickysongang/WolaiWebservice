@@ -8,14 +8,25 @@ import (
 	"WolaiWebservice/websocket"
 )
 
-func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64) (int64, error, *models.Order) {
+// TODO: redis config
+const (
+	BALANCE_ALERT = 1500
+	BALANCE_MIN   = 0
+
+	IGNORE_FLAG_TRUE  = "Y"
+	IGNORE_FLAG_FALSE = "N"
+)
+
+func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignoreFlagStr string) (int64, error, *models.Order) {
 
 	user, err := models.ReadUser(userId)
 	if err != nil {
 		return 2, errors.New("用户资料异常"), nil
 	}
-	if user.Balance < 1500 {
-		return 5111, errors.New("用户余额不足"), nil
+	if user.Balance < BALANCE_MIN {
+		return 5112, errors.New("用户余额不足"), nil
+	} else if user.Balance < BALANCE_MIN && ignoreFlagStr != IGNORE_FLAG_TRUE {
+		return 5111, errors.New("用户余额过低"), nil
 	}
 
 	var orderType string

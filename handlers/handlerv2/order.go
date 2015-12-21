@@ -45,7 +45,14 @@ func OrderCreate(w http.ResponseWriter, r *http.Request) {
 	subjectIdStr := vars["subjectId"][0]
 	subjectId, _ := strconv.ParseInt(subjectIdStr, 10, 64)
 
-	status, err, content := orderController.CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId)
+	var ignoreFlagStr string
+	if len(vars["ignoreMinFlag"]) > 0 {
+		ignoreFlagStr = vars["ignoreMinFlag"][0]
+	} else {
+		ignoreFlagStr = orderController.IGNORE_FLAG_FALSE
+	}
+
+	status, err, content := orderController.CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId, ignoreFlagStr)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullObject)
@@ -89,19 +96,12 @@ func OrderExpectation(w http.ResponseWriter, r *http.Request) {
 	subjectIdStr := vars["subjectId"][0]
 	subjectId, _ := strconv.ParseInt(subjectIdStr, 10, 64)
 
-	//// TOD
-	_ = userId + teacherTier + teacherId + subjectId + gradeId
-
-	// status, content, err := controllers.OrderCreate(userId, teacherId, gradeId, subjectId, date,
-	// 	periodId, length, orderType, ignoreCourseFlag)
-	// if err != nil {
-	// 	json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullObject))
-	// } else {
-	// 	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
-	// }
-	//
-	var content = map[string]float64{
-		"price": 180,
+	status, err, content := orderController.CalculateOrderExpect(userId, teacherId, teacherTier, gradeId, subjectId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
 	}
-	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	json.NewEncoder(w).Encode(resp)
 }
