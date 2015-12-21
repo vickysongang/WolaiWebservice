@@ -45,12 +45,14 @@ func OrderCreate(w http.ResponseWriter, r *http.Request) {
 	subjectIdStr := vars["subjectId"][0]
 	subjectId, _ := strconv.ParseInt(subjectIdStr, 10, 64)
 
-	status, content := orderController.CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId)
-	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	status, err, content := orderController.CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+		resp = response.NewResponse(status, "", content)
 	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 5.1.2

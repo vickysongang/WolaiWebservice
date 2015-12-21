@@ -19,6 +19,7 @@ type Order struct {
 	Type           string    `json:"-" orm:"column(type)"`
 	Status         string    `json:"-" orm:"column(status)"`
 	TeacherId      int64     `json:"teacherId" orm:"column(teacher_id)"`
+	TierId         int64     `json:"tier" orm:"column(tier_id)"`
 	PriceHourly    int64     `json:"-" orm:"column(price_hourly)"`
 	SalaryHourly   int64     `json:"-" orm:"column(salary_hourly)"`
 	CourseId       int64     `json:"courseId" orm:"column(course_id)"`
