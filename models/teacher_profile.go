@@ -12,7 +12,7 @@ type TeacherProfile struct {
 	ServiceTime  int64  `json:"serviceTime" orm:"column(service_time)"`
 	Intro        string `json:"intro" orm:"column(intro)"`
 	Extra        string `json:"extra" orm:"column(extra)"`
-	TieId        int64  `json:"tierId" orm:"column(tier_id)"`
+	TierId       int64  `json:"tierId" orm:"column(tier_id)"`
 	PriceHourly  int64  `json:"-" orm:"column(price_hourly)"`
 	SalaryHourly int64  `json:"-" orm:"column(salary_hourly)"`
 }

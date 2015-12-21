@@ -330,11 +330,13 @@ func CourseActionNextChapter(w http.ResponseWriter, r *http.Request) {
 	studentId, _ := strconv.ParseInt(studentIdStr, 10, 64)
 
 	status, err := courseController.HandleCourseActionNextChapter(userId, studentId, courseId, chapterId)
+	var resp *response.Response
 	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullObject))
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+		resp = response.NewResponse(status, "", response.NullObject)
 	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 9.5.1

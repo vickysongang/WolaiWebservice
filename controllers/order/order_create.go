@@ -10,7 +10,7 @@ import (
 func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64) (int64, *models.Order) {
 
 	var orderType string
-	var pricePerHour, realPricePerHour int64
+	var priceHourly, salaryHourly int64
 	orderDate := time.Now().Format(time.RFC3339)
 
 	if teacherId != 0 {
@@ -20,23 +20,28 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64) (int6
 		if err != nil {
 			return 2, nil
 		}
-		pricePerHour = teacher.PriceHourly
-		realPricePerHour = teacher.SalaryHourly
 
+		tier, err := models.ReadTeacherTierHourly(teacher.TierId)
+		if err != nil {
+			return 2, nil
+		}
+
+		priceHourly = tier.QAPriceHourly
+		salaryHourly = tier.QASalaryHourly
 	} else {
 		orderType = models.ORDER_TYPE_GENERAL_INSTANT
 	}
 
 	order := models.Order{
-		Creator:          userId,
-		GradeId:          gradeId,
-		SubjectId:        subjectId,
-		Date:             orderDate,
-		Type:             orderType,
-		Status:           models.ORDER_STATUS_CREATED,
-		TeacherId:        teacherId,
-		PricePerHour:     pricePerHour,
-		RealPricePerHour: realPricePerHour,
+		Creator:      userId,
+		GradeId:      gradeId,
+		SubjectId:    subjectId,
+		Date:         orderDate,
+		Type:         orderType,
+		Status:       models.ORDER_STATUS_CREATED,
+		TeacherId:    teacherId,
+		PriceHourly:  priceHourly,
+		SalaryHourly: salaryHourly,
 	}
 
 	orderPtr, err := models.CreateOrder(&order)

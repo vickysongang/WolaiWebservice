@@ -34,6 +34,9 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 	var purchase models.CoursePurchaseRecord
 	err = o.QueryTable("course_purchase_record").
 		Filter("course_id", courseId).Filter("user_id", studentId).One(&purchase)
+	if err != nil {
+		return 2, errors.New("课程信息异常")
+	}
 	if purchase.TeacherId != userId {
 		return 2, errors.New("课程信息异常")
 	}
