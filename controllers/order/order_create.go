@@ -23,9 +23,9 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignor
 	if err != nil {
 		return 2, errors.New("用户资料异常"), nil
 	}
-	if user.Balance < BALANCE_MIN {
+	if user.Balance <= BALANCE_MIN {
 		return 5112, errors.New("用户余额不足"), nil
-	} else if user.Balance < BALANCE_MIN && ignoreFlagStr != IGNORE_FLAG_TRUE {
+	} else if user.Balance <= BALANCE_ALERT && ignoreFlagStr != IGNORE_FLAG_TRUE {
 		return 5111, errors.New("用户余额过低"), nil
 	}
 
