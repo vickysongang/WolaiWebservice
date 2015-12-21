@@ -144,7 +144,7 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 		}
 	}()
 
-	//order, _ := models.ReadOrder(orderId)
+	order, _ := models.ReadOrder(orderId)
 	orderInfo := GetOrderInfo(orderId)
 	orderByte, _ := json.Marshal(orderInfo)
 	//studentId := order.Creator
@@ -161,7 +161,11 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 	// 	go leancloud.SendPersonalOrderSentMsg(studentId, teacherId)
 	// }
 
-	go leancloud.SendOrderPersonalNotification(orderId, teacherId)
+	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+		go leancloud.SendOrderPersonalNotification(orderId, teacherId)
+	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		go leancloud.SendOrderCourseNotification(orderId, teacherId)
+	}
 
 	if WsManager.HasUserChan(teacherId) &&
 		!WsManager.HasSessionWithOther(teacherId) {

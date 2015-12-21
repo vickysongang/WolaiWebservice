@@ -35,7 +35,7 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 
 		studentCount := queryCourseStudentCount(record.CourseId)
 		chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", record.CourseId).Count()
-		chapterCompletePeriod := queryLatestCourseChapterPeriod(record.CourseId, userId)
+		chapterCompletePeriod, _ := queryLatestCourseChapterPeriod(record.CourseId, userId)
 
 		item := courseStudentListItem{
 			Course:                 *course,

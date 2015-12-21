@@ -45,6 +45,8 @@ const (
 	ORDER_TYPE_PERSONAL_INSTANT      = "personal_instant"
 	ORDER_TYPE_PERSONAL_APPOINTEMENT = "personal_appointment"
 	ORDER_TYPE_REALTIME_SESSION      = "realtime_session"
+	ORDER_TYPE_COURSE_INSTANT        = "course_instant"
+	ORDER_TYPE_COURSE_APPOINTMENT    = "course_appointment"
 )
 
 func CreateOrder(order *Order) (*Order, error) {

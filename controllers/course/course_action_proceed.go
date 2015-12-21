@@ -158,6 +158,8 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 			Extra:   session,
 		}
 
+		createCourseOrder(userId, record.TeacherId, courseId)
+
 	case record.AuditionStatus == models.PURCHASE_RECORD_STATUS_COMPLETE &&
 		record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_IDLE,
 		record.AuditionStatus == models.PURCHASE_RECORD_STATUS_COMPLETE &&
@@ -230,6 +232,8 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 			Message: "",
 			Extra:   session,
 		}
+
+		createCourseOrder(userId, record.TeacherId, courseId)
 
 	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:
 

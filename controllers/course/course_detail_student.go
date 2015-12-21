@@ -64,7 +64,7 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0)
 		detail.TeacherList, _ = queryCourseTeacherList(courseId)
 	} else {
-		detail.ChapterCompletedPeriod = queryLatestCourseChapterPeriod(courseId, userId)
+		detail.ChapterCompletedPeriod, _ = queryLatestCourseChapterPeriod(courseId, userId)
 		detail.AuditionStatus = purchaseRecord.AuditionStatus
 		detail.PurchaseStatus = purchaseRecord.PurchaseStatus
 		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod+1)

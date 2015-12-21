@@ -71,14 +71,16 @@ func queryCourseChapters(courseId int64) ([]models.CourseChapter, error) {
 }
 
 //查询最近完成的课时号
-func queryLatestCourseChapterPeriod(courseId, userId int64) int64 {
+func queryLatestCourseChapterPeriod(courseId, userId int64) (int64, error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	qb.Select("period").From("course_chapter_to_user").Where("course_id = ? and user_id = ?").OrderBy("period").Desc().Limit(1)
 	sql := qb.String()
+
 	var period int64
-	o.Raw(sql, courseId, userId).QueryRow(&period)
-	return period
+	err := o.Raw(sql, courseId, userId).QueryRow(&period)
+
+	return period, err
 }
 
 ////////////////////////////////////////////////////////////////////////////////

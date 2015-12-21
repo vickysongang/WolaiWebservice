@@ -330,10 +330,47 @@ func SendOrderPersonalNotification(orderId int64, teacherId int64) {
 	attr := make(map[string]string)
 	attr["type"] = "personal"
 	attr["title"] = title
+	attr["orderId"] = strconv.FormatInt(orderId, 10)
 
 	lcTMsg := LCTypedMessage{
 		Type:      LC_MSG_ORDER,
-		Text:      "静静说可以继续上课啦",
+		Text:      "[订单消息]",
+		Attribute: attr,
+	}
+
+	LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, teacherId, &lcTMsg)
+}
+
+func SendOrderCourseNotification(orderId int64, teacherId int64) {
+	order, err := models.ReadOrder(orderId)
+	if err != nil {
+		return
+	}
+
+	_, err = models.ReadUser(teacherId)
+	if err != nil {
+		return
+	}
+
+	course, err := models.ReadCourse(order.CourseId)
+	if err != nil {
+		return
+	}
+
+	chapter, err := models.ReadCourseChapter(order.ChapterId)
+	if err != nil {
+		return
+	}
+
+	attr := make(map[string]string)
+	attr["type"] = "personal"
+	attr["title"] = course.Name
+	attr["chapter"] = chapter.Title
+	attr["orderId"] = strconv.FormatInt(orderId, 10)
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_ORDER,
+		Text:      "[订单消息]",
 		Attribute: attr,
 	}
 

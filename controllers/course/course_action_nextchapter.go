@@ -41,8 +41,8 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 		return 2, errors.New("课程信息异常")
 	}
 
-	latestPeriod := queryLatestCourseChapterPeriod(courseId, studentId)
-	if chapter.Period != 0 {
+	latestPeriod, err := queryLatestCourseChapterPeriod(courseId, studentId)
+	if err == nil {
 		if latestPeriod != chapter.Period+1 {
 			return 2, errors.New("课程信息异常")
 		}
@@ -50,6 +50,7 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 		if latestPeriod != 0 {
 			return 2, errors.New("课程信息异常")
 		}
+
 	}
 
 	record := models.CourseChapterToUser{
