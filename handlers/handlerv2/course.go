@@ -172,7 +172,7 @@ func CourseListTeacher(w http.ResponseWriter, r *http.Request) {
 
 // 9.3.1
 func CourseDetailStudent(w http.ResponseWriter, r *http.Request) {
-	//	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
