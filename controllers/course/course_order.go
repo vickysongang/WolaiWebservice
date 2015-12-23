@@ -40,7 +40,7 @@ func createCourseOrder(userId, teacherId, courseId int64) error {
 
 	lastPeriod, err := queryLatestCourseChapterPeriod(courseId, userId)
 	var currentPeriod int64
-	if err != nil {
+	if err == nil {
 		currentPeriod = lastPeriod + 1
 	} else {
 		currentPeriod = 0

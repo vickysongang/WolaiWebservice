@@ -79,6 +79,10 @@ func PingppPay(w http.ResponseWriter, r *http.Request) {
 		extraMap = map[string]interface{}{
 			"payment_token": paymentToken,
 		}
+	} else if channel == "wx_pub_qr" {
+		extraMap = map[string]interface{}{
+			"product_id": "wolai_charge",
+		}
 	}
 
 	content, err := pingxx.PayByPingpp(orderNo, userId, amount, channel, currency, clientIp, subject, body, "", extraMap)

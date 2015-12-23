@@ -45,7 +45,7 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 	detail := courseDetailStudent{
 		Course:       *course,
 		StudentCount: studentCount,
-		ChapterCount: chapterCount,
+		ChapterCount: chapterCount - 1,
 	}
 
 	var purchaseRecord models.CoursePurchaseRecord

@@ -34,7 +34,8 @@ func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeac
 		Course: *course,
 	}
 	detail.StudentCount = queryCourseStudentCount(courseId)
-	detail.ChapterCount, _ = o.QueryTable("course_chapter").Filter("course_id", courseId).Count()
+	chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", courseId).Count()
+	detail.ChapterCount = chapterCount - 1
 	detail.ChapterCompletedPeriod, _ = queryLatestCourseChapterPeriod(courseId, studentId)
 	if detail.ChapterCompletedPeriod == 0 {
 		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod)

@@ -60,9 +60,24 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 		TeacherId: userId,
 		Period:    chapter.Period,
 	}
+
 	_, err = models.CreateCourseChapterToUser(&record)
 	if err != nil {
 		return 2, errors.New("服务器操作异常")
+	}
+
+	chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", courseId).Count()
+
+	if chapter.Period == 0 {
+		recordInfo := map[string]interface{}{
+			"audition_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
+		}
+		models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
+	} else if chapter.Period == chapterCount-1 {
+		recordInfo := map[string]interface{}{
+			"purchase_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
+		}
+		models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
 	}
 
 	return 0, nil
