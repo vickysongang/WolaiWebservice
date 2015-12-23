@@ -34,4 +34,12 @@ var orderRoutes = route.Routes{
 		"/expectation",
 		handlerv2.OrderExpectation,
 	},
+
+	// 5.1.3
+	route.Route{
+		"OrderInfo",
+		"POST",
+		"/info",
+		handlerv2.OrderInfo,
+	},
 }

@@ -9,15 +9,15 @@ import (
 type Order struct {
 	Id             int64     `json:"id" orm:"column(id);pk"`
 	Creator        int64     `json:"creator" orm:"column(creator)"`
-	CreateTime     time.Time `json:"createTime" orm:"column(create_time);type(datetime);auto_now_add"`
+	CreateTime     time.Time `json:"_" orm:"column(create_time);type(datetime);auto_now_add"`
 	LastUpdateTime time.Time `json:"-" orm:"column(last_update_time);type(datetime);auto_now"`
 	GradeId        int64     `json:"gradeId" orm:"column(grade_id)"`
 	SubjectId      int64     `json:"subjectId" orm:"column(subject_id)"`
 	Date           string    `json:"date" orm:"column(date)"`
 	PeriodId       int64     `json:"-" orm:"column(period_id)"`
 	Length         int64     `json:"-" orm:"column(length)"`
-	Type           string    `json:"-" orm:"column(type)"`
-	Status         string    `json:"-" orm:"column(status)"`
+	Type           string    `json:"type" orm:"column(type)"`
+	Status         string    `json:"status" orm:"column(status)"`
 	TeacherId      int64     `json:"teacherId" orm:"column(teacher_id)"`
 	TierId         int64     `json:"tier" orm:"column(tier_id)"`
 	PriceHourly    int64     `json:"-" orm:"column(price_hourly)"`
