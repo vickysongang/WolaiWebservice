@@ -28,9 +28,6 @@ func init() {
  * @param body:内容，示例：Your Body
  */
 func PayByPingpp(orderNo string, userId int64, amount uint64, channel, currency, clientIp, subject, body, phone string, extra map[string]interface{}) (*pingpp.Charge, error) {
-	if channel == "wx_pub_qr" {
-		extra["product_id"] = "test"
-	}
 	params := &pingpp.ChargeParams{
 		Order_no:  orderNo,
 		App:       pingpp.App{Id: config.Env.Pingpp.AppId},

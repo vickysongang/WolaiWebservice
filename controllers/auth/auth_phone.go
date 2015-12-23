@@ -41,6 +41,7 @@ func LoginByPhone(phone string) (int64, *authInfo) {
 		Token:       "thisisjustatokenfortestitisnotrealforgodsake",
 	}
 
+	go leancloud.SendWelcomeMessageStudent(user.Id)
 	// activities, err := models.QueryEffectiveActivities(models.REGISTER_ACTIVITY)
 	// if err == nil {
 	// 	for _, activity := range activities {

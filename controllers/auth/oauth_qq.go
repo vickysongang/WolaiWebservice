@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	"WolaiWebservice/utils/leancloud"
 )
 
 func LoginOauth(openId string) (int64, *authInfo) {
@@ -18,6 +19,10 @@ func LoginOauth(openId string) (int64, *authInfo) {
 	user, err := models.ReadUser(userOauth.UserId)
 	if err != nil {
 		return 2, nil
+	}
+
+	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+		UpdateTeacherStatusAfterLogin(user)
 	}
 
 	info := authInfo{
@@ -38,6 +43,10 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 		_, err := models.ReadUserOauth(user.Id)
 		if err != nil {
 			return 1322, nil
+		}
+
+		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+			UpdateTeacherStatusAfterLogin(user)
 		}
 
 		info := authInfo{
@@ -72,6 +81,8 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 		AccessRight: user.AccessRight,
 		Token:       "thisisjustatokenfortestitisnotrealforgodsake",
 	}
+
+	go leancloud.SendWelcomeMessageStudent(user.Id)
 
 	return 1321, &info
 }

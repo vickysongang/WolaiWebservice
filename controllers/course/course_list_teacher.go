@@ -48,7 +48,7 @@ func GetCourseListTeacher(userId, page, count int64) (int64, []*courseTeacherLis
 		item := courseTeacherListItem{
 			Course:                 *course,
 			StudentCount:           studentCount,
-			ChapterCount:           chapterCount,
+			ChapterCount:           chapterCount - 1,
 			AuditionStatus:         record.AuditionStatus,
 			PurchaseStatus:         record.PurchaseStatus,
 			ChapterCompletedPeriod: chapterCompletePeriod,
