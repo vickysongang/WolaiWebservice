@@ -117,7 +117,10 @@ func queryCourseTeacherList(courseId int64) ([]*teacherItem, error) {
 func queryCourseCurrentTeacher(teacherId int64) ([]*teacherItem, error) {
 	result := make([]*teacherItem, 0)
 
-	user, _ := models.ReadUser(teacherId)
+	user, err := models.ReadUser(teacherId)
+	if err != nil {
+		return result, err
+	}
 	profile, _ := models.ReadTeacherProfile(teacherId)
 	school, _ := models.ReadSchool(profile.SchoolId)
 

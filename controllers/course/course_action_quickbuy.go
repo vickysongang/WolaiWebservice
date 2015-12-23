@@ -26,8 +26,8 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 		newRecord := models.CoursePurchaseRecord{
 			CourseId:       courseId,
 			UserId:         userId,
-			AuditionStatus: models.PURCHASE_RECORD_STATUS_APPLY,
-			PurchaseStatus: models.PURCHASE_RECORD_STATUS_IDLE,
+			AuditionStatus: models.PURCHASE_RECORD_STATUS_IDLE,
+			PurchaseStatus: models.PURCHASE_RECORD_STATUS_APPLY,
 		}
 
 		_, err = models.CreateCoursePurchaseRecord(&newRecord)
