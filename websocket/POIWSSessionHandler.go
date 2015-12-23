@@ -48,7 +48,8 @@ func POIWSSessionHandler(sessionId int64) {
 
 	//如果是预约的单，则停止倒计时计时器，如果是马上辅导的单则停止超时计时器
 	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
-		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
+		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 		//如果是马上辅导的单，则进入倒计时,停止超时计时器
 		waitingTimer.Stop()
 
@@ -655,26 +656,28 @@ func InitSessionMonitor(sessionId int64) bool {
 	}
 
 	//提示课程即将开始，给客户端发送倒计时消息
-	if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
-		order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
-		alertMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_ALERT)
-		alertMsg.Attribute["sessionId"] = sessionIdStr
-		alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
-		alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-		alertMsg.Attribute["planTime"] = session.PlanTime
+	// if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
+	// 	order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
+	// 	alertMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_ALERT)
+	// 	alertMsg.Attribute["sessionId"] = sessionIdStr
+	// 	alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+	// 	alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+	// 	alertMsg.Attribute["planTime"] = session.PlanTime
 
-		if WsManager.HasUserChan(session.Tutor) {
-			teacherChan := WsManager.GetUserChan(session.Tutor)
-			teacherChan <- alertMsg
-		}
+	// 	if WsManager.HasUserChan(session.Tutor) {
+	// 		teacherChan := WsManager.GetUserChan(session.Tutor)
+	// 		teacherChan <- alertMsg
+	// 	}
 
-		go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-			alertMsg.OperationCode, session.Tutor))
-		go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-			alertMsg.OperationCode, session.Creator))
+	// 	go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
+	// 		alertMsg.OperationCode, session.Tutor))
+	// 	go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
+	// 		alertMsg.OperationCode, session.Creator))
 
-	} else if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
-		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+	// } else
+	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
+		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
+		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 		startMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_INSTANT_START)
 		startMsg.Attribute["sessionId"] = sessionIdStr
 		startMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)

@@ -50,6 +50,12 @@ func HandleCourseActionPay(userId int64, courseId int64, payType string) int64 {
 			//"last_update_time": "NOW()",
 		}
 
+		if record.AuditionStatus == models.PURCHASE_RECORD_STATUS_IDLE ||
+			record.AuditionStatus == models.PURCHASE_RECORD_STATUS_APPLY ||
+			record.AuditionStatus == models.PURCHASE_RECORD_STATUS_WAITING {
+			recordInfo["audition_status"] = models.PURCHASE_RECORD_STATUS_PAID
+		}
+
 		record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
 		if err != nil {
 			return 2
