@@ -53,7 +53,7 @@ func HandleCourseActionPay(userId int64, courseId int64, payType string) int64 {
 		if record.AuditionStatus == models.PURCHASE_RECORD_STATUS_IDLE ||
 			record.AuditionStatus == models.PURCHASE_RECORD_STATUS_APPLY ||
 			record.AuditionStatus == models.PURCHASE_RECORD_STATUS_WAITING {
-			recordInfo["audition_status"] == models.PURCHASE_RECORD_STATUS_PAID
+			recordInfo["audition_status"] = models.PURCHASE_RECORD_STATUS_PAID
 		}
 
 		record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
