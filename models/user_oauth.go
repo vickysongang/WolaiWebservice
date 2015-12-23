@@ -5,7 +5,7 @@ import (
 )
 
 type UserOauth struct {
-	UserId   int64  `orm:"column(userId);pk"`
+	UserId   int64  `orm:"column(user_id);pk"`
 	OpenIdQQ string `orm:"column(open_id_qq)"`
 }
 
