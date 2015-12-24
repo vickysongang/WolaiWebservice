@@ -30,12 +30,13 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 		orderLifespan = redis.RedisManager.GetConfig(
 			redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_PI)
-	} else if order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
+	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 		orderLifespan = redis.RedisManager.GetConfig(
-			redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_PA)
+			redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_PI)
 	} else {
 		return
 	}
+
 	orderSessionCountdown := redis.RedisManager.GetConfig(
 		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
 
