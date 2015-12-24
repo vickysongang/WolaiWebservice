@@ -55,7 +55,7 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 		return 2, nil
 	}
 
-	purchaseFlag := (err == orm.ErrNoRows)
+	purchaseFlag := (err != orm.ErrNoRows)
 	chapterFlag := o.QueryTable("course_chapter_to_user").Filter("user_id", userId).Filter("course_id", courseId).Exist()
 
 	if !purchaseFlag {

@@ -139,19 +139,19 @@ func TradeChargeShortcut(w http.ResponseWriter, r *http.Request) {
 		"value": 3000,
 	}
 	content[1] = map[string]int64{
-		"value": 10000,
+		"value": 5000,
 	}
 	content[2] = map[string]int64{
-		"value": 20000,
+		"value": 10000,
 	}
 	content[3] = map[string]int64{
-		"value": 50000,
+		"value": 20000,
 	}
 	content[4] = map[string]int64{
-		"value": 100000,
+		"value": 50000,
 	}
 	content[5] = map[string]int64{
-		"value": 200000,
+		"value": 100000,
 	}
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
@@ -176,14 +176,8 @@ func TradeChargePremium(w http.ResponseWriter, r *http.Request) {
 	chargeValue, err := strconv.ParseInt(chargeValueStr, 10, 64)
 
 	var premium int64
-	if chargeValue >= 100000 {
+	if chargeValue >= 20000 {
 		premium = 20000
-	} else if chargeValue >= 50000 {
-		premium = 8000
-	} else if chargeValue >= 1000 {
-		premium = 100
-	} else {
-		premium = 0
 	}
 	content := map[string]int64{
 		"premium": premium,
