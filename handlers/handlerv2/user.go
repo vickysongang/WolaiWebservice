@@ -102,16 +102,20 @@ func UserGreeting(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userIdStr := r.Header.Get("X-Wolai-ID")
-	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 
-	content := map[string]string{
-		"greeting": "我来已经陪伴您1024小时",
+	status, err, content := userController.AssembleUserGreeting(userId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
 	}
-	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.1.5

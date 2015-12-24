@@ -24,9 +24,9 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignor
 		return 2, errors.New("用户资料异常"), nil
 	}
 	if user.Balance <= BALANCE_MIN {
-		return 5112, errors.New("用户余额不足"), nil
+		return 5112, errors.New("你的钱包空空如也，没有办法发起提问啦，记得先去充值喔"), nil
 	} else if user.Balance <= BALANCE_ALERT && ignoreFlagStr != IGNORE_FLAG_TRUE {
-		return 5111, errors.New("用户余额过低"), nil
+		return 5111, errors.New("你的钱包余额已经不够20分钟答疑时间，不充值可能欠费哦"), nil
 	}
 
 	var orderType string
