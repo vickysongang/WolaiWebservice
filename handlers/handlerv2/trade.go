@@ -8,6 +8,7 @@ import (
 
 	"github.com/cihub/seelog"
 
+	tradeController "WolaiWebservice/controllers/trade"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 )
@@ -102,26 +103,20 @@ func TradeChargeBanner(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userIdStr := r.Header.Get("X-Wolai-ID")
-	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 
-	content := make([]map[string]string, 3)
-	content[0] = map[string]string{
-		"mediaId": "banner_course.jpg",
-		"url":     "http://www.wolai.me/",
+	status, err, content := tradeController.GetChargeBanner(userId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
 	}
-	content[1] = map[string]string{
-		"mediaId": "banner_tutorboard.jpg",
-		"url":     "http://www.baidu.com/",
-	}
-	content[2] = map[string]string{
-		"mediaId": "banner_optimaldry.jpg",
-		"url":     "http://www.qq.com/",
-	}
-	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 7.2.2

@@ -102,16 +102,20 @@ func UserGreeting(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userIdStr := r.Header.Get("X-Wolai-ID")
-	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 
-	content := map[string]string{
-		"greeting": "我来已经陪伴您1024小时",
+	status, err, content := userController.AssembleUserGreeting(userId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
 	}
-	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.1.5
@@ -123,34 +127,20 @@ func UserNotification(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userIdStr := r.Header.Get("X-Wolai-ID")
-	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
 
-	content := make([]map[string]string, 5)
-	content[0] = map[string]string{
-		"text": "我来退出新版本了！快更新吧！",
-		"url":  "http://www.wolai.me/",
+	status, err, content := userController.GetUserBroadcast(userId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
 	}
-	content[1] = map[string]string{
-		"text": "直击现场：测试组与开发者的终极对决",
-		"url":  "http://test.wolai.me/",
-	}
-	content[2] = map[string]string{
-		"text": "宋老师和石老师每天在说什么悄悄话？",
-		"url":  "http://www.kimiss.com/",
-	}
-	content[3] = map[string]string{
-		"text": "程序员如何在争吵中战胜产品经理？",
-		"url":  "http://www.quanji.net/",
-	}
-	content[4] = map[string]string{
-		"text": "全球最大的茼狌鲛伖平台",
-		"url":  "http://www.github.com/",
-	}
-	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.1.6

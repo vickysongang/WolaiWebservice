@@ -30,12 +30,13 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 		orderLifespan = redis.RedisManager.GetConfig(
 			redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_PI)
-	} else if order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
+	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 		orderLifespan = redis.RedisManager.GetConfig(
-			redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_PA)
+			redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_PI)
 	} else {
 		return
 	}
+
 	orderSessionCountdown := redis.RedisManager.GetConfig(
 		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
 
@@ -59,6 +60,17 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 				userChan := WsManager.GetUserChan(msg.UserId)
 
 				switch msg.OperationCode {
+				case WS_ORDER2_CANCEL:
+					cancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_CANCEL_RESP)
+					cancelResp.Attribute["errCode"] = "0"
+					userChan <- cancelResp
+
+					// 结束订单派发，记录状态
+					OrderManager.SetOrderCancelled(orderId)
+					OrderManager.SetOffline(orderId)
+					seelog.Debug("orderHandler|orderCancelled: ", orderId)
+					return
+
 				case WS_ORDER2_PERSONAL_REPLY:
 					resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
 
@@ -94,7 +106,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 					userChan <- resultMsg
 
-					if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+					if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
+						order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 						teacher, _ := models.ReadUser(msg.UserId)
 						teacherByte, _ := json.Marshal(teacher)
 
@@ -163,18 +176,19 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 		go leancloud.SendOrderPersonalNotification(orderId, teacherId)
+
+		if WsManager.HasUserChan(teacherId) &&
+			!WsManager.HasSessionWithOther(teacherId) {
+			teacherChan := WsManager.GetUserChan(teacherId)
+			orderMsg := NewPOIWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
+			orderMsg.Attribute["orderInfo"] = string(orderByte)
+			teacherChan <- orderMsg
+		} else {
+			go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderId, teacherId))
+		}
+
 	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 		go leancloud.SendOrderCourseNotification(orderId, teacherId)
-	}
-
-	if WsManager.HasUserChan(teacherId) &&
-		!WsManager.HasSessionWithOther(teacherId) {
-		teacherChan := WsManager.GetUserChan(teacherId)
-		orderMsg := NewPOIWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
-		orderMsg.Attribute["orderInfo"] = string(orderByte)
-		teacherChan <- orderMsg
-	} else {
-		go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderId, teacherId))
 	}
 
 	go personalOrderHandler(orderId, teacherId)

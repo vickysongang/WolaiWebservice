@@ -796,7 +796,9 @@ func RecoverUserSession(userId int64) {
 		sessionStatus := session.Status
 		sessionIdStr := strconv.FormatInt(sessionId, 10)
 		//如果是预约的课还未开始的话，则发送201，否则发送回溯
-		if (order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT || order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT) && sessionStatus == models.SESSION_STATUS_CREATED {
+		if (order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT ||
+			order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT) &&
+			sessionStatus == models.SESSION_STATUS_CREATED {
 			alertMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_ALERT)
 			alertMsg.Attribute["sessionId"] = sessionIdStr
 			alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
