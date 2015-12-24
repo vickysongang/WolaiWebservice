@@ -95,7 +95,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 					userChan <- resultMsg
 
-					if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+					if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
+						order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 						teacher, _ := models.ReadUser(msg.UserId)
 						teacherByte, _ := json.Marshal(teacher)
 

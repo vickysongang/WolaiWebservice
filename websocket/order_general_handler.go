@@ -459,7 +459,8 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 
 	// 发起上课请求或者设置计时器
 	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
-		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
+		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 		WsManager.SetUserSessionLock(session.Creator, true, timestamp)
 		WsManager.SetUserSessionLock(session.Tutor, true, timestamp)
 
