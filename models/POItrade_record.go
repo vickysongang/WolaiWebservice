@@ -20,6 +20,9 @@ type POITradeRecord struct {
 	Result      string    `json:"result"`
 	Balance     int64     `json:"balance"`
 	Comment     string    `json:"comment"`
+	SessionId   int64     `json:"sessionId"`
+	RecordId    int64     `json:"recordId"`
+	PingppId    int64     `json:"pingppId"`
 }
 
 type POITradeToSession struct {

@@ -655,53 +655,31 @@ func InitSessionMonitor(sessionId int64) bool {
 		return false
 	}
 
-	//提示课程即将开始，给客户端发送倒计时消息
-	// if order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
-	// 	order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT {
-	// 	alertMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_ALERT)
-	// 	alertMsg.Attribute["sessionId"] = sessionIdStr
-	// 	alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
-	// 	alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-	// 	alertMsg.Attribute["planTime"] = session.PlanTime
-
-	// 	if WsManager.HasUserChan(session.Tutor) {
-	// 		teacherChan := WsManager.GetUserChan(session.Tutor)
-	// 		teacherChan <- alertMsg
-	// 	}
-
-	// 	go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-	// 		alertMsg.OperationCode, session.Tutor))
-	// 	go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-	// 		alertMsg.OperationCode, session.Creator))
-
-	// } else
-	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
-		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
-		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
-		startMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_INSTANT_START)
-		startMsg.Attribute["sessionId"] = sessionIdStr
-		startMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
-		startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-		startMsg.Attribute["planTime"] = session.PlanTime
-
-		if WsManager.HasUserChan(session.Tutor) {
-			teacherChan := WsManager.GetUserChan(session.Tutor)
-			teacherChan <- startMsg
-		}
-		if WsManager.HasUserChan(session.Creator) {
-			startMsg.UserId = session.Creator
-			studentChan := WsManager.GetUserChan(session.Creator)
-			studentChan <- startMsg
-		}
+	if order.Type != models.ORDER_TYPE_GENERAL_INSTANT &&
+		order.Type != models.ORDER_TYPE_PERSONAL_INSTANT &&
+		order.Type != models.ORDER_TYPE_COURSE_INSTANT {
+		return false
 	}
 
-	// course, err := models.QueryServingCourse4User(session.Creator)
-	// if err == nil {
-	// 	orderInfo := map[string]interface{}{
-	// 		"CourseId": course.CourseId,
-	// 	}
-	// 	models.UpdateOrderInfo(order.Id, orderInfo)
-	// }
+	startMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_INSTANT_START)
+	startMsg.Attribute["sessionId"] = sessionIdStr
+	startMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+	startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+	startMsg.Attribute["planTime"] = session.PlanTime
+
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		startMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+	}
+
+	if WsManager.HasUserChan(session.Tutor) {
+		teacherChan := WsManager.GetUserChan(session.Tutor)
+		teacherChan <- startMsg
+	}
+	if WsManager.HasUserChan(session.Creator) {
+		startMsg.UserId = session.Creator
+		studentChan := WsManager.GetUserChan(session.Creator)
+		studentChan <- startMsg
+	}
 
 	sessionChan := make(chan POIWSMessage)
 	WsManager.SetSessionChan(sessionId, sessionChan)
@@ -740,16 +718,6 @@ func CheckSessionBreak(userId int64) {
 	if breakTime2 != breakTime || userLoginTime != -1 {
 		return
 	}
-
-	// //如果用户重连上了且用户有正在进行的课，则不给对方发送课程中断的消息
-	// if userLoginTime != -1 && WsManager.HasUserChan(userId) {
-	// 	seelog.Debug("user ", userId, " reconnect success!")
-	// 	for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
-	// 		if !WsManager.HasSessionChan(sessionId) {
-	// 			continue
-	// 		}
-	// 	}
-	// }
 
 	//给对方发送课程中断的消息
 	for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
