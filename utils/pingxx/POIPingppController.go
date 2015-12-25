@@ -9,7 +9,7 @@ import (
 	"github.com/pingplusplus/pingpp-go/pingpp/refund"
 
 	"WolaiWebservice/config"
-	//"WolaiWebservice/controllers/trade"
+	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/models"
 )
 
@@ -133,7 +133,9 @@ func ChargeSuccessEvent(chargeId string) {
 	}
 	models.UpdatePingppRecord(chargeId, recordInfo)
 	record, _ := models.QueryPingppRecordByChargeId(chargeId)
-	_ = models.QueryUserByPhone(record.Phone)
+
+	trade.HandleTradeCharge(record.Id)
+	//_ = models.QueryUserByPhone(record.Phone)
 	//trade.HandleSystemTrade(user.Id, int64(record.Amount), models.TRADE_CHARGE, "S", "官网扫码充值")
 }
 

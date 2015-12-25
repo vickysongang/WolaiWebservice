@@ -42,6 +42,18 @@ func InsertPingppRecord(record *PingppRecord) (*PingppRecord, error) {
 	return record, err
 }
 
+func ReadPingppRecord(recordId int64) (*PingppRecord, error) {
+	o := orm.NewOrm()
+
+	record := PingppRecord{Id: recordId}
+	err := o.Read(&record)
+	if err != nil {
+		return nil, err
+	}
+
+	return &record, nil
+}
+
 func UpdatePingppRecord(chargeId string, recordInfo map[string]interface{}) {
 	o := orm.NewOrm()
 	var params orm.Params = make(orm.Params)

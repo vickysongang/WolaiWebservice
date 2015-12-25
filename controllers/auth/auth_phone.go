@@ -3,6 +3,7 @@ package auth
 import (
 	"time"
 
+	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/leancloud"
 )
@@ -41,6 +42,7 @@ func LoginByPhone(phone string) (int64, *authInfo) {
 		Token:       "thisisjustatokenfortestitisnotrealforgodsake",
 	}
 
+	trade.HandleTradeRewardRegistration(user.Id)
 	go leancloud.SendWelcomeMessageStudent(user.Id)
 	// activities, err := models.QueryEffectiveActivities(models.REGISTER_ACTIVITY)
 	// if err == nil {

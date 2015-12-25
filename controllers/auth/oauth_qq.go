@@ -3,6 +3,7 @@ package auth
 import (
 	"github.com/astaxie/beego/orm"
 
+	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/leancloud"
 )
@@ -82,6 +83,7 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 		Token:       "thisisjustatokenfortestitisnotrealforgodsake",
 	}
 
+	trade.HandleTradeRewardRegistration(user.Id)
 	go leancloud.SendWelcomeMessageStudent(user.Id)
 
 	return 1321, &info
