@@ -37,9 +37,15 @@ func SearchUser(userId int64, keyword string, page, count int64) (int64, []teach
 	for _, user := range users {
 		var schoolStr string
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-			profile, _ := models.ReadTeacherProfile(user.Id)
-			school, _ := models.ReadSchool(profile.SchoolId)
-			schoolStr = school.Name
+			profile, err := models.ReadTeacherProfile(user.Id)
+			if err != nil {
+				continue
+			}
+
+			school, err := models.ReadSchool(profile.SchoolId)
+			if err == nil {
+				schoolStr = school.Name
+			}
 		}
 
 		item := teacherItem{
@@ -76,8 +82,16 @@ func GetTeacherRecommendation(userId int64, page int64, count int64) (int64, []t
 
 	result := make([]teacherItem, 0)
 	for _, teacher := range teachers {
-		user, _ := models.ReadUser(teacher.UserId)
-		school, _ := models.ReadSchool(teacher.SchoolId)
+		user, err := models.ReadUser(teacher.UserId)
+		if err != nil {
+			continue
+		}
+
+		var schoolStr string
+		school, err := models.ReadSchool(teacher.SchoolId)
+		if err == nil {
+			schoolStr = school.Name
+		}
 
 		subjects := GetTeacherSubject(teacher.UserId)
 		var subjectNames []string
@@ -93,7 +107,7 @@ func GetTeacherRecommendation(userId int64, page int64, count int64) (int64, []t
 			Avatar:       user.Avatar,
 			Gender:       user.Gender,
 			AccessRight:  user.AccessRight,
-			School:       school.Name,
+			School:       schoolStr,
 			SubjectList:  subjectNames,
 			OnlineStatus: "online",
 		}
@@ -149,8 +163,16 @@ func GetContactRecommendation(userId int64, page int64, count int64) (int64, []t
 	}
 
 	for _, teacher := range teachers {
-		user, _ := models.ReadUser(teacher.UserId)
-		school, _ := models.ReadSchool(teacher.SchoolId)
+		user, err := models.ReadUser(teacher.UserId)
+		if err != nil {
+			continue
+		}
+
+		var schoolStr string
+		school, err := models.ReadSchool(teacher.SchoolId)
+		if err == nil {
+			schoolStr = school.Name
+		}
 
 		item := teacherItem{
 			Id:           teacher.UserId,
@@ -158,7 +180,7 @@ func GetContactRecommendation(userId int64, page int64, count int64) (int64, []t
 			Avatar:       user.Avatar,
 			Gender:       user.Gender,
 			AccessRight:  user.AccessRight,
-			School:       school.Name,
+			School:       schoolStr,
 			SubjectList:  nil,
 			OnlineStatus: "",
 		}

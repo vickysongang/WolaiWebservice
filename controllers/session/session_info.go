@@ -1,14 +1,14 @@
 package session
 
 import (
-	"math"
+	//"math"
 	"time"
 
 	"WolaiWebservice/models"
 )
 
 type sessionInfo struct {
-	Id          int64        `json:"sessionid"`
+	Id          int64        `json:"id"`
 	OrderId     int64        `json:"orderId"`
 	CreatorInfo *models.User `json:"creatorInfo"`
 	TutorInfo   *teacherInfo `json:"tutorInfo"`
@@ -40,7 +40,8 @@ func GetSessionInfo(sessionId int64) (int64, *sessionInfo) {
 		ServiceTime: tutorProfile.ServiceTime,
 	}
 
-	tradeAmount := int64(math.Abs(float64(models.QueryTradeAmount(sessionId, session.Creator))))
+	//tradeAmount := int64(math.Abs(float64(models.QueryTradeAmount(sessionId, session.Creator))))
+	tradeAmount := int64(8000)
 
 	info := sessionInfo{
 		Id:          session.Id,

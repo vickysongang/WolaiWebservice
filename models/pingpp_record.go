@@ -10,7 +10,7 @@ import (
 	"WolaiWebservice/config"
 )
 
-type POIPingppRecord struct {
+type PingppRecord struct {
 	Id         int64     `json:"id" orm:"pk"`
 	UserId     int64     `json:"id"`
 	Phone      string    `json:"phone"`
@@ -27,19 +27,31 @@ type POIPingppRecord struct {
 	CreateTime time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
 }
 
-func (record *POIPingppRecord) TableName() string {
+func (r *PingppRecord) TableName() string {
 	return "pingpp_record"
 }
 
 func init() {
-	orm.RegisterModel(new(POIPingppRecord))
+	orm.RegisterModel(new(PingppRecord))
 }
 
-func InsertPingppRecord(record *POIPingppRecord) (*POIPingppRecord, error) {
+func InsertPingppRecord(record *PingppRecord) (*PingppRecord, error) {
 	o := orm.NewOrm()
 	id, err := o.Insert(record)
 	record.Id = id
 	return record, err
+}
+
+func ReadPingppRecord(recordId int64) (*PingppRecord, error) {
+	o := orm.NewOrm()
+
+	record := PingppRecord{Id: recordId}
+	err := o.Read(&record)
+	if err != nil {
+		return nil, err
+	}
+
+	return &record, nil
 }
 
 func UpdatePingppRecord(chargeId string, recordInfo map[string]interface{}) {
@@ -54,10 +66,10 @@ func UpdatePingppRecord(chargeId string, recordInfo map[string]interface{}) {
 	}
 }
 
-func QueryPingppRecordByChargeId(chargeId string) (*POIPingppRecord, error) {
+func QueryPingppRecordByChargeId(chargeId string) (*PingppRecord, error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
-	record := POIPingppRecord{}
+	record := PingppRecord{}
 	qb.Select("id,phone,charge_id,order_no,amount,channel,currency,subject,body,result,comment,refund_id").From("pingpp_record").Where("charge_id = ?")
 	sql := qb.String()
 	err := o.Raw(sql, chargeId).QueryRow(&record)
