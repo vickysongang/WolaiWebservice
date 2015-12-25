@@ -9,7 +9,7 @@ import (
 	"github.com/pingplusplus/pingpp-go/pingpp/refund"
 
 	"WolaiWebservice/config"
-	"WolaiWebservice/controllers/trade"
+	//"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/models"
 )
 
@@ -40,7 +40,7 @@ func PayByPingpp(orderNo string, userId int64, amount uint64, channel, currency,
 		Extra:     extra}
 	ch, err := charge.New(params)
 	if err == nil {
-		record := models.POIPingppRecord{
+		record := models.PingppRecord{
 			UserId:   userId,
 			Phone:    phone,
 			ChargeId: ch.ID,
@@ -133,8 +133,8 @@ func ChargeSuccessEvent(chargeId string) {
 	}
 	models.UpdatePingppRecord(chargeId, recordInfo)
 	record, _ := models.QueryPingppRecordByChargeId(chargeId)
-	user := models.QueryUserByPhone(record.Phone)
-	trade.HandleSystemTrade(user.Id, int64(record.Amount), models.TRADE_CHARGE, "S", "官网扫码充值")
+	_ = models.QueryUserByPhone(record.Phone)
+	//trade.HandleSystemTrade(user.Id, int64(record.Amount), models.TRADE_CHARGE, "S", "官网扫码充值")
 }
 
 func RefundSuccessEvent(chargeId string, refundId string) {
@@ -144,6 +144,6 @@ func RefundSuccessEvent(chargeId string, refundId string) {
 	}
 	models.UpdatePingppRecord(chargeId, recordInfo)
 	record, _ := models.QueryPingppRecordByChargeId(chargeId)
-	user := models.QueryUserByPhone(record.Phone)
-	trade.HandleSystemTrade(user.Id, int64(record.Amount), models.TRADE_WITHDRAW, "S", "用户申请退款")
+	_ = models.QueryUserByPhone(record.Phone)
+	//trade.HandleSystemTrade(user.Id, int64(record.Amount), models.TRADE_WITHDRAW, "S", "用户申请退款")
 }

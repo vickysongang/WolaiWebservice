@@ -4,12 +4,12 @@ import (
 	"strconv"
 	"time"
 
-	"WolaiWebservice/controllers/trade"
+	"github.com/cihub/seelog"
+
+	//"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/logger"
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/leancloud"
-
-	seelog "github.com/cihub/seelog"
 )
 
 func POIWSSessionHandler(sessionId int64) {
@@ -136,7 +136,7 @@ func POIWSSessionHandler(sessionId int64) {
 				models.UpdateTeacherServiceTime(session.Tutor, length)
 				session, _ = models.ReadSession(sessionId)
 				//课后结算，产生交易记录
-				trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, true)
+				//trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, true)
 				go leancloud.SendSessionExpireMsg(sessionId)
 			}
 
@@ -357,7 +357,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 					//下课后结算，产生交易记录
 					session, _ = models.ReadSession(sessionId)
-					trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, false)
+					//trade.HandleSessionTrade(session, models.TRADE_RESULT_SUCCESS, false)
 
 					seelog.Debug("POIWSSessionHandler: session end: " + sessionIdStr)
 
@@ -426,6 +426,9 @@ func POIWSSessionHandler(sessionId int64) {
 					recoverTeacherMsg.Attribute["sessionId"] = sessionIdStr
 					recoverTeacherMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
 					recoverTeacherMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+					if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+						recoverTeacherMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+					}
 
 					if !WsManager.HasUserChan(session.Tutor) {
 						break
@@ -458,6 +461,9 @@ func POIWSSessionHandler(sessionId int64) {
 					recoverStuMsg.Attribute["sessionId"] = sessionIdStr
 					recoverStuMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 					recoverStuMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+					if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+						recoverStuMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+					}
 
 					if !WsManager.HasUserChan(session.Creator) {
 						break
@@ -765,7 +771,8 @@ func RecoverUserSession(userId int64) {
 		sessionIdStr := strconv.FormatInt(sessionId, 10)
 		//如果是预约的课还未开始的话，则发送201，否则发送回溯
 		if (order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT ||
-			order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT) &&
+			order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
+			order.Type == models.ORDER_TYPE_COURSE_INSTANT) &&
 			sessionStatus == models.SESSION_STATUS_CREATED {
 			alertMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_ALERT)
 			alertMsg.Attribute["sessionId"] = sessionIdStr
@@ -773,6 +780,9 @@ func RecoverUserSession(userId int64) {
 			alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 			alertMsg.Attribute["planTime"] = session.PlanTime
 
+			if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+				alertMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+			}
 			if WsManager.HasUserChan(session.Tutor) {
 				teacherChan := WsManager.GetUserChan(session.Tutor)
 				teacherChan <- alertMsg
