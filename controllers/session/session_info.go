@@ -8,7 +8,7 @@ import (
 )
 
 type sessionInfo struct {
-	Id          int64        `json:"sessionId"`
+	Id          int64        `json:"id"`
 	OrderId     int64        `json:"orderId"`
 	CreatorInfo *models.User `json:"creatorInfo"`
 	TutorInfo   *teacherInfo `json:"tutorInfo"`
