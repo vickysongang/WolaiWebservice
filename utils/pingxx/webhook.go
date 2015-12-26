@@ -10,7 +10,11 @@ func ChargeSuccessEvent(chargeId string) {
 		"Result": "success",
 	}
 	models.UpdatePingppRecord(chargeId, recordInfo)
-	record, _ := models.QueryPingppRecordByChargeId(chargeId)
+	record, err := models.QueryPingppRecordByChargeId(chargeId)
+
+	if err != nil {
+		return
+	}
 
 	trade.HandleTradeCharge(record.Id)
 	//_ = models.QueryUserByPhone(record.Phone)
