@@ -70,16 +70,21 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 
 	chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", courseId).Count()
 
+	recordInfo := map[string]interface{}{
+		"audition_status": purchase.AuditionStatus,
+	}
+	models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
+
 	if chapter.Period == 0 {
 		recordInfo := map[string]interface{}{
 			"audition_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
 		}
-		models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
+		models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
 	} else if chapter.Period == chapterCount-1 {
 		recordInfo := map[string]interface{}{
 			"purchase_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
 		}
-		models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
+		models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
 	}
 
 	err = trade.HandleCourseEarning(purchase.Id, chapter.Period)

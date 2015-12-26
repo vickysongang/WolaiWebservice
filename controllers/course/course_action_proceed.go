@@ -97,7 +97,6 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 		// 学生在还没有被指派导师的时候申请试听
 		recordInfo := map[string]interface{}{
 			"audition_status": models.PURCHASE_RECORD_STATUS_APPLY,
-			//"last_update_time": "NOW()",
 		}
 
 		record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
@@ -169,7 +168,6 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 
 		recordInfo := map[string]interface{}{
 			"purchase_status": models.PURCHASE_RECORD_STATUS_WAITING,
-			//"last_update_time": "NOW()",
 		}
 
 		record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
@@ -196,7 +194,6 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 		// 学生在还没有被指派导师的时候申请试听
 		recordInfo := map[string]interface{}{
 			"audition_status": models.PURCHASE_RECORD_STATUS_WAITING,
-			//"last_update_time": "NOW()",
 		}
 
 		record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
