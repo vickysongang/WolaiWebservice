@@ -89,7 +89,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if lengthMin < 1 {
 				lengthMin = 1
 			}
-			lengthStr := fmt.Sprintf(" %s分钟", lengthMin)
+			lengthStr := fmt.Sprintf(" %d分钟", lengthMin)
 
 			info.Avartar = user.Avatar
 			info.Title = title + lengthStr
