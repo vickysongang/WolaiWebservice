@@ -139,85 +139,6 @@ func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 	return
 }
 
-// func SendTradeNotificationSystem(userId int64, amount int64, status, title, subtitle, extra string) {
-// 	user, _ := models.ReadUser(userId)
-// 	if user == nil {
-// 		return
-// 	}
-
-// 	attr := map[string]string{
-// 		"type":     LC_TRADE_TYPE_SYSTEM,
-// 		"title":    title,
-// 		"subtitle": subtitle,
-// 		"status":   status,
-// 		"amount":   strconv.FormatInt(amount, 10),
-// 		"balance":  strconv.FormatInt(user.Balance, 10),
-// 		"extra":    extra,
-// 	}
-
-// 	lcTMsg := LCTypedMessage{
-// 		Type:      LC_MSG_TRADE,
-// 		Text:      "[交易提醒]",
-// 		Attribute: attr,
-// 	}
-
-// 	LCSendTypedMessage(USER_TRADE_RECORD, userId, &lcTMsg, false)
-// }
-
-// func SendTradeNotificationSession(teacherId int64, studentId int64, subject string,
-// 	studentAmount int64, teacherAmount int64, timeStart, timeEnd string, length string) {
-// 	teacher, _ := models.ReadUser(teacherId)
-// 	student, _ := models.ReadUser(studentId)
-// 	if teacher == nil || student == nil {
-// 		return
-// 	}
-
-// 	attrTeacher := map[string]string{
-// 		"type":      LC_TRADE_TYPE_TEACHER,
-// 		"title":     "交易提醒",
-// 		"student":   student.Nickname,
-// 		"teacher":   teacher.Nickname,
-// 		"status":    LC_TRADE_STATUS_INCOME,
-// 		"amount":    strconv.FormatInt(teacherAmount, 10),
-// 		"balance":   strconv.FormatInt(teacher.Balance, 10),
-// 		"extra":     "",
-// 		"subject":   subject,
-// 		"timeStart": timeStart,
-// 		"timeEnd":   timeEnd,
-// 		"length":    length,
-// 	}
-// 	teacherTMsg := LCTypedMessage{
-// 		Type:      LC_MSG_TRADE,
-// 		Text:      "[交易提醒]",
-// 		Attribute: attrTeacher,
-// 	}
-// 	LCSendTypedMessage(USER_TRADE_RECORD, teacherId, &teacherTMsg, false)
-
-// 	freeFlag := false
-// 	attrStudent := map[string]string{
-// 		"type":      LC_TRADE_TYPE_STUDENT,
-// 		"title":     "交易提醒",
-// 		"student":   student.Nickname,
-// 		"teacher":   teacher.Nickname,
-// 		"status":    LC_TRADE_STATUS_EXPENSE,
-// 		"amount":    strconv.FormatInt(studentAmount, 10),
-// 		"balance":   strconv.FormatInt(student.Balance, 10),
-// 		"extra":     "",
-// 		"subject":   subject,
-// 		"timeStart": timeStart,
-// 		"timeEnd":   timeEnd,
-// 		"length":    length,
-// 	}
-// 	studentTMsg := LCTypedMessage{
-// 		Type:      LC_MSG_TRADE,
-// 		Text:      "[交易提醒]",
-// 		Attribute: attrStudent,
-// 	}
-// 	if !freeFlag {
-// 		LCSendTypedMessage(USER_TRADE_RECORD, studentId, &studentTMsg, false)
-// 	}
-// }
-
 /*
  * 各种系统消息
  */
@@ -375,4 +296,55 @@ func SendOrderCourseNotification(orderId int64, teacherId int64) {
 	}
 
 	LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, teacherId, &lcTMsg)
+}
+
+func SendOrderPersonalTutorOfflineMsg(orderId int64) {
+	order, err := models.ReadOrder(orderId)
+	if err != nil {
+		return
+	}
+
+	attr := make(map[string]string)
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SYSTEM,
+		Text:      "导师暂时不在线，可能无法及时应答。建议换个导师，或者再等等。",
+		Attribute: attr,
+	}
+
+	LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, order.TeacherId, &lcTMsg)
+}
+
+func SendOrderPersonalTutorBusyMsg(orderId int64) {
+	order, err := models.ReadOrder(orderId)
+	if err != nil {
+		return
+	}
+
+	attr := make(map[string]string)
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SYSTEM,
+		Text:      "导师正在上课，可能无法及时应答。你可以换个时间约TA，或者向其他在线导师提问。",
+		Attribute: attr,
+	}
+
+	LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, order.TeacherId, &lcTMsg)
+}
+
+func SendOrderPersonalTutorExpireMsg(orderId int64) {
+	order, err := models.ReadOrder(orderId)
+	if err != nil {
+		return
+	}
+
+	attr := make(map[string]string)
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SYSTEM,
+		Text:      "提问请求超时无应答，已自动取消。",
+		Attribute: attr,
+	}
+
+	LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, order.TeacherId, &lcTMsg)
 }

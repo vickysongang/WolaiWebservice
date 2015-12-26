@@ -50,7 +50,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 		case <-orderTimer.C:
 			OrderManager.SetOrderCancelled(orderId)
 			OrderManager.SetOffline(orderId)
-			//go leancloud.SendPersonalorderExpireMsg(studentId, teacherId)
+
+			go leancloud.SendOrderPersonalTutorExpireMsg(orderId)
 
 			return
 
@@ -160,19 +161,14 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 	order, _ := models.ReadOrder(orderId)
 	orderInfo := GetOrderInfo(orderId)
 	orderByte, _ := json.Marshal(orderInfo)
-	//studentId := order.Creator
 
 	OrderManager.SetOnline(orderId)
 
-	//go leancloud.SendPersonalOrderNotification(orderId, teacherId)
-
-	// if !WsManager.HasUserChan(teacherId) {
-	// 	go leancloud.SendPersonalOrderTeacherOfflineMsg(studentId, teacherId)
-	// } else if WsManager.HasSessionWithOther(teacherId) {
-	// 	go leancloud.SendPersonalOrderTeacherBusyMsg(studentId, teacherId)
-	// } else {
-	// 	go leancloud.SendPersonalOrderSentMsg(studentId, teacherId)
-	// }
+	if !WsManager.HasUserChan(teacherId) {
+		go leancloud.SendOrderPersonalTutorOfflineMsg(orderId)
+	} else if WsManager.HasSessionWithOther(teacherId) {
+		go leancloud.SendOrderPersonalTutorBusyMsg(orderId)
+	}
 
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 		go leancloud.SendOrderPersonalNotification(orderId, teacherId)
