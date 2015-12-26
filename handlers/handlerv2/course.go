@@ -301,9 +301,14 @@ func CourseActionPay(w http.ResponseWriter, r *http.Request) {
 	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
 	payType := vars["type"][0]
 
-	status := courseController.HandleCourseActionPay(userId, courseId, payType)
-
-	json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	status, err := courseController.HandleCourseActionPay(userId, courseId, payType)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", response.NullObject)
+	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 9.4.4
