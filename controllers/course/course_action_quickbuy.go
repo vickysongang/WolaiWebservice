@@ -37,7 +37,7 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 
 		response := actionProceedResponse{
 			Action:  ACTION_PROCEED_REFRESH,
-			Message: "购买申请提交成功，助教会马上联系你哦",
+			Message: "申请成功，助教会在30分钟内与你取得联系，请保持电话畅通哦",
 			Extra:   nullObject{},
 		}
 

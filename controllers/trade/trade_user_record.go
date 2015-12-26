@@ -89,10 +89,9 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if lengthMin < 1 {
 				lengthMin = 1
 			}
-			lengthStr := fmt.Sprintf(" %d分钟", lengthMin)
 
 			info.Avartar = user.Avatar
-			info.Title = title + lengthStr
+			info.Title = fmt.Sprintf("%s %d分钟", title, lengthMin)
 
 		case models.TRADE_RECEIVEMENT:
 			// 老师答疑收入
@@ -124,10 +123,9 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if lengthMin < 1 {
 				lengthMin = 1
 			}
-			lengthStr := fmt.Sprintf(" %d分钟", lengthMin)
 
 			info.Avartar = user.Avatar
-			info.Title = title + lengthStr
+			info.Title = fmt.Sprintf("%s %d分钟", title, lengthMin)
 
 		case models.TRADE_CHARGE:
 			//学生钱包充值

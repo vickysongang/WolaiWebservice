@@ -350,7 +350,7 @@ func UserTeacherRecent(w http.ResponseWriter, r *http.Request) {
 		count = 10
 	}
 
-	status, content := userController.GetTeacherRecommendation(userId, page, count)
+	status, content := userController.GetTeacherRecent(userId, page, count)
 	if status != 0 {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
 	} else {

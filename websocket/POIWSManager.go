@@ -214,3 +214,12 @@ func (wsm *POIWSManager) HasSessionWithOther(userId int64) bool {
 	}
 	return false
 }
+
+func (wsm *POIWSManager) GetUserStatus(userId int64) string {
+	if wsm.HasUserChan(userId) && !wsm.HasSessionWithOther(userId) {
+		return "busy"
+	} else if wsm.HasUserChan(userId) {
+		return "online"
+	}
+	return "offline"
+}

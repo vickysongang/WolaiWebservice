@@ -1,9 +1,11 @@
 package user
 
 import (
-	"WolaiWebservice/models"
-
 	"github.com/astaxie/beego/orm"
+
+	"WolaiWebservice/config"
+	"WolaiWebservice/models"
+	"WolaiWebservice/websocket"
 )
 
 type teacherItem struct {
@@ -70,6 +72,62 @@ func SearchUser(userId int64, keyword string, page, count int64) (int64, []teach
 	return 0, result
 }
 
+func GetTeacherRecent(userId int64, page int64, count int64) (int64, []teacherItem) {
+	o := orm.NewOrm()
+
+	type sessionTeacher struct {
+		Tutor int64
+	}
+	var teacherIds []sessionTeacher
+
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
+	qb.Select("distinct tutor").From("sessions").Where("creator = ?").
+		Limit(int(count)).Offset(int(page * count))
+	sql := qb.String()
+	o.Raw(sql, userId).QueryRows(&teacherIds)
+
+	result := make([]teacherItem, 0)
+	for _, teacherId := range teacherIds {
+		user, err := models.ReadUser(teacherId.Tutor)
+		if err != nil {
+			continue
+		}
+
+		profile, err := models.ReadTeacherProfile(teacherId.Tutor)
+		if err != nil {
+			continue
+		}
+
+		var schoolStr string
+		school, err := models.ReadSchool(profile.SchoolId)
+		if err == nil {
+			schoolStr = school.Name
+		}
+
+		subjects := GetTeacherSubject(profile.UserId)
+		var subjectNames []string
+		if subjects != nil {
+			subjectNames = ParseSubjectNameSlice(subjects)
+		} else {
+			subjectNames = make([]string, 0)
+		}
+
+		item := teacherItem{
+			Id:           profile.UserId,
+			Nickname:     user.Nickname,
+			Avatar:       user.Avatar,
+			Gender:       user.Gender,
+			AccessRight:  user.AccessRight,
+			School:       schoolStr,
+			SubjectList:  subjectNames,
+			OnlineStatus: websocket.WsManager.GetUserStatus(user.Id),
+		}
+		result = append(result, item)
+	}
+
+	return 0, result
+}
+
 func GetTeacherRecommendation(userId int64, page int64, count int64) (int64, []teacherItem) {
 	o := orm.NewOrm()
 
@@ -109,7 +167,7 @@ func GetTeacherRecommendation(userId int64, page int64, count int64) (int64, []t
 			AccessRight:  user.AccessRight,
 			School:       schoolStr,
 			SubjectList:  subjectNames,
-			OnlineStatus: "online",
+			OnlineStatus: websocket.WsManager.GetUserStatus(user.Id),
 		}
 		result = append(result, item)
 	}
