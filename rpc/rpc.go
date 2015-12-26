@@ -67,14 +67,14 @@ func (watcher *RpcWatcher) SendLikeNotification(request *RpcRequest, resp *RpcRe
 }
 
 func (watcher *RpcWatcher) SendTradeNotificationSystem(request *RpcRequest, resp *RpcResponse) error {
-	userId, _ := strconv.ParseInt(request.Args["userId"], 10, 64)
-	amount, _ := strconv.ParseInt(request.Args["amount"], 10, 64)
-	status := request.Args["status"]
-	title := request.Args["title"]
-	subtitle := request.Args["subtitle"]
-	extra := request.Args["extra"]
-	leancloud.SendTradeNotificationSystem(userId, amount, status, title, subtitle, extra)
-	*resp = NewRpcResponse(0, "", "")
+	// userId, _ := strconv.ParseInt(request.Args["userId"], 10, 64)
+	// amount, _ := strconv.ParseInt(request.Args["amount"], 10, 64)
+	// status := request.Args["status"]
+	// title := request.Args["title"]
+	// subtitle := request.Args["subtitle"]
+	// extra := request.Args["extra"]
+	// leancloud.SendTradeNotificationSystem(userId, amount, status, title, subtitle, extra)
+	// *resp = NewRpcResponse(0, "", "")
 	return nil
 }
 
