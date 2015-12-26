@@ -56,8 +56,6 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 	}
 
 	purchaseFlag := (err != orm.ErrNoRows)
-	chapterFlag := o.QueryTable("course_chapter_to_user").Filter("user_id", userId).Filter("course_id", courseId).Exist()
-
 	if !purchaseFlag {
 		detail.AuditionStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
@@ -68,11 +66,10 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 		detail.TeacherList, _ = queryCourseCurrentTeacher(purchaseRecord.TeacherId)
 	}
 
-	if !chapterFlag {
-		detail.ChapterCompletedPeriod = 0
-		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0)
+	detail.ChapterCompletedPeriod, err = queryLatestCourseChapterPeriod(courseId, userId)
+	if err != nil {
+		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod)
 	} else {
-		detail.ChapterCompletedPeriod, _ = queryLatestCourseChapterPeriod(courseId, userId)
 		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod+1)
 	}
 
