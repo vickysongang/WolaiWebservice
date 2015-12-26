@@ -137,6 +137,7 @@ func POIWSSessionHandler(sessionId int64) {
 				session, _ = models.ReadSession(sessionId)
 				//课后结算，产生交易记录
 				trade.HandleTradeSession(sessionId)
+				SendSessionReport(sessionId)
 				go leancloud.SendSessionExpireMsg(sessionId)
 			}
 
@@ -358,6 +359,7 @@ func POIWSSessionHandler(sessionId int64) {
 					//下课后结算，产生交易记录
 					session, _ = models.ReadSession(sessionId)
 					trade.HandleTradeSession(sessionId)
+					SendSessionReport(sessionId)
 
 					seelog.Debug("POIWSSessionHandler: session end: " + sessionIdStr)
 

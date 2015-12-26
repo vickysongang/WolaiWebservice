@@ -33,6 +33,7 @@ func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
 	o := orm.NewOrm()
 
 	session, _ := models.ReadSession(sessionId)
+	order, _ := models.ReadOrder(session.OrderId)
 	creator, _ := models.ReadUser(session.Creator)
 	tutor, _ := models.ReadUser(session.Tutor)
 	tutorProfile, _ := models.ReadTeacherProfile(session.Tutor)
@@ -52,6 +53,12 @@ func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
 		tradeAmount = int64(math.Abs(float64(record.TradeAmount)))
 	}
 
+	var isCourse bool
+	if order.Type == models.ORDER_TYPE_COURSE_APPOINTMENT ||
+		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		isCourse = true
+	}
+
 	info := sessionInfo{
 		Id:          session.Id,
 		OrderId:     session.OrderId,
@@ -61,7 +68,7 @@ func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
 		TimeTo:      session.TimeTo,
 		Length:      session.Length,
 		TotalAmount: tradeAmount,
-		IsCourse:    false,
+		IsCourse:    isCourse,
 	}
 
 	return 0, &info
