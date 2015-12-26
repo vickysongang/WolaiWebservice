@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/cihub/seelog"
 
@@ -48,50 +47,34 @@ func TradeUserRecord(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userIdStr := r.Header.Get("X-Wolai-ID")
-	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
+	vars := r.Form
 
-	content := []map[string]interface{}{
-		map[string]interface{}{
-			"avatar": "FqeUvGlefw9KKDbqSKCScHTuw0La",
-			"title":  "邀请注册",
-			"time":   time.Now().Format(time.RFC3339),
-			"type":   "income",
-			"amount": "1500",
-		},
-		map[string]interface{}{
-			"avatar": "FqeUvGlefw9KKDbqSKCScHTuw0La",
-			"title":  "高中语文 6m",
-			"time":   time.Now().Add(-5 * time.Minute).Format(time.RFC3339),
-			"type":   "expense",
-			"amount": "8700",
-		},
-		map[string]interface{}{
-			"avatar": "FqeUvGlefw9KKDbqSKCScHTuw0La",
-			"title":  "钱包充值",
-			"time":   time.Now().Add(-10 * time.Minute).Format(time.RFC3339),
-			"type":   "income",
-			"amount": "1000",
-		},
-		map[string]interface{}{
-			"avatar": "FqeUvGlefw9KKDbqSKCScHTuw0La",
-			"title":  "充值奖励",
-			"time":   time.Now().Add(-15 * time.Minute).Format(time.RFC3339),
-			"type":   "income",
-			"amount": "5000",
-		},
-		map[string]interface{}{
-			"avatar": "FqeUvGlefw9KKDbqSKCScHTuw0La",
-			"title":  "新用户注册",
-			"time":   time.Now().Add(-120 * time.Minute).Format(time.RFC3339),
-			"type":   "income",
-			"amount": "1800",
-		},
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
 	}
-	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, err, content := tradeController.GetUserTradeRecord(userId, page, count)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 7.2.1
