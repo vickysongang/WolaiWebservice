@@ -77,7 +77,12 @@ func HandleCourseEarning(recordId int64, period int64) error {
 
 	comment := fmt.Sprintf("第%d课时", period)
 
-	_, err = createTradeRecord(record.TeacherId, record.SalaryHourly,
+	amount := record.SalaryHourly
+	if period == 0 {
+		amount = record.SalaryHourly / 2
+	}
+
+	_, err = createTradeRecord(record.TeacherId, amount,
 		models.TRADE_COURSE_EARNING, models.TRADE_RESULT_SUCCESS, comment,
 		0, record.Id, 0)
 	if err != nil {

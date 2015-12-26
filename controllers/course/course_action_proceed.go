@@ -37,7 +37,7 @@ const (
 	PAYMENT_TYPE_AUDITION = "audition"
 	PAYMENT_TYPE_PURCHASE = "purchase"
 
-	PAYMENT_COMMENT_AUDITION = "申请试听支付成功后，1元将返还到钱包"
+	PAYMENT_COMMENT_AUDITION = "试听支付"
 	PAYMENT_COMMENT_PURCHASE = "无"
 
 	PAYMENT_PRICE_AUDITION = 100
@@ -74,7 +74,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 
 		response := actionProceedResponse{
 			Action:  ACTION_PROCEED_REFRESH,
-			Message: "试听申请提交成功，助教会马上联系你哦",
+			Message: "申请成功，助教会在30分钟内与你取得联系，请保持电话畅通哦",
 			Extra:   nullObject{},
 		}
 
@@ -107,7 +107,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 
 		response = actionProceedResponse{
 			Action:  ACTION_PROCEED_REFRESH,
-			Message: "试听申请提交成功，助教会马上联系你哦",
+			Message: "申请成功，助教会在30分钟内与你取得联系，请保持电话畅通哦",
 			Extra:   nullObject{},
 		}
 
