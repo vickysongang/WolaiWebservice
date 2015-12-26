@@ -5,13 +5,15 @@ import (
 
 	"github.com/astaxie/beego/orm"
 
+	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/models"
 )
 
 func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64) (int64, error) {
+	var err error
 	o := orm.NewOrm()
 
-	_, err := models.ReadUser(userId)
+	_, err = models.ReadUser(userId)
 	if err != nil {
 		return 2, errors.New("用户信息异常")
 	}
@@ -78,6 +80,11 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 			"purchase_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
 		}
 		models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
+	}
+
+	err = trade.HandleCourseEarning(purchase.Id, chapter.Period)
+	if err != nil {
+		return 2, errors.New("支付信息异常")
 	}
 
 	return 0, nil

@@ -23,7 +23,7 @@ func SessionInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userIdStr := r.Header.Get("X-Wolai-ID")
-	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
@@ -33,7 +33,7 @@ func SessionInfo(w http.ResponseWriter, r *http.Request) {
 	sessionIdStr := vars["sessionId"][0]
 	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
 
-	status, content := sessionController.GetSessionInfo(sessionId)
+	status, content := sessionController.GetSessionInfo(sessionId, userId)
 	if status != 0 {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
 	} else {

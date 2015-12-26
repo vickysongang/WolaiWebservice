@@ -1,8 +1,10 @@
 package session
 
 import (
-	//"math"
+	"math"
 	"time"
+
+	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
 )
@@ -26,7 +28,10 @@ type teacherInfo struct {
 	ServiceTime int64  `json:"serviceTime"`
 }
 
-func GetSessionInfo(sessionId int64) (int64, *sessionInfo) {
+func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
+	var err error
+	o := orm.NewOrm()
+
 	session, _ := models.ReadSession(sessionId)
 	creator, _ := models.ReadUser(session.Creator)
 	tutor, _ := models.ReadUser(session.Tutor)
@@ -40,8 +45,12 @@ func GetSessionInfo(sessionId int64) (int64, *sessionInfo) {
 		ServiceTime: tutorProfile.ServiceTime,
 	}
 
-	//tradeAmount := int64(math.Abs(float64(models.QueryTradeAmount(sessionId, session.Creator))))
-	tradeAmount := int64(8000)
+	var tradeAmount int64
+	var record models.TradeRecord
+	err = o.QueryTable("trade_record").Filter("session_id", sessionId).Filter("user_id", userId).One(&record)
+	if err != nil {
+		tradeAmount = int64(math.Abs(float64(record.TradeAmount)))
+	}
 
 	info := sessionInfo{
 		Id:          session.Id,
