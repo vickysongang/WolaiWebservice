@@ -284,7 +284,7 @@ func SendOrderCourseNotification(orderId int64, teacherId int64) {
 	}
 
 	attr := make(map[string]string)
-	attr["type"] = "personal"
+	attr["type"] = "course"
 	attr["title"] = course.Name
 	attr["chapter"] = chapter.Title
 	attr["orderId"] = strconv.FormatInt(orderId, 10)
