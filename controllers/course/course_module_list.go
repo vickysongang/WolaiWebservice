@@ -40,7 +40,7 @@ func GetCourseModuleList(moduleType, page, count int64) (int64, []*courseItem) {
 		}
 
 		count, _ := o.QueryTable("course_chapter").Filter("course_id", courseModule.CourseId).Count()
-		item.ChapterCount = count
+		item.ChapterCount = count - 1
 		item.StudentCount = queryCourseStudentCount(course.Id)
 
 		courses = append(courses, &item)
