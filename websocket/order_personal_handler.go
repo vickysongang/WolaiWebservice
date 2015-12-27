@@ -164,12 +164,6 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 
 	OrderManager.SetOnline(orderId)
 
-	if !WsManager.HasUserChan(teacherId) {
-		go leancloud.SendOrderPersonalTutorOfflineMsg(orderId)
-	} else if WsManager.HasSessionWithOther(teacherId) {
-		go leancloud.SendOrderPersonalTutorBusyMsg(orderId)
-	}
-
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 		go leancloud.SendOrderPersonalNotification(orderId, teacherId)
 
@@ -185,6 +179,12 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 
 	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 		go leancloud.SendOrderCourseNotification(orderId, teacherId)
+	}
+
+	if !WsManager.HasUserChan(teacherId) {
+		go leancloud.SendOrderPersonalTutorOfflineMsg(orderId)
+	} else if WsManager.HasSessionWithOther(teacherId) {
+		go leancloud.SendOrderPersonalTutorBusyMsg(orderId)
 	}
 
 	go personalOrderHandler(orderId, teacherId)
