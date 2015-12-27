@@ -2,6 +2,7 @@ package leancloud
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"WolaiWebservice/models"
@@ -286,7 +287,7 @@ func SendOrderCourseNotification(orderId int64, teacherId int64) {
 	attr := make(map[string]string)
 	attr["type"] = "course"
 	attr["title"] = course.Name
-	attr["chapter"] = chapter.Title
+	attr["chapter"] = fmt.Sprintf("第%d课时 %s", chapter.Period, chapter.Title)
 	attr["orderId"] = strconv.FormatInt(orderId, 10)
 
 	lcTMsg := LCTypedMessage{

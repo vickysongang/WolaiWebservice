@@ -50,6 +50,15 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 			UpdateTeacherStatusAfterLogin(user)
 		}
 
+		uo := models.UserOauth{
+			UserId:   user.Id,
+			OpenIdQQ: openId,
+		}
+		_, err = models.CreateUserOauth(&uo)
+		if err != nil {
+			return 2, nil
+		}
+
 		info := authInfo{
 			Id:          user.Id,
 			Nickname:    user.Nickname,
@@ -70,6 +79,15 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 		AccessRight: models.USER_ACCESSRIGHT_STUDENT,
 	}
 	user, err := models.CreateUser(&newUser)
+	if err != nil {
+		return 2, nil
+	}
+
+	uo := models.UserOauth{
+		UserId:   user.Id,
+		OpenIdQQ: openId,
+	}
+	_, err = models.CreateUserOauth(&uo)
 	if err != nil {
 		return 2, nil
 	}
