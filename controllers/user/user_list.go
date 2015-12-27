@@ -145,6 +145,10 @@ func GetTeacherRecommendation(userId int64, page int64, count int64) (int64, []t
 			continue
 		}
 
+		if user.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
+			continue
+		}
+
 		var schoolStr string
 		school, err := models.ReadSchool(teacher.SchoolId)
 		if err == nil {
@@ -223,6 +227,10 @@ func GetContactRecommendation(userId int64, page int64, count int64) (int64, []t
 	for _, teacher := range teachers {
 		user, err := models.ReadUser(teacher.UserId)
 		if err != nil {
+			continue
+		}
+
+		if user.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
 			continue
 		}
 

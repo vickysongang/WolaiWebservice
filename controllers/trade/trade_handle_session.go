@@ -24,8 +24,12 @@ func HandleTradeSession(sessionId int64) error {
 		return errors.New("课程课堂不产生交易记录")
 	}
 
-	studentAmount := session.Length * order.PriceHourly / 3600 / 10 * 10
-	teacherAmount := session.Length * order.SalaryHourly / 3600 / 10 * 10
+	length := session.Length
+	if length < 60 {
+		length = 60
+	}
+	studentAmount := length * order.PriceHourly / 3600 / 10 * 10
+	teacherAmount := length * order.SalaryHourly / 3600 / 10 * 10
 
 	_, err = createTradeRecord(session.Creator, 0-studentAmount,
 		models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
