@@ -7,6 +7,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	"WolaiWebservice/utils/leancloud"
 )
 
 func createTradeRecord(userId, amount int64, tradeType, result, comment string,
@@ -40,6 +41,8 @@ func createTradeRecord(userId, amount int64, tradeType, result, comment string,
 	if err != nil {
 		return nil, err
 	}
+
+	go leancloud.SendTradeNotification(tradeRecord.Id)
 
 	return tradeRecord, nil
 }
