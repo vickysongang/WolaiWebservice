@@ -61,3 +61,15 @@ func InsertTradeRecord(tradeRecord *TradeRecord) (*TradeRecord, error) {
 	tradeRecord.Id = id
 	return tradeRecord, nil
 }
+
+func ReadTradeRecord(recordId int64) (*TradeRecord, error) {
+	o := orm.NewOrm()
+
+	record := TradeRecord{Id: recordId}
+	err := o.Read(&record)
+	if err != nil {
+		return nil, err
+	}
+
+	return &record, nil
+}

@@ -49,7 +49,7 @@ func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
 	var tradeAmount int64
 	var record models.TradeRecord
 	err = o.QueryTable("trade_record").Filter("session_id", sessionId).Filter("user_id", userId).One(&record)
-	if err != nil {
+	if err == nil {
 		tradeAmount = int64(math.Abs(float64(record.TradeAmount)))
 	}
 
