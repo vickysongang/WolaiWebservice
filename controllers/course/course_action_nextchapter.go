@@ -45,7 +45,7 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 
 	latestPeriod, err := queryLatestCourseChapterPeriod(courseId, studentId)
 	if err == nil {
-		if latestPeriod != chapter.Period+1 {
+		if chapter.Period != latestPeriod+1 {
 			return 2, errors.New("课程信息异常")
 		}
 	} else {

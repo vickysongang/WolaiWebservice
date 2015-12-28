@@ -56,7 +56,7 @@ type LCTypedMessage struct {
 	Attribute map[string]string `json:"_lcattrs,omitempty"`
 }
 
-func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage, twoway bool) {
+func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 	user, _ := models.ReadUser(userId)
 	target, _ := models.ReadUser(targetId)
 	if user == nil || target == nil {
@@ -74,12 +74,6 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage, twoway b
 	}
 
 	LCSendMessage(&lcMsg)
-
-	if twoway {
-		targetIdStr := strconv.FormatInt(targetId, 10)
-		lcMsg.SendId = targetIdStr
-		LCSendMessage(&lcMsg)
-	}
 }
 
 func LCSendSystemMessage(senderId, userId1, userId2 int64, lcTMsg *LCTypedMessage) {

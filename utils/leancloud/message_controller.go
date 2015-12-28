@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
@@ -33,7 +34,7 @@ func SendWelcomeMessageTeacher(userId int64) {
 		Text:      "[图文消息]",
 		Attribute: attr,
 	}
-	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &msg, false)
+	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &msg)
 }
 
 func SendWelcomeMessageStudent(userId int64) {
@@ -49,7 +50,7 @@ func SendWelcomeMessageStudent(userId int64) {
 		Text:      "[图文消息]",
 		Attribute: attr,
 	}
-	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &msg, false)
+	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &msg)
 }
 
 func SendCommentNotification(feedCommentId string) {
@@ -87,13 +88,13 @@ func SendCommentNotification(feedCommentId string) {
 
 	// if someone comments himself...
 	if feedComment.Creator.Id != feed.Creator.Id {
-		LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.Id, &lcTMsg, false)
+		LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.Id, &lcTMsg)
 	}
 
 	if feedComment.ReplyTo != nil {
 		// if someone replies the author... the poor man should not be notified twice
 		if feedComment.ReplyTo.Id != feed.Creator.Id {
-			LCSendTypedMessage(USER_SYSTEM_MESSAGE, feedComment.ReplyTo.Id, &lcTMsg, false)
+			LCSendTypedMessage(USER_SYSTEM_MESSAGE, feedComment.ReplyTo.Id, &lcTMsg)
 		}
 	}
 
@@ -135,9 +136,60 @@ func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 		Attribute: attr,
 	}
 
-	LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.Id, &lcTMsg, false)
+	LCSendTypedMessage(USER_SYSTEM_MESSAGE, feed.Creator.Id, &lcTMsg)
 
 	return
+}
+
+func SendTradeNotification(recordId int64) {
+	// var err error
+
+	// record, err := models.ReadTradeRecord(recordId)
+	// if err != nil {
+	// 	return
+	// }
+
+	// user, err := models.ReadUser(record.UserId)
+	// if err != nil {
+	// 	return
+	// }
+
+	// var suffix string
+	// if user.AccessRight == models.USER_ACCESSRIGHT_STUDENT {
+	// 	suffix = "同学"
+	// } else if uesr.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+	// 	suffix = "导师"
+	// }
+
+	// type tradeMessage struct {
+	// 	title    string
+	// 	subtitle string
+	// 	body     []string
+	// 	balance  string
+	// 	extra    string
+	// }
+
+	// msg := tradeMessage{
+	// 	title: "交易提醒",
+	// 	body:  make([]string, 0),
+	// }
+
+	// switch record.TradeType {
+	// case models.TRADE_PAYMENT:
+
+	// case models.TRADE_RECEIVEMENT:
+	// case models.TRADE_CHARGE:
+	// case models.TRADE_CHARGE_PREMIUM:
+	// case models.TRADE_WITHDRAW:
+	// case models.TRADE_PROMOTION:
+	// case models.TRADE_VOUCHER:
+	// case models.TRADE_DEDUCTION:
+	// case models.TRADE_REWARD_REGISTRATION:
+	// case models.TRADE_REWARD_INVITATION:
+	// case models.TRADE_COURSE_PURCHASE:
+	// case models.TRADE_COURSE_AUDITION:
+	// case models.TRADE_COURSE_EARNING:
+	// }
 }
 
 /*
