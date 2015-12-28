@@ -56,7 +56,7 @@ func HandleTradeCharge(pingppId int64) error {
 	return err
 }
 
-func HandleTradeChargePremium(pingppId, amount int64) error {
+func HandleTradeChargePremium(pingppId, amount int64, comment string) error {
 	var err error
 
 	record, err := models.ReadPingppRecord(pingppId)
@@ -65,7 +65,7 @@ func HandleTradeChargePremium(pingppId, amount int64) error {
 	}
 
 	_, err = createTradeRecord(record.UserId, amount,
-		models.TRADE_CHARGE_PREMIUM, models.TRADE_RESULT_SUCCESS, COMMENT_CHARGE_PREMIUM,
+		models.TRADE_CHARGE_PREMIUM, models.TRADE_RESULT_SUCCESS, comment,
 		0, 0, pingppId)
 
 	return err
