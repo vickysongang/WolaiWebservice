@@ -209,6 +209,9 @@ func SendTradeNotification(recordId int64) {
 
 		_, month, day := session.TimeFrom.Date()
 		lengthMin := session.Length / 60
+		if lengthMin < 1 {
+			lengthMin = 1
+		}
 
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已经完成%s导师的课程。",
 			user.Nickname, suffix, tutor.Nickname)
@@ -245,6 +248,9 @@ func SendTradeNotification(recordId int64) {
 
 		_, month, day := session.TimeFrom.Date()
 		lengthMin := session.Length / 60
+		if lengthMin < 1 {
+			lengthMin = 1
+		}
 
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已经完成%s同学的课程。",
 			user.Nickname, suffix, student.Nickname)
