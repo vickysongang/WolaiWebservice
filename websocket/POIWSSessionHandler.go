@@ -439,7 +439,7 @@ func POIWSSessionHandler(sessionId int64) {
 					teacherChan <- recoverTeacherMsg
 
 					//如果老师所在的课程正在进行中，则通知老师该课正在进行中
-					if !isPaused && isServing {
+					if !isPaused {
 						seelog.Debug("send session:", sessionId, " live status message to teacher:", session.Tutor)
 						sessionStatusMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
@@ -474,7 +474,7 @@ func POIWSSessionHandler(sessionId int64) {
 					studentChan <- recoverStuMsg
 
 					//如果学生所在的课程正在进行中，则通知学生该课正在进行中
-					if !isPaused && isServing {
+					if !isPaused {
 						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator)
 						sessionStatusMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
@@ -774,7 +774,7 @@ func RecoverUserSession(userId int64) {
 		//如果是预约的课还未开始的话，则发送201，否则发送回溯
 		if (order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT ||
 			order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
-			order.Type == models.ORDER_TYPE_COURSE_INSTANT) &&
+			order.Type == models.ORDER_TYPE_COURSE_APPOINTMENT) &&
 			sessionStatus == models.SESSION_STATUS_CREATED {
 			alertMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_ALERT)
 			alertMsg.Attribute["sessionId"] = sessionIdStr
@@ -782,7 +782,7 @@ func RecoverUserSession(userId int64) {
 			alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 			alertMsg.Attribute["planTime"] = session.PlanTime
 
-			if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+			if order.Type == models.ORDER_TYPE_COURSE_APPOINTMENT {
 				alertMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
 			}
 			if WsManager.HasUserChan(session.Tutor) {
