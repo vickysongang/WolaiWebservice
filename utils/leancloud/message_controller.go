@@ -569,7 +569,7 @@ func SendOrderPersonalTutorOfflineMsg(orderId int64) {
 	attr["accessRight"] = "[3]"
 
 	lcTMsg := LCTypedMessage{
-		Type:      LC_MSG_ORDER,
+		Type:      LC_MSG_SYSTEM,
 		Text:      "导师暂时不在线，可能无法及时应答。建议换个导师，或者再等等。",
 		Attribute: attr,
 	}
