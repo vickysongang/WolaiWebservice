@@ -405,6 +405,7 @@ func SendSessionStartMsg(sessionId int64) {
 	}
 
 	attr := make(map[string]string)
+	attr["accessRight"] = "[2, 3]"
 
 	lcTMsg := LCTypedMessage{
 		Type:      LC_MSG_SYSTEM,
@@ -422,6 +423,7 @@ func SendSessionFinishMsg(sessionId int64) {
 	}
 
 	attr := make(map[string]string)
+	attr["accessRight"] = "[2, 3]"
 
 	lcTMsg := LCTypedMessage{
 		Type:      LC_MSG_SYSTEM,
@@ -439,6 +441,7 @@ func SendSessionExpireMsg(sessionId int64) {
 	}
 
 	attr := make(map[string]string)
+	attr["accessRight"] = "[2, 3]"
 
 	lcTMsg := LCTypedMessage{
 		Type:      LC_MSG_SYSTEM,
@@ -456,6 +459,7 @@ func SendSessionBreakMsg(sessionId int64) {
 	}
 
 	attr := make(map[string]string)
+	attr["accessRight"] = "[2, 3]"
 
 	lcTMsg := LCTypedMessage{
 		Type:      LC_MSG_SYSTEM,
@@ -473,6 +477,7 @@ func SendSessionResumeMsg(sessionId int64) {
 	}
 
 	attr := make(map[string]string)
+	attr["accessRight"] = "[2, 3]"
 
 	lcTMsg := LCTypedMessage{
 		Type:      LC_MSG_SYSTEM,
@@ -561,9 +566,10 @@ func SendOrderPersonalTutorOfflineMsg(orderId int64) {
 	}
 
 	attr := make(map[string]string)
+	attr["accessRight"] = "[3]"
 
 	lcTMsg := LCTypedMessage{
-		Type:      LC_MSG_SYSTEM,
+		Type:      LC_MSG_ORDER,
 		Text:      "导师暂时不在线，可能无法及时应答。建议换个导师，或者再等等。",
 		Attribute: attr,
 	}
@@ -578,6 +584,7 @@ func SendOrderPersonalTutorBusyMsg(orderId int64) {
 	}
 
 	attr := make(map[string]string)
+	attr["accessRight"] = "[3]"
 
 	lcTMsg := LCTypedMessage{
 		Type:      LC_MSG_SYSTEM,
@@ -595,6 +602,7 @@ func SendOrderPersonalTutorExpireMsg(orderId int64) {
 	}
 
 	attr := make(map[string]string)
+	attr["accessRight"] = "[3]"
 
 	lcTMsg := LCTypedMessage{
 		Type:      LC_MSG_SYSTEM,
