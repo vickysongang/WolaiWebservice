@@ -47,6 +47,10 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignor
 			return 2, errors.New("导师资料异常"), nil
 		}
 
+		if websocket.OrderManager.HasOrderOnline(userId, teacherId) {
+			return 2, errors.New("你已经向该导师发过一条上课请求了，请耐心等待回复哦"), nil
+		}
+
 		teacherTier = teacher.TierId
 		priceHourly = tier.QAPriceHourly
 		salaryHourly = tier.QASalaryHourly

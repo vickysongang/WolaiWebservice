@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	"WolaiWebservice/websocket"
 )
 
 type nullObject struct{}
@@ -151,13 +152,23 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 			TeacherId: record.TeacherId,
 		}
 
-		response = actionProceedResponse{
-			Action:  ACTION_PROCEED_SERVE,
-			Message: "",
-			Extra:   session,
-		}
+		if websocket.OrderManager.HasOrderOnline(userId, record.TeacherId) {
+			response = actionProceedResponse{
+				Action:  ACTION_PROCEED_SERVE,
+				Message: "你已经向该导师发过一条上课请求了，请耐心等待回复哦",
+				Extra:   nullObject{},
+			}
 
-		createCourseOrder(userId, record.TeacherId, courseId)
+		} else {
+			response = actionProceedResponse{
+				Action:  ACTION_PROCEED_SERVE,
+				Message: "",
+				Extra:   session,
+			}
+
+			createCourseOrder(userId, record.TeacherId, courseId)
+
+		}
 
 	case record.AuditionStatus == models.PURCHASE_RECORD_STATUS_COMPLETE &&
 		record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_IDLE,
@@ -224,13 +235,23 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 			TeacherId: record.TeacherId,
 		}
 
-		response = actionProceedResponse{
-			Action:  ACTION_PROCEED_SERVE,
-			Message: "",
-			Extra:   session,
-		}
+		if websocket.OrderManager.HasOrderOnline(userId, record.TeacherId) {
+			response = actionProceedResponse{
+				Action:  ACTION_PROCEED_SERVE,
+				Message: "你已经向该导师发过一条上课请求了，请耐心等待回复哦",
+				Extra:   nullObject{},
+			}
 
-		createCourseOrder(userId, record.TeacherId, courseId)
+		} else {
+			response = actionProceedResponse{
+				Action:  ACTION_PROCEED_SERVE,
+				Message: "",
+				Extra:   session,
+			}
+
+			createCourseOrder(userId, record.TeacherId, courseId)
+
+		}
 
 	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:
 
