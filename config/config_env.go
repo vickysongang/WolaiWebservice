@@ -42,6 +42,10 @@ type databaseConf struct {
 	Address  string
 	Port     string
 	Database string
+	Charset  string
+	Loc      string
+	MaxIdle  int
+	MaxConn  int
 }
 
 type redisConf struct {

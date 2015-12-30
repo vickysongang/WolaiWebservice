@@ -1,0 +1,43 @@
+# This is a TOML document for POIWolaiWebService
+
+title = "POIWolaiWebService Develop Env"
+
+[server]
+maxprocs = 1
+port = ":8080"
+rpcPort = ":8081"
+supportPort = ":8082"
+
+[database]
+type = "mysql"
+username = "poi"
+password = "public11223"
+method = "tcp"
+address = "poianalytics.mysql.rds.aliyuncs.com"
+port = "3306"
+database = "wolai"
+charset = "utf8"
+loc = "Asia%2FShanghai"
+maxIdle = 30
+maxConn = 30
+
+[redis]
+host = "121.41.108.66:"
+port = "6381"
+db = 0
+password = ""
+
+[LeanCloud]
+appId = "fyug6fiiadinzpha6nnlaajo22kam8rhba28oc9n86girasu"
+appKey = "r8pjshqr1edfvsgi0m17pq64j86pru7buae5bcw5f8yjxxbq"
+masterKey = "7e5nby4ljia5sqei97v5efvelf1a5cgplkasubm1q3gugs9u"
+
+[pingpp]
+key = "sk_live_jjrff5LmHGi94WXbHCenvzT4"
+appId = "app_ubD8a5yjT0u9aX54"
+
+[sendcloud]
+smsUser = "wolai_sms"
+templateId = "96"
+smsKey = "ngwCPEz7nuOHL6Nckr33SUWWCwbdSiJM"
+appKey = "sojxcsdu-qm4u-dmur-gsck-9911war526"
