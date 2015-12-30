@@ -8,8 +8,8 @@ import (
 
 	seelog "github.com/cihub/seelog"
 
+	"WolaiWebservice/config/params"
 	"WolaiWebservice/models"
-	"WolaiWebservice/redis"
 	"WolaiWebservice/utils/leancloud"
 )
 
@@ -26,16 +26,11 @@ func generalOrderHandler(orderId int64) {
 	orderInfo := GetOrderInfo(orderId)
 	orderByte, _ := json.Marshal(orderInfo)
 
-	orderLifespan := redis.RedisManager.GetConfig(
-		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_GI)
-	orderDispatchLimit := redis.RedisManager.GetConfig(
-		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_DISPATCH_LIMIT)
-	orderAssignCountdown := redis.RedisManager.GetConfig(
-		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN)
-	orderSessionCountdown := redis.RedisManager.GetConfig(
-		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
-	orderDispatchCountdown := redis.RedisManager.GetConfig(
-		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN)
+	orderLifespan := params.OrderLifespanGI()
+	orderDispatchLimit := params.OrderDispatchLimit()
+	orderAssignCountdown := params.OrderAssignCountdown()
+	orderSessionCountdown := params.OrderSessionCountdown()
+	orderDispatchCountdown := params.OrderDispatchCountdown()
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 	dispatchTimer := time.NewTimer(time.Second * time.Duration(orderDispatchLimit))
@@ -465,10 +460,8 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 	timestamp := time.Now().Unix()
 
 	order, _ := models.ReadOrder(orderId)
-	//teacher := models.QueryTeacher(teacherId)
 	planTime := order.Date
-	orderSessionCountdown := redis.RedisManager.GetConfig(
-		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
+	orderSessionCountdown := params.OrderSessionCountdown()
 
 	sessionInfo := models.Session{
 		OrderId:  order.Id,

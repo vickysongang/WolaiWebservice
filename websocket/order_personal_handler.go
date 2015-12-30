@@ -8,8 +8,8 @@ import (
 
 	"github.com/cihub/seelog"
 
+	"WolaiWebservice/config/params"
 	"WolaiWebservice/models"
-	"WolaiWebservice/redis"
 	"WolaiWebservice/utils/leancloud"
 )
 
@@ -27,18 +27,13 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	//studentId := order.Creator
 
 	var orderLifespan int64
-	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
-		orderLifespan = redis.RedisManager.GetConfig(
-			redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_PI)
-	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
-		orderLifespan = redis.RedisManager.GetConfig(
-			redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_LIFESPAN_PI)
+	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
+		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		orderLifespan = params.OrderLifespanPI()
 	} else {
 		return
 	}
-
-	orderSessionCountdown := redis.RedisManager.GetConfig(
-		redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
+	orderSessionCountdown := params.OrderSessionCountdown()
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 

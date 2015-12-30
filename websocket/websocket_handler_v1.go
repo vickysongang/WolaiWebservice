@@ -10,6 +10,7 @@ import (
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/websocket"
 
+	"WolaiWebservice/config/params"
 	"WolaiWebservice/logger"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
@@ -22,12 +23,11 @@ var upgrader = websocket.Upgrader{
 
 func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	// Time allowed to read the next pong message from the peer.
-	pongWaitInt := redis.RedisManager.GetConfig(redis.CONFIG_WEBSOCKET, redis.CONFIG_KEY_WEBSOCKET_PONG_WAIT)
+	pongWaitInt := params.WebsocketPongWait()
 	pongWait := time.Duration(pongWaitInt) * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriodInt := redis.RedisManager.GetConfig(redis.CONFIG_WEBSOCKET, redis.CONFIG_KEY_WEBSOCKET_PING_PERIOD)
-	//pingPeriod := time.Duration(pingPeriodInt) * time.Second
+	pingPeriodInt := params.WebsocketPingPeriod()
 
 	// 将HTTP请求升级为Websocket连接
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -284,8 +284,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		case WS_ORDER2_CREATE:
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_CREATE_RESP)
 			if err := InitOrderDispatch(msg, timestamp); err == nil {
-				orderDispatchCountdown := redis.RedisManager.GetConfig(
-					redis.CONFIG_ORDER, redis.CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN)
+				orderDispatchCountdown := params.OrderDispatchCountdown()
 				resp.Attribute["errCode"] = "0"
 				resp.Attribute["countdown"] = strconv.FormatInt(orderDispatchCountdown, 10)
 				resp.Attribute["countfrom"] = "0"
@@ -353,11 +352,11 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POIWSMessage) {
 	// Time allowed to write a message to the peer.
-	writeWaitInt := redis.RedisManager.GetConfig(redis.CONFIG_WEBSOCKET, redis.CONFIG_KEY_WEBSOCKET_WRITE_WAIT)
+	writeWaitInt := params.WebsocketWriteWait()
 	writeWait := time.Duration(writeWaitInt) * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriodInt := redis.RedisManager.GetConfig(redis.CONFIG_WEBSOCKET, redis.CONFIG_KEY_WEBSOCKET_PING_PERIOD)
+	pingPeriodInt := params.WebsocketPingPeriod()
 	pingPeriod := time.Duration(pingPeriodInt) * time.Second
 
 	// 初始化心跳计时器

@@ -6,6 +6,7 @@ import (
 
 	"github.com/cihub/seelog"
 
+	"WolaiWebservice/config/params"
 	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/logger"
 	"WolaiWebservice/models"
@@ -703,7 +704,8 @@ func CheckSessionBreak(userId int64) {
 		return
 	}
 
-	time.Sleep(30 * time.Second)
+	reconnLimit := params.SessionReconnLimit()
+	time.Sleep(time.Duration(reconnLimit) * time.Second)
 	userLoginTime := WsManager.GetUserOnlineStatus(userId)
 	breakTime2 := WsManager.GetUserOfflineStatus(userId)
 	if breakTime2 != breakTime || userLoginTime != -1 {

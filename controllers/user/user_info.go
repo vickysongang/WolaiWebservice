@@ -1,8 +1,8 @@
 package user
 
 import (
+	"WolaiWebservice/config/params"
 	"WolaiWebservice/models"
-	"WolaiWebservice/redis"
 )
 
 func GetUserInfo(userId int64) (int64, *models.User) {
@@ -40,9 +40,7 @@ func UserLaunch(userId int64, objectId, address, ip, userAgent string) (int64, i
 	models.CreateUserLoginInfo(&info)
 
 	return 0, map[string]string{
-		"websocket": redis.RedisManager.GetConfigStr(redis.CONFIG_GENERAL,
-			redis.CONFIG_KEY_GENERAL_WEBSOCKET),
-		"kamailio": redis.RedisManager.GetConfigStr(redis.CONFIG_GENERAL,
-			redis.CONFIG_KEY_GENERAL_KAMAILIO),
+		"websocket": params.WebsocketAddress(),
+		"kamailio":  params.KamailioAddress(),
 	}
 }
