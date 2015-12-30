@@ -157,10 +157,15 @@ func (osm *OrderStatusManager) SetOrderCancelled(orderId int64) error {
 
 func (osm *OrderStatusManager) SetOrderConfirm(orderId int64, teacherId int64) error {
 	teacher, _ := models.ReadTeacherProfile(teacherId)
+	tier, err := models.ReadTeacherTierHourly(teacher.TierId)
+	if err != nil {
+		tier, _ = models.ReadTeacherTierHourly(3)
+	}
+
 	orderInfo := map[string]interface{}{
 		"Status":       models.ORDER_STATUS_CONFIRMED,
-		"PriceHourly":  teacher.SalaryHourly,
-		"SalaryHourly": teacher.PriceHourly,
+		"PriceHourly":  tier.QAPriceHourly,
+		"SalaryHourly": tier.QASalaryHourly,
 	}
 	models.UpdateOrder(orderId, orderInfo)
 	return nil
