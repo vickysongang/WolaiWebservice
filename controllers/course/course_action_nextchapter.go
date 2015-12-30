@@ -48,11 +48,19 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 		if chapter.Period != latestPeriod+1 {
 			return 2, errors.New("课程信息异常")
 		}
+
+		if purchase.PurchaseStatus != models.PURCHASE_RECORD_STATUS_PAID {
+			return 2, errors.New("学生尚未完成课程支付")
+		}
+
 	} else {
 		if latestPeriod != 0 {
 			return 2, errors.New("课程信息异常")
 		}
 
+		if purchase.AuditionStatus != models.PURCHASE_RECORD_STATUS_PAID {
+			return 2, errors.New("学生尚未完成试听支付")
+		}
 	}
 
 	record := models.CourseChapterToUser{
