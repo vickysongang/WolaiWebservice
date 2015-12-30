@@ -42,7 +42,6 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 
-	//timestamp := time.Now().Unix()
 	seelog.Debug("orderHandler|HandlerInit: ", orderId)
 
 	for {
@@ -57,7 +56,6 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 
 		case msg, ok := <-orderChan:
 			if ok {
-				//timestamp = time.Now().Unix()
 				userChan := WsManager.GetUserChan(msg.UserId)
 
 				switch msg.OperationCode {
@@ -75,20 +73,17 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 				case WS_ORDER2_PERSONAL_REPLY:
 					resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
 
-					if WsManager.IsUserSessionLocked(order.Creator) &&
-						order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+					if WsManager.HasSessionWithOther(order.Creator) {
 						resp.Attribute["errCode"] = "2"
 						resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
 						userChan <- resp
 
 						OrderManager.SetOrderCancelled(orderId)
 						OrderManager.SetOffline(orderId)
-
-						//go leancloud.SendPersonalOrderAutoIgnoreNotification(order.Creator, msg.UserId)
 						return
 					}
-					if WsManager.IsUserSessionLocked(msg.UserId) &&
-						order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+
+					if WsManager.HasSessionWithOther(msg.UserId) {
 						resp.Attribute["errCode"] = "2"
 						resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
 						userChan <- resp

@@ -197,8 +197,19 @@ func generalOrderHandler(orderId int64) {
 					return
 
 				case WS_ORDER2_ACCEPT:
-					//发送反馈消息
 					acceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_ACCEPT_RESP)
+
+					if WsManager.HasSessionWithOther(order.Creator) {
+						acceptResp.Attribute["errCode"] = "2"
+						acceptResp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
+						userChan <- acceptResp
+
+						OrderManager.SetOrderCancelled(orderId)
+						OrderManager.SetOffline(orderId)
+						return
+					}
+
+					//发送反馈消息
 					acceptResp.Attribute["errCode"] = "0"
 					userChan <- acceptResp
 
