@@ -71,7 +71,7 @@ func GetUserMonitorInfo(w http.ResponseWriter, r *http.Request) {
 	users := NewPOIMonitorUsers()
 	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
 		user, _ := models.ReadUser(userId)
-		locked := websocket.WsManager.IsUserSessionLocked(userId)
+		locked := websocket.WsManager.HasSessionWithOther(userId)
 		if user.AccessRight == 2 {
 			users.OnlineTeachers = append(users.OnlineTeachers, POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
 		} else {
