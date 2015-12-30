@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
@@ -29,13 +30,19 @@ func init() {
 	runtime.GOMAXPROCS(config.Env.Server.Maxprocs)
 
 	//注册数据库
-	err = orm.RegisterDataBase("default", config.Env.Database.Type,
-		config.Env.Database.Username+":"+
-			config.Env.Database.Password+"@"+
-			config.Env.Database.Method+"("+
-			config.Env.Database.Address+":"+
-			config.Env.Database.Port+")/"+
-			config.Env.Database.Database+"?charset=utf8&loc=Asia%2FShanghai", 30)
+	dbStr := fmt.Sprintf("%s:%s@%s(%s:%s)/%s?charset=%s&loc=%s",
+		config.Env.Database.Username,
+		config.Env.Database.Password,
+		config.Env.Database.Method,
+		config.Env.Database.Address,
+		config.Env.Database.Port,
+		config.Env.Database.Database,
+		config.Env.Database.Charset,
+		config.Env.Database.Loc)
+
+	err = orm.RegisterDataBase("default", config.Env.Database.Type, dbStr,
+		config.Env.Database.MaxIdle, config.Env.Database.MaxConn)
+
 	if err != nil {
 		seelog.Critical(err.Error())
 	}
