@@ -278,6 +278,16 @@ func generalOrderHandler(orderId int64) {
 						userChan <- acceptResp
 
 					}
+					if WsManager.HasSessionWithOther(order.Creator) {
+						acceptResp.Attribute["errCode"] = "2"
+						acceptResp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
+						userChan <- acceptResp
+
+						OrderManager.SetOrderCancelled(orderId)
+						OrderManager.SetOffline(orderId)
+						return
+					}
+
 					acceptResp.Attribute["errCode"] = "0"
 					userChan <- acceptResp
 					TeacherManager.SetAssignUnlock(msg.UserId)
@@ -326,7 +336,7 @@ func assignNextTeacher(orderId int64) int64 {
 	for teacherId, _ := range TeacherManager.teacherMap {
 		if TeacherManager.IsTeacherAssignOpen(teacherId) &&
 			!TeacherManager.IsTeacherAssignLocked(teacherId) &&
-			order.Creator != teacherId && !WsManager.IsUserSessionLocked(teacherId) {
+			order.Creator != teacherId && !WsManager.HasSessionWithOther(teacherId) {
 			if err := OrderManager.SetAssignTarget(orderId, teacherId); err == nil {
 				TeacherManager.SetAssignLock(teacherId, orderId)
 				seelog.Debug("orderHandler|orderAssign: ", orderId, " to teacher: ", teacherId) // 更新老师发单记录
@@ -344,7 +354,7 @@ func dispatchNextTeacher(orderId int64) int64 {
 		//如果订单已经被派发到该老师或者该老师正在与其他学生上课，则不再给该老师派单
 		//如果当前发单的人具有导师身份，派单时则不将单子派给自己
 		if !TeacherManager.IsTeacherDispatchLocked(teacherId) &&
-			order.Creator != teacherId && !WsManager.IsUserSessionLocked(teacherId) {
+			order.Creator != teacherId && !WsManager.HasSessionWithOther(teacherId) {
 			if err := OrderManager.SetDispatchTarget(orderId, teacherId); err == nil {
 				TeacherManager.SetOrderDispatch(teacherId, orderId)
 				seelog.Debug("orderHandler|orderDispatch: ", orderId, " to Teacher: ", teacherId)
@@ -472,8 +482,12 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
-		WsManager.SetUserSessionLock(session.Creator, true, timestamp)
-		WsManager.SetUserSessionLock(session.Tutor, true, timestamp)
+
+		sessionChan := make(chan POIWSMessage)
+		WsManager.SetSessionChan(session.Id, sessionChan)
+
+		WsManager.SetSessionLive(session.Id, timestamp)
+		WsManager.SetUserSession(session.Id, session.Tutor, session.Creator)
 
 		time.Sleep(time.Second * time.Duration(orderSessionCountdown))
 		_ = InitSessionMonitor(session.Id)

@@ -44,17 +44,6 @@ func LoginByPhone(phone string) (int64, *authInfo) {
 
 	trade.HandleTradeRewardRegistration(user.Id)
 	go leancloud.SendWelcomeMessageStudent(user.Id)
-	// activities, err := models.QueryEffectiveActivities(models.REGISTER_ACTIVITY)
-	// if err == nil {
-	// 	for _, activity := range activities {
-	// 		userToActivity := models.POIUserToActivity{UserId: id, ActivityId: activity.Id}
-	// 		models.InsertUserToActivity(&userToActivity)
-	// 		trade.HandleSystemTrade(newUser.UserId, activity.Amount, models.TRADE_PROMOTION, models.TRADE_RESULT_SUCCESS, activity.Theme)
-	// 		go leancloud.SendTradeNotificationSystem(newUser.UserId, activity.Amount, leancloud.LC_TRADE_STATUS_INCOME,
-	// 			activity.Title, activity.Subtitle, activity.Extra)
-	// 		redis.RedisManager.SetActivityNotification(id, activity.Id, activity.MediaId)
-	// 	}
-	// }
 
 	return 1231, &info
 }
