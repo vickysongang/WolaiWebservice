@@ -1,8 +1,6 @@
 package config
 
 import (
-	"time"
-
 	"github.com/BurntSushi/toml"
 	"github.com/cihub/seelog"
 )
@@ -31,8 +29,9 @@ type EnvironmentConf struct {
 var Env EnvironmentConf
 
 type serverConf struct {
-	Port    string
-	RpcPort string
+	Maxprocs int
+	Port     string
+	RpcPort  string
 }
 
 type databaseConf struct {
@@ -68,19 +67,4 @@ type sendcloudConf struct {
 	TemplateId string
 	SmsKey     string
 	AppKey     string
-}
-
-// Parse duration
-type duration struct {
-	time.Duration
-}
-
-func (d *duration) UnmarshalText(text []byte) error {
-	var err error
-	d.Duration, err = time.ParseDuration(string(text))
-	if err != nil {
-		seelog.Error(string(text), " ", err.Error())
-		return err
-	}
-	return nil
 }

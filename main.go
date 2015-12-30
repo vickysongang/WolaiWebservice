@@ -6,6 +6,7 @@ import (
 	_ "net/http/pprof"
 	"net/rpc"
 	"net/rpc/jsonrpc"
+	"runtime"
 
 	"github.com/astaxie/beego/orm"
 	"github.com/cihub/seelog"
@@ -23,6 +24,9 @@ func init() {
 		panic(err)
 	}
 	seelog.ReplaceLogger(logger)
+
+	//针对Golang 1.5以后版本，设置最大核数
+	runtime.GOMAXPROCS(config.Env.Server.Maxprocs)
 
 	//注册数据库
 	err = orm.RegisterDataBase("default", config.Env.Database.Type,
