@@ -88,7 +88,8 @@ func GetTeacherCourseList(teacherId, page, count int64) (int64, []*teacherCourse
 	courseList := make([]*teacherCourseInfo, 0)
 
 	var teacherCourses []*models.CourseToTeacher
-	o.QueryTable("course_to_teachers").Filter("user_id", teacherId).Limit(10).All(&teacherCourses)
+	o.QueryTable("course_to_teachers").Filter("user_id", teacherId).
+		Offset(page * count).Limit(count).All(&teacherCourses)
 
 	for _, teacherCourse := range teacherCourses {
 		studentCount, _ := o.QueryTable("course_purchase_record").Filter("course_id", teacherCourse.CourseId).Count()
