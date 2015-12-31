@@ -3,6 +3,7 @@
 title = "POIWolaiWebService Develop Env"
 
 [server]
+live = 0
 maxprocs = 1
 port = ":8080"
 rpcPort = ":8081"
@@ -41,3 +42,4 @@ smsUser = "wolai_sms"
 templateId = "96"
 smsKey = "ngwCPEz7nuOHL6Nckr33SUWWCwbdSiJM"
 appKey = "sojxcsdu-qm4u-dmur-gsck-9911war526"
+iosPush = "dev"
