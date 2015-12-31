@@ -68,10 +68,11 @@ func main() {
 
 	go startRpcServer()
 
-	//pprof server
-	go func() {
-		seelog.Critical(http.ListenAndServe(":6060", nil))
-	}()
+	if config.Env.Server.Live != 1 {
+		go func() {
+			seelog.Critical(http.ListenAndServe(":6060", nil))
+		}()
+	}
 
 	router := routers.NewRouter()
 	seelog.Critical(http.ListenAndServe(config.Env.Server.Port, router))

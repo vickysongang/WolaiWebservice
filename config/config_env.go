@@ -29,6 +29,7 @@ type EnvironmentConf struct {
 var Env EnvironmentConf
 
 type serverConf struct {
+	Live     int
 	Maxprocs int
 	Port     string
 	RpcPort  string
@@ -71,4 +72,5 @@ type sendcloudConf struct {
 	TemplateId string
 	SmsKey     string
 	AppKey     string
+	IosPush    string
 }

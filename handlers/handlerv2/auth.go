@@ -7,6 +7,7 @@ import (
 
 	"github.com/cihub/seelog"
 
+	"WolaiWebservice/config"
 	authController "WolaiWebservice/controllers/auth"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/redis"
@@ -69,7 +70,7 @@ func AuthPhoneLogin(w http.ResponseWriter, r *http.Request) {
 	phone := vars["phone"][0]
 	randCode := vars["randCode"][0]
 
-	if randCode != "6666" {
+	if config.Env.Server.Live == 1 {
 		rc, timestamp := redis.RedisManager.GetSendcloudRandCode(phone)
 		if randCode != rc {
 			json.NewEncoder(w).Encode(response.NewResponse(2, "验证码不匹配", response.NullObject))
@@ -78,6 +79,8 @@ func AuthPhoneLogin(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(response.NewResponse(2, "验证码已失效", response.NullObject))
 			return
 		}
+	} else if randCode != "6666" {
+		return
 	}
 
 	status, content := authController.LoginByPhone(phone)

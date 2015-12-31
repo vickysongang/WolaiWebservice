@@ -58,7 +58,7 @@ func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface
 				"countdown": "10",
 			},
 		},
-		"prod": "dev",
+		"prod": config.Env.SendCloud.IosPush,
 	}
 
 	return &lcReq
@@ -97,7 +97,7 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 				"action": "com.poi.ORDER_REMINDER",
 			},
 		},
-		"prod": "dev",
+		"prod": config.Env.SendCloud.IosPush,
 	}
 
 	return &lcReq
@@ -136,7 +136,7 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 				"action": "com.poi.POINT_TO_POINT_ORDER",
 			},
 		},
-		"prod": "dev",
+		"prod": config.Env.SendCloud.IosPush,
 	}
 
 	return &lcReq
@@ -159,7 +159,7 @@ func NewAdvPushReq(titleStr string) *map[string]interface{} {
 				"action": "com.poi.AD_REQUEST",
 			},
 		},
-		"prod": "dev",
+		"prod": config.Env.SendCloud.IosPush,
 	}
 
 	return &lcReq

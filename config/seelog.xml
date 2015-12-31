@@ -1,0 +1,52 @@
+<seelog type="asynctimer" asyncinterval="5000000" minlevel="trace" maxlevel="critical">
+  <exceptions>
+    <exception filepattern="*main.go" minlevel="debug"/>
+  </exceptions>
+  <outputs>
+    <console formatid="colored"/>
+    <filter levels="trace">
+      <buffered size="10000" flushperiod="1000" formatid="tracelog">
+	      <rollingfile type="date" filename="/var/lib/poi/logs/webservice/trace.log" datepattern="2006.01.02" namemode="postfix"/>
+      </buffered>
+    </filter>
+    <filter levels="debug">
+      <buffered size="10000" flushperiod="1000" formatid="debuglog">
+	      <rollingfile type="date" filename="/var/lib/poi/logs/webservice/debug.log" datepattern="2006.01.02" namemode="postfix"/>
+      </buffered>
+    </filter>
+    <filter levels="info">
+      <buffered size="10000" flushperiod="1000" formatid="infolog">
+	      <rollingfile type="date" filename="/var/lib/poi/logs/webservice/info.log" datepattern="2006.01.02" namemode="postfix" />
+      </buffered>
+    </filter>
+    <filter levels="warn">
+      <buffered size="10000" flushperiod="1000" formatid="warnlog">
+	      <rollingfile type="date" filename="/var/lib/poi/logs/webservice/warn.log" datepattern="2006.01.02" namemode="postfix" />
+      </buffered>
+    </filter>
+    <filter levels="error">
+      <buffered size="10000" flushperiod="1000" formatid="errorlog">
+	      <rollingfile type="date" filename="/var/lib/poi/logs/webservice/error.log" datepattern="2006.01.02" namemode="postfix" />
+      </buffered>
+    </filter>
+    <filter levels="critical">
+      <buffered size="10000" flushperiod="1000" formatid="criticallog">
+	      <rollingfile type="date" filename="/var/lib/poi/logs/webservice/critical.log" datepattern="2006.01.02" namemode="postfix" />
+      </buffered>
+      <smtp formatid="criticalemail" senderaddress="server-alert@wolai.me" sendername="Automatic notification service" hostname="smtp.mxhichina.com" hostport="25" username="server-alert@wolai.me" password="Webservice11223">
+        <recipient address="server@wolai.me"/>
+      </smtp>
+    </filter>
+  </outputs>
+  <formats>
+    <format id="colored" format="%Date %Time [%Level]  %File %Line %Msg%n"/>
+    <format id="tracelog" format="%Date %Time [%Level] %File %Line %Msg%n"/>
+    <format id="debuglog" format="%Date %Time [%Level] %File %Line %Msg%n"/>
+    <format id="infolog" format="%Date %Time [%Level] %Msg%n"/>
+    <format id="warnlog" format="%Date %Time [%Level] %File %Line %Msg%n"/>
+    <format id="errorlog" format="%Date %Time [%Level] %File %Line %Msg%n"/>
+    <format id="criticallog" format="%Date %Time [%Level] %File %Line %Msg%n"/> 
+    <format id="criticalemail" format="Critical error on our server!\n    %Time %Date %RelFile %Func %Msg \nSent by Seelog"/>
+  </formats>
+</seelog>
+

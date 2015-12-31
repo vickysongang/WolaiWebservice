@@ -8,6 +8,7 @@ import (
 
 	"github.com/cihub/seelog"
 
+	"WolaiWebservice/config"
 	authController "WolaiWebservice/controllers/auth"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/redis"
@@ -53,7 +54,7 @@ func OauthQQRegister(w http.ResponseWriter, r *http.Request) {
 	genderStr := vars["gender"][0]
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
-	if randCode != "6666" {
+	if config.Env.Server.Live == 1 {
 		rc, timestamp := redis.RedisManager.GetSendcloudRandCode(phone)
 		if randCode != rc {
 			json.NewEncoder(w).Encode(response.NewResponse(2, "验证码不匹配", response.NullObject))
@@ -62,6 +63,8 @@ func OauthQQRegister(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(response.NewResponse(2, "验证码已失效", response.NullObject))
 			return
 		}
+	} else if randCode != "6666" {
+		return
 	}
 
 	status, content := authController.RegisterOauth(openId, phone, nickname, avatar, gender)
