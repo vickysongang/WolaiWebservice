@@ -42,7 +42,7 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 	user := models.QueryUserByPhone(phone)
 	if user != nil {
 		_, err := models.ReadUserOauth(user.Id)
-		if err != nil {
+		if err == nil {
 			return 1322, nil
 		}
 

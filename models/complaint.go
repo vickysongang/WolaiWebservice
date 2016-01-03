@@ -1,4 +1,3 @@
-// POIComplains.go
 package models
 
 import (
@@ -10,7 +9,7 @@ import (
 	"WolaiWebservice/config"
 )
 
-type POIComplaint struct {
+type Complaint struct {
 	Id         int64     `json:"id" orm:"pk"`
 	UserId     int64     `json:"userId"`
 	SessionId  int64     `json:"sessionId"`
@@ -21,41 +20,51 @@ type POIComplaint struct {
 	Suggestion string    `json:"suggestion"`
 }
 
-func (c *POIComplaint) TableName() string {
+func (c *Complaint) TableName() string {
 	return "complaint"
 }
 
 func init() {
-	orm.RegisterModel(new(POIComplaint))
+	orm.RegisterModel(new(Complaint))
 }
 
-func InsertPOIComplaint(complaint *POIComplaint) (*POIComplaint, error) {
+func InsertPOIComplaint(complaint *Complaint) (*Complaint, error) {
+	var err error
+
 	o := orm.NewOrm()
+
 	id, err := o.Insert(complaint)
 	if err != nil {
 		seelog.Error("complaint:", complaint, " ", err.Error())
 		return nil, err
 	}
 	complaint.Id = id
+
 	return complaint, nil
 }
 
 func UpdateComplaintInfo(complaintId int64, complaintInfo map[string]interface{}) error {
+	var err error
+
 	o := orm.NewOrm()
+
 	var params orm.Params = make(orm.Params)
 	for k, v := range complaintInfo {
 		params[k] = v
 	}
-	_, err := o.QueryTable("complaint").Filter("id", complaintId).Update(params)
+
+	_, err = o.QueryTable("complaint").Filter("id", complaintId).Update(params)
 	if err != nil {
 		seelog.Error("complaintId:", complaintId, " complaintInfo:", complaintInfo, " ", err.Error())
 		return err
 	}
+
 	return nil
 }
 
 func GetComplaintStatus(userId, sessionId int64) string {
 	o := orm.NewOrm()
+
 	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	status := ""
 	qb.Select("status").From("complaint").Where("user_id = ? and session_id = ?")
