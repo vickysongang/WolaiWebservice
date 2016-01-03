@@ -1,4 +1,4 @@
-package params
+package settings
 
 import (
 	"WolaiWebservice/redis"

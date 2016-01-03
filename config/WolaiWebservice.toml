@@ -27,6 +27,7 @@ host = "121.41.108.66:"
 port = "6381"
 db = 0
 password = ""
+poolSize = 500
 
 [LeanCloud]
 appId = "fyug6fiiadinzpha6nnlaajo22kam8rhba28oc9n86girasu"

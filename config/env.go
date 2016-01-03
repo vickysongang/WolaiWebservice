@@ -54,6 +54,7 @@ type redisConf struct {
 	Port     string
 	Db       int64
 	Password string
+	PoolSize int
 }
 
 type leancloudConf struct {
