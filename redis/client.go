@@ -15,7 +15,7 @@ var (
 func Initialize() error {
 	var err error
 
-	redisClient := redis.NewClient(
+	redisClient = redis.NewClient(
 		&redis.Options{
 			Addr:     config.Env.Redis.Host + config.Env.Redis.Port,
 			Password: config.Env.Redis.Password,
