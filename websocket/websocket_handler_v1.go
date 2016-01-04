@@ -185,7 +185,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
 			userChan <- resp
 			WSUserLogout(userId)
-			redis.RedisManager.RemoveUserObjectId(userId)
+			redis.RemoveUserObjectId(userId)
 			close(userChan)
 
 		// 上课相关信息，直接转发处理

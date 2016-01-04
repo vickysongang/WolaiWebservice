@@ -24,8 +24,8 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 		return nil, err
 	}
 	var feed *models.POIFeed
-	if redis.RedisManager.RedisError == nil {
-		feed = redis.RedisManager.GetFeed(feedId)
+	if redis.RedisFailErr == nil {
+		feed = redis.GetFeed(feedId)
 	} else {
 		feed, err = models.GetFeed(feedId)
 		if err != nil {
@@ -49,10 +49,10 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	}
 
 	feed.IncreaseComment()
-	if redis.RedisManager.RedisError == nil {
-		redis.RedisManager.SetFeedComment(&feedComment)
-		redis.RedisManager.PostFeedComment(&feedComment)
-		redis.RedisManager.SetFeed(feed)
+	if redis.RedisFailErr == nil {
+		redis.SetFeedComment(&feedComment)
+		redis.PostFeedComment(&feedComment)
+		redis.SetFeed(feed)
 	}
 	go leancloud.SendCommentNotification(feedComment.Id)
 

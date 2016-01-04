@@ -25,7 +25,7 @@ func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface
 		return nil
 	}
 
-	objectId := redis.RedisManager.GetUserObjectId(targetId)
+	objectId := redis.GetUserObjectId(targetId)
 	if objectId == "" {
 		return nil
 	}
@@ -71,7 +71,7 @@ func NewOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 		return nil
 	}
 
-	objectId := redis.RedisManager.GetUserObjectId(targetId)
+	objectId := redis.GetUserObjectId(targetId)
 	if objectId == "" {
 		return nil
 	}
@@ -110,7 +110,7 @@ func NewPersonalOrderPushReq(orderId, targetId int64) *map[string]interface{} {
 		return nil
 	}
 
-	objectId := redis.RedisManager.GetUserObjectId(targetId)
+	objectId := redis.GetUserObjectId(targetId)
 	if objectId == "" {
 		return nil
 	}

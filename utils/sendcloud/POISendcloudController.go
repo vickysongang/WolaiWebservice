@@ -147,20 +147,20 @@ func SMSHook(token, timestamp, signature, event string, phones string) {
 	phones = phones[1 : len(phones)-1]
 	if event == SC_SMSHOOK_DELIVEREROOR || event == SC_SMSHOOK_WORKERERROR {
 		for _, phone := range strings.Split(phones, ",") {
-			redis.RedisManager.RemoveSendcloudRandCode(phone)
+			redis.RemoveSendcloudRandCode(phone)
 		}
 	}
 }
 
 func SendMessage(phone string) error {
-	oldRandCode, timestamp := redis.RedisManager.GetSendcloudRandCode(phone)
+	oldRandCode, timestamp := redis.GetSendcloudRandCode(phone)
 	currTimeUnix := time.Now().Unix()
 	if oldRandCode != "" && (currTimeUnix-timestamp <= 60) {
 		return ErrMsgRepeatSend
 	} else {
 		newRandCode := GenerateRandCode()
 		err := SCSendMessage(phone, newRandCode)
-		redis.RedisManager.SetSendcloudRandCode(phone, newRandCode)
+		redis.SetSendcloudRandCode(phone, newRandCode)
 		return err
 	}
 	return nil

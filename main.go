@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
@@ -14,6 +15,7 @@ import (
 	"WolaiWebservice/config"
 	"WolaiWebservice/logger"
 	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 	"WolaiWebservice/routers"
 	myrpc "WolaiWebservice/rpc"
 )
@@ -25,10 +27,18 @@ func init() {
 	runtime.GOMAXPROCS(config.Env.Server.Maxprocs)
 
 	//加载seelog的配置文件，使用配置文件里的方式输出日志信息
-	logger.Initialize()
+	err = logger.Initialize()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	//注册数据库
 	err = models.Initialize()
+	if err != nil {
+		seelog.Critical(err)
+	}
+
+	err = redis.Initialize()
 	if err != nil {
 		seelog.Critical(err)
 	}

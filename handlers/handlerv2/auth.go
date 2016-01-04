@@ -47,7 +47,7 @@ func AuthPhoneSMSVerify(w http.ResponseWriter, r *http.Request) {
 	phone := vars["phone"][0]
 	randCode := vars["randCode"][0]
 
-	rc, timestamp := redis.RedisManager.GetSendcloudRandCode(phone)
+	rc, timestamp := redis.GetSendcloudRandCode(phone)
 	if randCode != rc {
 		json.NewEncoder(w).Encode(response.NewResponse(2, "验证码不匹配", response.NullObject))
 	} else if time.Now().Unix()-timestamp > 10*60 {
@@ -71,7 +71,7 @@ func AuthPhoneLogin(w http.ResponseWriter, r *http.Request) {
 	randCode := vars["randCode"][0]
 
 	if config.Env.Server.Live == 1 {
-		rc, timestamp := redis.RedisManager.GetSendcloudRandCode(phone)
+		rc, timestamp := redis.GetSendcloudRandCode(phone)
 		if randCode != rc {
 			json.NewEncoder(w).Encode(response.NewResponse(2, "验证码不匹配", response.NullObject))
 			return

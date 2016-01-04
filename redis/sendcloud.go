@@ -7,17 +7,21 @@ import (
 	"gopkg.in/redis.v3"
 )
 
-func (rm *POIRedisManager) SetSendcloudRandCode(phone string, randCode string) {
-	_ = rm.RedisClient.HSet(SC_RAND_CODE+phone, "randCode", randCode)
-	_ = rm.RedisClient.HSet(SC_RAND_CODE+phone, "timestamp", strconv.Itoa(int(time.Now().Unix())))
+const (
+	SC_RAND_CODE = "sendcloud:rand_code:"
+)
+
+func SetSendcloudRandCode(phone string, randCode string) {
+	_ = redisClient.HSet(SC_RAND_CODE+phone, "randCode", randCode)
+	_ = redisClient.HSet(SC_RAND_CODE+phone, "timestamp", strconv.Itoa(int(time.Now().Unix())))
 }
 
-func (rm *POIRedisManager) GetSendcloudRandCode(phone string) (randCode string, timestamp int64) {
-	randCode, err1 := rm.RedisClient.HGet(SC_RAND_CODE+phone, "randCode").Result()
+func GetSendcloudRandCode(phone string) (randCode string, timestamp int64) {
+	randCode, err1 := redisClient.HGet(SC_RAND_CODE+phone, "randCode").Result()
 	if err1 == redis.Nil {
 		randCode = ""
 	}
-	timestampStr, err2 := rm.RedisClient.HGet(SC_RAND_CODE+phone, "timestamp").Result()
+	timestampStr, err2 := redisClient.HGet(SC_RAND_CODE+phone, "timestamp").Result()
 	if err2 == nil {
 		timestampTmp, _ := strconv.Atoi(timestampStr)
 		timestamp = int64(timestampTmp)
@@ -25,7 +29,7 @@ func (rm *POIRedisManager) GetSendcloudRandCode(phone string) (randCode string, 
 	return
 }
 
-func (rm *POIRedisManager) RemoveSendcloudRandCode(phone string) {
-	rm.RedisClient.HDel(SC_RAND_CODE+phone, "randCode")
-	rm.RedisClient.HDel(SC_RAND_CODE+phone, "timestamp")
+func RemoveSendcloudRandCode(phone string) {
+	redisClient.HDel(SC_RAND_CODE+phone, "randCode")
+	redisClient.HDel(SC_RAND_CODE+phone, "timestamp")
 }

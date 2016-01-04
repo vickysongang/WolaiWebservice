@@ -97,7 +97,7 @@ func SessionSeekHelp(w http.ResponseWriter, r *http.Request) {
 	//// TODO
 	_ = userId
 	convId := vars["convId"][0]
-	redis.RedisManager.SetSeekHelp(time.Now().Unix(), convId)
+	redis.SetSeekHelp(time.Now().Unix(), convId)
 
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }

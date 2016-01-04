@@ -57,9 +57,9 @@ func SendWelcomeMessageStudent(userId int64) {
 func SendCommentNotification(feedCommentId string) {
 	var feedComment *models.POIFeedComment
 	var feed *models.POIFeed
-	if redis.RedisManager.RedisError == nil {
-		feedComment = redis.RedisManager.GetFeedComment(feedCommentId)
-		feed = redis.RedisManager.GetFeed(feedComment.FeedId)
+	if redis.RedisFailErr == nil {
+		feedComment = redis.GetFeedComment(feedCommentId)
+		feed = redis.GetFeed(feedComment.FeedId)
 	} else {
 		feedComment, _ = models.GetFeedComment(feedCommentId)
 		feed, _ = models.GetFeed(feedComment.FeedId)
@@ -105,8 +105,8 @@ func SendCommentNotification(feedCommentId string) {
 func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 	user, _ := models.ReadUser(userId)
 	var feed *models.POIFeed
-	if redis.RedisManager.RedisError == nil {
-		feed = redis.RedisManager.GetFeed(feedId)
+	if redis.RedisFailErr == nil {
+		feed = redis.GetFeed(feedId)
 	} else {
 		feed, _ = models.GetFeed(feedId)
 	}
