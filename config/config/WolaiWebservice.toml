@@ -29,7 +29,14 @@ db = 0
 password = ""
 poolSize = 500
 
-[LeanCloud]
+[keyfile]
+private = "/var/lib/poi/keys/webservice.key"
+public = "/var/lib/poi/keys/webservice.pub"
+
+[seelog]
+config = "/var/lib/poi/logs/config/seelog.xml"
+
+[leanCloud]
 appId = "fyug6fiiadinzpha6nnlaajo22kam8rhba28oc9n86girasu"
 appKey = "r8pjshqr1edfvsgi0m17pq64j86pru7buae5bcw5f8yjxxbq"
 masterKey = "7e5nby4ljia5sqei97v5efvelf1a5cgplkasubm1q3gugs9u"

@@ -2,16 +2,14 @@ package logger
 
 import (
 	"github.com/cihub/seelog"
-)
 
-const (
-	PATH = "/var/lib/poi/logs/config/seelog.xml"
+	"WolaiWebservice/config"
 )
 
 func Initialize() error {
 	var err error
 
-	logger, err := seelog.LoggerFromConfigAsFile("/var/lib/poi/logs/config/seelog.xml")
+	logger, err := seelog.LoggerFromConfigAsFile(config.Env.Seelog.Config)
 	if err != nil {
 		return err
 	}
