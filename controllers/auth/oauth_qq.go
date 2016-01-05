@@ -9,10 +9,12 @@ import (
 )
 
 func LoginOauth(openId string) (int64, *authInfo) {
+	var err error
+
 	o := orm.NewOrm()
 
 	var userOauth models.UserOauth
-	err := o.QueryTable("user_oauth").Filter("open_id_qq", openId).One(&userOauth)
+	err = o.QueryTable("user_oauth").Filter("open_id_qq", openId).One(&userOauth)
 	if err != nil {
 		return 1311, nil
 	}
@@ -26,19 +28,17 @@ func LoginOauth(openId string) (int64, *authInfo) {
 		UpdateTeacherStatusAfterLogin(user)
 	}
 
-	info := authInfo{
-		Id:          user.Id,
-		Nickname:    user.Nickname,
-		Avatar:      user.Avatar,
-		Gender:      user.Gender,
-		AccessRight: user.AccessRight,
-		Token:       "thisisjustatokenfortestitisnotrealforgodsake",
+	info, err := generateAuthInfo(user.Id)
+	if err != nil {
+		return 2, nil
 	}
 
-	return 0, &info
+	return 0, info
 }
 
 func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64, *authInfo) {
+	var err error
+
 	user := models.QueryUserByPhone(phone)
 	if user != nil {
 		_, err := models.ReadUserOauth(user.Id)
@@ -59,16 +59,12 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 			return 2, nil
 		}
 
-		info := authInfo{
-			Id:          user.Id,
-			Nickname:    user.Nickname,
-			Avatar:      user.Avatar,
-			Gender:      user.Gender,
-			AccessRight: user.AccessRight,
-			Token:       "thisisjustatokenfortestitisnotrealforgodsake",
+		info, err := generateAuthInfo(user.Id)
+		if err != nil {
+			return 2, nil
 		}
 
-		return 0, &info
+		return 0, info
 	}
 
 	newUser := models.User{
@@ -78,7 +74,8 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 		Gender:      gender,
 		AccessRight: models.USER_ACCESSRIGHT_STUDENT,
 	}
-	user, err := models.CreateUser(&newUser)
+
+	user, err = models.CreateUser(&newUser)
 	if err != nil {
 		return 2, nil
 	}
@@ -92,17 +89,13 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 		return 2, nil
 	}
 
-	info := authInfo{
-		Id:          user.Id,
-		Nickname:    user.Nickname,
-		Avatar:      user.Avatar,
-		Gender:      user.Gender,
-		AccessRight: user.AccessRight,
-		Token:       "thisisjustatokenfortestitisnotrealforgodsake",
+	info, err := generateAuthInfo(user.Id)
+	if err != nil {
+		return 2, nil
 	}
 
 	trade.HandleTradeRewardRegistration(user.Id)
 	go leancloud.SendWelcomeMessageStudent(user.Id)
 
-	return 1321, &info
+	return 1321, info
 }

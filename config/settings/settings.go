@@ -63,3 +63,8 @@ func KamailioAddress() string {
 	return redis.GetConfigStr(redis.CONFIG_GENERAL,
 		redis.CONFIG_KEY_GENERAL_KAMAILIO)
 }
+
+func TokenDuration() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_TOKEN,
+		redis.CONFIG_KEY_TOKEN_DURATION)
+}

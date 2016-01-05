@@ -27,6 +27,9 @@ const (
 	CONFIG_KEY_WEBSOCKET_PING_PERIOD = "ping_period"
 	CONFIG_KEY_WEBSOCKET_PONG_WAIT   = "pong_wait"
 	CONFIG_KEY_WEBSOCKET_WRITE_WAIT  = "write_wait"
+
+	CONFIG_TOKEN              = "config:token"
+	CONFIG_KEY_TOKEN_DURATION = "duration"
 )
 
 var defaultMap = map[string]map[string]string{
@@ -50,6 +53,9 @@ var defaultMap = map[string]map[string]string{
 	CONFIG_GENERAL: map[string]string{
 		CONFIG_KEY_GENERAL_WEBSOCKET: "115.29.207.236:8080/v1/ws",
 		CONFIG_KEY_GENERAL_KAMAILIO:  "115.29.207.236:5060",
+	},
+	CONFIG_TOKEN: map[string]string{
+		CONFIG_KEY_TOKEN_DURATION: "720",
 	},
 }
 

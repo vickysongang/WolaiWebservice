@@ -64,4 +64,18 @@ var miscRoutes = route.Routes{
 		"/subject/list",
 		handlerv2.SubjectList,
 	},
+
+	route.Route{
+		"Dummy2",
+		"GET",
+		"/dummy2",
+		handlerv2.Dummy2,
+	},
+
+	route.Route{
+		"Dummy3",
+		"GET",
+		"/dummy3",
+		handlerv2.Dummy3,
+	},
 }
