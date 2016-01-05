@@ -9,14 +9,14 @@ import (
 type Session struct {
 	Id         int64     `json:"id" orm:"column(id);pk"`
 	OrderId    int64     `json:"orderId" orm:"column(order_id)"`
-	Creator    int64     `json:"creator" orm:"column(creator)"`
-	Tutor      int64     `json:"tutor" orm:"column(tutor)"`
-	CreateTime time.Time `json:"createTime" orm:"column(create_time);type(datetime);auto_now_add"`
-	PlanTime   string    `json:"planTime" orm:"column(plan_time)"`
+	Creator    int64     `json:"-" orm:"column(creator)"`
+	Tutor      int64     `json:"-" orm:"column(tutor)"`
+	CreateTime time.Time `json:"-" orm:"column(create_time);type(datetime);auto_now_add"`
+	PlanTime   string    `json:"-" orm:"column(plan_time)"`
 	TimeFrom   time.Time `json:"timeFrom" orm:"column(time_from);type(datetime);null"`
 	TimeTo     time.Time `json:"timeTo" orm:"column(time_to);type(datetime);null"`
 	Length     int64     `json:"length" orm:"column(length)"`
-	Status     string    `json:"-" orm:"column(status)"`
+	Status     string    `json:"status" orm:"column(status)"`
 	Rating     int64     `json:"-" orm:"column(rating)"`
 	Comment    string    `json:"-" orm:"column(comment)"`
 }
