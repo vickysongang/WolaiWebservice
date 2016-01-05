@@ -14,7 +14,7 @@ type authInfo struct {
 	Token       string `json:"token"`
 }
 
-func generateAuthInfo(userId int64) (*authInfo, error) {
+func GenerateAuthInfo(userId int64) (*authInfo, error) {
 	var err error
 
 	user, err := models.ReadUser(userId)

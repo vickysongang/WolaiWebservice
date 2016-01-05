@@ -13,7 +13,7 @@ func LoginByPhone(phone string) (int64, *authInfo) {
 
 	user := models.QueryUserByPhone(phone)
 	if user != nil {
-		info, err := generateAuthInfo(user.Id)
+		info, err := GenerateAuthInfo(user.Id)
 		if err != nil {
 			return 2, nil
 		}
@@ -34,7 +34,7 @@ func LoginByPhone(phone string) (int64, *authInfo) {
 		return 2, nil
 	}
 
-	info, err := generateAuthInfo(user.Id)
+	info, err := GenerateAuthInfo(user.Id)
 	if err != nil {
 		return 2, nil
 	}

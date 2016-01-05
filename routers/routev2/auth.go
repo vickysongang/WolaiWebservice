@@ -60,6 +60,14 @@ var authRoutes = route.Routes{
 		handlerv2.Logout,
 	},
 
+	// 1.1.6
+	route.Route{
+		"TokenRefresh",
+		"POST",
+		"/token/refresh",
+		handlerv2.TokenRefresh,
+	},
+
 	// 1.2.1
 	route.Route{
 		"SendSMSCode",

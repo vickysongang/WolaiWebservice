@@ -28,7 +28,7 @@ func LoginOauth(openId string) (int64, *authInfo) {
 		UpdateTeacherStatusAfterLogin(user)
 	}
 
-	info, err := generateAuthInfo(user.Id)
+	info, err := GenerateAuthInfo(user.Id)
 	if err != nil {
 		return 2, nil
 	}
@@ -59,7 +59,7 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 			return 2, nil
 		}
 
-		info, err := generateAuthInfo(user.Id)
+		info, err := GenerateAuthInfo(user.Id)
 		if err != nil {
 			return 2, nil
 		}
@@ -89,7 +89,7 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 		return 2, nil
 	}
 
-	info, err := generateAuthInfo(user.Id)
+	info, err := GenerateAuthInfo(user.Id)
 	if err != nil {
 		return 2, nil
 	}
