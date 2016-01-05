@@ -52,6 +52,14 @@ var authRoutes = route.Routes{
 		handlerv2.Dummy,
 	},
 
+	// 1.1.5
+	route.Route{
+		"Logout",
+		"POST",
+		"/logout",
+		handlerv2.Logout,
+	},
+
 	// 1.2.1
 	route.Route{
 		"SendSMSCode",

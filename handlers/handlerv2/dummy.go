@@ -62,12 +62,10 @@ func Dummy3(w http.ResponseWriter, r *http.Request) {
 	manager := token.GetTokenManager()
 	err = manager.TokenAuthenticate(userId, tokenString)
 
-	var status int64
-	var errMsg string
 	if err != nil {
-		status = 2
-		errMsg = err.Error()
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
 	}
 
-	json.NewEncoder(w).Encode(response.NewResponse(status, errMsg, response.NullObject))
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
