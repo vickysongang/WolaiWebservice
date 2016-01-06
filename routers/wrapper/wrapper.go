@@ -15,9 +15,10 @@ import (
 func HandlerWrapper(inner http.Handler, name string, logFlag bool, authFlag bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var userId int64
+		var success bool
 
 		if authFlag {
-			userId, success := authenticate(r)
+			userId, success = authenticate(r)
 
 			if !success {
 				http.Error(w,
