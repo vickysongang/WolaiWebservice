@@ -21,6 +21,8 @@ type EnvironmentConf struct {
 	Server    serverConf
 	Database  databaseConf
 	Redis     redisConf
+	Keyfile   keyfileConf
+	Seelog    seelogConf
 	LeanCloud leancloudConf
 	Pingpp    pingppConf
 	SendCloud sendcloudConf
@@ -54,6 +56,16 @@ type redisConf struct {
 	Port     string
 	Db       int64
 	Password string
+	PoolSize int
+}
+
+type keyfileConf struct {
+	Private string
+	Public  string
+}
+
+type seelogConf struct {
+	Config string
 }
 
 type leancloudConf struct {

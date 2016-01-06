@@ -57,9 +57,9 @@ func SendWelcomeMessageStudent(userId int64) {
 func SendCommentNotification(feedCommentId string) {
 	var feedComment *models.POIFeedComment
 	var feed *models.POIFeed
-	if redis.RedisManager.RedisError == nil {
-		feedComment = redis.RedisManager.GetFeedComment(feedCommentId)
-		feed = redis.RedisManager.GetFeed(feedComment.FeedId)
+	if redis.RedisFailErr == nil {
+		feedComment = redis.GetFeedComment(feedCommentId)
+		feed = redis.GetFeed(feedComment.FeedId)
 	} else {
 		feedComment, _ = models.GetFeedComment(feedCommentId)
 		feed, _ = models.GetFeed(feedComment.FeedId)
@@ -105,8 +105,8 @@ func SendCommentNotification(feedCommentId string) {
 func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 	user, _ := models.ReadUser(userId)
 	var feed *models.POIFeed
-	if redis.RedisManager.RedisError == nil {
-		feed = redis.RedisManager.GetFeed(feedId)
+	if redis.RedisFailErr == nil {
+		feed = redis.GetFeed(feedId)
 	} else {
 		feed, _ = models.GetFeed(feedId)
 	}
@@ -308,7 +308,7 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("%s：%s %.2f 元", comment, signStr, amount))
 
 	case models.TRADE_REWARD_REGISTRATION:
-		msg.subtitle = fmt.Sprintf("亲爱的%s%s，欢迎注册我来。", user.Nickname, suffix)
+		msg.subtitle = fmt.Sprintf("亲爱的%s，欢迎注册我来。", suffix)
 		msg.body = append(msg.body,
 			fmt.Sprintf("新人红包：%s %.2f 元", signStr, amount))
 
@@ -611,4 +611,42 @@ func SendOrderPersonalTutorExpireMsg(orderId int64) {
 	}
 
 	LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, order.TeacherId, &lcTMsg)
+}
+
+func SendCourseChapterCompleteMsg(purchaseId, chapterId int64) {
+	var err error
+
+	purchase, err := models.ReadCoursePurchaseRecord(purchaseId)
+	if err != nil {
+		return
+	}
+
+	course, err := models.ReadCourse(purchase.CourseId)
+	if err != nil {
+		return
+	}
+
+	chapter, err := models.ReadCourseChapter(chapterId)
+	if err != nil {
+		return
+	}
+
+	if chapter.CourseId != course.Id {
+		return
+	}
+
+	text := fmt.Sprintf("%s\n第%d课时 %s\n导师标记该课时已完成",
+		course.Name,
+		chapter.Period, chapter.Title)
+
+	attr := make(map[string]string)
+	attr["accessRight"] = "[3]"
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SYSTEM,
+		Text:      text,
+		Attribute: attr,
+	}
+
+	LCSendSystemMessage(USER_SYSTEM_MESSAGE, purchase.UserId, purchase.TeacherId, &lcTMsg)
 }

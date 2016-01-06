@@ -8,7 +8,7 @@ import (
 
 	"github.com/cihub/seelog"
 
-	"WolaiWebservice/config/params"
+	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/leancloud"
 )
@@ -29,11 +29,11 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	var orderLifespan int64
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
-		orderLifespan = params.OrderLifespanPI()
+		orderLifespan = settings.OrderLifespanPI()
 	} else {
 		return
 	}
-	orderSessionCountdown := params.OrderSessionCountdown()
+	orderSessionCountdown := settings.OrderSessionCountdown()
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 

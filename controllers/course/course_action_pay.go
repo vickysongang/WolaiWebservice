@@ -5,8 +5,8 @@ import (
 
 	"github.com/astaxie/beego/orm"
 
-	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/trade"
 )
 
 func HandleCourseActionPay(userId int64, courseId int64, payType string) (int64, error) {
@@ -41,7 +41,6 @@ func HandleCourseActionPay(userId int64, courseId int64, payType string) (int64,
 
 		recordInfo := map[string]interface{}{
 			"audition_status": models.PURCHASE_RECORD_STATUS_PAID,
-			//"last_update_time": "NOW()",
 		}
 
 		record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
@@ -61,7 +60,6 @@ func HandleCourseActionPay(userId int64, courseId int64, payType string) (int64,
 
 		recordInfo := map[string]interface{}{
 			"purchase_status": models.PURCHASE_RECORD_STATUS_PAID,
-			//"last_update_time": "NOW()",
 		}
 
 		if record.AuditionStatus == models.PURCHASE_RECORD_STATUS_IDLE ||

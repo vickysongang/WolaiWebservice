@@ -9,14 +9,22 @@ import (
 	"WolaiWebservice/models"
 )
 
-func (rm *POIRedisManager) GetFeedComment(feedCommentId string) *models.POIFeedComment {
-	if !rm.RedisClient.HExists(CACHE_FEEDCOMMENT+feedCommentId, "id").Val() {
+const (
+	CACHE_FEEDCOMMENT = "cache:feed_comment:"
+
+	FEED_COMMENT_LIKE = "comment:like:"
+
+	USER_FEED_COMMENT = "user:feed_comment:"
+)
+
+func GetFeedComment(feedCommentId string) *models.POIFeedComment {
+	if !redisClient.HExists(CACHE_FEEDCOMMENT+feedCommentId, "id").Val() {
 		return nil
 	}
 
 	feedComment := models.NewPOIFeedComment()
 
-	hashMap := rm.RedisClient.HGetAllMap(CACHE_FEEDCOMMENT + feedCommentId).Val()
+	hashMap := redisClient.HGetAllMap(CACHE_FEEDCOMMENT + feedCommentId).Val()
 
 	feedComment.Id = hashMap["id"]
 	feedComment.FeedId = hashMap["feed_id"]
@@ -41,26 +49,26 @@ func (rm *POIRedisManager) GetFeedComment(feedCommentId string) *models.POIFeedC
 	return &feedComment
 }
 
-func (rm *POIRedisManager) SetFeedComment(feedComment *models.POIFeedComment) {
-	_ = rm.RedisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "id", feedComment.Id)
-	_ = rm.RedisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "feed_id", feedComment.FeedId)
-	_ = rm.RedisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "creator_id", strconv.FormatInt(feedComment.Creator.Id, 10))
-	_ = rm.RedisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "create_timestamp", strconv.FormatFloat(feedComment.CreateTimestamp, 'f', 6, 64))
-	_ = rm.RedisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "text", feedComment.Text)
+func SetFeedComment(feedComment *models.POIFeedComment) {
+	_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "id", feedComment.Id)
+	_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "feed_id", feedComment.FeedId)
+	_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "creator_id", strconv.FormatInt(feedComment.Creator.Id, 10))
+	_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "create_timestamp", strconv.FormatFloat(feedComment.CreateTimestamp, 'f', 6, 64))
+	_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "text", feedComment.Text)
 
 	tmpBytes, _ := json.Marshal(feedComment.ImageList)
-	_ = rm.RedisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "image_list", string(tmpBytes))
+	_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "image_list", string(tmpBytes))
 
 	if feedComment.ReplyTo != nil {
-		_ = rm.RedisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "reply_to_user_id", strconv.FormatInt(feedComment.ReplyTo.Id, 10))
+		_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "reply_to_user_id", strconv.FormatInt(feedComment.ReplyTo.Id, 10))
 	} else {
-		_ = rm.RedisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "reply_to_user_id", "")
+		_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "reply_to_user_id", "")
 	}
 
-	_ = rm.RedisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "like_count", strconv.FormatInt(feedComment.LikeCount, 10))
+	_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "like_count", strconv.FormatInt(feedComment.LikeCount, 10))
 }
 
-func (rm *POIRedisManager) PostFeedComment(feedComment *models.POIFeedComment) {
+func PostFeedComment(feedComment *models.POIFeedComment) {
 	if feedComment == nil {
 		return
 	}
@@ -68,23 +76,23 @@ func (rm *POIRedisManager) PostFeedComment(feedComment *models.POIFeedComment) {
 	feedCommentZ := redis.Z{Member: feedComment.Id, Score: feedComment.CreateTimestamp}
 	userIdStr := strconv.FormatInt(feedComment.Creator.Id, 10)
 
-	_ = rm.RedisClient.ZAdd(FEED_COMMENT+feedComment.FeedId, feedCommentZ)
-	_ = rm.RedisClient.ZAdd(USER_FEED_COMMENT+userIdStr, feedCommentZ)
+	_ = redisClient.ZAdd(FEED_COMMENT+feedComment.FeedId, feedCommentZ)
+	_ = redisClient.ZAdd(USER_FEED_COMMENT+userIdStr, feedCommentZ)
 }
 
-func (rm *POIRedisManager) GetFeedComments(feedId string) models.POIFeedComments {
-	feedCommentZs := rm.RedisClient.ZRangeWithScores(FEED_COMMENT+feedId, 0, -1).Val()
+func GetFeedComments(feedId string) models.POIFeedComments {
+	feedCommentZs := redisClient.ZRangeWithScores(FEED_COMMENT+feedId, 0, -1).Val()
 
 	feedComments := make([]models.POIFeedComment, len(feedCommentZs))
 
 	for i := range feedCommentZs {
 		str, _ := feedCommentZs[i].Member.(string)
-		feedComments[i] = *rm.GetFeedComment(str)
+		feedComments[i] = *GetFeedComment(str)
 	}
 
 	return feedComments
 }
 
-func (rm *POIRedisManager) HasLikedFeedComment(feedComment *models.POIFeedComment, user *models.User) bool {
+func HasLikedFeedComment(feedComment *models.POIFeedComment, user *models.User) bool {
 	return false
 }

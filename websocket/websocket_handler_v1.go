@@ -10,7 +10,7 @@ import (
 	seelog "github.com/cihub/seelog"
 	"github.com/gorilla/websocket"
 
-	"WolaiWebservice/config/params"
+	"WolaiWebservice/config/settings"
 	"WolaiWebservice/logger"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
@@ -23,11 +23,11 @@ var upgrader = websocket.Upgrader{
 
 func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	// Time allowed to read the next pong message from the peer.
-	pongWaitInt := params.WebsocketPongWait()
+	pongWaitInt := settings.WebsocketPongWait()
 	pongWait := time.Duration(pongWaitInt) * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriodInt := params.WebsocketPingPeriod()
+	pingPeriodInt := settings.WebsocketPingPeriod()
 
 	// 将HTTP请求升级为Websocket连接
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -185,7 +185,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
 			userChan <- resp
 			WSUserLogout(userId)
-			redis.RedisManager.RemoveUserObjectId(userId)
+			redis.RemoveUserObjectId(userId)
 			close(userChan)
 
 		// 上课相关信息，直接转发处理
@@ -284,7 +284,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		case WS_ORDER2_CREATE:
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_CREATE_RESP)
 			if err := InitOrderDispatch(msg, timestamp); err == nil {
-				orderDispatchCountdown := params.OrderDispatchCountdown()
+				orderDispatchCountdown := settings.OrderDispatchCountdown()
 				resp.Attribute["errCode"] = "0"
 				resp.Attribute["countdown"] = strconv.FormatInt(orderDispatchCountdown, 10)
 				resp.Attribute["countfrom"] = "0"
@@ -352,11 +352,11 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POIWSMessage) {
 	// Time allowed to write a message to the peer.
-	writeWaitInt := params.WebsocketWriteWait()
+	writeWaitInt := settings.WebsocketWriteWait()
 	writeWait := time.Duration(writeWaitInt) * time.Second
 
 	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriodInt := params.WebsocketPingPeriod()
+	pingPeriodInt := settings.WebsocketPingPeriod()
 	pingPeriod := time.Duration(pingPeriodInt) * time.Second
 
 	// 初始化心跳计时器

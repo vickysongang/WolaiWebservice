@@ -14,7 +14,7 @@ func attachOauthRoute(router *mux.Router) {
 			Methods(r.Method).
 			Path(r.Pattern).
 			Name(r.Name).
-			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name))
+			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
 	}
 }
 
@@ -26,6 +26,8 @@ var oauthRoutes = route.Routes{
 		"POST",
 		"/qq/login",
 		handlerv2.OauthQQLogin,
+		true,
+		false,
 	},
 
 	// 1.3.2
@@ -34,6 +36,8 @@ var oauthRoutes = route.Routes{
 		"POST",
 		"/qq/register",
 		handlerv2.OauthQQRegister,
+		true,
+		false,
 	},
 
 	// 1.3.3
@@ -42,6 +46,8 @@ var oauthRoutes = route.Routes{
 		"POST",
 		"/qq/bind",
 		handlerv2.Dummy,
+		false,
+		false,
 	},
 
 	// 1.3.4
@@ -50,5 +56,7 @@ var oauthRoutes = route.Routes{
 		"POST",
 		"/qq/unbind",
 		handlerv2.Dummy,
+		false,
+		false,
 	},
 }

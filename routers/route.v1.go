@@ -12,5 +12,7 @@ var routesV1 = route.Routes{
 		"GET",
 		"/v1/ws",
 		websocket.V1WebSocketHandler,
+		false,
+		false,
 	},
 }

@@ -1,11 +1,13 @@
 package pingxx
 
 import (
-	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/trade"
 )
 
 func ChargeSuccessEvent(chargeId string) {
+	var err error
+
 	recordInfo := map[string]interface{}{
 		"Result": "success",
 	}
@@ -16,9 +18,11 @@ func ChargeSuccessEvent(chargeId string) {
 		return
 	}
 
+	premium, err := trade.GetChargePremuim(record.UserId, int64(record.Amount))
 	trade.HandleTradeCharge(record.Id)
-	//_ = models.QueryUserByPhone(record.Phone)
-	//trade.HandleSystemTrade(user.Id, int64(record.Amount), models.TRADE_CHARGE, "S", "官网扫码充值")
+	if premium > 0 {
+		trade.HandleTradeChargePremium(record.Id, premium, "")
+	}
 }
 
 func RefundSuccessEvent(chargeId string, refundId string) {
@@ -29,5 +33,4 @@ func RefundSuccessEvent(chargeId string, refundId string) {
 	models.UpdatePingppRecord(chargeId, recordInfo)
 	record, _ := models.QueryPingppRecordByChargeId(chargeId)
 	_ = models.QueryUserByPhone(record.Phone)
-	//trade.HandleSystemTrade(user.Id, int64(record.Amount), models.TRADE_WITHDRAW, "S", "用户申请退款")
 }

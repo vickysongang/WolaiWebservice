@@ -5,8 +5,9 @@ import (
 
 	"github.com/astaxie/beego/orm"
 
-	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/trade"
+	"WolaiWebservice/utils/leancloud"
 )
 
 func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64) (int64, error) {
@@ -75,6 +76,8 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 	if err != nil {
 		return 2, errors.New("服务器操作异常")
 	}
+
+	go leancloud.SendCourseChapterCompleteMsg(purchase.Id, chapter.Id)
 
 	chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", courseId).Count()
 

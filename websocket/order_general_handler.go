@@ -8,7 +8,7 @@ import (
 
 	seelog "github.com/cihub/seelog"
 
-	"WolaiWebservice/config/params"
+	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/leancloud"
 )
@@ -26,11 +26,11 @@ func generalOrderHandler(orderId int64) {
 	orderInfo := GetOrderInfo(orderId)
 	orderByte, _ := json.Marshal(orderInfo)
 
-	orderLifespan := params.OrderLifespanGI()
-	orderDispatchLimit := params.OrderDispatchLimit()
-	orderAssignCountdown := params.OrderAssignCountdown()
-	orderSessionCountdown := params.OrderSessionCountdown()
-	orderDispatchCountdown := params.OrderDispatchCountdown()
+	orderLifespan := settings.OrderLifespanGI()
+	orderDispatchLimit := settings.OrderDispatchLimit()
+	orderAssignCountdown := settings.OrderAssignCountdown()
+	orderSessionCountdown := settings.OrderSessionCountdown()
+	orderDispatchCountdown := settings.OrderDispatchCountdown()
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 	dispatchTimer := time.NewTimer(time.Second * time.Duration(orderDispatchLimit))
@@ -461,7 +461,7 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 
 	order, _ := models.ReadOrder(orderId)
 	planTime := order.Date
-	orderSessionCountdown := params.OrderSessionCountdown()
+	orderSessionCountdown := settings.OrderSessionCountdown()
 
 	sessionInfo := models.Session{
 		OrderId:  order.Id,
