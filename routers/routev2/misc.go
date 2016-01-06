@@ -63,7 +63,7 @@ var miscRoutes = route.Routes{
 		"POST",
 		"/grade/list",
 		handlerv2.GradeList,
-		true,
+		false,
 		false,
 	},
 
@@ -73,7 +73,7 @@ var miscRoutes = route.Routes{
 		"POST",
 		"/subject/list",
 		handlerv2.SubjectList,
-		true,
+		false,
 		false,
 	},
 
