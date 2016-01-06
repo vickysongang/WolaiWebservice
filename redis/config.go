@@ -55,7 +55,7 @@ var defaultMap = map[string]map[string]string{
 		CONFIG_KEY_GENERAL_KAMAILIO:  "115.29.207.236:5060",
 	},
 	CONFIG_TOKEN: map[string]string{
-		CONFIG_KEY_TOKEN_DURATION: "720",
+		CONFIG_KEY_TOKEN_DURATION: "2592000",
 	},
 }
 

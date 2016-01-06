@@ -7,7 +7,6 @@ import (
 	"github.com/cihub/seelog"
 
 	"WolaiWebservice/config/settings"
-	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/logger"
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/leancloud"
@@ -136,8 +135,8 @@ func POIWSSessionHandler(sessionId int64) {
 				//修改老师的辅导时长
 				models.UpdateTeacherServiceTime(session.Tutor, length)
 				session, _ = models.ReadSession(sessionId)
+
 				//课后结算，产生交易记录
-				trade.HandleTradeSession(sessionId)
 				SendSessionReport(sessionId)
 				go leancloud.SendSessionExpireMsg(sessionId)
 			}
@@ -355,7 +354,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 					//下课后结算，产生交易记录
 					session, _ = models.ReadSession(sessionId)
-					trade.HandleTradeSession(sessionId)
+
 					SendSessionReport(sessionId)
 
 					seelog.Debug("POIWSSessionHandler: session end: " + sessionIdStr)

@@ -5,8 +5,8 @@ import (
 
 	"github.com/astaxie/beego/orm"
 
-	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/trade"
 	"WolaiWebservice/utils/leancloud"
 )
 

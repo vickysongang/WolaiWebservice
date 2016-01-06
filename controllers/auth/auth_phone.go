@@ -3,8 +3,8 @@ package auth
 import (
 	"time"
 
-	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/trade"
 	"WolaiWebservice/utils/leancloud"
 )
 

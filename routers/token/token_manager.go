@@ -41,7 +41,7 @@ func (m *JWTManager) GenerateToken(userId int64) (string, error) {
 	}
 
 	token := jwt.New(jwt.SigningMethodRS512)
-	token.Claims["exp"] = time.Now().Add(time.Hour * time.Duration(settings.TokenDuration())).Unix()
+	token.Claims["exp"] = time.Now().Add(time.Second * time.Duration(settings.TokenDuration())).Unix()
 	token.Claims["iat"] = time.Now().Unix()
 	token.Claims["userId"] = strconv.FormatInt(user.Id, 10)
 	token.Claims["accessRight"] = strconv.FormatInt(user.AccessRight, 10)

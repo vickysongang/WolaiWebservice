@@ -5,6 +5,7 @@ import (
 
 	sessionController "WolaiWebservice/controllers/session"
 	"WolaiWebservice/models"
+	tradeService "WolaiWebservice/service/trade"
 	userService "WolaiWebservice/service/user"
 )
 
@@ -15,6 +16,8 @@ func SendSessionReport(sessionId int64) {
 	if err != nil {
 		return
 	}
+
+	tradeService.HandleTradeSession(sessionId)
 
 	_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
 	_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
