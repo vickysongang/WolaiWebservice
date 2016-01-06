@@ -3,8 +3,8 @@ package user
 import (
 	"github.com/astaxie/beego/orm"
 
-	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/trade"
 )
 
 func CheckUserInvitation(userId int64) (bool, error) {

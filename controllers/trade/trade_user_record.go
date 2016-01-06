@@ -8,6 +8,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/trade"
 )
 
 type tradeInfo struct {
@@ -130,42 +131,42 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 		case models.TRADE_CHARGE:
 			//学生钱包充值
 			info.Avartar = AVATAR_CHARGE
-			info.Title = COMMENT_CHARGE
+			info.Title = trade.COMMENT_CHARGE
 
 		case models.TRADE_CHARGE_PREMIUM:
 			//学生充值奖励
 			info.Avartar = AVATAR_CHARGE_PREMIUM
-			info.Title = COMMENT_CHARGE_PREMIUM
+			info.Title = trade.COMMENT_CHARGE_PREMIUM
 
 		case models.TRADE_WITHDRAW:
 			//老师钱包提现
 			info.Avartar = AVATAR_WITHDRAW
-			info.Title = COMMENT_WITHDRAW
+			info.Title = trade.COMMENT_WITHDRAW
 
 		case models.TRADE_PROMOTION:
 			//活动奖励
 			info.Avartar = AVATAR_PROMOTION
-			info.Title = COMMENT_PROMOTION
+			info.Title = trade.COMMENT_PROMOTION
 
 		case models.TRADE_VOUCHER:
 			//代金券
 			info.Avartar = AVATAR_VOUCHER
-			info.Title = COMMENT_VOUCHER
+			info.Title = trade.COMMENT_VOUCHER
 
 		case models.TRADE_DEDUCTION:
 			//老师服务扣费
 			info.Avartar = AVATAR_DEDUCTION
-			info.Title = COMMENT_DEDUCTION
+			info.Title = trade.COMMENT_DEDUCTION
 
 		case models.TRADE_REWARD_REGISTRATION:
 			//用户注册奖励
 			info.Avartar = AVATAR_REWARD_REGISTRATION
-			info.Title = COMMENT_REWARD_REGISTRATION
+			info.Title = trade.COMMENT_REWARD_REGISTRATION
 
 		case models.TRADE_REWARD_INVITATION:
 			//用户邀请奖励
 			info.Avartar = AVATAR_REWARD_INVITATION
-			info.Title = COMMENT_REWARD_INVITATION
+			info.Title = trade.COMMENT_REWARD_INVITATION
 
 		case models.TRADE_COURSE_PURCHASE:
 			//学生购买课程
@@ -180,7 +181,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 
 			info.Avartar = user.Avatar
-			info.Title = COMMENT_COURSE_PURCHASE
+			info.Title = trade.COMMENT_COURSE_PURCHASE
 
 		case models.TRADE_COURSE_AUDITION:
 			//学生购买试听
@@ -195,7 +196,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 
 			info.Avartar = user.Avatar
-			info.Title = COMMENT_COURSE_AUDITION
+			info.Title = trade.COMMENT_COURSE_AUDITION
 
 		case models.TRADE_COURSE_EARNING:
 			//老师课程收入
@@ -210,7 +211,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 
 			info.Avartar = user.Avatar
-			info.Title = COMMENT_COURSE_EARNING
+			info.Title = trade.COMMENT_COURSE_EARNING
 
 		default:
 			continue
