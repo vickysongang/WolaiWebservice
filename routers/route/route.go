@@ -9,6 +9,8 @@ type Route struct {
 	Method      string
 	Pattern     string
 	HandlerFunc http.HandlerFunc
+	LogFlag     bool
+	AuthFlag    bool
 }
 
 type Routes []Route

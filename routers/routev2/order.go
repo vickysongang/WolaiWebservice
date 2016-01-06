@@ -14,7 +14,7 @@ func attachOrderRoute(router *mux.Router) {
 			Methods(r.Method).
 			Path(r.Pattern).
 			Name(r.Name).
-			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name))
+			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
 	}
 }
 
@@ -25,6 +25,8 @@ var orderRoutes = route.Routes{
 		"POST",
 		"/create",
 		handlerv2.OrderCreate,
+		true,
+		true,
 	},
 
 	// 5.1.2
@@ -33,6 +35,8 @@ var orderRoutes = route.Routes{
 		"POST",
 		"/expectation",
 		handlerv2.OrderExpectation,
+		true,
+		true,
 	},
 
 	// 5.1.3
@@ -41,5 +45,7 @@ var orderRoutes = route.Routes{
 		"POST",
 		"/info",
 		handlerv2.OrderInfo,
+		true,
+		true,
 	},
 }

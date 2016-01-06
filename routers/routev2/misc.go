@@ -14,7 +14,7 @@ func attachMiscRoute(router *mux.Router) {
 			Methods(r.Method).
 			Path(r.Pattern).
 			Name(r.Name).
-			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name))
+			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
 	}
 }
 
@@ -25,12 +25,16 @@ var miscRoutes = route.Routes{
 		"POST",
 		"/hook/sendcloud",
 		handlerv2.HookSendcloud,
+		false,
+		false,
 	},
 	route.Route{
 		"SendCloudHookGET",
 		"GET",
 		"/hook/sendcloud",
 		handlerv2.HookSendcloud,
+		false,
+		false,
 	},
 
 	// 10.1.2
@@ -39,6 +43,8 @@ var miscRoutes = route.Routes{
 		"POST",
 		"/hook/pingpp",
 		handlerv2.HookPingpp,
+		false,
+		false,
 	},
 
 	// 10.2.1
@@ -47,6 +53,8 @@ var miscRoutes = route.Routes{
 		"POST",
 		"/help/list",
 		handlerv2.HelpList,
+		true,
+		false,
 	},
 
 	// 10.2.2
@@ -55,6 +63,8 @@ var miscRoutes = route.Routes{
 		"POST",
 		"/grade/list",
 		handlerv2.GradeList,
+		true,
+		false,
 	},
 
 	// 10.2.3
@@ -63,6 +73,8 @@ var miscRoutes = route.Routes{
 		"POST",
 		"/subject/list",
 		handlerv2.SubjectList,
+		true,
+		false,
 	},
 
 	route.Route{
@@ -70,6 +82,8 @@ var miscRoutes = route.Routes{
 		"GET",
 		"/dummy2",
 		handlerv2.Dummy2,
+		false,
+		false,
 	},
 
 	route.Route{
@@ -77,5 +91,7 @@ var miscRoutes = route.Routes{
 		"GET",
 		"/dummy3",
 		handlerv2.Dummy3,
+		false,
+		false,
 	},
 }

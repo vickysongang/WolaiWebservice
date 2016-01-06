@@ -14,7 +14,7 @@ func attachSessionRoute(router *mux.Router) {
 			Methods(r.Method).
 			Path(r.Pattern).
 			Name(r.Name).
-			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name))
+			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
 	}
 }
 
@@ -25,6 +25,8 @@ var sessionRoutes = route.Routes{
 		"POST",
 		"/info",
 		handlerv2.SessionInfo,
+		true,
+		true,
 	},
 
 	// 6.1.2
@@ -33,6 +35,8 @@ var sessionRoutes = route.Routes{
 		"POST",
 		"/user/record",
 		handlerv2.SessionUserRecord,
+		true,
+		true,
 	},
 
 	// 6.2.1
@@ -41,6 +45,8 @@ var sessionRoutes = route.Routes{
 		"POST",
 		"/seek_help",
 		handlerv2.SessionSeekHelp,
+		true,
+		true,
 	},
 
 	// 6.3.1
@@ -49,6 +55,8 @@ var sessionRoutes = route.Routes{
 		"POST",
 		"/evaluation/label/list",
 		handlerv2.SessionEvaluationLabelList,
+		true,
+		true,
 	},
 
 	// 6.3.2
@@ -57,6 +65,8 @@ var sessionRoutes = route.Routes{
 		"POST",
 		"/evaluation/label/post",
 		handlerv2.SessionEvaluationLabelPost,
+		true,
+		true,
 	},
 
 	// 6.3.3
@@ -65,6 +75,8 @@ var sessionRoutes = route.Routes{
 		"POST",
 		"/evaluation/label/result",
 		handlerv2.SessionEvaluationLabelResult,
+		true,
+		true,
 	},
 
 	// 6.4.1
@@ -73,6 +85,8 @@ var sessionRoutes = route.Routes{
 		"POST",
 		"/complain/post",
 		handlerv2.SessionComplainPost,
+		true,
+		true,
 	},
 
 	// 6.4.2
@@ -81,5 +95,7 @@ var sessionRoutes = route.Routes{
 		"POST",
 		"/complain/check",
 		handlerv2.SessionComplainCheck,
+		true,
+		true,
 	},
 }
