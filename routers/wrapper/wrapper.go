@@ -41,8 +41,8 @@ func HandlerWrapper(inner http.Handler, name string, logFlag bool, authFlag bool
 		if logFlag {
 			formData, _ := json.Marshal(r.Form)
 
-			logEntry := fmt.Sprintf("[%s]\t%s|%s|%d\t%d\t%s",
-				r.Method, r.RequestURI, name, userId, time.Since(start), string(formData))
+			logEntry := fmt.Sprintf("[%s]\t%s|%s|%d\t%s\t%s",
+				r.Method, r.RequestURI, name, userId, time.Since(start).String(), string(formData))
 			seelog.Info(logEntry)
 		}
 	})
