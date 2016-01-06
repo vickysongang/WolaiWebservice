@@ -308,7 +308,7 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("%s：%s %.2f 元", comment, signStr, amount))
 
 	case models.TRADE_REWARD_REGISTRATION:
-		msg.subtitle = fmt.Sprintf("亲爱的%s%s，欢迎注册我来。", user.Nickname, suffix)
+		msg.subtitle = fmt.Sprintf("亲爱的%s，欢迎注册我来。", suffix)
 		msg.body = append(msg.body,
 			fmt.Sprintf("新人红包：%s %.2f 元", signStr, amount))
 

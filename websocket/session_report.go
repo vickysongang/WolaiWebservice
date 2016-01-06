@@ -5,6 +5,7 @@ import (
 
 	sessionController "WolaiWebservice/controllers/session"
 	"WolaiWebservice/models"
+	userService "WolaiWebservice/service/user"
 )
 
 func SendSessionReport(sessionId int64) {
@@ -36,4 +37,6 @@ func SendSessionReport(sessionId int64) {
 		teacherChan := WsManager.GetUserChan(session.Tutor)
 		teacherChan <- teacherMsg
 	}
+
+	userService.CheckUserInvitation(session.Creator)
 }
