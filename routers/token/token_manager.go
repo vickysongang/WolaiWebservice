@@ -70,6 +70,10 @@ func (m *JWTManager) TokenAuthenticate(userId int64, tokenString string) error {
 		}
 	})
 
+	if err != nil {
+		return errors.New("非法安全令牌")
+	}
+
 	if token.Valid {
 		if tokenId, ok := token.Claims["userId"]; ok {
 			tokenIdStr, _ := tokenId.(string)
