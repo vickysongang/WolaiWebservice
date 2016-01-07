@@ -3,6 +3,10 @@ package websocket
 import (
 	"errors"
 	"time"
+
+	"github.com/cihub/seelog"
+
+	"WolaiWebservice/models"
 )
 
 type TeacherStatus struct {
@@ -14,6 +18,8 @@ type TeacherStatus struct {
 	isDispatchLocked     bool
 	currentAssign        int64
 	dispatchMap          map[int64]int64
+	subjectList          []*models.Subject
+	profile              *models.TeacherProfile
 }
 
 type TeacherStatusManager struct {
@@ -41,6 +47,8 @@ func NewTeacherStatus(teacherId int64) *TeacherStatus {
 		currentAssign:        -1,
 		dispatchMap:          make(map[int64]int64),
 	}
+
+	teacherStatus.subjectList = getTeacherSubject(teacherId)
 
 	return &teacherStatus
 }
@@ -91,6 +99,8 @@ func (tsm *TeacherStatusManager) SetOnline(userId int64) bool {
 
 	status = NewTeacherStatus(userId)
 	tsm.teacherMap[userId] = status
+
+	seelog.Debug("teacherManager|teacherOnline\t", userId)
 	return result
 }
 
@@ -100,6 +110,8 @@ func (tsm *TeacherStatusManager) SetOffline(userId int64) error {
 		return ErrTeacherOffline
 	}
 	delete(tsm.teacherMap, userId)
+
+	seelog.Debug("teacherManager|teacherOffline\t", userId)
 	return nil
 }
 
@@ -109,6 +121,8 @@ func (tsm *TeacherStatusManager) SetAssignOn(userId int64) error {
 		return ErrTeacherOffline
 	}
 	status.isAssignOpen = true
+
+	seelog.Debug("teacherManager|teacherAssignOn\t", userId)
 	return nil
 }
 
@@ -118,6 +132,8 @@ func (tsm *TeacherStatusManager) SetAssignOff(userId int64) error {
 		return ErrTeacherOffline
 	}
 	status.isAssignOpen = false
+
+	seelog.Debug("teacherManager|teacherAssignOff\t", userId)
 	return nil
 }
 
@@ -128,6 +144,8 @@ func (tsm *TeacherStatusManager) SetAssignLock(userId int64, orderId int64) erro
 	}
 	status.isAssignLocked = true
 	status.currentAssign = orderId
+
+	seelog.Debug("teacherManager|teacherAssignLock\t", userId)
 	return nil
 }
 
@@ -138,6 +156,8 @@ func (tsm *TeacherStatusManager) SetAssignUnlock(userId int64) error {
 	}
 	status.isAssignLocked = false
 	status.currentAssign = -1
+
+	seelog.Debug("teacherManager|teacherAssignUnlock\t", userId)
 	return nil
 }
 
@@ -199,4 +219,19 @@ func (tsm *TeacherStatusManager) GetAssignOnTeachers() []int64 {
 		}
 	}
 	return assignOnTeachers
+}
+
+func (tsm *TeacherStatusManager) MatchTeacherSubject(userId int64, subjectId int64) bool {
+	status, ok := tsm.teacherMap[userId]
+	if !ok {
+		return false
+	}
+
+	for _, subject := range status.subjectList {
+		if subject.Id == subjectId {
+			return true
+		}
+	}
+
+	return false
 }
