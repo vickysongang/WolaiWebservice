@@ -387,9 +387,10 @@ func dispatchNextTeacher(orderId int64) int64 {
 			continue
 		}
 
-		if !TeacherManager.MatchTeacherSubject(teacherId, order.SubjectId) {
-			continue
-		}
+		// 派发订单不考虑导师擅长科目
+		// if !TeacherManager.MatchTeacherSubject(teacherId, order.SubjectId) {
+		// 	continue
+		// }
 
 		if TeacherManager.IsTeacherDispatchLocked(teacherId) {
 			continue
