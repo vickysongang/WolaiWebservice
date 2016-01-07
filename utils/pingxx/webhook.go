@@ -1,6 +1,8 @@
 package pingxx
 
 import (
+	"github.com/astaxie/beego/orm"
+
 	"WolaiWebservice/models"
 	"WolaiWebservice/service/trade"
 )
@@ -15,6 +17,10 @@ func ChargeSuccessEvent(chargeId string) {
 	record, err := models.QueryPingppRecordByChargeId(chargeId)
 
 	if err != nil {
+		return
+	}
+
+	if checkChargeSuccessExist(record) {
 		return
 	}
 
@@ -33,4 +39,15 @@ func RefundSuccessEvent(chargeId string, refundId string) {
 	models.UpdatePingppRecord(chargeId, recordInfo)
 	record, _ := models.QueryPingppRecordByChargeId(chargeId)
 	_ = models.QueryUserByPhone(record.Phone)
+}
+
+func checkChargeSuccessExist(record *models.PingppRecord) bool {
+	o := orm.NewOrm()
+
+	exist := o.QueryTable(new(models.TradeRecord).TableName()).
+		Filter("user_id", record.UserId).
+		Filter("trade_type", models.TRADE_CHARGE).
+		Filter("pingpp_id", record.Id).Exist()
+
+	return exist
 }

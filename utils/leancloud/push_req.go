@@ -31,16 +31,7 @@ func NewSessionPushReq(sessionId, oprCode, targetId int64) *map[string]interface
 	}
 
 	title := "您有一条上课提醒"
-	// switch oprCode {
-	// case common.WS_SESSION_ALERT:
-	// 	title = "您有一个与" + creator.Nickname + "同学的预约辅导已到上课时间。请开始上课。"
-	// case common.WS_SESSION_START:
-	// 	title = tutor.Nickname + "导师向您发起上课请求。"
-	// case common.WS_SESSION_RESUME:
-	// 	title = tutor.Nickname + "导师向您发起恢复课堂请求。"
-	// case common.WS_SESSION_INSTANT_START:
-	// 	title = "您有一个立即辅导即将开始上课"
-	// }
+
 	lcReq := map[string]interface{}{
 		"where": map[string]interface{}{
 			"objectId": objectId,
@@ -178,7 +169,7 @@ func LCPushNotification(lcReq *map[string]interface{}) {
 	req.Header.Set("X-AVOSCloud-Application-Id", config.Env.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Master-Key", config.Env.LeanCloud.MasterKey)
 	req.Header.Set("Content-Type", "application/json")
-	//seelog.Info("[LeanCloud Push]:", string(query))
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
