@@ -38,7 +38,7 @@ func SendWelcomeMessageStudent(userId int64) {
 
 	msg := LCTypedMessage{
 		Type:      LC_MSG_TEXT,
-		Text:      "Hi~你终于来了，欢迎加入最温暖的“我来”学院~  ヾ(o◕∀◕)\n我来团队携手全国86所顶尖高校学霸导师，\n与你共度学习的美好时光！\n现在就回到首页去开启你的“我来奇妙之旅”吧！",
+		Text:      "Hi~你终于来了，欢迎加入最温暖的“我来”学院~\n我来团队携手全国86所顶尖高校学霸导师，\n与你共度学习的美好时光！\n现在就回到首页去开启你的“我来奇妙之旅”吧！",
 		Attribute: attr,
 	}
 	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &msg)
