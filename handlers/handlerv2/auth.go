@@ -141,6 +141,7 @@ func AuthPhoneLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if randCode != "6666" {
+		json.NewEncoder(w).Encode(response.NewResponse(2, "验证码不匹配", response.NullObject))
 		return
 	}
 
