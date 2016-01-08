@@ -35,7 +35,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	}
 
 	//如果用户已经登陆了，则先判断是否在同一设备上登陆的，若不是在同一设备上登陆的，则将另一设备上的该用户踢出
-	oldObjectId := redis.RedisManager.GetUserObjectId(msg.UserId)
+	oldObjectId := redis.GetUserObjectId(msg.UserId)
 	if WsManager.HasUserChan(msg.UserId) {
 		oldChan := WsManager.GetUserChan(msg.UserId)
 		//如果不是在同一设备上登陆的，则踢出
@@ -72,7 +72,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 	WsManager.SetUserOnline(msg.UserId, time.Now().Unix())
 
 	//保存用户的objectId
-	redis.RedisManager.SetUserObjectId(msg.UserId, objectId)
+	redis.SetUserObjectId(msg.UserId, objectId)
 
 	return userChan, true
 }

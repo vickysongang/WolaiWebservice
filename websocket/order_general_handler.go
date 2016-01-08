@@ -8,7 +8,7 @@ import (
 
 	seelog "github.com/cihub/seelog"
 
-	"WolaiWebservice/config/params"
+	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/leancloud"
 )
@@ -26,11 +26,11 @@ func generalOrderHandler(orderId int64) {
 	orderInfo := GetOrderInfo(orderId)
 	orderByte, _ := json.Marshal(orderInfo)
 
-	orderLifespan := params.OrderLifespanGI()
-	orderDispatchLimit := params.OrderDispatchLimit()
-	orderAssignCountdown := params.OrderAssignCountdown()
-	orderSessionCountdown := params.OrderSessionCountdown()
-	orderDispatchCountdown := params.OrderDispatchCountdown()
+	orderLifespan := settings.OrderLifespanGI()
+	orderDispatchLimit := settings.OrderDispatchLimit()
+	orderAssignCountdown := settings.OrderAssignCountdown()
+	orderSessionCountdown := settings.OrderSessionCountdown()
+	orderDispatchCountdown := settings.OrderDispatchCountdown()
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 	dispatchTimer := time.NewTimer(time.Second * time.Duration(orderDispatchLimit))
@@ -329,15 +329,47 @@ func generalOrderHandler(orderId int64) {
 func assignNextTeacher(orderId int64) int64 {
 	order := OrderManager.orderMap[orderId].orderInfo
 	for teacherId, _ := range TeacherManager.teacherMap {
-		if TeacherManager.IsTeacherAssignOpen(teacherId) &&
-			!TeacherManager.IsTeacherAssignLocked(teacherId) &&
-			order.Creator != teacherId && !WsManager.HasSessionWithOther(teacherId) {
-			if err := OrderManager.SetAssignTarget(orderId, teacherId); err == nil {
-				TeacherManager.SetAssignLock(teacherId, orderId)
-				seelog.Debug("orderHandler|orderAssign: ", orderId, " to teacher: ", teacherId) // 更新老师发单记录
-				return teacherId
-			}
+		if !TeacherManager.IsTeacherAssignOpen(teacherId) {
+			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN OFF: ", orderId, " to teacher: ", teacherId)
+			continue
 		}
+
+		if TeacherManager.IsTeacherAssignLocked(teacherId) {
+			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN LOCK: ", orderId, " to teacher: ", teacherId)
+			continue
+		}
+
+		profile, err := models.ReadTeacherProfile(teacherId)
+		if err != nil {
+			continue
+		}
+
+		if order.TierId != 0 && order.TierId != profile.TierId {
+			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN LOCK: ", orderId, " to teacher: ", teacherId)
+			continue
+		}
+
+		if !TeacherManager.MatchTeacherSubject(teacherId, order.SubjectId) {
+			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN SUBJECT MISSMATCH: ", orderId, " to teacher: ", teacherId)
+			continue
+		}
+
+		if order.Creator == teacherId {
+			continue
+		}
+
+		if WsManager.HasSessionWithOther(teacherId) {
+			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN TEACHER IN SESSION: ", orderId, " to teacher: ", teacherId)
+			continue
+		}
+
+		if err := OrderManager.SetAssignTarget(orderId, teacherId); err == nil {
+			// 更新老师发单记录
+			TeacherManager.SetAssignLock(teacherId, orderId)
+			seelog.Debug("orderHandler|orderAssignSUCCESS: ", orderId, " to teacher: ", teacherId)
+			return teacherId
+		}
+
 	}
 	return -1
 }
@@ -346,16 +378,38 @@ func dispatchNextTeacher(orderId int64) int64 {
 	order := OrderManager.orderMap[orderId].orderInfo
 	// 遍历在线老师名单，如果未派发则直接派发
 	for teacherId, _ := range TeacherManager.teacherMap {
-		//如果订单已经被派发到该老师或者该老师正在与其他学生上课，则不再给该老师派单
-		//如果当前发单的人具有导师身份，派单时则不将单子派给自己
-		if !TeacherManager.IsTeacherDispatchLocked(teacherId) &&
-			order.Creator != teacherId && !WsManager.HasSessionWithOther(teacherId) {
-			if err := OrderManager.SetDispatchTarget(orderId, teacherId); err == nil {
-				TeacherManager.SetOrderDispatch(teacherId, orderId)
-				seelog.Debug("orderHandler|orderDispatch: ", orderId, " to Teacher: ", teacherId)
-				return teacherId
-			}
+		profile, err := models.ReadTeacherProfile(teacherId)
+		if err != nil {
+			continue
 		}
+
+		if order.TierId != 0 && order.TierId != profile.TierId {
+			continue
+		}
+
+		// 派发订单不考虑导师擅长科目
+		// if !TeacherManager.MatchTeacherSubject(teacherId, order.SubjectId) {
+		// 	continue
+		// }
+
+		if TeacherManager.IsTeacherDispatchLocked(teacherId) {
+			continue
+		}
+
+		if order.Creator == teacherId {
+			continue
+		}
+
+		if WsManager.HasSessionWithOther(teacherId) {
+			continue
+		}
+
+		if err := OrderManager.SetDispatchTarget(orderId, teacherId); err == nil {
+			TeacherManager.SetOrderDispatch(teacherId, orderId)
+			seelog.Debug("orderHandler|orderDispatchSUCCESS: ", orderId, " to Teacher: ", teacherId)
+			return teacherId
+		}
+
 	}
 	return -1
 }
@@ -461,7 +515,7 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 
 	order, _ := models.ReadOrder(orderId)
 	planTime := order.Date
-	orderSessionCountdown := params.OrderSessionCountdown()
+	orderSessionCountdown := settings.OrderSessionCountdown()
 
 	sessionInfo := models.Session{
 		OrderId:  order.Id,

@@ -17,6 +17,7 @@ type sessionInfo struct {
 	TimeFrom    time.Time    `json:"timeFrom"`
 	TimeTo      time.Time    `json:"timeTo"`
 	Length      int64        `json:"length"`
+	Status      string       `json:"status"`
 	TotalAmount int64        `json:"totalAmount"`
 	IsCourse    bool         `json:"isCourse"`
 }
@@ -67,6 +68,7 @@ func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
 		TimeFrom:    session.TimeFrom,
 		TimeTo:      session.TimeTo,
 		Length:      session.Length,
+		Status:      session.Status,
 		TotalAmount: tradeAmount,
 		IsCourse:    isCourse,
 	}

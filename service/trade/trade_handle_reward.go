@@ -6,7 +6,6 @@ import (
 
 const (
 	AMOUNT_REWARD_REGISTRATION = 1500
-	AMOUNT_REWARD_INVITATION   = 1500
 
 	COMMENT_CHARGE              = "钱包充值"
 	COMMENT_CHARGE_PREMIUM      = "充值奖励"
@@ -31,10 +30,10 @@ func HandleTradeRewardRegistration(userId int64) error {
 	return err
 }
 
-func HandleTradeRewardInvitation(userId int64) error {
+func HandleTradeRewardInvitation(userId, amount int64) error {
 	var err error
 
-	_, err = createTradeRecord(userId, AMOUNT_REWARD_INVITATION,
+	_, err = createTradeRecord(userId, amount,
 		models.TRADE_REWARD_INVITATION, models.TRADE_RESULT_SUCCESS, COMMENT_REWARD_INVITATION,
 		0, 0, 0)
 

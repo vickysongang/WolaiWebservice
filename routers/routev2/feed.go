@@ -14,7 +14,7 @@ func attachFeedRoute(router *mux.Router) {
 			Methods(r.Method).
 			Path(r.Pattern).
 			Name(r.Name).
-			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name))
+			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
 	}
 }
 
@@ -26,6 +26,8 @@ var feedRoutes = route.Routes{
 		"POST",
 		"/atrium",
 		handlerv2.FeedAtrium,
+		true,
+		true,
 	},
 
 	// 3.1.2
@@ -34,6 +36,8 @@ var feedRoutes = route.Routes{
 		"POST",
 		"/atrium/stick",
 		handlerv2.FeedAtriumStick,
+		true,
+		true,
 	},
 
 	// 3.1.3
@@ -42,6 +46,8 @@ var feedRoutes = route.Routes{
 		"POST",
 		"/post",
 		handlerv2.FeedPost,
+		true,
+		true,
 	},
 
 	// 3.1.4
@@ -50,6 +56,8 @@ var feedRoutes = route.Routes{
 		"POST",
 		"/detail",
 		handlerv2.FeedDetail,
+		true,
+		true,
 	},
 
 	// 3.1.5
@@ -58,6 +66,8 @@ var feedRoutes = route.Routes{
 		"POST",
 		"/like",
 		handlerv2.FeedLike,
+		true,
+		true,
 	},
 
 	// 3.1.6
@@ -66,6 +76,8 @@ var feedRoutes = route.Routes{
 		"POST",
 		"/comment",
 		handlerv2.FeedComment,
+		true,
+		true,
 	},
 
 	// 3.2.1
@@ -74,6 +86,8 @@ var feedRoutes = route.Routes{
 		"POST",
 		"/user/history",
 		handlerv2.FeedUserHistory,
+		true,
+		true,
 	},
 
 	// 3.2.2
@@ -82,5 +96,7 @@ var feedRoutes = route.Routes{
 		"POST",
 		"/user/like",
 		handlerv2.FeedUserLike,
+		true,
+		true,
 	},
 }

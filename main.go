@@ -11,40 +11,36 @@ import (
 
 	"github.com/astaxie/beego/orm"
 	"github.com/cihub/seelog"
-	_ "github.com/go-sql-driver/mysql"
 
 	"WolaiWebservice/config"
+	"WolaiWebservice/logger"
+	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 	"WolaiWebservice/routers"
 	myrpc "WolaiWebservice/rpc"
 )
 
 func init() {
-	//加载seelog的配置文件，使用配置文件里的方式输出日志信息
-	logger, err := seelog.LoggerFromConfigAsFile("/var/lib/poi/logs/config/seelog.xml")
-	if err != nil {
-		panic(err)
-	}
-	seelog.ReplaceLogger(logger)
+	var err error
 
 	//针对Golang 1.5以后版本，设置最大核数
 	runtime.GOMAXPROCS(config.Env.Server.Maxprocs)
 
-	//注册数据库
-	dbStr := fmt.Sprintf("%s:%s@%s(%s:%s)/%s?charset=%s&loc=%s",
-		config.Env.Database.Username,
-		config.Env.Database.Password,
-		config.Env.Database.Method,
-		config.Env.Database.Address,
-		config.Env.Database.Port,
-		config.Env.Database.Database,
-		config.Env.Database.Charset,
-		config.Env.Database.Loc)
-
-	err = orm.RegisterDataBase("default", config.Env.Database.Type, dbStr,
-		config.Env.Database.MaxIdle, config.Env.Database.MaxConn)
-
+	//加载seelog的配置文件，使用配置文件里的方式输出日志信息
+	err = logger.Initialize()
 	if err != nil {
-		seelog.Critical(err.Error())
+		fmt.Println(err.Error())
+	}
+
+	//注册数据库
+	err = models.Initialize()
+	if err != nil {
+		seelog.Critical(err)
+	}
+
+	err = redis.Initialize()
+	if err != nil {
+		seelog.Critical(err)
 	}
 }
 

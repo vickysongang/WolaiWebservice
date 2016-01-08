@@ -14,7 +14,7 @@ func attachAuthRoute(router *mux.Router) {
 			Methods(r.Method).
 			Path(r.Pattern).
 			Name(r.Name).
-			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name))
+			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
 	}
 }
 
@@ -26,6 +26,8 @@ var authRoutes = route.Routes{
 		"POST",
 		"/register",
 		handlerv2.Dummy,
+		false,
+		false,
 	},
 
 	// 1.1.2
@@ -34,6 +36,8 @@ var authRoutes = route.Routes{
 		"POST",
 		"/login",
 		handlerv2.Dummy,
+		false,
+		false,
 	},
 
 	// 1.1.3
@@ -42,6 +46,8 @@ var authRoutes = route.Routes{
 		"POST",
 		"/forgot_password",
 		handlerv2.Dummy,
+		false,
+		false,
 	},
 
 	// 1.1.4
@@ -50,6 +56,28 @@ var authRoutes = route.Routes{
 		"POST",
 		"/set_password",
 		handlerv2.Dummy,
+		false,
+		false,
+	},
+
+	// 1.1.5
+	route.Route{
+		"Logout",
+		"POST",
+		"/logout",
+		handlerv2.Logout,
+		true,
+		true,
+	},
+
+	// 1.1.6
+	route.Route{
+		"TokenRefresh",
+		"POST",
+		"/token/refresh",
+		handlerv2.TokenRefresh,
+		true,
+		true,
 	},
 
 	// 1.2.1
@@ -58,6 +86,8 @@ var authRoutes = route.Routes{
 		"POST",
 		"/phone/sms/code",
 		handlerv2.AuthPhoneSMSCode,
+		true,
+		false,
 	},
 
 	// 1.2.2
@@ -66,6 +96,8 @@ var authRoutes = route.Routes{
 		"POST",
 		"/phone/sms/verify",
 		handlerv2.AuthPhoneSMSVerify,
+		false,
+		false,
 	},
 
 	// 1.2.3
@@ -74,5 +106,7 @@ var authRoutes = route.Routes{
 		"POST",
 		"/phone/login",
 		handlerv2.AuthPhoneLogin,
+		true,
+		false,
 	},
 }

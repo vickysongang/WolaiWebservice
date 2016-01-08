@@ -23,32 +23,22 @@ const (
 )
 
 func SendWelcomeMessageTeacher(userId int64) {
-	attr := map[string]string{
-		"title":       "【有人@我】一秒匹配你的大神导师",
-		"description": "我来了这么久，你终于来了！",
-		"mediaId":     "welcome.jpg",
-		"url":         "http://mp.weixin.qq.com/s?__biz=MzA4MTM4NDAyNg==&mid=400187411&idx=1&sn=cfd4a3032885ad0883a2158ca8de18f9",
-	}
+	attr := make(map[string]string)
 
 	msg := LCTypedMessage{
-		Type:      LC_MSG_AD,
-		Text:      "[图文消息]",
+		Type:      LC_MSG_TEXT,
+		Text:      "Hi~ 欢迎你加入“我来”导师家族，陪伴学弟学妹们成长！\n你是百里挑一的精英学霸，你是闪闪发光的榜样力量~\n现在点击首页“开始答疑”，马上开启你的“超人之旅”！",
 		Attribute: attr,
 	}
 	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &msg)
 }
 
 func SendWelcomeMessageStudent(userId int64) {
-	attr := map[string]string{
-		"title":       "【有人@我】一秒匹配你的大神导师",
-		"description": "我来了这么久，你终于来了！",
-		"mediaId":     "welcome.jpg",
-		"url":         "http://mp.weixin.qq.com/s?__biz=MzA4MTM4NDAyNg==&mid=400187411&idx=1&sn=cfd4a3032885ad0883a2158ca8de18f9",
-	}
+	attr := make(map[string]string)
 
 	msg := LCTypedMessage{
-		Type:      LC_MSG_AD,
-		Text:      "[图文消息]",
+		Type:      LC_MSG_TEXT,
+		Text:      "Hi~你终于来了，欢迎加入最温暖的“我来”学院~\n我来团队携手全国86所顶尖高校学霸导师，\n与你共度学习的美好时光！\n现在就回到首页去开启你的“我来奇妙之旅”吧！",
 		Attribute: attr,
 	}
 	LCSendTypedMessage(USER_WOLAI_TEAM, userId, &msg)
@@ -57,9 +47,9 @@ func SendWelcomeMessageStudent(userId int64) {
 func SendCommentNotification(feedCommentId string) {
 	var feedComment *models.POIFeedComment
 	var feed *models.POIFeed
-	if redis.RedisManager.RedisError == nil {
-		feedComment = redis.RedisManager.GetFeedComment(feedCommentId)
-		feed = redis.RedisManager.GetFeed(feedComment.FeedId)
+	if redis.RedisFailErr == nil {
+		feedComment = redis.GetFeedComment(feedCommentId)
+		feed = redis.GetFeed(feedComment.FeedId)
 	} else {
 		feedComment, _ = models.GetFeedComment(feedCommentId)
 		feed, _ = models.GetFeed(feedComment.FeedId)
@@ -105,8 +95,8 @@ func SendCommentNotification(feedCommentId string) {
 func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 	user, _ := models.ReadUser(userId)
 	var feed *models.POIFeed
-	if redis.RedisManager.RedisError == nil {
-		feed = redis.RedisManager.GetFeed(feedId)
+	if redis.RedisFailErr == nil {
+		feed = redis.GetFeed(feedId)
 	} else {
 		feed, _ = models.GetFeed(feedId)
 	}
@@ -308,7 +298,7 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("%s：%s %.2f 元", comment, signStr, amount))
 
 	case models.TRADE_REWARD_REGISTRATION:
-		msg.subtitle = fmt.Sprintf("亲爱的%s%s，欢迎注册我来。", user.Nickname, suffix)
+		msg.subtitle = fmt.Sprintf("亲爱的%s，欢迎注册我来。", suffix)
 		msg.body = append(msg.body,
 			fmt.Sprintf("新人红包：%s %.2f 元", signStr, amount))
 
@@ -611,4 +601,42 @@ func SendOrderPersonalTutorExpireMsg(orderId int64) {
 	}
 
 	LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, order.TeacherId, &lcTMsg)
+}
+
+func SendCourseChapterCompleteMsg(purchaseId, chapterId int64) {
+	var err error
+
+	purchase, err := models.ReadCoursePurchaseRecord(purchaseId)
+	if err != nil {
+		return
+	}
+
+	course, err := models.ReadCourse(purchase.CourseId)
+	if err != nil {
+		return
+	}
+
+	chapter, err := models.ReadCourseChapter(chapterId)
+	if err != nil {
+		return
+	}
+
+	if chapter.CourseId != course.Id {
+		return
+	}
+
+	text := fmt.Sprintf("%s\n第%d课时 %s\n导师标记该课时已完成",
+		course.Name,
+		chapter.Period, chapter.Title)
+
+	attr := make(map[string]string)
+	attr["accessRight"] = "[3]"
+
+	lcTMsg := LCTypedMessage{
+		Type:      LC_MSG_SYSTEM,
+		Text:      text,
+		Attribute: attr,
+	}
+
+	LCSendSystemMessage(USER_SYSTEM_MESSAGE, purchase.UserId, purchase.TeacherId, &lcTMsg)
 }

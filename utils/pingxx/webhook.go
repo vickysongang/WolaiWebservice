@@ -1,11 +1,15 @@
 package pingxx
 
 import (
-	"WolaiWebservice/controllers/trade"
+	"github.com/astaxie/beego/orm"
+
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/trade"
 )
 
 func ChargeSuccessEvent(chargeId string) {
+	var err error
+
 	recordInfo := map[string]interface{}{
 		"Result": "success",
 	}
@@ -16,9 +20,15 @@ func ChargeSuccessEvent(chargeId string) {
 		return
 	}
 
+	if checkChargeSuccessExist(record) {
+		return
+	}
+
+	premium, err := trade.GetChargePremuim(record.UserId, int64(record.Amount))
 	trade.HandleTradeCharge(record.Id)
-	//_ = models.QueryUserByPhone(record.Phone)
-	//trade.HandleSystemTrade(user.Id, int64(record.Amount), models.TRADE_CHARGE, "S", "官网扫码充值")
+	if premium > 0 {
+		trade.HandleTradeChargePremium(record.Id, premium, "")
+	}
 }
 
 func RefundSuccessEvent(chargeId string, refundId string) {
@@ -29,5 +39,15 @@ func RefundSuccessEvent(chargeId string, refundId string) {
 	models.UpdatePingppRecord(chargeId, recordInfo)
 	record, _ := models.QueryPingppRecordByChargeId(chargeId)
 	_ = models.QueryUserByPhone(record.Phone)
-	//trade.HandleSystemTrade(user.Id, int64(record.Amount), models.TRADE_WITHDRAW, "S", "用户申请退款")
+}
+
+func checkChargeSuccessExist(record *models.PingppRecord) bool {
+	o := orm.NewOrm()
+
+	exist := o.QueryTable(new(models.TradeRecord).TableName()).
+		Filter("user_id", record.UserId).
+		Filter("trade_type", models.TRADE_CHARGE).
+		Filter("pingpp_id", record.Id).Exist()
+
+	return exist
 }

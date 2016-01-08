@@ -14,7 +14,7 @@ func attachTradeRoute(router *mux.Router) {
 			Methods(r.Method).
 			Path(r.Pattern).
 			Name(r.Name).
-			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name))
+			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
 	}
 }
 
@@ -25,6 +25,8 @@ var tradeRoutes = route.Routes{
 		"POST",
 		"/user/balance",
 		handlerv2.TradeUserBalance,
+		true,
+		true,
 	},
 
 	// 7.1.2
@@ -33,6 +35,8 @@ var tradeRoutes = route.Routes{
 		"POST",
 		"/user/record",
 		handlerv2.TradeUserRecord,
+		true,
+		true,
 	},
 
 	// 7.2.1
@@ -41,6 +45,8 @@ var tradeRoutes = route.Routes{
 		"POST",
 		"/charge/banner",
 		handlerv2.TradeChargeBanner,
+		true,
+		true,
 	},
 
 	// 7.2.2
@@ -49,6 +55,8 @@ var tradeRoutes = route.Routes{
 		"POST",
 		"/charge/shortcut",
 		handlerv2.TradeChargeShortcut,
+		true,
+		true,
 	},
 
 	// 7.2.3
@@ -57,5 +65,7 @@ var tradeRoutes = route.Routes{
 		"POST",
 		"/charge/premium",
 		handlerv2.TradeChargePremium,
+		true,
+		true,
 	},
 }

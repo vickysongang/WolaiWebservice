@@ -27,6 +27,9 @@ const (
 	CONFIG_KEY_WEBSOCKET_PING_PERIOD = "ping_period"
 	CONFIG_KEY_WEBSOCKET_PONG_WAIT   = "pong_wait"
 	CONFIG_KEY_WEBSOCKET_WRITE_WAIT  = "write_wait"
+
+	CONFIG_TOKEN              = "config:token"
+	CONFIG_KEY_TOKEN_DURATION = "duration"
 )
 
 var defaultMap = map[string]map[string]string{
@@ -36,11 +39,11 @@ var defaultMap = map[string]map[string]string{
 		CONFIG_KEY_ORDER_LIFESPAN_PA:        "3600",
 		CONFIG_KEY_ORDER_DISPATCH_LIMIT:     "60",
 		CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN: "120",
-		CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN:   "12",
+		CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN:   "30",
 		CONFIG_KEY_ORDER_SESSION_COUNTDOWN:  "10",
 	},
 	CONFIG_SESSION: map[string]string{
-		CONFIG_KEY_SESSION_RECONN_LIMIT: "60",
+		CONFIG_KEY_SESSION_RECONN_LIMIT: "30",
 	},
 	CONFIG_WEBSOCKET: map[string]string{
 		CONFIG_KEY_WEBSOCKET_PING_PERIOD: "5",
@@ -51,24 +54,33 @@ var defaultMap = map[string]map[string]string{
 		CONFIG_KEY_GENERAL_WEBSOCKET: "115.29.207.236:8080/v1/ws",
 		CONFIG_KEY_GENERAL_KAMAILIO:  "115.29.207.236:5060",
 	},
+	CONFIG_TOKEN: map[string]string{
+		CONFIG_KEY_TOKEN_DURATION: "2592000",
+	},
 }
 
-func (rm *POIRedisManager) GetConfig(key string, field string) int64 {
+func GetConfigInt64(key string, field string) int64 {
+	var err error
 	var result int64
-	value, err := rm.RedisClient.HGet(key, field).Result()
+
+	value, err := redisClient.HGet(key, field).Result()
 	if err == redis.Nil {
-		_ = rm.RedisClient.HSet(key, field, defaultMap[key][field])
+		redisClient.HSet(key, field, defaultMap[key][field])
 		value = defaultMap[key][field]
 	}
 	result, err = strconv.ParseInt(value, 10, 64)
+
 	return result
 }
 
-func (rm *POIRedisManager) GetConfigStr(key string, field string) string {
-	value, err := rm.RedisClient.HGet(key, field).Result()
+func GetConfigStr(key string, field string) string {
+	var err error
+
+	value, err := redisClient.HGet(key, field).Result()
 	if err == redis.Nil {
-		_ = rm.RedisClient.HSet(key, field, defaultMap[key][field])
+		redisClient.HSet(key, field, defaultMap[key][field])
 		value = defaultMap[key][field]
 	}
+
 	return value
 }

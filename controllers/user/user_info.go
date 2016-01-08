@@ -1,7 +1,7 @@
 package user
 
 import (
-	"WolaiWebservice/config/params"
+	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
 )
 
@@ -40,7 +40,7 @@ func UserLaunch(userId int64, objectId, address, ip, userAgent string) (int64, i
 	models.CreateUserLoginInfo(&info)
 
 	return 0, map[string]string{
-		"websocket": params.WebsocketAddress(),
-		"kamailio":  params.KamailioAddress(),
+		"websocket": settings.WebsocketAddress(),
+		"kamailio":  settings.KamailioAddress(),
 	}
 }

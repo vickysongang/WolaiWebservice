@@ -14,7 +14,7 @@ func attachUserRoute(router *mux.Router) {
 			Methods(r.Method).
 			Path(r.Pattern).
 			Name(r.Name).
-			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name))
+			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
 	}
 }
 
@@ -26,6 +26,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/launch",
 		handlerv2.UserLaunch,
+		true,
+		true,
 	},
 
 	// 2.1.2
@@ -34,6 +36,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/info",
 		handlerv2.UserInfo,
+		true,
+		true,
 	},
 
 	// 2.1.3
@@ -42,6 +46,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/info/update",
 		handlerv2.UserInfoUpdate,
+		true,
+		true,
 	},
 
 	// 2.1.4
@@ -50,6 +56,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/greeting",
 		handlerv2.UserGreeting,
+		true,
+		true,
 	},
 
 	// 2.1.5
@@ -58,6 +66,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/notification",
 		handlerv2.UserNotification,
+		true,
+		true,
 	},
 
 	// 2.1.6
@@ -66,6 +76,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/promotion/onlogin",
 		handlerv2.UserPromotionOnLogin,
+		true,
+		true,
 	},
 
 	// 2.2.1
@@ -74,6 +86,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/profile",
 		handlerv2.Dummy,
+		true,
+		true,
 	},
 
 	// 2.2.2
@@ -82,6 +96,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/teacher/profile",
 		handlerv2.UserTeacherProfile,
+		true,
+		true,
 	},
 
 	// 2.2.3
@@ -90,6 +106,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/teacher/profile/course",
 		handlerv2.UserTeacherProfileCourse,
+		true,
+		true,
 	},
 
 	// 2.2.4
@@ -98,6 +116,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/student/profile",
 		handlerv2.Dummy,
+		true,
+		true,
 	},
 
 	// 2.3.1
@@ -106,6 +126,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/search",
 		handlerv2.UserSearch,
+		true,
+		true,
 	},
 
 	// 2.3.2
@@ -114,6 +136,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/teacher/search",
 		handlerv2.UserTeacherSearch,
+		true,
+		true,
 	},
 
 	// 2.3.3
@@ -122,6 +146,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/student/search",
 		handlerv2.Dummy,
+		true,
+		true,
 	},
 
 	// 2.3.4
@@ -130,6 +156,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/teacher/recent",
 		handlerv2.UserTeacherRecent,
+		true,
+		true,
 	},
 
 	// 2.3.5
@@ -138,6 +166,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/teacher/recommendation",
 		handlerv2.UserTeacherRecommendation,
+		true,
+		true,
 	},
 
 	// 2.3.6
@@ -146,6 +176,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/contact/recommendation",
 		handlerv2.UserContactRecommendation,
+		true,
+		true,
 	},
 
 	// 2.4.1
@@ -154,6 +186,8 @@ var userRoutes = route.Routes{
 		"POST",
 		"/invitation/code",
 		handlerv2.Dummy,
+		false,
+		true,
 	},
 
 	// 2.4.2
@@ -162,5 +196,7 @@ var userRoutes = route.Routes{
 		"POST",
 		"/invitation/record",
 		handlerv2.Dummy,
+		false,
+		true,
 	},
 }

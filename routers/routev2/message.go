@@ -14,7 +14,7 @@ func attachMessageRoute(router *mux.Router) {
 			Methods(r.Method).
 			Path(r.Pattern).
 			Name(r.Name).
-			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name))
+			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
 	}
 }
 
@@ -25,5 +25,7 @@ var messageRoutes = route.Routes{
 		"POST",
 		"/conversation/create",
 		handlerv2.MessageConversationCreate,
+		true,
+		true,
 	},
 }

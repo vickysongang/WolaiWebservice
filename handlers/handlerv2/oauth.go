@@ -55,7 +55,7 @@ func OauthQQRegister(w http.ResponseWriter, r *http.Request) {
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
 	if config.Env.Server.Live == 1 {
-		rc, timestamp := redis.RedisManager.GetSendcloudRandCode(phone)
+		rc, timestamp := redis.GetSendcloudRandCode(phone)
 		if randCode != rc {
 			json.NewEncoder(w).Encode(response.NewResponse(2, "验证码不匹配", response.NullObject))
 			return
@@ -64,6 +64,7 @@ func OauthQQRegister(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if randCode != "6666" {
+		json.NewEncoder(w).Encode(response.NewResponse(2, "验证码不匹配", response.NullObject))
 		return
 	}
 

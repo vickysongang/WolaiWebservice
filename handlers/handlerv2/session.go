@@ -97,7 +97,7 @@ func SessionSeekHelp(w http.ResponseWriter, r *http.Request) {
 	//// TODO
 	_ = userId
 	convId := vars["convId"][0]
-	redis.RedisManager.SetSeekHelp(time.Now().Unix(), convId)
+	redis.SetSeekHelp(time.Now().Unix(), convId)
 
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
@@ -221,7 +221,7 @@ func SessionComplainPost(w http.ResponseWriter, r *http.Request) {
 		comment = vars["comment"][0]
 	}
 
-	complaint := models.POIComplaint{UserId: userId, SessionId: sessionId, Reasons: reasons, Comment: comment, Status: "pending"}
+	complaint := models.Complaint{UserId: userId, SessionId: sessionId, Reasons: reasons, Comment: comment, Status: "pending"}
 	content, err := models.InsertPOIComplaint(&complaint)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))

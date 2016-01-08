@@ -14,7 +14,7 @@ func attachCourseRoute(router *mux.Router) {
 			Methods(r.Method).
 			Path(r.Pattern).
 			Name(r.Name).
-			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name))
+			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
 	}
 }
 
@@ -26,6 +26,8 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/banner",
 		handlerv2.CourseBanner,
+		true,
+		true,
 	},
 
 	// 9.1.2
@@ -34,6 +36,8 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/homepage",
 		handlerv2.CourseHomePage,
+		true,
+		true,
 	},
 
 	// 9.1.3
@@ -42,6 +46,8 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/module/all",
 		handlerv2.CourseModuleAll,
+		true,
+		true,
 	},
 
 	// 9.2.1
@@ -50,6 +56,8 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/user/list/student",
 		handlerv2.CourseListStudent,
+		true,
+		true,
 	},
 
 	// 9.2.2
@@ -58,6 +66,8 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/user/list/teacher",
 		handlerv2.CourseListTeacher,
+		true,
+		true,
 	},
 
 	// 9.3.1
@@ -66,6 +76,8 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/detail/student",
 		handlerv2.CourseDetailStudent,
+		true,
+		true,
 	},
 
 	// 9.3.2
@@ -74,6 +86,8 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/detail/teacher",
 		handlerv2.CourseDetailTeacher,
+		true,
+		true,
 	},
 
 	// 9.4.1
@@ -82,6 +96,8 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/action/proceed",
 		handlerv2.CourseActionProceed,
+		true,
+		true,
 	},
 
 	// 9.4.2
@@ -90,6 +106,8 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/action/quickbuy",
 		handlerv2.CourseActionQuickbuy,
+		true,
+		true,
 	},
 
 	// 9.4.3
@@ -98,6 +116,8 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/action/pay",
 		handlerv2.CourseActionPay,
+		true,
+		true,
 	},
 
 	// 9.4.4
@@ -106,6 +126,8 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/action/nextchapter",
 		handlerv2.CourseActionNextChapter,
+		true,
+		true,
 	},
 
 	// 9.5.1
@@ -114,6 +136,8 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/attachs",
 		handlerv2.CourseAttachs,
+		true,
+		true,
 	},
 
 	// 9.5.2
@@ -122,5 +146,7 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/chapter/attachs",
 		handlerv2.CourseChapterAttachs,
+		true,
+		true,
 	},
 }

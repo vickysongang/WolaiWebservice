@@ -3,49 +3,46 @@ package auth
 import (
 	"time"
 
-	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/trade"
 	"WolaiWebservice/utils/leancloud"
 )
 
 func LoginByPhone(phone string) (int64, *authInfo) {
+	var err error
+
 	user := models.QueryUserByPhone(phone)
 	if user != nil {
-		info := authInfo{
-			Id:          user.Id,
-			Nickname:    user.Nickname,
-			Avatar:      user.Avatar,
-			Gender:      user.Gender,
-			AccessRight: user.AccessRight,
-			Token:       "thisisjustatokenfortestitisnotrealforgodsake",
+		info, err := GenerateAuthInfo(user.Id)
+		if err != nil {
+			return 2, nil
 		}
 
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
 			UpdateTeacherStatusAfterLogin(user)
 		}
 
-		return 0, &info
+		return 0, info
 	}
 
 	newUser := models.User{
 		Phone:       &phone,
 		AccessRight: models.USER_ACCESSRIGHT_STUDENT,
 	}
-	user, _ = models.CreateUser(&newUser)
+	user, err = models.CreateUser(&newUser)
+	if err != nil {
+		return 2, nil
+	}
 
-	info := authInfo{
-		Id:          user.Id,
-		Nickname:    user.Nickname,
-		Avatar:      user.Avatar,
-		Gender:      user.Gender,
-		AccessRight: user.AccessRight,
-		Token:       "thisisjustatokenfortestitisnotrealforgodsake",
+	info, err := GenerateAuthInfo(user.Id)
+	if err != nil {
+		return 2, nil
 	}
 
 	trade.HandleTradeRewardRegistration(user.Id)
 	go leancloud.SendWelcomeMessageStudent(user.Id)
 
-	return 1231, &info
+	return 1231, info
 }
 
 func UpdateTeacherStatusAfterLogin(user *models.User) {

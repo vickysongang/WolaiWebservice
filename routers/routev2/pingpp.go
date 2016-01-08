@@ -14,7 +14,7 @@ func attachPingppRoute(router *mux.Router) {
 			Methods(r.Method).
 			Path(r.Pattern).
 			Name(r.Name).
-			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name))
+			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
 	}
 }
 
@@ -25,6 +25,8 @@ var pingppRoutes = route.Routes{
 		"POST",
 		"/pay",
 		handlerv2.PingppPay,
+		true,
+		true,
 	},
 
 	// 8.1.2
@@ -33,6 +35,8 @@ var pingppRoutes = route.Routes{
 		"POST",
 		"/pay/query",
 		handlerv2.PingppPayQuery,
+		false,
+		true,
 	},
 
 	// 8.1.3
@@ -41,6 +45,8 @@ var pingppRoutes = route.Routes{
 		"POST",
 		"/pay/record",
 		handlerv2.PingppPayRecord,
+		false,
+		true,
 	},
 
 	// 8.2.1
@@ -49,6 +55,8 @@ var pingppRoutes = route.Routes{
 		"POST",
 		"/refund",
 		handlerv2.PingppRefund,
+		true,
+		true,
 	},
 
 	// 8.2.2
@@ -57,6 +65,8 @@ var pingppRoutes = route.Routes{
 		"POST",
 		"/refund/query",
 		handlerv2.PingppRefundQuery,
+		false,
+		true,
 	},
 
 	// 8.2.3
@@ -65,6 +75,8 @@ var pingppRoutes = route.Routes{
 		"POST",
 		"/refund/record",
 		handlerv2.PingppRefundRecord,
+		false,
+		true,
 	},
 
 	// 8.3.1
@@ -73,5 +85,7 @@ var pingppRoutes = route.Routes{
 		"POST",
 		"/result",
 		handlerv2.PingppResult,
+		false,
+		true,
 	},
 }
