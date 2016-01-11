@@ -68,4 +68,14 @@ var tradeRoutes = route.Routes{
 		true,
 		true,
 	},
+
+	// 7.2.4
+	route.Route{
+		"TradeChargeCode",
+		"POST",
+		"/charge/code",
+		handlerv2.TradeChargeCode,
+		true,
+		true,
+	},
 }
