@@ -20,6 +20,10 @@ const (
 	CODE_USE_FLAG_NO  = "N"
 )
 
+func init() {
+	orm.RegisterModel(new(ChargeCode))
+}
+
 func ReadChargeCode(code string) (*ChargeCode, error) {
 	var err error
 
