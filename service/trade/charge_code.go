@@ -44,7 +44,7 @@ func ApplyChargeCode(userId int64, code string) error {
 		return ErrChargeCodeInvalid
 	}
 
-	chargeCode.UseFlag = models.CODE_USE_FLAG_NO
+	chargeCode.UseFlag = models.CODE_USE_FLAG_YES
 	chargeCode.UseTime = time.Now()
 
 	chargeCode, err = models.UpdateChargeCode(chargeCode)
