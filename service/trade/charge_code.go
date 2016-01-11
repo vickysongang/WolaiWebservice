@@ -32,16 +32,16 @@ func ValidateChargeCode(code string) (*models.ChargeCode, error) {
 	return chargeCode, nil
 }
 
-func ApplyChargeCode(userId int64, code string) error {
+func ApplyChargeCode(userId int64, code string) (*models.ChargeCode, error) {
 	var err error
 
 	chargeCode, err := models.ReadChargeCode(code)
 	if err != nil {
-		return ErrChargeCodeInvalid
+		return nil, ErrChargeCodeInvalid
 	}
 
 	if chargeCode.UseFlag == models.CODE_USE_FLAG_YES {
-		return ErrChargeCodeInvalid
+		return nil, ErrChargeCodeInvalid
 	}
 
 	chargeCode.UseFlag = models.CODE_USE_FLAG_YES
@@ -49,8 +49,8 @@ func ApplyChargeCode(userId int64, code string) error {
 
 	chargeCode, err = models.UpdateChargeCode(chargeCode)
 	if err != nil {
-		return ErrChargeCodeError
+		return nil, ErrChargeCodeError
 	}
 
-	return nil
+	return chargeCode, nil
 }

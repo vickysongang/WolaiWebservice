@@ -15,9 +15,10 @@ type TradeRecord struct {
 	Result      string    `json:"result"`
 	Balance     int64     `json:"balance"`
 	Comment     string    `json:"comment"`
-	SessionId   int64     `json:"sessionId"`
-	RecordId    int64     `json:"recordId"`
-	PingppId    int64     `json:"pingppId"`
+	SessionId   int64     `json:"-"`
+	RecordId    int64     `json:"-"`
+	PingppId    int64     `json:"-"`
+	ChargeCode  string    `json:"-"`
 }
 
 const (
