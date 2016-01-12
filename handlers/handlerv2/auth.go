@@ -4,17 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/cihub/seelog"
 
-	"WolaiWebservice/config"
 	authController "WolaiWebservice/controllers/auth"
 	"WolaiWebservice/handlers/response"
-	"WolaiWebservice/redis"
 	"WolaiWebservice/routers/token"
 	authService "WolaiWebservice/service/auth"
-	"WolaiWebservice/utils/sendcloud"
 )
 
 // 1.1.5
@@ -88,12 +84,14 @@ func AuthPhoneSMSCode(w http.ResponseWriter, r *http.Request) {
 
 	phone := vars["phone"][0]
 
-	err = sendcloud.SendMessage(phone)
+	err = authService.SendSMSCode(phone)
+	var resp *response.Response
 	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
+		resp = response.NewResponse(0, err.Error(), response.NullObject)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
+		resp = response.NewResponse(2, "", response.NullObject)
 	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 1.2.2
@@ -109,14 +107,14 @@ func AuthPhoneSMSVerify(w http.ResponseWriter, r *http.Request) {
 	phone := vars["phone"][0]
 	randCode := vars["randCode"][0]
 
-	rc, timestamp := redis.GetSendcloudRandCode(phone)
-	if randCode != rc {
-		json.NewEncoder(w).Encode(response.NewResponse(2, "无效的验证码", response.NullObject))
-	} else if time.Now().Unix()-timestamp > 10*60 {
-		json.NewEncoder(w).Encode(response.NewResponse(2, "无效的验证码", response.NullObject))
+	err = authService.VerifySMSCode(phone, randCode)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(0, err.Error(), response.NullObject)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
+		resp = response.NewResponse(2, "", response.NullObject)
 	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 1.2.3
@@ -132,24 +130,12 @@ func AuthPhoneLogin(w http.ResponseWriter, r *http.Request) {
 	phone := vars["phone"][0]
 	randCode := vars["randCode"][0]
 
-	if config.Env.Server.Live == 1 {
-		rc, timestamp := redis.GetSendcloudRandCode(phone)
-		if randCode != rc {
-			json.NewEncoder(w).Encode(response.NewResponse(2, "无效的验证码", response.NullObject))
-			return
-		} else if time.Now().Unix()-timestamp > 10*60 {
-			json.NewEncoder(w).Encode(response.NewResponse(2, "无效的验证码", response.NullObject))
-			return
-		}
-	} else if randCode != "6666" {
-		json.NewEncoder(w).Encode(response.NewResponse(2, "无效的验证码", response.NullObject))
-		return
-	}
-
-	status, content := authController.LoginByPhone(phone)
-	if content == nil {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	status, err, content := authController.AuthPhoneLogin(phone, randCode)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+		resp = response.NewResponse(status, "", content)
 	}
+	json.NewEncoder(w).Encode(resp)
 }

@@ -1,13 +1,11 @@
 package models
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/astaxie/beego/orm"
 	"github.com/cihub/seelog"
-
-	"WolaiWebservice/config"
 )
 
 type User struct {
@@ -27,14 +25,6 @@ type User struct {
 	Balance       int64     `json:"-" orm:"column(balance);default(0)"`
 }
 
-func init() {
-	orm.RegisterModel(new(User))
-}
-
-func (u *User) TableName() string {
-	return "users"
-}
-
 const (
 	USER_ACCESSRIGHT_TEACHER = 2
 	USER_ACCESSRIGHT_STUDENT = 3
@@ -48,66 +38,55 @@ const (
 	USER_WOLAI_TEAM = 1003
 )
 
+func init() {
+	orm.RegisterModel(new(User))
+}
+
+func (u *User) TableName() string {
+	return "users"
+}
+
 func CreateUser(user *User) (*User, error) {
+	var err error
+
 	o := orm.NewOrm()
-	if user.Nickname == "" && user.Phone != nil {
-		user.Nickname = fmt.Sprintf("%s%s", "我来", (*user.Phone)[len(*user.Phone)-4:len(*user.Phone)])
-	}
+
 	id, err := o.Insert(user)
 	if err != nil {
-		seelog.Error(err.Error())
-		return nil, err
+		seelog.Error("%s", err.Error())
+		return nil, errors.New("创建用户失败")
 	}
 	user.Id = id
 	return user, nil
 }
 
 func ReadUser(userId int64) (*User, error) {
+	var err error
+
 	o := orm.NewOrm()
 
 	user := User{Id: userId}
-	err := o.Read(&user)
+	err = o.Read(&user)
 	if err != nil {
-		seelog.Error(err.Error(), " ", userId)
-		return nil, err
+		seelog.Error("%s | UserId: %d", err.Error(), userId)
+		return nil, errors.New("用户不存在")
 	}
 
 	return &user, nil
 }
 
-func UpdateUser(userId int64, userInfo map[string]interface{}) (*User, error) {
+func UpdateUser(user *User) (*User, error) {
+	var err error
+
 	o := orm.NewOrm()
 
-	var params orm.Params = make(orm.Params)
-	for k, v := range userInfo {
-		params[k] = v
-	}
-
-	_, err := o.QueryTable("users").Filter("id", userId).Update(params)
+	_, err = o.Update(user)
 	if err != nil {
-		seelog.Error(err.Error())
-		return nil, err
+		seelog.Error("%s | UserId: %d", err.Error(), user.Id)
+		return nil, errors.New("更新用户失败")
 	}
 
-	user, _ := ReadUser(userId)
 	return user, nil
-}
-
-func QueryUserByPhone(phone string) *User {
-	var user *User
-
-	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
-	qb.Select("id,nickname,avatar,gender,access_right,status,balance,phone").From("users").Where("phone = ?").Limit(1)
-	sql := qb.String()
-
-	o := orm.NewOrm()
-	err := o.Raw(sql, phone).QueryRow(&user)
-
-	if err != nil {
-		return nil
-		seelog.Error(err.Error())
-	}
-	return user
 }
 
 func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) (*User, error) {
@@ -129,20 +108,6 @@ func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) 
 	}
 
 	return &user, nil
-}
-
-func QueryUserAllId() []int64 {
-	var userIds []int64
-	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
-	qb.Select("id").From("users").Where("status = 0 AND id >= 10000")
-	sql := qb.String()
-	o := orm.NewOrm()
-	_, err := o.Raw(sql).QueryRows(&userIds)
-	if err != nil {
-		seelog.Error(err.Error())
-		return nil
-	}
-	return userIds
 }
 
 func CheckUserExist(userId int64) bool {

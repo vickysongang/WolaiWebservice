@@ -37,8 +37,8 @@ func RefundSuccessEvent(chargeId string, refundId string) {
 		"RefundId": refundId,
 	}
 	models.UpdatePingppRecord(chargeId, recordInfo)
-	record, _ := models.QueryPingppRecordByChargeId(chargeId)
-	_ = models.QueryUserByPhone(record.Phone)
+	//record, _ := models.QueryPingppRecordByChargeId(chargeId)
+	//_ = models.QueryUserByPhone(record.Phone)
 }
 
 func checkChargeSuccessExist(record *models.PingppRecord) bool {
