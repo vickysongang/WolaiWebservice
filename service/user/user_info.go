@@ -3,6 +3,8 @@ package user
 import (
 	"time"
 
+	"github.com/astaxie/beego/orm"
+
 	"WolaiWebservice/models"
 )
 
@@ -24,6 +26,15 @@ func IsTeacherFirstLogin(user *models.User) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func IsUserExisting(userId int64) bool {
+	o := orm.NewOrm()
+
+	exist := o.QueryTable(new(models.User).TableName()).
+		Filter("id", userId).Exist()
+
+	return exist
 }
 
 func UpdateUserLastLoginTime(user *models.User) error {

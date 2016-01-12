@@ -32,7 +32,7 @@ func GetFeedFlowAtrium(start, stop int64, plateType string) models.POIFeeds {
 	for i := range feedZs {
 		str, _ := feedZs[i].Member.(string)
 		feed := *GetFeed(str)
-		if feed.Creator != nil && models.CheckUserExist(feed.Creator.Id) {
+		if feed.Creator != nil {
 			feeds = append(feeds, feed)
 		}
 	}
@@ -102,7 +102,7 @@ func GetTopFeeds(plateType string) models.POIFeeds {
 		str, _ := feedZs[i].Member.(string)
 		feed := *GetFeed(str)
 		feed.TopFlag = true
-		if feed.Creator != nil && models.CheckUserExist(feed.Creator.Id) {
+		if feed.Creator != nil {
 			feeds = append(feeds, feed)
 		}
 	}

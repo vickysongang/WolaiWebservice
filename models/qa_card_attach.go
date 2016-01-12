@@ -1,9 +1,11 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/cihub/seelog"
 )
 
 type QACardAttach struct {
@@ -29,7 +31,8 @@ func ReadQACardAttach(id int64) (*QACardAttach, error) {
 	attach := QACardAttach{Id: id}
 	err := o.Read(&attach)
 	if err != nil {
-		return nil, err
+		seelog.Error("%s | QACardAttachId: %d", err.Error(), id)
+		return nil, errors.New("无法找到对应附件")
 	}
 
 	return &attach, nil

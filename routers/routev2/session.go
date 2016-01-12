@@ -49,6 +49,26 @@ var sessionRoutes = route.Routes{
 		true,
 	},
 
+	// 6.2.2
+	route.Route{
+		"SessionQACardCatelog",
+		"POST",
+		"/qacard/catelog",
+		handlerv2.SessionQACardCatelog,
+		true,
+		true,
+	},
+
+	// 6.2.3
+	route.Route{
+		"SessionQACardFetch",
+		"POST",
+		"/qacard/fetch",
+		handlerv2.SessionQACardFetch,
+		true,
+		true,
+	},
+
 	// 6.3.1
 	route.Route{
 		"SessionEvaluationLabel",

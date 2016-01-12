@@ -1,9 +1,11 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/cihub/seelog"
 )
 
 type QACardCatelog struct {
@@ -36,7 +38,8 @@ func ReadQACardCatelog(id int64) (*QACardCatelog, error) {
 	catelog := QACardCatelog{Id: id}
 	err := o.Read(&catelog)
 	if err != nil {
-		return nil, err
+		seelog.Error("%s | QACardCatelogId: %d", err.Error(), id)
+		return nil, errors.New("无法找到目录节点")
 	}
 
 	return &catelog, nil
