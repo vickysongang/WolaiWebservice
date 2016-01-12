@@ -15,7 +15,7 @@ type QACardCatalog struct {
 	Pid            int64     `json:"pid"`
 	FileName       string    `json:"-"`
 	MediaId        string    `json:"mediaId"`
-	CreateTIme     time.Time `json:"-" orm:"type(datetime);auto_now_add"`
+	CreateTime     time.Time `json:"-" orm:"type(datetime);auto_now_add"`
 	LastUpdateTime time.Time `json:"-" orm:"type(datetime);auto_now"`
 }
 
