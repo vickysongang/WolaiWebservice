@@ -8,7 +8,7 @@ import (
 	"github.com/cihub/seelog"
 )
 
-type QACardCatelog struct {
+type QACardCatalog struct {
 	Id             int64     `json:"id" orm:"pk"`
 	Name           string    `json:"name"`
 	Type           string    `json:"type"`
@@ -20,27 +20,27 @@ type QACardCatelog struct {
 }
 
 const (
-	QA_CARD_CATELOG_FOLDER = "folder"
-	QA_CARD_CATELOG_FILE   = "file"
+	QA_CARD_CATaLOG_FOLDER = "folder"
+	QA_CARD_CATaLOG_FILE   = "file"
 )
 
 func init() {
-	orm.RegisterModel(new(QACardCatelog))
+	orm.RegisterModel(new(QACardCatalog))
 }
 
-func (c *QACardCatelog) TableName() string {
-	return "qa_card_catelog"
+func (c *QACardCatalog) TableName() string {
+	return "qa_card_catalog"
 }
 
-func ReadQACardCatelog(id int64) (*QACardCatelog, error) {
+func ReadQACardCatalog(id int64) (*QACardCatalog, error) {
 	o := orm.NewOrm()
 
-	catelog := QACardCatelog{Id: id}
-	err := o.Read(&catelog)
+	catalog := QACardCatalog{Id: id}
+	err := o.Read(&catalog)
 	if err != nil {
-		seelog.Error("%s | QACardCatelogId: %d", err.Error(), id)
+		seelog.Error("%s | QACardCatalogId: %d", err.Error(), id)
 		return nil, errors.New("无法找到目录节点")
 	}
 
-	return &catelog, nil
+	return &catalog, nil
 }

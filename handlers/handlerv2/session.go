@@ -95,7 +95,7 @@ func SessionSeekHelp(w http.ResponseWriter, r *http.Request) {
 }
 
 // 6.2.2
-func SessionQACardCatelog(w http.ResponseWriter, r *http.Request) {
+func SessionQACardCatalog(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
@@ -109,7 +109,7 @@ func SessionQACardCatelog(w http.ResponseWriter, r *http.Request) {
 		pid, _ = strconv.ParseInt(pidStr, 10, 64)
 	}
 
-	status, err, content := sessionController.QACardCatelog(pid)
+	status, err, content := sessionController.QACardCatalog(pid)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullSlice)
@@ -129,10 +129,10 @@ func SessionQACardFetch(w http.ResponseWriter, r *http.Request) {
 
 	vars := r.Form
 
-	catelogIdStr := vars["catelogId"][0]
-	catelogId, _ := strconv.ParseInt(catelogIdStr, 10, 64)
+	catalogIdStr := vars["catalogId"][0]
+	catalogId, _ := strconv.ParseInt(catalogIdStr, 10, 64)
 
-	status, err, content := sessionController.QACardAttach(catelogId)
+	status, err, content := sessionController.QACardAttach(catalogId)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullSlice)

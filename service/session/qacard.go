@@ -9,35 +9,35 @@ import (
 	"WolaiWebservice/models"
 )
 
-func QueryQACardCatelog(pid int64) ([]*models.QACardCatelog, error) {
+func QueryQACardCatalog(pid int64) ([]*models.QACardCatalog, error) {
 	var err error
 
 	o := orm.NewOrm()
 
-	var catelogs []*models.QACardCatelog
-	_, err = o.QueryTable(new(models.QACardCatelog).TableName()).
+	var catalogs []*models.QACardCatalog
+	_, err = o.QueryTable(new(models.QACardCatalog).TableName()).
 		Filter("pid", pid).
-		All(&catelogs)
+		All(&catalogs)
 	if err != nil {
 		seelog.Error("%s | Pid: %d", err.Error(), pid)
 		return nil, errors.New("无法找到子节点")
 	}
 
-	return catelogs, nil
+	return catalogs, nil
 }
 
-func QueryQACardAttach(catelogId int64) ([]*models.QACardAttach, error) {
+func QueryQACardAttach(catalogId int64) ([]*models.QACardAttach, error) {
 	var err error
 
 	o := orm.NewOrm()
 
 	var attachs []*models.QACardAttach
 	_, err = o.QueryTable(new(models.QACardAttach).TableName()).
-		Filter("catelog_id", catelogId).
+		Filter("catalog_id", catalogId).
 		OrderBy("rank").
 		All(&attachs)
 	if err != nil {
-		seelog.Error("%s | CatelogId: %d", err.Error(), catelogId)
+		seelog.Error("%s | CatalogId: %d", err.Error(), catalogId)
 		return nil, errors.New("无法找到对应附件")
 	}
 

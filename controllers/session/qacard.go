@@ -5,21 +5,21 @@ import (
 	sessionService "WolaiWebservice/service/session"
 )
 
-func QACardCatelog(pid int64) (int64, error, []*models.QACardCatelog) {
+func QACardCatalog(pid int64) (int64, error, []*models.QACardCatalog) {
 	var err error
 
-	catelogs, err := sessionService.QueryQACardCatelog(pid)
+	catalogs, err := sessionService.QueryQACardCatalog(pid)
 	if err != nil {
 		return 2, err, nil
 	}
 
-	return 0, nil, catelogs
+	return 0, nil, catalogs
 }
 
-func QACardAttach(catelogId int64) (int64, error, []*models.QACardAttach) {
+func QACardAttach(catalogId int64) (int64, error, []*models.QACardAttach) {
 	var err error
 
-	attachs, err := sessionService.QueryQACardAttach(catelogId)
+	attachs, err := sessionService.QueryQACardAttach(catalogId)
 	if err != nil {
 		return 2, err, nil
 	}

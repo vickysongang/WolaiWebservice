@@ -51,10 +51,10 @@ var sessionRoutes = route.Routes{
 
 	// 6.2.2
 	route.Route{
-		"SessionQACardCatelog",
+		"SessionQACardCatalog",
 		"POST",
-		"/qacard/catelog",
-		handlerv2.SessionQACardCatelog,
+		"/qacard/catalog",
+		handlerv2.SessionQACardCatalog,
 		true,
 		true,
 	},
