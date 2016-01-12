@@ -24,6 +24,10 @@ func init() {
 	orm.RegisterModel(new(ChargeCode))
 }
 
+func (c *ChargeCode) TableName() string {
+	return "charge_code"
+}
+
 func ReadChargeCode(code string) (*ChargeCode, error) {
 	var err error
 

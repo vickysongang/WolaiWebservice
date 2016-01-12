@@ -26,6 +26,7 @@ const (
 
 	AVATAR_CHARGE              = "trade_charge"
 	AVATAR_CHARGE_PREMIUM      = "trade_charge_premium"
+	AVATAR_CHARGE_CODE         = "trade_charge_code"
 	AVATAR_DEDUCTION           = "trade_deduction"
 	AVATAR_PROMOTION           = "trade_promotion"
 	AVATAR_REWARD_INVITATION   = "trade_reward_invitation"
