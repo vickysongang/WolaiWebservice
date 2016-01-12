@@ -11,7 +11,7 @@ import (
 )
 
 func createTradeRecord(userId, amount int64, tradeType, result, comment string,
-	sessionId, recordId, pingppId int64) (*models.TradeRecord, error) {
+	sessionId, recordId, pingppId int64, chargeCode string) (*models.TradeRecord, error) {
 	var err error
 
 	err = addUserBalance(userId, amount)
@@ -34,6 +34,7 @@ func createTradeRecord(userId, amount int64, tradeType, result, comment string,
 		SessionId:   sessionId,
 		RecordId:    recordId,
 		PingppId:    pingppId,
+		ChargeCode:  chargeCode,
 	}
 
 	tradeRecord, err := models.InsertTradeRecord(&record)
