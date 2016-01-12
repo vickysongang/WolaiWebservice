@@ -4,16 +4,17 @@ import (
 	"time"
 
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/auth"
 	"WolaiWebservice/service/trade"
 	"WolaiWebservice/utils/leancloud"
 )
 
-func LoginByPhone(phone string) (int64, *authInfo) {
+func LoginByPhone(phone string) (int64, *auth.AuthInfo) {
 	var err error
 
 	user := models.QueryUserByPhone(phone)
 	if user != nil {
-		info, err := GenerateAuthInfo(user.Id)
+		info, err := auth.GenerateAuthInfo(user.Id)
 		if err != nil {
 			return 2, nil
 		}
@@ -34,7 +35,7 @@ func LoginByPhone(phone string) (int64, *authInfo) {
 		return 2, nil
 	}
 
-	info, err := GenerateAuthInfo(user.Id)
+	info, err := auth.GenerateAuthInfo(user.Id)
 	if err != nil {
 		return 2, nil
 	}

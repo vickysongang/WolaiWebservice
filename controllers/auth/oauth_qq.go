@@ -4,11 +4,12 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/auth"
 	"WolaiWebservice/service/trade"
 	"WolaiWebservice/utils/leancloud"
 )
 
-func LoginOauth(openId string) (int64, *authInfo) {
+func LoginOauth(openId string) (int64, *auth.AuthInfo) {
 	var err error
 
 	o := orm.NewOrm()
@@ -28,7 +29,7 @@ func LoginOauth(openId string) (int64, *authInfo) {
 		UpdateTeacherStatusAfterLogin(user)
 	}
 
-	info, err := GenerateAuthInfo(user.Id)
+	info, err := auth.GenerateAuthInfo(user.Id)
 	if err != nil {
 		return 2, nil
 	}
@@ -36,7 +37,7 @@ func LoginOauth(openId string) (int64, *authInfo) {
 	return 0, info
 }
 
-func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64, *authInfo) {
+func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64, *auth.AuthInfo) {
 	var err error
 
 	user := models.QueryUserByPhone(phone)
@@ -59,7 +60,7 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 			return 2, nil
 		}
 
-		info, err := GenerateAuthInfo(user.Id)
+		info, err := auth.GenerateAuthInfo(user.Id)
 		if err != nil {
 			return 2, nil
 		}
@@ -89,7 +90,7 @@ func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64,
 		return 2, nil
 	}
 
-	info, err := GenerateAuthInfo(user.Id)
+	info, err := auth.GenerateAuthInfo(user.Id)
 	if err != nil {
 		return 2, nil
 	}

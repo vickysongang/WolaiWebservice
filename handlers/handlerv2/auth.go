@@ -13,6 +13,7 @@ import (
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/redis"
 	"WolaiWebservice/routers/token"
+	authService "WolaiWebservice/service/auth"
 	"WolaiWebservice/utils/sendcloud"
 )
 
@@ -67,7 +68,7 @@ func TokenRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := authController.GenerateAuthInfo(userId)
+	info, err := authService.GenerateAuthInfo(userId)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	}

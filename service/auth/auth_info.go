@@ -5,7 +5,7 @@ import (
 	"WolaiWebservice/routers/token"
 )
 
-type authInfo struct {
+type AuthInfo struct {
 	Id          int64  `json:"id"`
 	Nickname    string `json:"nickname"`
 	Avatar      string `json:"avatar"`
@@ -14,7 +14,7 @@ type authInfo struct {
 	Token       string `json:"token"`
 }
 
-func GenerateAuthInfo(userId int64) (*authInfo, error) {
+func GenerateAuthInfo(userId int64) (*AuthInfo, error) {
 	var err error
 
 	user, err := models.ReadUser(userId)
@@ -28,7 +28,7 @@ func GenerateAuthInfo(userId int64) (*authInfo, error) {
 		return nil, err
 	}
 
-	info := authInfo{
+	info := AuthInfo{
 		Id:          user.Id,
 		Nickname:    user.Nickname,
 		Avatar:      user.Avatar,
@@ -36,5 +36,6 @@ func GenerateAuthInfo(userId int64) (*authInfo, error) {
 		AccessRight: user.AccessRight,
 		Token:       tokenString,
 	}
+
 	return &info, nil
 }

@@ -88,7 +88,7 @@ func HandleTradeChargePremium(pingppId, amount int64, comment string) error {
 func HandleTradeWithdraw(userId, amount int64) error {
 	var err error
 
-	_, err = createTradeRecord(userId, amount,
+	_, err = createTradeRecord(userId, 0-amount,
 		models.TRADE_WITHDRAW, models.TRADE_RESULT_SUCCESS, COMMENT_WITHDRAW,
 		0, 0, 0, "")
 
