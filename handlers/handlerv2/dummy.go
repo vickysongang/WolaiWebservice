@@ -25,7 +25,11 @@ func Dummy2(w http.ResponseWriter, r *http.Request) {
 		seelog.Error(err.Error())
 	}
 
-	leancloud.LCGetIntallation("UtGcY2jT6DexrUG9mCMne1qYP6fYAzxJ")
+	vars := r.Form
+
+	objectId := vars["objectId"][0]
+
+	leancloud.LCGetIntallation(objectId)
 	// userIdStr := r.Header.Get("X-Wolai-ID")
 	// userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	// if err != nil {
