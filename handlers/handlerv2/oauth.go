@@ -4,14 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/cihub/seelog"
 
-	"WolaiWebservice/config"
 	authController "WolaiWebservice/controllers/auth"
 	"WolaiWebservice/handlers/response"
-	"WolaiWebservice/redis"
 )
 
 // 1.3.1
@@ -26,12 +23,14 @@ func OauthQQLogin(w http.ResponseWriter, r *http.Request) {
 
 	openId := vars["openId"][0]
 
-	status, content := authController.LoginOauth(openId)
-	if content == nil {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	status, err, content := authController.OauthLogin(openId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+		resp = response.NewResponse(status, "", content)
 	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 1.3.2
@@ -54,24 +53,13 @@ func OauthQQRegister(w http.ResponseWriter, r *http.Request) {
 	genderStr := vars["gender"][0]
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
-	if config.Env.Server.Live == 1 {
-		rc, timestamp := redis.GetSendcloudRandCode(phone)
-		if randCode != rc {
-			json.NewEncoder(w).Encode(response.NewResponse(2, "无效的验证码", response.NullObject))
-			return
-		} else if time.Now().Unix()-timestamp > 10*60 {
-			json.NewEncoder(w).Encode(response.NewResponse(2, "无效的验证码", response.NullObject))
-			return
-		}
-	} else if randCode != "6666" {
-		json.NewEncoder(w).Encode(response.NewResponse(2, "无效的验证码", response.NullObject))
-		return
-	}
-
-	status, content := authController.RegisterOauth(openId, phone, nickname, avatar, gender)
-	if content == nil {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	status, err, content := authController.OauthRegister(phone, randCode,
+		openId, nickname, avatar, gender)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+		resp = response.NewResponse(status, "", content)
 	}
+	json.NewEncoder(w).Encode(resp)
 }

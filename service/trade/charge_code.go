@@ -29,19 +29,18 @@ func ValidateChargeCode(code string) (*models.ChargeCode, error) {
 		return nil, ErrChargeCodeInvalid
 	}
 
+	if time.Now().After(chargeCode.ExpireDate) {
+		return nil, ErrChargeCodeInvalid
+	}
 	return chargeCode, nil
 }
 
 func ApplyChargeCode(userId int64, code string) (*models.ChargeCode, error) {
 	var err error
 
-	chargeCode, err := models.ReadChargeCode(code)
+	chargeCode, err := ValidateChargeCode(code)
 	if err != nil {
-		return nil, ErrChargeCodeInvalid
-	}
-
-	if chargeCode.UseFlag == models.CODE_USE_FLAG_YES {
-		return nil, ErrChargeCodeInvalid
+		return nil, err
 	}
 
 	chargeCode.UseFlag = models.CODE_USE_FLAG_YES

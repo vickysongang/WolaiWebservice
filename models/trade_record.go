@@ -40,12 +40,12 @@ const (
 	TRADE_RESULT_FAIL    = "F"
 )
 
-func (tr *TradeRecord) TableName() string {
-	return "trade_record"
-}
-
 func init() {
 	orm.RegisterModel(new(TradeRecord))
+}
+
+func (tr *TradeRecord) TableName() string {
+	return "trade_record"
 }
 
 /*

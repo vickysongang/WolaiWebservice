@@ -1,101 +1,104 @@
 package auth
 
 import (
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
-	"WolaiWebservice/service/trade"
+	authService "WolaiWebservice/service/auth"
+	tradeService "WolaiWebservice/service/trade"
+	userService "WolaiWebservice/service/user"
 	"WolaiWebservice/utils/leancloud"
 )
 
-func LoginOauth(openId string) (int64, *authInfo) {
+func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
 	var err error
 
-	o := orm.NewOrm()
-
-	var userOauth models.UserOauth
-	err = o.QueryTable("user_oauth").Filter("open_id_qq", openId).One(&userOauth)
+	userOauth, err := authService.QueryUserOauthByOpenId(openId)
 	if err != nil {
-		return 1311, nil
+		return 1311, err, nil
 	}
 
 	user, err := models.ReadUser(userOauth.UserId)
 	if err != nil {
-		return 2, nil
+		return 2, err, nil
 	}
 
-	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-		UpdateTeacherStatusAfterLogin(user)
-	}
-
-	info, err := GenerateAuthInfo(user.Id)
+	flag, err := userService.IsTeacherFirstLogin(user)
 	if err != nil {
-		return 2, nil
+		return 2, err, nil
+	}
+	if flag {
+		leancloud.SendWelcomeMessageTeacher(user.Id)
 	}
 
-	return 0, info
+	err = userService.UpdateUserLastLoginTime(user)
+	if err != nil {
+		return 2, err, nil
+	}
+
+	info, err := authService.GenerateAuthInfo(user.Id)
+	if err != nil {
+		return 2, err, nil
+	}
+
+	return 0, nil, info
 }
 
-func RegisterOauth(openId, phone, nickname, avatar string, gender int64) (int64, *authInfo) {
+func OauthRegister(phone, code, openId, nickname, avatar string, gender int64) (int64, error, *authService.AuthInfo) {
 	var err error
 
-	user := models.QueryUserByPhone(phone)
+	err = authService.VerifySMSCode(phone, code)
+	if err != nil {
+		return 2, err, nil
+	}
+
+	user, err := userService.QueryUserByPhone(phone)
 	if user != nil {
-		_, err := models.ReadUserOauth(user.Id)
-		if err == nil {
-			return 1322, nil
-		}
-
-		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-			UpdateTeacherStatusAfterLogin(user)
-		}
-
-		uo := models.UserOauth{
-			UserId:   user.Id,
-			OpenIdQQ: openId,
-		}
-		_, err = models.CreateUserOauth(&uo)
+		user, err = userService.RegisterUser(phone, nickname, avatar, gender)
 		if err != nil {
-			return 2, nil
+			return 2, err, nil
 		}
 
-		info, err := GenerateAuthInfo(user.Id)
+		_, err = authService.OauthBind(user.Id, openId)
 		if err != nil {
-			return 2, nil
+			return 2, err, nil
 		}
 
-		return 0, info
+		info, err := authService.GenerateAuthInfo(user.Id)
+		if err != nil {
+			return 2, err, nil
+		}
+
+		tradeService.HandleTradeRewardRegistration(user.Id)
+		go leancloud.SendWelcomeMessageStudent(user.Id)
+
+		return 1321, nil, info
 	}
 
-	newUser := models.User{
-		Phone:       &phone,
-		Nickname:    nickname,
-		Avatar:      avatar,
-		Gender:      gender,
-		AccessRight: models.USER_ACCESSRIGHT_STUDENT,
+	if boundFlag, err := authService.HasOauthBound(user.Id); boundFlag {
+		return 1322, err, nil
 	}
 
-	user, err = models.CreateUser(&newUser)
+	flag, err := userService.IsTeacherFirstLogin(user)
 	if err != nil {
-		return 2, nil
+		return 2, err, nil
+	}
+	if flag {
+		leancloud.SendWelcomeMessageTeacher(user.Id)
 	}
 
-	uo := models.UserOauth{
-		UserId:   user.Id,
-		OpenIdQQ: openId,
-	}
-	_, err = models.CreateUserOauth(&uo)
+	_, err = authService.OauthBind(user.Id, openId)
 	if err != nil {
-		return 2, nil
+		return 2, err, nil
 	}
 
-	info, err := GenerateAuthInfo(user.Id)
+	err = userService.UpdateUserLastLoginTime(user)
 	if err != nil {
-		return 2, nil
+		return 2, err, nil
 	}
 
-	trade.HandleTradeRewardRegistration(user.Id)
-	go leancloud.SendWelcomeMessageStudent(user.Id)
+	info, err := authService.GenerateAuthInfo(user.Id)
+	if err != nil {
+		return 2, err, nil
+	}
 
-	return 1321, info
+	return 0, nil, info
 }

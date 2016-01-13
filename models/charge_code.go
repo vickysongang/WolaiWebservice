@@ -1,9 +1,11 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/cihub/seelog"
 )
 
 type ChargeCode struct {
@@ -24,6 +26,10 @@ func init() {
 	orm.RegisterModel(new(ChargeCode))
 }
 
+func (c *ChargeCode) TableName() string {
+	return "charge_code"
+}
+
 func ReadChargeCode(code string) (*ChargeCode, error) {
 	var err error
 
@@ -32,7 +38,8 @@ func ReadChargeCode(code string) (*ChargeCode, error) {
 	c := ChargeCode{ChargeCode: code}
 	err = o.Read(&c)
 	if err != nil {
-		return nil, err
+		seelog.Error("%s | Code: %s", err.Error(), code)
+		return nil, errors.New("充值码无效")
 	}
 
 	return &c, nil
@@ -45,7 +52,8 @@ func UpdateChargeCode(c *ChargeCode) (*ChargeCode, error) {
 
 	_, err = o.Update(c)
 	if err != nil {
-		return nil, err
+		seelog.Error("%s | Code: %s", err.Error(), c.ChargeCode)
+		return nil, errors.New("充值码更新异常")
 	}
 
 	return c, nil
