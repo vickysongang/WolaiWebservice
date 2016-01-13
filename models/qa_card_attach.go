@@ -11,7 +11,7 @@ import (
 type QACardAttach struct {
 	Id         int64     `json:"id" orm:"pk"`
 	Name       string    `json:"name"`
-	CatelogId  int64     `json:"catelogId"`
+	CatalogId  int64     `json:"catalogId"`
 	MediaId    string    `json:"mediaId"`
 	Rank       int64     `json:"rank"`
 	CreateTime time.Time `json:"-"`
