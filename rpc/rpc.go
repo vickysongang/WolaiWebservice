@@ -32,29 +32,6 @@ func NewRpcResponse(status int64, errMsg string, content interface{}) RpcRespons
 	return response
 }
 
-func (watcher *RpcWatcher) GetStatusLive(request *RpcRequest, resp *RpcResponse) error {
-	allOnlineUsers := len(websocket.WsManager.OnlineUserMap)
-	onlineStudentsCount := 0
-	onlineTeachersCount := 0
-	for userId, _ := range websocket.WsManager.OnlineUserMap {
-		user, _ := models.ReadUser(userId)
-		if user.AccessRight == 2 {
-			onlineTeachersCount++
-		}
-	}
-	onlineStudentsCount = allOnlineUsers - onlineTeachersCount
-	liveTeachersCount := len(websocket.TeacherManager.GetLiveTeachers())
-	assignOnTeachersCount := len(websocket.TeacherManager.GetAssignOnTeachers())
-	content := map[string]interface{}{
-		"onlineStudentsCount":   onlineStudentsCount,
-		"onlineTeachersCount":   onlineTeachersCount,
-		"liveTeachersCount":     liveTeachersCount,
-		"assignOnTeachersCount": assignOnTeachersCount,
-	}
-	*resp = NewRpcResponse(0, "", content)
-	return nil
-}
-
 func (watcher *RpcWatcher) SendLikeNotification(request *RpcRequest, resp *RpcResponse) error {
 	userIdStr := request.Args["userId"]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
@@ -63,18 +40,6 @@ func (watcher *RpcWatcher) SendLikeNotification(request *RpcRequest, resp *RpcRe
 	feedId := request.Args["feedId"]
 	leancloud.SendLikeNotification(userId, timestamp, feedId)
 	*resp = NewRpcResponse(0, "", "")
-	return nil
-}
-
-func (watcher *RpcWatcher) SendTradeNotificationSystem(request *RpcRequest, resp *RpcResponse) error {
-	// userId, _ := strconv.ParseInt(request.Args["userId"], 10, 64)
-	// amount, _ := strconv.ParseInt(request.Args["amount"], 10, 64)
-	// status := request.Args["status"]
-	// title := request.Args["title"]
-	// subtitle := request.Args["subtitle"]
-	// extra := request.Args["extra"]
-	// leancloud.SendTradeNotificationSystem(userId, amount, status, title, subtitle, extra)
-	// *resp = NewRpcResponse(0, "", "")
 	return nil
 }
 

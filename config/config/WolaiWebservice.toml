@@ -36,6 +36,11 @@ public = "/var/lib/poi/keys/webservice.pub"
 [seelog]
 config = "/var/lib/poi/logs/config/seelog.xml"
 
+[apns]
+env = "develop"
+cert = "/var/lib/poi/keys/test-dev-cert.pem"
+key = "/var/lib/poi/keys/test-dev-key-noenc.pem"
+
 [leanCloud]
 appId = "fyug6fiiadinzpha6nnlaajo22kam8rhba28oc9n86girasu"
 appKey = "r8pjshqr1edfvsgi0m17pq64j86pru7buae5bcw5f8yjxxbq"
