@@ -27,6 +27,8 @@ func (i *UserLoginInfo) TableName() string {
 }
 
 func CreateUserLoginInfo(info *UserLoginInfo) (*UserLoginInfo, error) {
+	var err error
+
 	o := orm.NewOrm()
 
 	id, err := o.Insert(info)

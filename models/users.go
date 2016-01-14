@@ -88,24 +88,3 @@ func UpdateUser(user *User) (*User, error) {
 
 	return user, nil
 }
-
-func UpdateUserInfo(userId int64, nickname string, avatar string, gender int64) (*User, error) {
-	o := orm.NewOrm()
-
-	user := User{Id: userId}
-	if err := o.Read(&user); err != nil {
-		seelog.Error(err.Error(), " ", userId)
-		return nil, err
-	}
-
-	user.Nickname = nickname
-	user.Avatar = avatar
-	user.Gender = gender
-
-	if _, err := o.Update(&user); err != nil {
-		seelog.Error(err.Error())
-		return nil, err
-	}
-
-	return &user, nil
-}
