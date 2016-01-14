@@ -103,7 +103,7 @@ func PushOrderPersonalAccept(deviceToken string, orderId, teacherId int64) error
 	pn := apns.NewPushNotification()
 	pn.DeviceToken = deviceToken
 	pn.AddPayload(payload)
-	pn.Set("type", "order_accept")
+	pn.Set("type", "order_personal_accept")
 	pn.Set("orderId", orderId)
 	pn.Set("countdown", orderSessionCountdown)
 	pn.Set("teacherInfo", string(teacherByte))
