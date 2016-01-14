@@ -7,7 +7,7 @@ import (
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
-	"WolaiWebservice/utils/leancloud"
+	"WolaiWebservice/utils/leancloud/lcmessage"
 
 	"github.com/cihub/seelog"
 	"github.com/satori/go.uuid"
@@ -128,7 +128,7 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) (*models.POIFee
 			//Modified:20150909
 			count := redis.GetFeedLikeCount(feed.Id, userId)
 			if count == 0 {
-				go leancloud.SendLikeNotification(userId, timestamp, feedId)
+				go lcmessage.SendLikeNotification(userId, timestamp, feedId)
 			}
 
 			redis.SetFeedLikeCount(feed.Id, userId)

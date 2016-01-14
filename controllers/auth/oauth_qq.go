@@ -5,7 +5,7 @@ import (
 	authService "WolaiWebservice/service/auth"
 	tradeService "WolaiWebservice/service/trade"
 	userService "WolaiWebservice/service/user"
-	"WolaiWebservice/utils/leancloud"
+	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
 func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
@@ -26,7 +26,7 @@ func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
 		return 2, err, nil
 	}
 	if flag {
-		leancloud.SendWelcomeMessageTeacher(user.Id)
+		lcmessage.SendWelcomeMessageTeacher(user.Id)
 	}
 
 	err = userService.UpdateUserLastLoginTime(user)
@@ -68,7 +68,7 @@ func OauthRegister(phone, code, openId, nickname, avatar string, gender int64) (
 		}
 
 		tradeService.HandleTradeRewardRegistration(user.Id)
-		go leancloud.SendWelcomeMessageStudent(user.Id)
+		go lcmessage.SendWelcomeMessageStudent(user.Id)
 
 		return 1321, nil, info
 	}
@@ -82,7 +82,7 @@ func OauthRegister(phone, code, openId, nickname, avatar string, gender int64) (
 		return 2, err, nil
 	}
 	if flag {
-		leancloud.SendWelcomeMessageTeacher(user.Id)
+		lcmessage.SendWelcomeMessageTeacher(user.Id)
 	}
 
 	_, err = authService.OauthBind(user.Id, openId)

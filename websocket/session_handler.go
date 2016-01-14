@@ -9,7 +9,7 @@ import (
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/logger"
 	"WolaiWebservice/models"
-	"WolaiWebservice/utils/leancloud"
+	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
 func POIWSSessionHandler(sessionId int64) {
@@ -138,7 +138,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 				//课后结算，产生交易记录
 				SendSessionReport(sessionId)
-				go leancloud.SendSessionExpireMsg(sessionId)
+				go lcmessage.SendSessionExpireMsg(sessionId)
 			}
 
 			WsManager.RemoveSessionLive(sessionId)
@@ -206,8 +206,8 @@ func POIWSSessionHandler(sessionId int64) {
 						creatorChan := WsManager.GetUserChan(session.Creator)
 						creatorChan <- startMsg
 					}
-					go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-						WS_SESSION_START, session.Creator))
+					// go lcmessage.LCPushNotification(lcmessage.NewSessionPushReq(sessionId,
+					// 	WS_SESSION_START, session.Creator))
 
 					//将状态设置为正在拨号中
 					isCalling = true
@@ -363,7 +363,7 @@ func POIWSSessionHandler(sessionId int64) {
 					WsManager.RemoveUserSession(sessionId, session.Tutor, session.Creator)
 					WsManager.RemoveSessionChan(sessionId)
 
-					go leancloud.SendSessionFinishMsg(sessionId)
+					go lcmessage.SendSessionFinishMsg(sessionId)
 
 					logger.InsertSessionEventLog(sessionId, 0, "导师下课，课程结束", "")
 					return
@@ -404,7 +404,7 @@ func POIWSSessionHandler(sessionId int64) {
 						breakChan <- breakMsg
 					}
 
-					go leancloud.SendSessionBreakMsg(sessionId)
+					go lcmessage.SendSessionBreakMsg(sessionId)
 
 				case WS_SESSION_RECOVER_TEACHER:
 					//如果老师所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
@@ -533,8 +533,8 @@ func POIWSSessionHandler(sessionId int64) {
 						studentChan := WsManager.GetUserChan(session.Creator)
 						studentChan <- resumeMsg
 					}
-					go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-						WS_SESSION_RESUME, session.Creator))
+					// go lcmessage.LCPushNotification(lcmessage.NewSessionPushReq(sessionId,
+					// 	WS_SESSION_RESUME, session.Creator))
 
 					//设置上课状态为拨号中
 					isCalling = true
@@ -626,7 +626,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 						seelog.Debug("POIWSSessionHandler: session resumed: " + sessionIdStr)
 						logger.InsertSessionEventLog(sessionId, 0, "课程中断后重新恢复", "")
-						go leancloud.SendSessionResumeMsg(sessionId)
+						go lcmessage.SendSessionResumeMsg(sessionId)
 					}
 				}
 			} else {
@@ -681,7 +681,7 @@ func InitSessionMonitor(sessionId int64) bool {
 		studentChan <- startMsg
 	}
 
-	go leancloud.SendSessionStartMsg(sessionId)
+	go lcmessage.SendSessionStartMsg(sessionId)
 	go POIWSSessionHandler(sessionId)
 
 	return true
@@ -774,10 +774,10 @@ func RecoverUserSession(userId int64) {
 				teacherChan <- alertMsg
 			}
 
-			go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-				alertMsg.OperationCode, session.Tutor))
-			go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-				alertMsg.OperationCode, session.Creator))
+			// go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
+			// 	alertMsg.OperationCode, session.Tutor))
+			// go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
+			// 	alertMsg.OperationCode, session.Creator))
 		} else {
 			recoverMsg := NewPOIWSMessage("", userId, WS_SESSION_RECOVER_STU)
 			if session.Tutor == userId {

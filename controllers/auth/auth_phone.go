@@ -5,7 +5,7 @@ import (
 	tradeService "WolaiWebservice/service/trade"
 	userService "WolaiWebservice/service/user"
 
-	"WolaiWebservice/utils/leancloud"
+	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
 func AuthPhoneLogin(phone, code string) (int64, error, *authService.AuthInfo) {
@@ -29,7 +29,7 @@ func AuthPhoneLogin(phone, code string) (int64, error, *authService.AuthInfo) {
 		}
 
 		tradeService.HandleTradeRewardRegistration(user.Id)
-		go leancloud.SendWelcomeMessageStudent(user.Id)
+		go lcmessage.SendWelcomeMessageStudent(user.Id)
 
 		return 1231, nil, info
 	}
@@ -39,7 +39,7 @@ func AuthPhoneLogin(phone, code string) (int64, error, *authService.AuthInfo) {
 		return 2, err, nil
 	}
 	if flag {
-		leancloud.SendWelcomeMessageTeacher(user.Id)
+		lcmessage.SendWelcomeMessageTeacher(user.Id)
 	}
 
 	err = userService.UpdateUserLastLoginTime(user)
