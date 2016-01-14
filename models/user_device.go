@@ -8,7 +8,7 @@ import (
 )
 
 type UserDevice struct {
-	UserId         int64  `json:"userId"`
+	UserId         int64  `json:"userId" orm:"pk"`
 	VersionCode    int64  `json:"versionCode"`
 	DeviceType     string `json:"deviceType"`
 	ObjectId       string `json:"objectId"`
