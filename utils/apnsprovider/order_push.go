@@ -28,11 +28,9 @@ func PushNewOrderDispatch(orderId int64, deviceToken string) error {
 
 	resp := apnsClient.Send(pn)
 	if !resp.Success {
-		seelog.Debugf("OrderPushFailed:%s | DeviceToken: %s | orderId: %d", resp.Error.Error(), deviceToken, orderId)
 		return errors.New("推送失败")
 	}
 
-	seelog.Debugf("OrderPushSuccess | DeviceToken: %s | orderId: %d", deviceToken, orderId)
 	return nil
 }
 
