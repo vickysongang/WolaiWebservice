@@ -44,7 +44,7 @@ func QueryUserOauthByOpenId(openId string) (*models.UserOauth, error) {
 	var userOauth models.UserOauth
 	err = o.QueryTable("user_oauth").Filter("open_id_qq", openId).One(&userOauth)
 	if err != nil {
-		seelog.Error("%s | OpenIdQQ: %s", err.Error(), openId)
+		seelog.Errorf("%s | OpenIdQQ: %s", err.Error(), openId)
 		return nil, errors.New("未找到该账号的绑定信息")
 	}
 

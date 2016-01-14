@@ -27,11 +27,13 @@ func (i *UserLoginInfo) TableName() string {
 }
 
 func CreateUserLoginInfo(info *UserLoginInfo) (*UserLoginInfo, error) {
+	var err error
+
 	o := orm.NewOrm()
 
 	id, err := o.Insert(info)
 	if err != nil {
-		seelog.Error("%s | UserId: %d", err.Error(), info.UserId)
+		seelog.Errorf("%s | UserId: %d", err.Error(), info.UserId)
 		return nil, errors.New("记录登陆信息失败")
 	}
 	info.Id = id

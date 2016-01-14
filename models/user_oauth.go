@@ -25,7 +25,7 @@ func CreateUserOauth(uo *UserOauth) (*UserOauth, error) {
 
 	_, err := o.Insert(uo)
 	if err != nil {
-		seelog.Error("%s | UserId: %d", err.Error(), uo.UserId)
+		seelog.Errorf("%s | UserId: %d", err.Error(), uo.UserId)
 		return nil, errors.New("绑定QQ失败")
 	}
 
@@ -38,7 +38,7 @@ func ReadUserOauth(userId int64) (*UserOauth, error) {
 	uo := UserOauth{UserId: userId}
 	err := o.Read(&uo)
 	if err != nil {
-		seelog.Error("%s | UserId: %d", err.Error(), userId)
+		seelog.Errorf("%s | UserId: %d", err.Error(), userId)
 		return nil, errors.New("未找到用户的绑定信息")
 	}
 

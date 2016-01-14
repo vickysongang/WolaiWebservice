@@ -7,7 +7,7 @@ import (
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/service/trade"
-	"WolaiWebservice/utils/leancloud"
+	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
 func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64) (int64, error) {
@@ -77,7 +77,7 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 		return 2, errors.New("服务器操作异常")
 	}
 
-	go leancloud.SendCourseChapterCompleteMsg(purchase.Id, chapter.Id)
+	go lcmessage.SendCourseChapterCompleteMsg(purchase.Id, chapter.Id)
 
 	chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", courseId).Count()
 

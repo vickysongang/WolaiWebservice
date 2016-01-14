@@ -33,12 +33,21 @@ func UserLaunch(w http.ResponseWriter, r *http.Request) {
 	ip := r.RemoteAddr
 	userAgent := r.UserAgent()
 
-	status, content := userController.UserLaunch(userId, objectId, address, ip, userAgent)
-	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
-	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	var versionCode int64
+	if len(vars["versionCode"]) > 0 {
+		versionCodeStr := vars["versionCode"][0]
+		versionCode, _ = strconv.ParseInt(versionCodeStr, 10, 64)
 	}
+
+	status, err, content := userController.UserLaunch(userId, versionCode,
+		objectId, address, ip, userAgent)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.1.2
@@ -60,12 +69,14 @@ func UserInfo(w http.ResponseWriter, r *http.Request) {
 	userIdStr = vars["userId"][0]
 	userId, _ := strconv.ParseInt(userIdStr, 10, 64)
 
-	status, content := userController.GetUserInfo(userId)
-	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	status, err, content := userController.GetUserInfo(userId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+		resp = response.NewResponse(status, "", content)
 	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.1.3
@@ -89,8 +100,14 @@ func UserInfoUpdate(w http.ResponseWriter, r *http.Request) {
 	genderStr := vars["gender"][0]
 	gender, _ := strconv.ParseInt(genderStr, 10, 64)
 
-	status, content := userController.UpdateUserInfo(userId, nickname, avatar, gender)
-	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	status, err, content := userController.UpdateUserInfo(userId, gender, nickname, avatar)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.1.4
@@ -108,7 +125,7 @@ func UserGreeting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err, content := userController.AssembleUserGreeting(userId)
+	status, err, content := userController.UserGreeting(userId)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullObject)
@@ -133,10 +150,10 @@ func UserNotification(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err, content := userController.GetUserBroadcast(userId)
+	status, err, content := userController.UserNotification(userId)
 	var resp *response.Response
 	if err != nil {
-		resp = response.NewResponse(status, err.Error(), response.NullObject)
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
 	} else {
 		resp = response.NewResponse(status, "", content)
 	}
@@ -158,7 +175,6 @@ func UserPromotionOnLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//content := redis.RedisManager.GetActivityNotification(userId)
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
 

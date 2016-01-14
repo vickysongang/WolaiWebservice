@@ -7,7 +7,7 @@ import (
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
-	"WolaiWebservice/utils/leancloud"
+	"WolaiWebservice/utils/leancloud/lcmessage"
 
 	"github.com/cihub/seelog"
 	"github.com/satori/go.uuid"
@@ -54,7 +54,7 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 		redis.PostFeedComment(&feedComment)
 		redis.SetFeed(feed)
 	}
-	go leancloud.SendCommentNotification(feedComment.Id)
+	go lcmessage.SendCommentNotification(feedComment.Id)
 
 	feedCommentModel := models.POIFeedComment{
 		Created:   userId,

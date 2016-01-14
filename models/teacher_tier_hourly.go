@@ -1,7 +1,10 @@
 package models
 
 import (
+	"errors"
+
 	"github.com/astaxie/beego/orm"
+	"github.com/cihub/seelog"
 )
 
 type TeacherTierHourly struct {
@@ -27,7 +30,8 @@ func ReadTeacherTierHourly(tierId int64) (*TeacherTierHourly, error) {
 	tier := TeacherTierHourly{Id: tierId}
 	err := o.Read(&tier)
 	if err != nil {
-		return nil, err
+		seelog.Error("%s | TierId: %d", err.Error(), tierId)
+		return nil, errors.New("获取导师等级失败")
 	}
 
 	return &tier, nil

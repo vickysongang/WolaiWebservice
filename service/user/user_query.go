@@ -19,7 +19,7 @@ func QueryUserByPhone(phone string) (*models.User, error) {
 		Filter("phone", phone).
 		One(&user)
 	if err != nil {
-		seelog.Error("%s | Phone: %s", err.Error(), phone)
+		seelog.Errorf("%s | Phone: %s", err.Error(), phone)
 		return nil, errors.New("该手机号用户不存在")
 	}
 

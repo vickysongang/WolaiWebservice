@@ -9,7 +9,7 @@ import (
 	"WolaiWebservice/handlers"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
-	"WolaiWebservice/utils/leancloud"
+	"WolaiWebservice/utils/leancloud/lcmessage"
 	"WolaiWebservice/utils/pingxx"
 	"WolaiWebservice/websocket"
 )
@@ -38,7 +38,7 @@ func (watcher *RpcWatcher) SendLikeNotification(request *RpcRequest, resp *RpcRe
 	timestampStr := request.Args["timestamp"]
 	timestamp, _ := strconv.ParseFloat(timestampStr, 64)
 	feedId := request.Args["feedId"]
-	leancloud.SendLikeNotification(userId, timestamp, feedId)
+	lcmessage.SendLikeNotification(userId, timestamp, feedId)
 	*resp = NewRpcResponse(0, "", "")
 	return nil
 }

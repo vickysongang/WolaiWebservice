@@ -48,3 +48,23 @@ func UpdateUserLastLoginTime(user *models.User) error {
 
 	return nil
 }
+
+func UpdateUserInfo(userId, gender int64, nickname, avatar string) (*models.User, error) {
+	var err error
+
+	user, err := models.ReadUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Nickname = nickname
+	user.Avatar = avatar
+	user.Gender = gender
+
+	user, err = models.UpdateUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
