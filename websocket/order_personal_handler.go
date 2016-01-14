@@ -10,6 +10,7 @@ import (
 
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/push"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
@@ -164,7 +165,7 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 			orderMsg.Attribute["orderInfo"] = string(orderByte)
 			teacherChan <- orderMsg
 		} else {
-			// go lcmessage.LCPushNotification(lcmessage.NewPersonalOrderPushReq(orderId, teacherId))
+			push.PushNewOrderDispatch(teacherId, orderId)
 		}
 
 	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {

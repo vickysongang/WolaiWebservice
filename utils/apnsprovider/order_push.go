@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/anachronistic/apns"
+	"github.com/cihub/seelog"
 
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
@@ -27,9 +28,11 @@ func PushNewOrderDispatch(orderId int64, deviceToken string) error {
 
 	resp := apnsClient.Send(pn)
 	if !resp.Success {
+		seelog.Debug("OrderPushFailed | DeviceToken: %s | orderId: %d", deviceToken, orderId)
 		return errors.New("推送失败")
 	}
 
+	seelog.Debug("OrderPushSuccess | DeviceToken: %s | orderId: %d", deviceToken, orderId)
 	return nil
 }
 
