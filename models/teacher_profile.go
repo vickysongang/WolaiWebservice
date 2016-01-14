@@ -36,7 +36,7 @@ func ReadTeacherProfile(userId int64) (*TeacherProfile, error) {
 	teacher := TeacherProfile{UserId: userId}
 	err = o.Read(&teacher)
 	if err != nil {
-		seelog.Error("%s | UserId: %d", err.Error(), userId)
+		seelog.Errorf("%s | UserId: %d", err.Error(), userId)
 		return nil, errors.New("未找到导师详细资料")
 	}
 

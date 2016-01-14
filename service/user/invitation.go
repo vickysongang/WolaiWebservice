@@ -18,7 +18,8 @@ func CheckUserInvitation(userId int64) (bool, error) {
 	}
 
 	var record models.RegisterInvitation
-	err = o.QueryTable(new(models.RegisterInvitation).TableName()).Filter("phone", user.Phone).
+	err = o.QueryTable(new(models.RegisterInvitation).TableName()).
+		Filter("phone", user.Phone).
 		One(&record)
 	if err != nil {
 		return false, err
@@ -28,7 +29,8 @@ func CheckUserInvitation(userId int64) (bool, error) {
 		return false, nil
 	}
 
-	_, err = o.QueryTable(new(models.RegisterInvitation).TableName()).Filter("phone", user.Phone).
+	_, err = o.QueryTable(new(models.RegisterInvitation).TableName()).
+		Filter("phone", user.Phone).
 		Update(orm.Params{
 		"process_flag": models.REGISTER_INVITATION_FLAG_YES,
 	})

@@ -37,7 +37,7 @@ func CreateUserDevice(userDevice *UserDevice) (*UserDevice, error) {
 
 	_, err = o.Insert(userDevice)
 	if err != nil {
-		seelog.Error("%s", err.Error())
+		seelog.Errorf("%s", err.Error())
 		return nil, errors.New("创建用户设备信息失败")
 	}
 
@@ -52,7 +52,7 @@ func ReadUserDevice(userId int64) (*UserDevice, error) {
 	userDevice := UserDevice{UserId: userId}
 	err = o.Read(&userDevice)
 	if err != nil {
-		seelog.Error("%s | UserId: %d", err.Error(), userId)
+		seelog.Errorf("%s | UserId: %d", err.Error(), userId)
 		return nil, errors.New("用户设备信息不存在")
 	}
 
@@ -66,7 +66,7 @@ func UpdateUserDevice(userDevice *UserDevice) (*UserDevice, error) {
 
 	_, err = o.Update(userDevice)
 	if err != nil {
-		seelog.Error("%s | UserId: %d", err.Error(), userDevice.UserId)
+		seelog.Errorf("%s | UserId: %d", err.Error(), userDevice.UserId)
 		return nil, errors.New("更新用户设备信息失败")
 	}
 

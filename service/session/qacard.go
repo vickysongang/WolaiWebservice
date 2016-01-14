@@ -19,7 +19,7 @@ func QueryQACardCatalog(pid int64) ([]*models.QACardCatalog, error) {
 		Filter("pid", pid).
 		All(&catalogs)
 	if err != nil {
-		seelog.Error("%s | Pid: %d", err.Error(), pid)
+		seelog.Errorf("%s | Pid: %d", err.Error(), pid)
 		return nil, errors.New("无法找到子节点")
 	}
 
@@ -37,7 +37,7 @@ func QueryQACardAttach(catalogId int64) ([]*models.QACardAttach, error) {
 		OrderBy("rank").
 		All(&attachs)
 	if err != nil {
-		seelog.Error("%s | CatalogId: %d", err.Error(), catalogId)
+		seelog.Errorf("%s | CatalogId: %d", err.Error(), catalogId)
 		return nil, errors.New("无法找到对应附件")
 	}
 

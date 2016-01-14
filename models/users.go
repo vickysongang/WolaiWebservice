@@ -68,7 +68,7 @@ func ReadUser(userId int64) (*User, error) {
 	user := User{Id: userId}
 	err = o.Read(&user)
 	if err != nil {
-		seelog.Error("%s | UserId: %d", err.Error(), userId)
+		seelog.Errorf("%s | UserId: %d", err.Error(), userId)
 		return nil, errors.New("用户不存在")
 	}
 
@@ -82,7 +82,7 @@ func UpdateUser(user *User) (*User, error) {
 
 	_, err = o.Update(user)
 	if err != nil {
-		seelog.Error("%s | UserId: %d", err.Error(), user.Id)
+		seelog.Errorf("%s | UserId: %d", err.Error(), user.Id)
 		return nil, errors.New("更新用户失败")
 	}
 
