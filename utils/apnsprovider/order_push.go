@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/anachronistic/apns"
-	"github.com/cihub/seelog"
 
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
