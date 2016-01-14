@@ -112,6 +112,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						if WsManager.HasUserChan(order.Creator) {
 							creatorChan := WsManager.GetUserChan(order.Creator)
 							creatorChan <- acceptMsg
+						} else {
+							push.PushOrderAccept(order.Creator, orderId, msg.UserId)
 						}
 					}
 

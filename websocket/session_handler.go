@@ -9,6 +9,7 @@ import (
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/logger"
 	"WolaiWebservice/models"
+	"WolaiWebservice/service/push"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
@@ -532,9 +533,9 @@ func POIWSSessionHandler(sessionId int64) {
 					if WsManager.HasUserChan(session.Creator) {
 						studentChan := WsManager.GetUserChan(session.Creator)
 						studentChan <- resumeMsg
+					} else {
+						push.PushSessionResume(session.Creator, sessionId)
 					}
-					// go lcmessage.LCPushNotification(lcmessage.NewSessionPushReq(sessionId,
-					// 	WS_SESSION_RESUME, session.Creator))
 
 					//设置上课状态为拨号中
 					isCalling = true
@@ -674,11 +675,15 @@ func InitSessionMonitor(sessionId int64) bool {
 	if WsManager.HasUserChan(session.Tutor) {
 		teacherChan := WsManager.GetUserChan(session.Tutor)
 		teacherChan <- startMsg
+	} else {
+		push.PushSessionInstantStart(session.Tutor, sessionId)
 	}
 	if WsManager.HasUserChan(session.Creator) {
 		startMsg.UserId = session.Creator
 		studentChan := WsManager.GetUserChan(session.Creator)
 		studentChan <- startMsg
+	} else {
+		push.PushSessionInstantStart(session.Creator, sessionId)
 	}
 
 	go lcmessage.SendSessionStartMsg(sessionId)

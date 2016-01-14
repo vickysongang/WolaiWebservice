@@ -3,7 +3,6 @@ package apnsprovider
 import (
 	"encoding/json"
 	"errors"
-	"strconv"
 
 	"github.com/anachronistic/apns"
 
@@ -11,7 +10,7 @@ import (
 	"WolaiWebservice/models"
 )
 
-func PushNewOrderDispatch(orderId int64, deviceToken string) error {
+func PushNewOrderDispatch(deviceToken string, orderId int64) error {
 	info := getOrderInfo(orderId)
 	infoByte, _ := json.Marshal(info)
 
@@ -33,7 +32,7 @@ func PushNewOrderDispatch(orderId int64, deviceToken string) error {
 	return nil
 }
 
-func PushNewOrderAssign(orderId int64, deviceToken string) error {
+func PushNewOrderAssign(deviceToken string, orderId int64) error {
 	info := getOrderInfo(orderId)
 	infoByte, _ := json.Marshal(info)
 	orderAssignCountdown := settings.OrderAssignCountdown()
@@ -48,7 +47,67 @@ func PushNewOrderAssign(orderId int64, deviceToken string) error {
 	pn.AddPayload(payload)
 	pn.Set("type", "order_assign")
 	pn.Set("orderInfo", string(infoByte))
-	pn.Set("countdown", strconv.FormatInt(orderAssignCountdown, 10))
+	pn.Set("countdown", orderAssignCountdown)
+
+	resp := apnsClient.Send(pn)
+	if !resp.Success {
+		return errors.New("推送失败")
+	}
+
+	return nil
+}
+
+func PushOrderAccept(deviceToken string, orderId, teacherId int64) error {
+	info := getOrderInfo(orderId)
+	orderSessionCountdown := settings.OrderSessionCountdown()
+	teacher, err := models.ReadUser(teacherId)
+	if err != nil {
+		return err
+	}
+	teacherByte, _ := json.Marshal(teacher)
+
+	payload := apns.NewPayload()
+	payload.Alert = "有导师接受了你的提问，快来上课吧"
+	payload.Badge = 1
+
+	pn := apns.NewPushNotification()
+	pn.DeviceToken = deviceToken
+	pn.AddPayload(payload)
+	pn.Set("type", "order_accept")
+	pn.Set("orderId", orderId)
+	pn.Set("countdown", orderSessionCountdown)
+	pn.Set("teacherInfo", string(teacherByte))
+	pn.Set("title", info.Title)
+
+	resp := apnsClient.Send(pn)
+	if !resp.Success {
+		return errors.New("推送失败")
+	}
+
+	return nil
+}
+
+func PushOrderPersonalAccept(deviceToken string, orderId, teacherId int64) error {
+	info := getOrderInfo(orderId)
+	orderSessionCountdown := settings.OrderSessionCountdown()
+	teacher, err := models.ReadUser(teacherId)
+	if err != nil {
+		return err
+	}
+	teacherByte, _ := json.Marshal(teacher)
+
+	payload := apns.NewPayload()
+	payload.Alert = "导师接受了你的提问，快来上课吧"
+	payload.Badge = 1
+
+	pn := apns.NewPushNotification()
+	pn.DeviceToken = deviceToken
+	pn.AddPayload(payload)
+	pn.Set("type", "order_accept")
+	pn.Set("orderId", orderId)
+	pn.Set("countdown", orderSessionCountdown)
+	pn.Set("teacherInfo", string(teacherByte))
+	pn.Set("title", info.Title)
 
 	resp := apnsClient.Send(pn)
 	if !resp.Success {
