@@ -20,7 +20,7 @@ func PushNewOrderDispatch(userId, orderId int64) error {
 	}
 
 	if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-		apnsprovider.PushNewOrderDispatch(userDevice.DeviceToken, orderId)
+		apnsprovider.PushNewOrderDispatch(userDevice.DeviceToken, userDevice.DeviceProfile, orderId)
 	} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
 		lcpush.PushNewOrderDispatch(userDevice.ObjectId, orderId)
 	}
@@ -42,7 +42,7 @@ func PushNewOrderAssign(userId, orderId int64) error {
 	}
 
 	if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-		apnsprovider.PushNewOrderAssign(userDevice.DeviceToken, orderId)
+		apnsprovider.PushNewOrderAssign(userDevice.DeviceToken, userDevice.DeviceProfile, orderId)
 	} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
 		lcpush.PushNewOrderAssign(userDevice.ObjectId, orderId)
 	}
@@ -64,7 +64,7 @@ func PushOrderAccept(userId, orderId, teacherId int64) error {
 	}
 
 	if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-		apnsprovider.PushOrderAccept(userDevice.DeviceToken, orderId, teacherId)
+		apnsprovider.PushOrderAccept(userDevice.DeviceToken, userDevice.DeviceProfile, orderId, teacherId)
 	} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
 		lcpush.PushOrderAccept(userDevice.ObjectId, orderId, teacherId)
 	}
@@ -86,7 +86,7 @@ func PushOrderPersonalAccept(userId, orderId, teacherId int64) error {
 	}
 
 	if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-		apnsprovider.PushOrderPersonalAccept(userDevice.DeviceToken, orderId, teacherId)
+		apnsprovider.PushOrderPersonalAccept(userDevice.DeviceToken, userDevice.DeviceProfile, orderId, teacherId)
 	} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
 		lcpush.PushOrderAccept(userDevice.ObjectId, orderId, teacherId)
 	}

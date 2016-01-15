@@ -11,7 +11,7 @@ import (
 	orderService "WolaiWebservice/service/order"
 )
 
-func PushNewOrderDispatch(deviceToken string, orderId int64) error {
+func PushNewOrderDispatch(deviceToken, deviceProfile string, orderId int64) error {
 	info := orderService.GetOrderBrief(orderId)
 	infoByte, _ := json.Marshal(info)
 	order, err := models.ReadOrder(orderId)
@@ -33,7 +33,12 @@ func PushNewOrderDispatch(deviceToken string, orderId int64) error {
 	pn.Set("type", "order_dispatch")
 	pn.Set("orderInfo", string(infoByte))
 
-	resp := apnsClient.Send(pn)
+	var resp *apns.PushNotificationResponse
+	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
+		resp = appStoreClient.Send(pn)
+	} else {
+		resp = inHouseClient.Send(pn)
+	}
 	if !resp.Success {
 		return errors.New("推送失败")
 	}
@@ -41,7 +46,7 @@ func PushNewOrderDispatch(deviceToken string, orderId int64) error {
 	return nil
 }
 
-func PushNewOrderAssign(deviceToken string, orderId int64) error {
+func PushNewOrderAssign(deviceToken, deviceProfile string, orderId int64) error {
 	info := orderService.GetOrderBrief(orderId)
 	infoByte, _ := json.Marshal(info)
 	orderAssignCountdown := settings.OrderAssignCountdown()
@@ -58,7 +63,12 @@ func PushNewOrderAssign(deviceToken string, orderId int64) error {
 	pn.Set("orderInfo", string(infoByte))
 	pn.Set("countdown", orderAssignCountdown)
 
-	resp := apnsClient.Send(pn)
+	var resp *apns.PushNotificationResponse
+	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
+		resp = appStoreClient.Send(pn)
+	} else {
+		resp = inHouseClient.Send(pn)
+	}
 	if !resp.Success {
 		return errors.New("推送失败")
 	}
@@ -66,7 +76,7 @@ func PushNewOrderAssign(deviceToken string, orderId int64) error {
 	return nil
 }
 
-func PushOrderAccept(deviceToken string, orderId, teacherId int64) error {
+func PushOrderAccept(deviceToken, deviceProfile string, orderId, teacherId int64) error {
 	info := orderService.GetOrderBrief(orderId)
 	orderSessionCountdown := settings.OrderSessionCountdown()
 	teacher, err := models.ReadUser(teacherId)
@@ -88,7 +98,12 @@ func PushOrderAccept(deviceToken string, orderId, teacherId int64) error {
 	pn.Set("teacherInfo", string(teacherByte))
 	pn.Set("title", info.Title)
 
-	resp := apnsClient.Send(pn)
+	var resp *apns.PushNotificationResponse
+	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
+		resp = appStoreClient.Send(pn)
+	} else {
+		resp = inHouseClient.Send(pn)
+	}
 	if !resp.Success {
 		return errors.New("推送失败")
 	}
@@ -96,7 +111,7 @@ func PushOrderAccept(deviceToken string, orderId, teacherId int64) error {
 	return nil
 }
 
-func PushOrderPersonalAccept(deviceToken string, orderId, teacherId int64) error {
+func PushOrderPersonalAccept(deviceToken, deviceProfile string, orderId, teacherId int64) error {
 	info := orderService.GetOrderBrief(orderId)
 	orderSessionCountdown := settings.OrderSessionCountdown()
 	teacher, err := models.ReadUser(teacherId)
@@ -127,7 +142,12 @@ func PushOrderPersonalAccept(deviceToken string, orderId, teacherId int64) error
 	pn.Set("teacherInfo", string(teacherByte))
 	pn.Set("title", info.Title)
 
-	resp := apnsClient.Send(pn)
+	var resp *apns.PushNotificationResponse
+	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
+		resp = appStoreClient.Send(pn)
+	} else {
+		resp = inHouseClient.Send(pn)
+	}
 	if !resp.Success {
 		return errors.New("推送失败")
 	}

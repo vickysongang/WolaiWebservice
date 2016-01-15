@@ -38,8 +38,10 @@ config = "/var/lib/poi/logs/config/seelog.xml"
 
 [apns]
 env = "develop"
-cert = "/var/lib/poi/keys/test-dev-cert.pem"
-key = "/var/lib/poi/keys/test-dev-key-noenc.pem"
+appStoreCert = "/var/lib/poi/keys/app-dev-cert.pem"
+appStoreKey = "/var/lib/poi/keys/app-dev-key-noenc.pem"
+inHouseCert = "/var/lib/poi/keys/test-dev-cert.pem"
+inHouseKey = "/var/lib/poi/keys/test-dev-key-noenc.pem"
 
 [leanCloud]
 appId = "fyug6fiiadinzpha6nnlaajo22kam8rhba28oc9n86girasu"

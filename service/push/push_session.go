@@ -20,7 +20,7 @@ func PushSessionInstantStart(userId, sessionId int64) error {
 	}
 
 	if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-		apnsprovider.PushSessionInstantStart(userDevice.DeviceToken, sessionId)
+		apnsprovider.PushSessionInstantStart(userDevice.DeviceToken, userDevice.DeviceProfile, sessionId)
 	} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
 		lcpush.PushSessionInstantStart(userDevice.ObjectId, sessionId)
 	}
@@ -42,7 +42,7 @@ func PushSessionResume(userId, sessionId int64) error {
 	}
 
 	if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-		apnsprovider.PushSessionResume(userDevice.DeviceToken, sessionId)
+		apnsprovider.PushSessionResume(userDevice.DeviceToken, userDevice.DeviceProfile, sessionId)
 	} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
 		lcpush.PushSessionResume(userDevice.ObjectId, sessionId)
 	}

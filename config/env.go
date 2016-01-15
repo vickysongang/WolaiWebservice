@@ -70,9 +70,11 @@ type seelogConf struct {
 }
 
 type apnsConf struct {
-	Env  string
-	Cert string
-	Key  string
+	Env          string
+	AppStoreCert string
+	AppStoreKey  string
+	InHouseCert  string
+	InHouseKey   string
 }
 
 type leancloudConf struct {

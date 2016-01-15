@@ -18,6 +18,7 @@ type LCInstallation struct {
 	ObjectId       string   `json:"objectId"`
 	DeviceType     string   `json:"deviceType"`
 	DeviceToken    string   `json:"deviceToken"`
+	DeviceProfile  string   `jsoN:"deviceProfile"`
 	InstallationId string   `json:"installationId"`
 	TimeZone       string   `json:"timeZone"`
 	UpdateAt       string   `json:"updateAt"`

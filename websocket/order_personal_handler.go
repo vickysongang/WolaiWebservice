@@ -166,12 +166,15 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 			orderMsg := NewPOIWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
 			orderMsg.Attribute["orderInfo"] = string(orderByte)
 			teacherChan <- orderMsg
-		} else {
+		} else if !WsManager.HasUserChan(teacherId) {
 			push.PushNewOrderDispatch(teacherId, orderId)
 		}
 
 	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 		go lcmessage.SendOrderCourseNotification(orderId, teacherId)
+		if !WsManager.HasUserChan(teacherId) {
+			push.PushNewOrderDispatch(teacherId, orderId)
+		}
 	}
 
 	if !WsManager.HasUserChan(teacherId) {

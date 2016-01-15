@@ -14,7 +14,8 @@ const (
 	APNS_ENV_PROD = "production"
 )
 
-var apnsClient *apns.Client
+var appStoreClient *apns.Client
+var inHouseClient *apns.Client
 
 func init() {
 	var gateway string
@@ -24,5 +25,6 @@ func init() {
 		gateway = APNS_GATEWAY_PROD
 	}
 
-	apnsClient = apns.NewClient(gateway, config.Env.APNS.Cert, config.Env.APNS.Key)
+	appStoreClient = apns.NewClient(gateway, config.Env.APNS.AppStoreCert, config.Env.APNS.AppStoreKey)
+	inHouseClient = apns.NewClient(gateway, config.Env.APNS.InHouseCert, config.Env.APNS.InHouseKey)
 }
