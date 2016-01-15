@@ -17,7 +17,7 @@ func LCPushNotification(lcReq *map[string]interface{}) {
 	url := LC_PUSH
 
 	query, _ := json.Marshal(lcReq)
-	seelog.Trace("[LCSendMessage]: ", string(query))
+	seelog.Trace("[LCPushNotification]: ", string(query))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
 	if err != nil {
@@ -41,5 +41,6 @@ func LCPushNotification(lcReq *map[string]interface{}) {
 
 	body, _ := ioutil.ReadAll(resp.Body)
 	seelog.Trace("response: ", string(body))
+
 	return
 }

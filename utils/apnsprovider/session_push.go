@@ -8,7 +8,7 @@ import (
 	"WolaiWebservice/models"
 )
 
-func PushSessionInstantStart(deviceToken string, sessionId int64) error {
+func PushSessionInstantStart(deviceToken, deviceProfile string, sessionId int64) error {
 	var err error
 
 	session, err := models.ReadSession(sessionId)
@@ -22,7 +22,7 @@ func PushSessionInstantStart(deviceToken string, sessionId int64) error {
 	}
 
 	payload := apns.NewPayload()
-	payload.Alert = "你有一条新的上课消息"
+	payload.Alert = "上课开始了，快回到课堂吧"
 	payload.Badge = 1
 
 	pn := apns.NewPushNotification()
@@ -36,7 +36,12 @@ func PushSessionInstantStart(deviceToken string, sessionId int64) error {
 		pn.Set("courseId", order.CourseId)
 	}
 
-	resp := apnsClient.Send(pn)
+	var resp *apns.PushNotificationResponse
+	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
+		resp = appStoreClient.Send(pn)
+	} else {
+		resp = inHouseClient.Send(pn)
+	}
 	if !resp.Success {
 		return errors.New("推送失败")
 	}
@@ -44,7 +49,7 @@ func PushSessionInstantStart(deviceToken string, sessionId int64) error {
 	return nil
 }
 
-func PushSessionResume(deviceToken string, sessionId int64) error {
+func PushSessionResume(deviceToken, deviceProfile string, sessionId int64) error {
 	var err error
 
 	session, err := models.ReadSession(sessionId)
@@ -53,7 +58,7 @@ func PushSessionResume(deviceToken string, sessionId int64) error {
 	}
 
 	payload := apns.NewPayload()
-	payload.Alert = "你有一条新的上课消息"
+	payload.Alert = "导师正在邀请你进入课堂"
 	payload.Badge = 1
 
 	pn := apns.NewPushNotification()
@@ -63,7 +68,12 @@ func PushSessionResume(deviceToken string, sessionId int64) error {
 	pn.Set("sessionId", session.Id)
 	pn.Set("teacherId", session.Tutor)
 
-	resp := apnsClient.Send(pn)
+	var resp *apns.PushNotificationResponse
+	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
+		resp = appStoreClient.Send(pn)
+	} else {
+		resp = inHouseClient.Send(pn)
+	}
 	if !resp.Success {
 		return errors.New("推送失败")
 	}

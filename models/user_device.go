@@ -13,6 +13,7 @@ type UserDevice struct {
 	DeviceType     string `json:"deviceType"`
 	ObjectId       string `json:"objectId"`
 	DeviceToken    string `json:"deviceToken"`
+	DeviceProfile  string `json:"deviceProfile"`
 	InstallationId string `json:"installationId"`
 	TimeZone       string `json:"timeZone"`
 }
@@ -20,6 +21,9 @@ type UserDevice struct {
 const (
 	DEVICE_TYPE_ANDROID = "android"
 	DEVICE_TYPE_IOS     = "ios"
+
+	DEVICE_PROFILE_APPSTORE = "appstore"
+	DEVICE_PROFILE_INHOUSE  = "inhouse"
 )
 
 func init() {

@@ -1,7 +1,10 @@
 package user
 
 import (
+	"errors"
+
 	"github.com/astaxie/beego/orm"
+	"github.com/cihub/seelog"
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/service/trade"
@@ -22,7 +25,7 @@ func CheckUserInvitation(userId int64) (bool, error) {
 		Filter("phone", user.Phone).
 		One(&record)
 	if err != nil {
-		return false, err
+		return false, errors.New("没有邀请记录")
 	}
 
 	if record.ProcessFlag != models.REGISTER_INVITATION_FLAG_NO {
@@ -34,6 +37,10 @@ func CheckUserInvitation(userId int64) (bool, error) {
 		Update(orm.Params{
 		"process_flag": models.REGISTER_INVITATION_FLAG_YES,
 	})
+	if err != nil {
+		seelog.Errorf("%s | Phone: %s", err.Error(), user.Phone)
+		return false, errors.New("没有邀请记录")
+	}
 
 	trade.HandleTradeRewardInvitation(record.Inviter, record.Amount)
 
