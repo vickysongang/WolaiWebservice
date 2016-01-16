@@ -352,7 +352,7 @@ func assignNextTeacher(orderId int64) int64 {
 		}
 
 		if order.TierId != 0 && order.TierId != profile.TierId {
-			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN LOCK: ", orderId, " to teacher: ", teacherId)
+			seelog.Debug("orderHandler|orderAssign FAIL TEACHER TIER MISS MATCH: ", orderId, " to teacher: ", teacherId)
 			continue
 		}
 
