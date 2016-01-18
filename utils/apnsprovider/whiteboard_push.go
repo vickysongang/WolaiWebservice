@@ -1,12 +1,14 @@
 package apnsprovider
 
 import (
+	"errors"
+
 	"github.com/anachronistic/apns"
+
+	"WolaiWebservice/models"
 )
 
 func PushWhiteboardCall(deviceToken, deviceProfile string, callerId int64) error {
-	var err error
-
 	payload := apns.NewPayload()
 	payload.Alert = "对方正邀请你使用白板"
 	payload.Badge = 1
