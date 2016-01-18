@@ -37,6 +37,38 @@ func IsUserExisting(userId int64) bool {
 	return exist
 }
 
+type VersionRequire struct {
+	MinAndroidVersion int64
+	MinIOSVersion     int64
+}
+
+func CheckUserVersion(userId int64, req *VersionRequire) bool {
+	var err error
+
+	userDevice, err := models.ReadUserDevice(userId)
+	if err != nil {
+		return false
+	}
+
+	if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
+		if userDevice.VersionCode >= req.MinAndroidVersion {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
+		if userDevice.VersionCode >= req.MinIOSVersion {
+			return true
+		} else {
+			return false
+		}
+	}
+
+	return false
+}
+
 func UpdateUserLastLoginTime(user *models.User) error {
 	var err error
 

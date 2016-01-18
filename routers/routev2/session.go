@@ -128,4 +128,14 @@ var sessionRoutes = route.Routes{
 		true,
 		true,
 	},
+
+	// 6.5.2
+	route.Route{
+		"SessionWhiteboardCheckQACard",
+		"POST",
+		"/whiteboard/check/qacard",
+		handlerv2.SessionWhiteboardCheckQACard,
+		true,
+		true,
+	},
 }
