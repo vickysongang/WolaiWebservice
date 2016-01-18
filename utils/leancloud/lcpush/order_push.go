@@ -24,6 +24,13 @@ func PushNewOrderDispatch(objectId string, orderId int64) error {
 		alert = "你收到了一条新的提问"
 	}
 
+	var action string
+	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT {
+		action = "poi.push.NEW_SESSION"
+	} else {
+		action = "poi.push.NEW_PERSONAL"
+	}
+
 	lcReq := map[string]interface{}{
 		"where": map[string]interface{}{
 			"objectId": objectId,
@@ -31,7 +38,7 @@ func PushNewOrderDispatch(objectId string, orderId int64) error {
 		"data": map[string]interface{}{
 			"alert":     alert,
 			"title":     "我来",
-			"action":    "poi.push.NEW_SESSION",
+			"action":    action,
 			"orderInfo": string(infoByte),
 		},
 	}

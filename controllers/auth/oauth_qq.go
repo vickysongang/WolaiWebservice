@@ -51,7 +51,7 @@ func OauthRegister(phone, code, openId, nickname, avatar string, gender int64) (
 	}
 
 	user, err := userService.QueryUserByPhone(phone)
-	if user != nil {
+	if err != nil {
 		user, err = userService.RegisterUser(phone, nickname, avatar, gender)
 		if err != nil {
 			return 2, err, nil
