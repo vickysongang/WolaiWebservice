@@ -118,4 +118,14 @@ var sessionRoutes = route.Routes{
 		true,
 		true,
 	},
+
+	// 6.5.1
+	route.Route{
+		"SessionWhiteboardCall",
+		"POST",
+		"/whiteboard/call",
+		handlerv2.SessionWhiteboardCall,
+		true,
+		true,
+	},
 }
