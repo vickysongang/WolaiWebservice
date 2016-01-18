@@ -20,7 +20,7 @@ func SessionWhiteboardCallPush(userId, targetId int64) (int64, error) {
 func SessionWhiteboardCheckQACard(targetId int64) (int64, error) {
 	req := user.VersionRequire{
 		MinIOSVersion:     522,
-		MinAndroidVersion: 108,
+		MinAndroidVersion: 109,
 	}
 
 	if !user.CheckUserVersion(targetId, &req) {
