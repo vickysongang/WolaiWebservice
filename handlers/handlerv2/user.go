@@ -197,12 +197,14 @@ func UserTeacherProfile(w http.ResponseWriter, r *http.Request) {
 	teacherIdStr := vars["userId"][0]
 	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
 
-	status, content := userController.GetTeacherProfile(userId, teacherId)
-	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullObject))
+	status, err, content := userController.GetTeacherProfile(userId, teacherId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+		resp = response.NewResponse(status, "", content)
 	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.2.3
@@ -242,12 +244,14 @@ func UserTeacherProfileCourse(w http.ResponseWriter, r *http.Request) {
 		count = 10
 	}
 
-	status, content := userController.GetTeacherCourseList(teacherId, page, count)
-	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullSlice))
+	status, err, content := userController.GetTeacherCourseList(teacherId, page, count)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+		resp = response.NewResponse(status, "", content)
 	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.3.1
@@ -285,12 +289,14 @@ func UserSearch(w http.ResponseWriter, r *http.Request) {
 		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
 	}
 
-	status, content := userController.SearchUser(userId, keyword, pageNum, pageCount)
-	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	status, err, content := userController.SearchUser(userId, keyword, pageNum, pageCount)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+		resp = response.NewResponse(status, "", content)
 	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.3.2
@@ -329,12 +335,14 @@ func UserTeacherSearch(w http.ResponseWriter, r *http.Request) {
 		pageCount, _ = strconv.ParseInt(pageCountStr, 10, 64)
 	}
 
-	status, content := userController.SearchUser(userId, keyword, pageNum, pageCount)
-	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	status, err, content := userController.SearchUser(userId, keyword, pageNum, pageCount)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+		resp = response.NewResponse(status, "", content)
 	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.3.5
@@ -366,12 +374,14 @@ func UserTeacherRecent(w http.ResponseWriter, r *http.Request) {
 		count = 10
 	}
 
-	status, content := userController.GetTeacherRecent(userId, page, count)
-	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	status, err, content := userController.GetTeacherRecent(userId, page, count)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+		resp = response.NewResponse(status, "", content)
 	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.3.5
@@ -403,12 +413,14 @@ func UserTeacherRecommendation(w http.ResponseWriter, r *http.Request) {
 		count = 10
 	}
 
-	status, content := userController.GetTeacherRecommendation(userId, page, count)
-	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	status, err, content := userController.GetTeacherRecommendation(userId, page, count)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+		resp = response.NewResponse(status, "", content)
 	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.3.6
@@ -440,10 +452,12 @@ func UserContactRecommendation(w http.ResponseWriter, r *http.Request) {
 		count = 10
 	}
 
-	status, content := userController.GetContactRecommendation(userId, page, count)
-	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	status, err, content := userController.GetContactRecommendation(userId, page, count)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+		resp = response.NewResponse(status, "", content)
 	}
+	json.NewEncoder(w).Encode(resp)
 }

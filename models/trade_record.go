@@ -25,6 +25,7 @@ const (
 	TRADE_PAYMENT             = "payment"             //学生支付
 	TRADE_RECEIVEMENT         = "receivement"         //老师收款
 	TRADE_CHARGE              = "charge"              //充值
+	TRADE_CHARGE_CODE         = "charge_code"         //充值卡充值
 	TRADE_CHARGE_PREMIUM      = "charge_premium"      //充值奖励
 	TRADE_WITHDRAW            = "withdraw"            //提现
 	TRADE_PROMOTION           = "promotion"           //活动

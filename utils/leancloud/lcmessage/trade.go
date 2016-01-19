@@ -134,6 +134,11 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户充值：%s %.2f 元", signStr, amount))
 
+	case models.TRADE_CHARGE_CODE:
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已成功使用充值卡。", user.Nickname, suffix)
+		msg.body = append(msg.body,
+			fmt.Sprintf("账户充值：%s %.2f 元", signStr, amount))
+
 	case models.TRADE_CHARGE_PREMIUM:
 		comment := "充值奖励"
 		if record.Comment != "" {

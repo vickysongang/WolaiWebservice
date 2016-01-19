@@ -3,8 +3,8 @@ package course
 import (
 	"github.com/astaxie/beego/orm"
 
-	userController "WolaiWebservice/controllers/user"
 	"WolaiWebservice/models"
+	userService "WolaiWebservice/service/user"
 )
 
 type teacherItem struct {
@@ -92,12 +92,9 @@ func queryCourseTeacherList(courseId int64) ([]*teacherItem, error) {
 		profile, _ := models.ReadTeacherProfile(courseTeacher.UserId)
 		school, _ := models.ReadSchool(profile.SchoolId)
 
-		subjects := userController.GetTeacherSubject(courseTeacher.UserId)
-		var subjectNames []string
-		if subjects != nil {
-			subjectNames = userController.ParseSubjectNameSlice(subjects)
-		} else {
-			subjectNames = make([]string, 0)
+		subjectNames, err := userService.GetTeacherSubjectNameSlice(courseTeacher.UserId)
+		if err != nil {
+			return result, err
 		}
 
 		item := teacherItem{
@@ -126,12 +123,9 @@ func queryCourseCurrentTeacher(teacherId int64) ([]*teacherItem, error) {
 	profile, _ := models.ReadTeacherProfile(teacherId)
 	school, _ := models.ReadSchool(profile.SchoolId)
 
-	subjects := userController.GetTeacherSubject(teacherId)
-	var subjectNames []string
-	if subjects != nil {
-		subjectNames = userController.ParseSubjectNameSlice(subjects)
-	} else {
-		subjectNames = make([]string, 0)
+	subjectNames, err := userService.GetTeacherSubjectNameSlice(teacherId)
+	if err != nil {
+		return result, err
 	}
 
 	item := teacherItem{

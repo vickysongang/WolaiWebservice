@@ -1,257 +1,115 @@
 package user
 
 import (
-	"github.com/astaxie/beego/orm"
-
-	"WolaiWebservice/config"
 	"WolaiWebservice/models"
-	"WolaiWebservice/websocket"
+	userService "WolaiWebservice/service/user"
 )
 
-type teacherItem struct {
-	Id           int64    `json:"id"`
-	Nickname     string   `json:"nickname"`
-	Avatar       string   `json:"avatar"`
-	Gender       int64    `json:"gender"`
-	AccessRight  int64    `json:"accessRight"`
-	School       string   `json:"school"`
-	Major        string   `json:"major"`
-	SubjectList  []string `json:"subjectList,omitempty"`
-	OnlineStatus string   `json:"onlineStatus,omitempty"`
-}
+func SearchUser(userId int64, keyword string, page, count int64) (int64, error, []*UserListItem) {
+	var err error
 
-func SearchUser(userId int64, keyword string, page, count int64) (int64, []teacherItem) {
-	o := orm.NewOrm()
+	result := make([]*UserListItem, 0)
 
-	cond := orm.NewCondition()
-	cond1 := cond.And("access_right__in", 2, 3).And("status", 0)
-	cond2 := cond.Or("nickname__icontains", keyword).Or("phone__icontains", keyword)
-	condFin := cond.AndCond(cond1).AndCond(cond2)
-
-	var users []*models.User
-	_, err := o.QueryTable("users").SetCond(condFin).
-		Offset(page * count).Limit(count).All(&users)
+	users, err := userService.QueryUserByKeyword(keyword, page, count)
 	if err != nil {
-		return 2, nil
+		return 0, nil, result
 	}
 
-	result := make([]teacherItem, 0)
 	for _, user := range users {
-		var schoolStr string
-		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-			profile, err := models.ReadTeacherProfile(user.Id)
-			if err != nil {
-				continue
-			}
-
-			school, err := models.ReadSchool(profile.SchoolId)
-			if err == nil {
-				schoolStr = school.Name
-			}
-		}
-
-		item := teacherItem{
-			Id:           user.Id,
-			Nickname:     user.Nickname,
-			Avatar:       user.Avatar,
-			Gender:       user.Gender,
-			AccessRight:  user.AccessRight,
-			School:       schoolStr,
-			SubjectList:  nil,
-			OnlineStatus: "",
-		}
-
-		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-			profile, _ := models.ReadTeacherProfile(user.Id)
-			item.Major = profile.Major
+		item, err := AssembleUserListItem(user.Id)
+		if err != nil {
+			continue
 		}
 
 		result = append(result, item)
 	}
 
-	return 0, result
+	return 0, nil, result
 }
 
-func GetTeacherRecent(userId int64, page int64, count int64) (int64, []teacherItem) {
-	o := orm.NewOrm()
+func GetTeacherRecent(userId, page, count int64) (int64, error, []*UserListItem) {
+	var err error
 
-	type sessionTeacher struct {
-		Tutor int64
+	result := make([]*UserListItem, 0)
+
+	teacherIds, err := userService.QueryTeacherBySessionFreq(userId, page, count)
+	if err != nil {
+		return 0, nil, result
 	}
-	var teacherIds []sessionTeacher
 
-	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
-	qb.Select("distinct tutor").From("sessions").Where("creator = ?").
-		Limit(int(count)).Offset(int(page * count))
-	sql := qb.String()
-	o.Raw(sql, userId).QueryRows(&teacherIds)
-
-	result := make([]teacherItem, 0)
 	for _, teacherId := range teacherIds {
-		user, err := models.ReadUser(teacherId.Tutor)
+		item, err := AssembleUserListItem(teacherId)
 		if err != nil {
 			continue
 		}
 
-		profile, err := models.ReadTeacherProfile(teacherId.Tutor)
-		if err != nil {
-			continue
-		}
-
-		var schoolStr string
-		school, err := models.ReadSchool(profile.SchoolId)
-		if err == nil {
-			schoolStr = school.Name
-		}
-
-		subjects := GetTeacherSubject(profile.UserId)
-		var subjectNames []string
-		if subjects != nil {
-			subjectNames = ParseSubjectNameSlice(subjects)
-		} else {
-			subjectNames = make([]string, 0)
-		}
-
-		item := teacherItem{
-			Id:           profile.UserId,
-			Nickname:     user.Nickname,
-			Avatar:       user.Avatar,
-			Gender:       user.Gender,
-			AccessRight:  user.AccessRight,
-			School:       schoolStr,
-			SubjectList:  subjectNames,
-			OnlineStatus: websocket.WsManager.GetUserStatus(user.Id),
-		}
 		result = append(result, item)
 	}
 
-	return 0, result
+	return 0, nil, result
 }
 
-func GetTeacherRecommendation(userId int64, page int64, count int64) (int64, []teacherItem) {
-	o := orm.NewOrm()
+func GetTeacherRecommendation(userId, page, count int64) (int64, error, []*UserListItem) {
+	var err error
 
-	var teachers []*models.TeacherProfile
-	_, err := o.QueryTable("teacher_profile").OrderBy("-service_time").
-		Offset(page * count).Limit(count).All(&teachers)
+	result := make([]*UserListItem, 0)
+
+	teacherIds, err := userService.QueryTeacherRecommendation(userId, page, count)
 	if err != nil {
-		return 2, nil
+		return 0, nil, result
 	}
 
-	result := make([]teacherItem, 0)
-	for _, teacher := range teachers {
-		user, err := models.ReadUser(teacher.UserId)
+	for _, teacherId := range teacherIds {
+		item, err := AssembleUserListItem(teacherId)
 		if err != nil {
 			continue
 		}
 
-		if user.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
-			continue
-		}
-
-		var schoolStr string
-		school, err := models.ReadSchool(teacher.SchoolId)
-		if err == nil {
-			schoolStr = school.Name
-		}
-
-		subjects := GetTeacherSubject(teacher.UserId)
-		var subjectNames []string
-		if subjects != nil {
-			subjectNames = ParseSubjectNameSlice(subjects)
-		} else {
-			subjectNames = make([]string, 0)
-		}
-
-		item := teacherItem{
-			Id:           teacher.UserId,
-			Nickname:     user.Nickname,
-			Avatar:       user.Avatar,
-			Gender:       user.Gender,
-			AccessRight:  user.AccessRight,
-			School:       schoolStr,
-			SubjectList:  subjectNames,
-			OnlineStatus: websocket.WsManager.GetUserStatus(user.Id),
-		}
 		result = append(result, item)
 	}
 
-	return 0, result
+	return 0, nil, result
 }
 
-func GetContactRecommendation(userId int64, page int64, count int64) (int64, []teacherItem) {
-	o := orm.NewOrm()
+func GetContactRecommendation(userId, page, count int64) (int64, error, []*UserListItem) {
+	var err error
 
-	result := make([]teacherItem, 0)
+	result := make([]*UserListItem, 0)
 
+	// 如果是第一页，加入我来团队和助教
 	if page == 0 {
-		wolaiTeam, err := models.ReadUser(models.USER_WOLAI_TEAM)
-		wolaiItem := teacherItem{
-			Id:           wolaiTeam.Id,
-			Nickname:     wolaiTeam.Nickname,
-			Avatar:       wolaiTeam.Avatar,
-			Gender:       wolaiTeam.Gender,
-			AccessRight:  wolaiTeam.AccessRight,
-			School:       "",
-			SubjectList:  nil,
-			OnlineStatus: "",
-		}
-		result = append(result, wolaiItem)
-
-		var users []*models.User
-		_, err = o.QueryTable("users").Filter("access_right", 1).All(&users)
+		wolaiItem, err := AssembleUserListItem(models.USER_WOLAI_TEAM)
 		if err == nil {
-			for _, user := range users {
-				item := teacherItem{
-					Id:           user.Id,
-					Nickname:     user.Nickname,
-					Avatar:       user.Avatar,
-					Gender:       user.Gender,
-					AccessRight:  user.AccessRight,
-					School:       "",
-					SubjectList:  nil,
-					OnlineStatus: "",
+			result = append(result, wolaiItem)
+		}
+
+		assistants, err := userService.QueryUserByAccessRight(models.USER_ACCESSRIGHT_ASSISTANT, 0, 10)
+		if err == nil {
+			for _, assistant := range assistants {
+				assistItem, err := AssembleUserListItem(assistant.Id)
+				if err != nil {
+					continue
 				}
-				result = append(result, item)
+
+				result = append(result, assistItem)
 			}
 		}
+
 	}
 
-	var teachers []*models.TeacherProfile
-	_, err := o.QueryTable("teacher_profile").OrderBy("-service_time").
-		Offset(page * count).Limit(count).All(&teachers)
+	teacherIds, err := userService.QueryTeacherRecommendation(userId, page, count)
 	if err != nil {
-		return 2, nil
+		return 0, nil, result
 	}
 
-	for _, teacher := range teachers {
-		user, err := models.ReadUser(teacher.UserId)
+	for _, teacherId := range teacherIds {
+		item, err := AssembleUserListItem(teacherId)
 		if err != nil {
 			continue
 		}
 
-		if user.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
-			continue
-		}
-
-		var schoolStr string
-		school, err := models.ReadSchool(teacher.SchoolId)
-		if err == nil {
-			schoolStr = school.Name
-		}
-
-		item := teacherItem{
-			Id:           teacher.UserId,
-			Nickname:     user.Nickname,
-			Avatar:       user.Avatar,
-			Gender:       user.Gender,
-			AccessRight:  user.AccessRight,
-			School:       schoolStr,
-			SubjectList:  nil,
-			OnlineStatus: "",
-		}
 		result = append(result, item)
 	}
 
-	return 0, result
+	return 0, nil, result
 }

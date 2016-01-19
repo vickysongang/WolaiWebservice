@@ -134,6 +134,11 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Avartar = AVATAR_CHARGE
 			info.Title = trade.COMMENT_CHARGE
 
+		case models.TRADE_CHARGE_CODE:
+			//学生充值卡充值
+			info.Avartar = AVATAR_CHARGE_CODE
+			info.Title = trade.COMMENT_CHARGE_CODE
+
 		case models.TRADE_CHARGE_PREMIUM:
 			//学生充值奖励
 			info.Avartar = AVATAR_CHARGE_PREMIUM
