@@ -49,6 +49,26 @@ var sessionRoutes = route.Routes{
 		true,
 	},
 
+	// 6.2.2
+	route.Route{
+		"SessionQACardCatalog",
+		"POST",
+		"/qacard/catalog",
+		handlerv2.SessionQACardCatalog,
+		true,
+		true,
+	},
+
+	// 6.2.3
+	route.Route{
+		"SessionQACardFetch",
+		"POST",
+		"/qacard/fetch",
+		handlerv2.SessionQACardFetch,
+		true,
+		true,
+	},
+
 	// 6.3.1
 	route.Route{
 		"SessionEvaluationLabel",
@@ -95,6 +115,26 @@ var sessionRoutes = route.Routes{
 		"POST",
 		"/complain/check",
 		handlerv2.SessionComplainCheck,
+		true,
+		true,
+	},
+
+	// 6.5.1
+	route.Route{
+		"SessionWhiteboardCall",
+		"POST",
+		"/whiteboard/call",
+		handlerv2.SessionWhiteboardCall,
+		true,
+		true,
+	},
+
+	// 6.5.2
+	route.Route{
+		"SessionWhiteboardCheckQACard",
+		"POST",
+		"/whiteboard/check/qacard",
+		handlerv2.SessionWhiteboardCheckQACard,
 		true,
 		true,
 	},

@@ -1,58 +1,56 @@
 package auth
 
 import (
-	"time"
+	authService "WolaiWebservice/service/auth"
+	tradeService "WolaiWebservice/service/trade"
+	userService "WolaiWebservice/service/user"
 
-	"WolaiWebservice/models"
-	"WolaiWebservice/service/trade"
-	"WolaiWebservice/utils/leancloud"
+	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
-func LoginByPhone(phone string) (int64, *authInfo) {
+func AuthPhoneLogin(phone, code string) (int64, error, *authService.AuthInfo) {
 	var err error
 
-	user := models.QueryUserByPhone(phone)
-	if user != nil {
-		info, err := GenerateAuthInfo(user.Id)
+	err = authService.VerifySMSCode(phone, code)
+	if err != nil {
+		return 2, err, nil
+	}
+
+	user, err := userService.QueryUserByPhone(phone)
+	if user == nil {
+		user, err = userService.RegisterUserByPhone(phone)
 		if err != nil {
-			return 2, nil
+			return 2, err, nil
 		}
 
-		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-			UpdateTeacherStatusAfterLogin(user)
+		info, err := authService.GenerateAuthInfo(user.Id)
+		if err != nil {
+			return 2, err, nil
 		}
 
-		return 0, info
+		tradeService.HandleTradeRewardRegistration(user.Id)
+		go lcmessage.SendWelcomeMessageStudent(user.Id)
+
+		return 1231, nil, info
 	}
 
-	newUser := models.User{
-		Phone:       &phone,
-		AccessRight: models.USER_ACCESSRIGHT_STUDENT,
-	}
-	user, err = models.CreateUser(&newUser)
+	flag, err := userService.IsTeacherFirstLogin(user)
 	if err != nil {
-		return 2, nil
+		return 2, err, nil
+	}
+	if flag {
+		lcmessage.SendWelcomeMessageTeacher(user.Id)
 	}
 
-	info, err := GenerateAuthInfo(user.Id)
+	err = userService.UpdateUserLastLoginTime(user)
 	if err != nil {
-		return 2, nil
+		return 2, err, nil
 	}
 
-	trade.HandleTradeRewardRegistration(user.Id)
-	go leancloud.SendWelcomeMessageStudent(user.Id)
-
-	return 1231, info
-}
-
-func UpdateTeacherStatusAfterLogin(user *models.User) {
-	//如果老师是第一次登陆，则修改老师的status字段为0，0代表不是第一次登陆，1代表从未登陆过
-	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER &&
-		user.Status == models.USER_STATUS_INACTIVE {
-		userInfo := make(map[string]interface{})
-		userInfo["Status"] = 0
-		models.UpdateUser(user.Id, userInfo)
-		leancloud.SendWelcomeMessageTeacher(user.Id)
+	info, err := authService.GenerateAuthInfo(user.Id)
+	if err != nil {
+		return 2, err, nil
 	}
-	models.UpdateUser(user.Id, map[string]interface{}{"LastLoginTime": time.Now()})
+
+	return 0, nil, info
 }

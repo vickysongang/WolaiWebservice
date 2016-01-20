@@ -1,7 +1,10 @@
 package models
 
 import (
+	"errors"
+
 	"github.com/astaxie/beego/orm"
+	"github.com/cihub/seelog"
 )
 
 type TeacherProfile struct {
@@ -26,12 +29,15 @@ func (tp *TeacherProfile) TableName() string {
 }
 
 func ReadTeacherProfile(userId int64) (*TeacherProfile, error) {
+	var err error
+
 	o := orm.NewOrm()
 
 	teacher := TeacherProfile{UserId: userId}
-	err := o.Read(&teacher)
+	err = o.Read(&teacher)
 	if err != nil {
-		return nil, err
+		seelog.Errorf("%s | UserId: %d", err.Error(), userId)
+		return nil, errors.New("未找到导师详细资料")
 	}
 
 	return &teacher, nil

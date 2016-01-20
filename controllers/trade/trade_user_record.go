@@ -26,6 +26,7 @@ const (
 
 	AVATAR_CHARGE              = "trade_charge"
 	AVATAR_CHARGE_PREMIUM      = "trade_charge_premium"
+	AVATAR_CHARGE_CODE         = "trade_charge_code"
 	AVATAR_DEDUCTION           = "trade_deduction"
 	AVATAR_PROMOTION           = "trade_promotion"
 	AVATAR_REWARD_INVITATION   = "trade_reward_invitation"
@@ -132,6 +133,11 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			//学生钱包充值
 			info.Avartar = AVATAR_CHARGE
 			info.Title = trade.COMMENT_CHARGE
+
+		case models.TRADE_CHARGE_CODE:
+			//学生充值卡充值
+			info.Avartar = AVATAR_CHARGE_CODE
+			info.Title = trade.COMMENT_CHARGE_CODE
 
 		case models.TRADE_CHARGE_PREMIUM:
 			//学生充值奖励

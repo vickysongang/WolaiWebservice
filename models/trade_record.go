@@ -15,15 +15,17 @@ type TradeRecord struct {
 	Result      string    `json:"result"`
 	Balance     int64     `json:"balance"`
 	Comment     string    `json:"comment"`
-	SessionId   int64     `json:"sessionId"`
-	RecordId    int64     `json:"recordId"`
-	PingppId    int64     `json:"pingppId"`
+	SessionId   int64     `json:"-"`
+	RecordId    int64     `json:"-"`
+	PingppId    int64     `json:"-"`
+	ChargeCode  string    `json:"-"`
 }
 
 const (
 	TRADE_PAYMENT             = "payment"             //学生支付
 	TRADE_RECEIVEMENT         = "receivement"         //老师收款
 	TRADE_CHARGE              = "charge"              //充值
+	TRADE_CHARGE_CODE         = "charge_code"         //充值卡充值
 	TRADE_CHARGE_PREMIUM      = "charge_premium"      //充值奖励
 	TRADE_WITHDRAW            = "withdraw"            //提现
 	TRADE_PROMOTION           = "promotion"           //活动
@@ -39,12 +41,12 @@ const (
 	TRADE_RESULT_FAIL    = "F"
 )
 
-func (tr *TradeRecord) TableName() string {
-	return "trade_record"
-}
-
 func init() {
 	orm.RegisterModel(new(TradeRecord))
+}
+
+func (tr *TradeRecord) TableName() string {
+	return "trade_record"
 }
 
 /*

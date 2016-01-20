@@ -33,14 +33,14 @@ func HandleTradeSession(sessionId int64) error {
 
 	_, err = createTradeRecord(session.Creator, 0-studentAmount,
 		models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
-		session.Id, 0, 0)
+		session.Id, 0, 0, "")
 	if err != nil {
 		return err
 	}
 
 	_, err = createTradeRecord(session.Tutor, teacherAmount,
 		models.TRADE_RECEIVEMENT, models.TRADE_RESULT_SUCCESS, "",
-		sessionId, 0, 0)
+		sessionId, 0, 0, "")
 	if err != nil {
 		return err
 	}

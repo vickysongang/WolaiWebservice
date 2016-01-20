@@ -86,20 +86,60 @@ func SessionSeekHelp(w http.ResponseWriter, r *http.Request) {
 		seelog.Error(err.Error())
 	}
 
-	userIdStr := r.Header.Get("X-Wolai-ID")
-	userId, err := strconv.ParseInt(userIdStr, 10, 64)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		return
-	}
 	vars := r.Form
 
-	//// TODO
-	_ = userId
 	convId := vars["convId"][0]
 	redis.SetSeekHelp(time.Now().Unix(), convId)
 
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
+}
+
+// 6.2.2
+func SessionQACardCatalog(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+	var pid int64
+	if len(vars["pid"]) > 0 {
+		pidStr := vars["pid"][0]
+		pid, _ = strconv.ParseInt(pidStr, 10, 64)
+	}
+
+	status, err, content := sessionController.QACardCatalog(pid)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 6.2.2
+func SessionQACardFetch(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	catalogIdStr := vars["catalogId"][0]
+	catalogId, _ := strconv.ParseInt(catalogIdStr, 10, 64)
+
+	status, err, content := sessionController.QACardAttach(catalogId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 6.3.1
@@ -251,4 +291,56 @@ func SessionComplainCheck(w http.ResponseWriter, r *http.Request) {
 
 	status := models.GetComplaintStatus(userId, sessionId)
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", status))
+}
+
+// 6.5.1
+func SessionWhiteboardCall(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	targetIdStr := vars["targetId"][0]
+	targetId, _ := strconv.ParseInt(targetIdStr, 10, 60)
+
+	status, err := sessionController.SessionWhiteboardCallPush(userId, targetId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", response.NullObject)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 6.5.1
+func SessionWhiteboardCheckQACard(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	targetIdStr := vars["targetId"][0]
+	targetId, _ := strconv.ParseInt(targetIdStr, 10, 60)
+
+	status, err := sessionController.SessionWhiteboardCheckQACard(targetId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", response.NullObject)
+	}
+	json.NewEncoder(w).Encode(resp)
 }

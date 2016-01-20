@@ -9,12 +9,7 @@ const (
 	CONFIG_FILE_LOC = "/var/lib/poi/WolaiWebservice.toml"
 )
 
-//加载系统使用到的配置信息
-func init() {
-	if _, err := toml.DecodeFile(CONFIG_FILE_LOC, &Env); err != nil {
-		seelog.Critical(err.Error())
-	}
-}
+var Env EnvironmentConf
 
 type EnvironmentConf struct {
 	Title     string
@@ -23,12 +18,18 @@ type EnvironmentConf struct {
 	Redis     redisConf
 	Keyfile   keyfileConf
 	Seelog    seelogConf
+	APNS      apnsConf
 	LeanCloud leancloudConf
 	Pingpp    pingppConf
 	SendCloud sendcloudConf
 }
 
-var Env EnvironmentConf
+//加载系统使用到的配置信息
+func init() {
+	if _, err := toml.DecodeFile(CONFIG_FILE_LOC, &Env); err != nil {
+		seelog.Critical(err.Error())
+	}
+}
 
 type serverConf struct {
 	Live     int
@@ -66,6 +67,14 @@ type keyfileConf struct {
 
 type seelogConf struct {
 	Config string
+}
+
+type apnsConf struct {
+	Env          string
+	AppStoreCert string
+	AppStoreKey  string
+	InHouseCert  string
+	InHouseKey   string
 }
 
 type leancloudConf struct {

@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"time"
 
-	seelog "github.com/cihub/seelog"
+	"github.com/cihub/seelog"
 
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
-	"WolaiWebservice/utils/leancloud"
+	"WolaiWebservice/service/push"
 )
 
 func generalOrderHandler(orderId int64) {
@@ -83,6 +83,8 @@ func generalOrderHandler(orderId int64) {
 				if WsManager.HasUserChan(assignTarget) {
 					teacherChan := WsManager.GetUserChan(assignTarget)
 					teacherChan <- assignMsg
+				} else {
+					push.PushNewOrderAssign(assignTarget, orderId)
 				}
 			}
 			assignTimer = time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
@@ -108,7 +110,7 @@ func generalOrderHandler(orderId int64) {
 					teacherChan := WsManager.GetUserChan(assignTarget)
 					teacherChan <- assignMsg
 				} else {
-					leancloud.LCPushNotification(leancloud.NewOrderPushReq(orderId, assignTarget))
+					push.PushNewOrderAssign(assignTarget, orderId)
 				}
 			} else {
 				OrderManager.RemoveCurrentAssign(orderId)
@@ -129,7 +131,8 @@ func generalOrderHandler(orderId int64) {
 					teacherChan := WsManager.GetUserChan(teacherId)
 					teacherChan <- dispatchMsg
 				} else {
-					leancloud.LCPushNotification(leancloud.NewOrderPushReq(orderId, teacherId))
+					//leancloud.LCPushNotification(leancloud.NewOrderPushReq(orderId, teacherId))
+					push.PushNewOrderDispatch(teacherId, orderId)
 				}
 				teacherId = dispatchNextTeacher(orderId)
 			}
@@ -221,6 +224,8 @@ func generalOrderHandler(orderId int64) {
 					if WsManager.HasUserChan(order.Creator) {
 						creatorChan := WsManager.GetUserChan(order.Creator)
 						creatorChan <- acceptMsg
+					} else {
+						push.PushOrderAccept(order.Creator, orderId, msg.UserId)
 					}
 
 					resultMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RESULT)
@@ -300,6 +305,8 @@ func generalOrderHandler(orderId int64) {
 					if WsManager.HasUserChan(order.Creator) {
 						creatorChan := WsManager.GetUserChan(order.Creator)
 						creatorChan <- acceptMsg
+					} else {
+						push.PushOrderAccept(order.Creator, orderId, msg.UserId)
 					}
 
 					resultMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RESULT)
@@ -345,12 +352,11 @@ func assignNextTeacher(orderId int64) int64 {
 		}
 
 		if order.TierId != 0 && order.TierId != profile.TierId {
-			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN LOCK: ", orderId, " to teacher: ", teacherId)
+			seelog.Debug("orderHandler|orderAssign FAIL TEACHER TIER MISS MATCH: ", orderId, " to teacher: ", teacherId)
 			continue
 		}
 
 		if !TeacherManager.MatchTeacherSubject(teacherId, order.SubjectId) {
-			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN SUBJECT MISSMATCH: ", orderId, " to teacher: ", teacherId)
 			continue
 		}
 
@@ -386,11 +392,6 @@ func dispatchNextTeacher(orderId int64) int64 {
 		if order.TierId != 0 && order.TierId != profile.TierId {
 			continue
 		}
-
-		// 派发订单不考虑导师擅长科目
-		// if !TeacherManager.MatchTeacherSubject(teacherId, order.SubjectId) {
-		// 	continue
-		// }
 
 		if TeacherManager.IsTeacherDispatchLocked(teacherId) {
 			continue

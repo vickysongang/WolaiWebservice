@@ -1,9 +1,11 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/cihub/seelog"
 )
 
 type UserLoginInfo struct {
@@ -20,17 +22,21 @@ func init() {
 	orm.RegisterModel(new(UserLoginInfo))
 }
 
-func (uli *UserLoginInfo) TableName() string {
+func (i *UserLoginInfo) TableName() string {
 	return "user_login_info"
 }
 
 func CreateUserLoginInfo(info *UserLoginInfo) (*UserLoginInfo, error) {
+	var err error
+
 	o := orm.NewOrm()
 
 	id, err := o.Insert(info)
 	if err != nil {
-		return nil, err
+		seelog.Errorf("%s | UserId: %d", err.Error(), info.UserId)
+		return nil, errors.New("记录登陆信息失败")
 	}
 	info.Id = id
+
 	return info, nil
 }

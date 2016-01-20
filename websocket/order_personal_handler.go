@@ -10,7 +10,8 @@ import (
 
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
-	"WolaiWebservice/utils/leancloud"
+	"WolaiWebservice/service/push"
+	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
 func personalOrderHandler(orderId int64, teacherId int64) {
@@ -45,7 +46,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 			OrderManager.SetOrderCancelled(orderId)
 			OrderManager.SetOffline(orderId)
 
-			go leancloud.SendOrderPersonalTutorExpireMsg(orderId)
+			go lcmessage.SendOrderPersonalTutorExpireMsg(orderId)
 
 			return
 
@@ -111,6 +112,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						if WsManager.HasUserChan(order.Creator) {
 							creatorChan := WsManager.GetUserChan(order.Creator)
 							creatorChan <- acceptMsg
+						} else {
+							push.PushOrderAccept(order.Creator, orderId, msg.UserId)
 						}
 					}
 
@@ -155,7 +158,7 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 	OrderManager.SetOnline(orderId)
 
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
-		go leancloud.SendOrderPersonalNotification(orderId, teacherId)
+		go lcmessage.SendOrderPersonalNotification(orderId, teacherId)
 
 		if WsManager.HasUserChan(teacherId) &&
 			!WsManager.HasSessionWithOther(teacherId) {
@@ -163,18 +166,21 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 			orderMsg := NewPOIWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
 			orderMsg.Attribute["orderInfo"] = string(orderByte)
 			teacherChan <- orderMsg
-		} else {
-			go leancloud.LCPushNotification(leancloud.NewPersonalOrderPushReq(orderId, teacherId))
+		} else if !WsManager.HasUserChan(teacherId) {
+			push.PushNewOrderDispatch(teacherId, orderId)
 		}
 
 	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
-		go leancloud.SendOrderCourseNotification(orderId, teacherId)
+		go lcmessage.SendOrderCourseNotification(orderId, teacherId)
+		if !WsManager.HasUserChan(teacherId) {
+			push.PushNewOrderDispatch(teacherId, orderId)
+		}
 	}
 
 	if !WsManager.HasUserChan(teacherId) {
-		go leancloud.SendOrderPersonalTutorOfflineMsg(orderId)
+		go lcmessage.SendOrderPersonalTutorOfflineMsg(orderId)
 	} else if WsManager.HasSessionWithOther(teacherId) {
-		go leancloud.SendOrderPersonalTutorBusyMsg(orderId)
+		go lcmessage.SendOrderPersonalTutorBusyMsg(orderId)
 	}
 
 	go personalOrderHandler(orderId, teacherId)

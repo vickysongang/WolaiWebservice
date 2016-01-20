@@ -206,7 +206,9 @@ func (tsm *TeacherStatusManager) SetdispatchUnlock(userId int64) error {
 func (tsm *TeacherStatusManager) GetLiveTeachers() []int64 {
 	liveTeachers := make([]int64, 0)
 	for teacherId, _ := range tsm.teacherMap {
-		liveTeachers = append(liveTeachers, teacherId)
+		if !WsManager.HasSessionWithOther(teacherId) {
+			liveTeachers = append(liveTeachers, teacherId)
+		}
 	}
 	return liveTeachers
 }
@@ -214,7 +216,7 @@ func (tsm *TeacherStatusManager) GetLiveTeachers() []int64 {
 func (tsm *TeacherStatusManager) GetAssignOnTeachers() []int64 {
 	assignOnTeachers := make([]int64, 0)
 	for teacherId, status := range tsm.teacherMap {
-		if status.isAssignOpen {
+		if status.isAssignOpen && !WsManager.HasSessionWithOther(teacherId) {
 			assignOnTeachers = append(assignOnTeachers, teacherId)
 		}
 	}

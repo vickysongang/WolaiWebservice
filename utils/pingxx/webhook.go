@@ -25,9 +25,9 @@ func ChargeSuccessEvent(chargeId string) {
 	}
 
 	premium, err := trade.GetChargePremuim(record.UserId, int64(record.Amount))
-	trade.HandleTradeCharge(record.Id)
+	trade.HandleTradeChargePingpp(record.Id)
 	if premium > 0 {
-		trade.HandleTradeChargePremium(record.Id, premium, "")
+		trade.HandleTradeChargePremium(record.UserId, premium, "", record.Id, "")
 	}
 }
 
@@ -37,8 +37,8 @@ func RefundSuccessEvent(chargeId string, refundId string) {
 		"RefundId": refundId,
 	}
 	models.UpdatePingppRecord(chargeId, recordInfo)
-	record, _ := models.QueryPingppRecordByChargeId(chargeId)
-	_ = models.QueryUserByPhone(record.Phone)
+	//record, _ := models.QueryPingppRecordByChargeId(chargeId)
+	//_ = models.QueryUserByPhone(record.Phone)
 }
 
 func checkChargeSuccessExist(record *models.PingppRecord) bool {

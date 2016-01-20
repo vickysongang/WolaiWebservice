@@ -1,16 +1,9 @@
 package user
 
 import (
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
+	userService "WolaiWebservice/service/user"
 )
-
-type teacherCourseInfo struct {
-	models.Course
-	StudentCount int64 `json:"studentCount"`
-	ChapterCount int64 `json:"chapterCount"`
-}
 
 type teacherProfile struct {
 	Id          int64                   `json:"id"`
@@ -25,39 +18,20 @@ type teacherProfile struct {
 	SubjectList []string                `json:"subjectList,omitempty"`
 	Intro       string                  `json:"intro"`
 	Resume      []*models.TeacherResume `json:"resume,omitempty"`
-	CourseList  []*teacherCourseInfo    `json:"courseList"`
+	CourseList  []*CourseListItem       `json:"courseList"`
 }
 
-func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
-	o := orm.NewOrm()
+func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherProfile) {
+	var err error
 
 	teacher, err := models.ReadTeacherProfile(teacherId)
 	if err != nil {
-		return 2, nil
+		return 2, err, nil
 	}
-
-	school, err := models.ReadSchool(teacher.SchoolId)
 
 	user, err := models.ReadUser(teacherId)
 	if err != nil {
-		return 2, nil
-	}
-
-	subjects := GetTeacherSubject(teacherId)
-	var subjectNames []string
-	if subjects != nil {
-		subjectNames = ParseSubjectNameSlice(subjects)
-	} else {
-		subjectNames = make([]string, 0)
-	}
-
-	_, courseList := GetTeacherCourseList(teacherId, 0, 10)
-
-	var teacherResumes []*models.TeacherResume
-	_, err = o.QueryTable("teacher_to_resume").Filter("user_id", teacherId).All(&teacherResumes)
-	if err != nil {
-		println(err.Error())
-		return 2, nil
+		return 2, err, nil
 	}
 
 	profile := teacherProfile{
@@ -68,45 +42,40 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, *teacherProfile) {
 		AccessRight: user.AccessRight,
 		Major:       teacher.Major,
 		ServiceTime: teacher.ServiceTime,
-		SubjectList: subjectNames,
 		Intro:       teacher.Intro,
 		Extra:       teacher.Extra,
-		Resume:      teacherResumes,
-		CourseList:  courseList,
 	}
 
-	if school != nil {
+	school, err := models.ReadSchool(teacher.SchoolId)
+	if err == nil {
 		profile.School = school.Name
 	}
 
-	return 0, &profile
-}
-
-func GetTeacherCourseList(teacherId, page, count int64) (int64, []*teacherCourseInfo) {
-	o := orm.NewOrm()
-
-	courseList := make([]*teacherCourseInfo, 0)
-
-	var teacherCourses []*models.CourseToTeacher
-	o.QueryTable("course_to_teachers").Filter("user_id", teacherId).
-		Offset(page * count).Limit(count).All(&teacherCourses)
-
-	for _, teacherCourse := range teacherCourses {
-		studentCount, _ := o.QueryTable("course_purchase_record").Filter("course_id", teacherCourse.CourseId).Count()
-		chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", teacherCourse.CourseId).Count()
-		course, err := models.ReadCourse(teacherCourse.CourseId)
-		if err != nil {
-			continue
-		}
-
-		courseInfo := teacherCourseInfo{
-			Course:       *course,
-			StudentCount: studentCount,
-			ChapterCount: chapterCount,
-		}
-
-		courseList = append(courseList, &courseInfo)
+	subjectNames, err := userService.GetTeacherSubjectNameSlice(userId)
+	if err == nil {
+		profile.SubjectList = subjectNames
 	}
 
-	return 0, courseList
+	resumes, err := userService.GetTeacherResume(userId)
+	if err == nil {
+		profile.Resume = resumes
+	}
+
+	courses, err := AssembleTeacherCourseList(userId, 0, 10)
+	if err == nil {
+		profile.CourseList = courses
+	}
+
+	return 0, nil, &profile
+}
+
+func GetTeacherCourseList(teacherId, page, count int64) (int64, error, []*CourseListItem) {
+	var err error
+
+	courseList, err := AssembleTeacherCourseList(teacherId, page, count)
+	if err != nil {
+		return 2, err, nil
+	}
+
+	return 0, nil, courseList
 }

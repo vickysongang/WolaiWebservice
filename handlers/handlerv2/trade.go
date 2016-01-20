@@ -166,3 +166,31 @@ func TradeChargePremium(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
+
+// 7.2.4
+func TradeChargeCode(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	code := vars["code"][0]
+
+	status, err := tradeController.TradeChargeCode(userId, code)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", response.NullObject)
+	}
+	json.NewEncoder(w).Encode(resp)
+}

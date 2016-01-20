@@ -7,11 +7,11 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
-	"WolaiWebservice/utils/leancloud"
+	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
 func createTradeRecord(userId, amount int64, tradeType, result, comment string,
-	sessionId, recordId, pingppId int64) (*models.TradeRecord, error) {
+	sessionId, recordId, pingppId int64, chargeCode string) (*models.TradeRecord, error) {
 	var err error
 
 	err = addUserBalance(userId, amount)
@@ -34,6 +34,7 @@ func createTradeRecord(userId, amount int64, tradeType, result, comment string,
 		SessionId:   sessionId,
 		RecordId:    recordId,
 		PingppId:    pingppId,
+		ChargeCode:  chargeCode,
 	}
 
 	tradeRecord, err := models.InsertTradeRecord(&record)
@@ -42,7 +43,7 @@ func createTradeRecord(userId, amount int64, tradeType, result, comment string,
 		return nil, err
 	}
 
-	go leancloud.SendTradeNotification(tradeRecord.Id)
+	go lcmessage.SendTradeNotification(tradeRecord.Id)
 
 	return tradeRecord, nil
 }

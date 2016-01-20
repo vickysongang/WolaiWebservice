@@ -27,7 +27,7 @@ func NewLeanCloudConvReq(name, member1, member2 string) LeanCloudConvReq {
 
 func LCGetConversationId(member1, member2 string) string {
 	url := LC_CONV_ID
-	//seelog.Debug("URL:>", url)
+
 	lcReq := NewLeanCloudConvReq("conversation", member1, member2)
 
 	query, _ := json.Marshal(lcReq)
