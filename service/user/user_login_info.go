@@ -59,6 +59,7 @@ func SaveDeviceInfo(userId, versionCode int64, objectId string) (*models.UserDev
 		userDevice.DeviceType = inst.DeviceType
 		userDevice.ObjectId = inst.ObjectId
 		userDevice.DeviceToken = inst.DeviceToken
+		userDevice.DeviceProfile = inst.DeviceProfile
 		userDevice.InstallationId = inst.InstallationId
 		userDevice.TimeZone = inst.TimeZone
 
