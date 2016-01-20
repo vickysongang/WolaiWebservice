@@ -50,6 +50,8 @@ func QueryTeacherRecommendation(userId, page, count int64) ([]int64, error) {
 
 	var teachers []*models.TeacherProfile
 	num, err := o.QueryTable(new(models.TeacherProfile).TableName()).
+		Exclude("user_id", models.USER_WOLAI_TEAM).
+		Exclude("user_id", models.USER_WOLAI_TUTOR).
 		OrderBy("-service_time").
 		Limit(count).Offset(page * count).
 		All(&teachers)
