@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/anachronistic/apns"
+	"github.com/cihub/seelog"
 
 	"WolaiWebservice/models"
 )
@@ -44,6 +45,8 @@ func PushSessionInstantStart(deviceToken, deviceProfile string, sessionId int64)
 		resp = inHouseClient.Send(pn)
 	}
 	if !resp.Success {
+		seelog.Debugf("APNS Push Error: %s, (Token: %s|Profile: %s)",
+			resp.Error.Error(), deviceToken, deviceProfile)
 		return errors.New("推送失败")
 	}
 
