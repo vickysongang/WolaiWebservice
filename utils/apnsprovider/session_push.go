@@ -2,7 +2,6 @@ package apnsprovider
 
 import (
 	"encoding/json"
-	"errors"
 
 	"github.com/anachronistic/apns"
 
@@ -37,17 +36,7 @@ func PushSessionInstantStart(deviceToken, deviceProfile string, sessionId int64)
 		pn.Set("courseId", order.CourseId)
 	}
 
-	var resp *apns.PushNotificationResponse
-	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
-		resp = appStoreClient.Send(pn)
-	} else {
-		resp = inHouseClient.Send(pn)
-	}
-	if !resp.Success {
-		return errors.New("推送失败")
-	}
-
-	return nil
+	return send(pn, deviceProfile)
 }
 
 func PushSessionResume(deviceToken, deviceProfile string, sessionId int64) error {
@@ -76,15 +65,5 @@ func PushSessionResume(deviceToken, deviceProfile string, sessionId int64) error
 	pn.Set("teacherId", session.Tutor)
 	pn.Set("teacherInfo", string(teacherByte))
 
-	var resp *apns.PushNotificationResponse
-	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
-		resp = appStoreClient.Send(pn)
-	} else {
-		resp = inHouseClient.Send(pn)
-	}
-	if !resp.Success {
-		return errors.New("推送失败")
-	}
-
-	return nil
+	return send(pn, deviceProfile)
 }
