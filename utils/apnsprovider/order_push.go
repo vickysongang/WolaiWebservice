@@ -40,8 +40,14 @@ func PushNewOrderDispatch(deviceToken, deviceProfile string, orderId int64) erro
 		resp = inHouseClient.Send(pn)
 	}
 	if !resp.Success {
+		seelog.Errorf("[APNS Push] Error: %s, (Token: %s|Profile: %s)",
+			resp.Error.Error(), deviceToken, deviceProfile)
 		return errors.New("推送失败")
 	}
+
+	raw, _ := json.Marshal(pn)
+	seelog.Tracef("[APNS Push] Success: %s, (Token: %s|Profile: %s)",
+		string(raw), deviceToken, deviceProfile)
 
 	return nil
 }
@@ -70,8 +76,14 @@ func PushNewOrderAssign(deviceToken, deviceProfile string, orderId int64) error 
 		resp = inHouseClient.Send(pn)
 	}
 	if !resp.Success {
+		seelog.Errorf("[APNS Push] Error: %s, (Token: %s|Profile: %s)",
+			resp.Error.Error(), deviceToken, deviceProfile)
 		return errors.New("推送失败")
 	}
+
+	raw, _ := json.Marshal(pn)
+	seelog.Tracef("[APNS Push] Success: %s, (Token: %s|Profile: %s)",
+		string(raw), deviceToken, deviceProfile)
 
 	return nil
 }
@@ -105,9 +117,14 @@ func PushOrderAccept(deviceToken, deviceProfile string, orderId, teacherId int64
 		resp = inHouseClient.Send(pn)
 	}
 	if !resp.Success {
+		seelog.Errorf("[APNS Push] Error: %s, (Token: %s|Profile: %s)",
+			resp.Error.Error(), deviceToken, deviceProfile)
 		return errors.New("推送失败")
 	}
 
+	raw, _ := json.Marshal(pn)
+	seelog.Tracef("[APNS Push] Success: %s, (Token: %s|Profile: %s)",
+		string(raw), deviceToken, deviceProfile)
 	return nil
 }
 
@@ -149,8 +166,13 @@ func PushOrderPersonalAccept(deviceToken, deviceProfile string, orderId, teacher
 		resp = inHouseClient.Send(pn)
 	}
 	if !resp.Success {
+		seelog.Errorf("[APNS Push] Error: %s, (Token: %s|Profile: %s)",
+			resp.Error.Error(), deviceToken, deviceProfile)
 		return errors.New("推送失败")
 	}
 
+	raw, _ := json.Marshal(pn)
+	seelog.Tracef("[APNS Push] Success: %s, (Token: %s|Profile: %s)",
+		string(raw), deviceToken, deviceProfile)
 	return nil
 }
