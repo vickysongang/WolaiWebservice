@@ -45,10 +45,14 @@ func PushSessionInstantStart(deviceToken, deviceProfile string, sessionId int64)
 		resp = inHouseClient.Send(pn)
 	}
 	if !resp.Success {
-		seelog.Debugf("APNS Push Error: %s, (Token: %s|Profile: %s)",
+		seelog.Errorf("[APNS Push] Error: %s, (Token: %s|Profile: %s)",
 			resp.Error.Error(), deviceToken, deviceProfile)
 		return errors.New("推送失败")
 	}
+
+	raw, _ := json.Marshal(pn)
+	seelog.Tracef("[APNS Push] Success: %s, (Token: %s|Profile: %s)",
+		string(raw), deviceToken, deviceProfile)
 
 	return nil
 }
