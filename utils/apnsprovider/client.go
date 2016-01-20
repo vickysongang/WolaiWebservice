@@ -1,9 +1,14 @@
 package apnsprovider
 
 import (
+	"encoding/json"
+	"errors"
+
 	"github.com/anachronistic/apns"
+	"github.com/cihub/seelog"
 
 	"WolaiWebservice/config"
+	"WolaiWebservice/models"
 )
 
 const (
@@ -27,4 +32,26 @@ func init() {
 
 	appStoreClient = apns.NewClient(gateway, config.Env.APNS.AppStoreCert, config.Env.APNS.AppStoreKey)
 	inHouseClient = apns.NewClient(gateway, config.Env.APNS.InHouseCert, config.Env.APNS.InHouseKey)
+}
+
+func send(pn *apns.PushNotification, deviceProfile string) error {
+	var resp *apns.PushNotificationResponse
+
+	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
+		resp = appStoreClient.Send(pn)
+	} else {
+		resp = inHouseClient.Send(pn)
+	}
+
+	raw, _ := json.Marshal(pn)
+	seelog.Tracef("[APNS Push] Success: %s, (Token: %s|Profile: %s)",
+		string(raw), pn.DeviceToken, deviceProfile)
+
+	if !resp.Success {
+		seelog.Tracef("[APNS Push] Error: %s, (Token: %s|Profile: %s)",
+			resp.Error.Error(), pn.DeviceToken, deviceProfile)
+		return errors.New("推送失败")
+	}
+
+	return nil
 }

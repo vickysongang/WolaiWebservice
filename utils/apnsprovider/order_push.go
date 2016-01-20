@@ -2,10 +2,8 @@ package apnsprovider
 
 import (
 	"encoding/json"
-	"errors"
 
 	"github.com/anachronistic/apns"
-	"github.com/cihub/seelog"
 
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
@@ -34,23 +32,7 @@ func PushNewOrderDispatch(deviceToken, deviceProfile string, orderId int64) erro
 	pn.Set("type", "order_dispatch")
 	pn.Set("orderInfo", string(infoByte))
 
-	var resp *apns.PushNotificationResponse
-	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
-		resp = appStoreClient.Send(pn)
-	} else {
-		resp = inHouseClient.Send(pn)
-	}
-	if !resp.Success {
-		seelog.Errorf("[APNS Push] Error: %s, (Token: %s|Profile: %s)",
-			resp.Error.Error(), deviceToken, deviceProfile)
-		return errors.New("推送失败")
-	}
-
-	raw, _ := json.Marshal(pn)
-	seelog.Tracef("[APNS Push] Success: %s, (Token: %s|Profile: %s)",
-		string(raw), deviceToken, deviceProfile)
-
-	return nil
+	return send(pn, deviceProfile)
 }
 
 func PushNewOrderAssign(deviceToken, deviceProfile string, orderId int64) error {
@@ -70,23 +52,7 @@ func PushNewOrderAssign(deviceToken, deviceProfile string, orderId int64) error 
 	pn.Set("orderInfo", string(infoByte))
 	pn.Set("countdown", orderAssignCountdown)
 
-	var resp *apns.PushNotificationResponse
-	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
-		resp = appStoreClient.Send(pn)
-	} else {
-		resp = inHouseClient.Send(pn)
-	}
-	if !resp.Success {
-		seelog.Errorf("[APNS Push] Error: %s, (Token: %s|Profile: %s)",
-			resp.Error.Error(), deviceToken, deviceProfile)
-		return errors.New("推送失败")
-	}
-
-	raw, _ := json.Marshal(pn)
-	seelog.Tracef("[APNS Push] Success: %s, (Token: %s|Profile: %s)",
-		string(raw), deviceToken, deviceProfile)
-
-	return nil
+	return send(pn, deviceProfile)
 }
 
 func PushOrderAccept(deviceToken, deviceProfile string, orderId, teacherId int64) error {
@@ -111,22 +77,7 @@ func PushOrderAccept(deviceToken, deviceProfile string, orderId, teacherId int64
 	pn.Set("teacherInfo", string(teacherByte))
 	pn.Set("title", info.Title)
 
-	var resp *apns.PushNotificationResponse
-	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
-		resp = appStoreClient.Send(pn)
-	} else {
-		resp = inHouseClient.Send(pn)
-	}
-	if !resp.Success {
-		seelog.Errorf("[APNS Push] Error: %s, (Token: %s|Profile: %s)",
-			resp.Error.Error(), deviceToken, deviceProfile)
-		return errors.New("推送失败")
-	}
-
-	raw, _ := json.Marshal(pn)
-	seelog.Tracef("[APNS Push] Success: %s, (Token: %s|Profile: %s)",
-		string(raw), deviceToken, deviceProfile)
-	return nil
+	return send(pn, deviceProfile)
 }
 
 func PushOrderPersonalAccept(deviceToken, deviceProfile string, orderId, teacherId int64) error {
@@ -160,20 +111,5 @@ func PushOrderPersonalAccept(deviceToken, deviceProfile string, orderId, teacher
 	pn.Set("teacherInfo", string(teacherByte))
 	pn.Set("title", info.Title)
 
-	var resp *apns.PushNotificationResponse
-	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
-		resp = appStoreClient.Send(pn)
-	} else {
-		resp = inHouseClient.Send(pn)
-	}
-	if !resp.Success {
-		seelog.Errorf("[APNS Push] Error: %s, (Token: %s|Profile: %s)",
-			resp.Error.Error(), deviceToken, deviceProfile)
-		return errors.New("推送失败")
-	}
-
-	raw, _ := json.Marshal(pn)
-	seelog.Tracef("[APNS Push] Success: %s, (Token: %s|Profile: %s)",
-		string(raw), deviceToken, deviceProfile)
-	return nil
+	return send(pn, deviceProfile)
 }
