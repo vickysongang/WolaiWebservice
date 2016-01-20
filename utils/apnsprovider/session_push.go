@@ -1,6 +1,7 @@
 package apnsprovider
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/anachronistic/apns"
@@ -57,6 +58,12 @@ func PushSessionResume(deviceToken, deviceProfile string, sessionId int64) error
 		return err
 	}
 
+	teacher, err := models.ReadUser(session.Tutor)
+	if err != nil {
+		return err
+	}
+	teacherByte, _ := json.Marshal(teacher)
+
 	payload := apns.NewPayload()
 	payload.Alert = "导师正在邀请你进入课堂"
 	payload.Badge = 1
@@ -67,6 +74,7 @@ func PushSessionResume(deviceToken, deviceProfile string, sessionId int64) error
 	pn.Set("type", "session_resume")
 	pn.Set("sessionId", session.Id)
 	pn.Set("teacherId", session.Tutor)
+	pn.Set("teacherInfo", string(teacherByte))
 
 	var resp *apns.PushNotificationResponse
 	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {

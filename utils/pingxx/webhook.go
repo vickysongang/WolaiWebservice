@@ -27,7 +27,7 @@ func ChargeSuccessEvent(chargeId string) {
 	premium, err := trade.GetChargePremuim(record.UserId, int64(record.Amount))
 	trade.HandleTradeChargePingpp(record.Id)
 	if premium > 0 {
-		trade.HandleTradeChargePremium(record.Id, premium, "")
+		trade.HandleTradeChargePremium(record.UserId, premium, "", record.Id, "")
 	}
 }
 
