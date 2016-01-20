@@ -1,7 +1,6 @@
 package apnsprovider
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/anachronistic/apns"
@@ -43,9 +42,9 @@ func send(pn *apns.PushNotification, deviceProfile string) error {
 		resp = inHouseClient.Send(pn)
 	}
 
-	raw, _ := json.Marshal(pn)
+	info, _ := pn.PayloadString()
 	seelog.Tracef("[APNS Push] Send: %s, (Token: %s|Profile: %s)",
-		string(raw), pn.DeviceToken, deviceProfile)
+		info, pn.DeviceToken, deviceProfile)
 
 	if !resp.Success {
 		seelog.Errorf("[APNS Push] Error: %s, (Token: %s|Profile: %s)",
