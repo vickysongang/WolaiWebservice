@@ -34,7 +34,7 @@ func QueryTeacherBySessionFreq(userId, page, count int64) ([]int64, error) {
 		OrderBy("count(id) DESC, create_time DESC").
 		Limit(int(count)).Offset(int(page * count))
 	sql := qb.String()
-	o.Raw(sql, userId).QueryRows(teacherIds)
+	o.Raw(sql, userId).QueryRows(&teacherIds)
 
 	for _, teacherId := range teacherIds {
 		result = append(result, teacherId.Tutor)
