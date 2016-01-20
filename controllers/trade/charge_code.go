@@ -23,7 +23,7 @@ func TradeChargeCode(userId int64, code string) (int64, error) {
 	}
 
 	if premium > 0 {
-		trade.HandleTradeChargePremium(0, premium, "")
+		trade.HandleTradeChargePremium(userId, premium, "", 0, chargeCode.ChargeCode)
 	}
 
 	return 0, nil

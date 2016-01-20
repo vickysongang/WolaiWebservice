@@ -71,17 +71,12 @@ func HandleTradeChargeCode(userId int64, code string) error {
 	return err
 }
 
-func HandleTradeChargePremium(pingppId, amount int64, comment string) error {
+func HandleTradeChargePremium(userId, amount int64, comment string, pingppId int64, code string) error {
 	var err error
 
-	record, err := models.ReadPingppRecord(pingppId)
-	if err != nil {
-		return err
-	}
-
-	_, err = createTradeRecord(record.UserId, amount,
+	_, err = createTradeRecord(userId, amount,
 		models.TRADE_CHARGE_PREMIUM, models.TRADE_RESULT_SUCCESS, comment,
-		0, 0, pingppId, "")
+		0, 0, pingppId, code)
 
 	return err
 }
