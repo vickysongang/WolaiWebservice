@@ -24,10 +24,11 @@ func init() {
 func SendSMSCode(phone string) error {
 	var err error
 
-	err = sendcloud.SendMessage(phone)
-	if err != nil {
-		return err
-	}
+	sendcloud.SendMessage(phone)
+	// err = sendcloud.SendMessage(phone)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
