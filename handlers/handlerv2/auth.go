@@ -87,9 +87,9 @@ func AuthPhoneSMSCode(w http.ResponseWriter, r *http.Request) {
 	err = authService.SendSMSCode(phone)
 	var resp *response.Response
 	if err != nil {
-		resp = response.NewResponse(0, err.Error(), response.NullObject)
+		resp = response.NewResponse(2, err.Error(), response.NullObject)
 	} else {
-		resp = response.NewResponse(2, "", response.NullObject)
+		resp = response.NewResponse(0, "", response.NullObject)
 	}
 	json.NewEncoder(w).Encode(resp)
 }
@@ -110,9 +110,9 @@ func AuthPhoneSMSVerify(w http.ResponseWriter, r *http.Request) {
 	err = authService.VerifySMSCode(phone, randCode)
 	var resp *response.Response
 	if err != nil {
-		resp = response.NewResponse(0, err.Error(), response.NullObject)
+		resp = response.NewResponse(2, err.Error(), response.NullObject)
 	} else {
-		resp = response.NewResponse(2, "", response.NullObject)
+		resp = response.NewResponse(0, "", response.NullObject)
 	}
 	json.NewEncoder(w).Encode(resp)
 }
