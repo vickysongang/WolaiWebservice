@@ -30,7 +30,12 @@ func MessageConversationCreate(w http.ResponseWriter, r *http.Request) {
 	targetIdStr := vars["userId"][0]
 	targetId, _ := strconv.ParseInt(targetIdStr, 10, 64)
 
-	status, content := messageController.GetConversation(userId, targetId)
-
-	json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	status, err, content := messageController.GetConversation(userId, targetId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
 }
