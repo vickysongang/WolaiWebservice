@@ -1,6 +1,10 @@
 package user
 
 import (
+	"encoding/json"
+
+	"github.com/cihub/seelog"
+
 	"WolaiWebservice/models"
 	userService "WolaiWebservice/service/user"
 )
@@ -51,17 +55,19 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherPro
 		profile.School = school.Name
 	}
 
-	subjectNames, err := userService.GetTeacherSubjectNameSlice(userId)
+	subjectNames, err := userService.GetTeacherSubjectNameSlice(teacherId)
 	if err == nil {
 		profile.SubjectList = subjectNames
 	}
 
-	resumes, err := userService.GetTeacherResume(userId)
+	resumes, err := userService.GetTeacherResume(teacherId)
 	if err == nil {
 		profile.Resume = resumes
 	}
 
-	courses, err := AssembleTeacherCourseList(userId, 0, 10)
+	courses, err := AssembleTeacherCourseList(teacherId, 0, 10)
+	raw, _ := json.Marshal(courses)
+	seelog.Debug("profile courses", string(raw))
 	if err == nil {
 		profile.CourseList = courses
 	}
