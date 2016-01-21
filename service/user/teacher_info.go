@@ -32,7 +32,7 @@ func GetTeacherSubjects(teacherId int64) ([]*models.Subject, error) {
 	o := orm.NewOrm()
 
 	var teacherSubjects []*models.TeacherSubject
-	num, err := o.QueryTable(new(models.TeacherSubject).TableName()).
+	_, err = o.QueryTable(new(models.TeacherSubject).TableName()).
 		Filter("user_id", teacherId).
 		All(&teacherSubjects)
 	if err != nil {
@@ -40,14 +40,14 @@ func GetTeacherSubjects(teacherId int64) ([]*models.Subject, error) {
 		return nil, errors.New("该老师没有科目匹配")
 	}
 
-	subjects := make([]*models.Subject, num)
-	for i, teacherSubject := range teacherSubjects {
+	subjects := make([]*models.Subject, 0)
+	for _, teacherSubject := range teacherSubjects {
 		subject, err := models.ReadSubject(teacherSubject.SubjectId)
 		if err != nil {
 			continue
 		}
 
-		subjects[i] = subject
+		subjects = append(subjects, subject)
 	}
 
 	return subjects, nil
@@ -59,7 +59,7 @@ func GetTeacherSubjectNameSlice(teacherId int64) ([]string, error) {
 	o := orm.NewOrm()
 
 	var teacherSubjects []*models.TeacherSubject
-	num, err := o.QueryTable(new(models.TeacherSubject).TableName()).
+	_, err = o.QueryTable(new(models.TeacherSubject).TableName()).
 		Filter("user_id", teacherId).
 		All(&teacherSubjects)
 	if err != nil {
@@ -67,14 +67,14 @@ func GetTeacherSubjectNameSlice(teacherId int64) ([]string, error) {
 		return nil, errors.New("该老师没有科目匹配")
 	}
 
-	subjects := make([]string, num)
-	for i, teacherSubject := range teacherSubjects {
+	subjects := make([]string, 0)
+	for _, teacherSubject := range teacherSubjects {
 		subject, err := models.ReadSubject(teacherSubject.SubjectId)
 		if err != nil {
 			continue
 		}
 
-		subjects[i] = subject.Name
+		subjects = append(subjects, subject.Name)
 	}
 
 	return subjects, nil
@@ -86,7 +86,7 @@ func GetTeacherCourses(teacherId, page, count int64) ([]*models.Course, error) {
 	o := orm.NewOrm()
 
 	var teacherCourses []*models.CourseToTeacher
-	num, err := o.QueryTable("course_to_teachers").
+	_, err = o.QueryTable("course_to_teachers").
 		Filter("user_id", teacherId).
 		Offset(page * count).Limit(count).
 		All(&teacherCourses)
@@ -95,14 +95,14 @@ func GetTeacherCourses(teacherId, page, count int64) ([]*models.Course, error) {
 		return nil, errors.New("该老师没有科目匹配")
 	}
 
-	courses := make([]*models.Course, num)
-	for i, teacherCourse := range teacherCourses {
+	courses := make([]*models.Course, 0)
+	for _, teacherCourse := range teacherCourses {
 		course, err := models.ReadCourse(teacherCourse.CourseId)
 		if err != nil {
 			continue
 		}
 
-		courses[i] = course
+		courses = append(courses, course)
 	}
 
 	return courses, nil
