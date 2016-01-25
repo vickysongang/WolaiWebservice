@@ -1,9 +1,11 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/cihub/seelog"
 )
 
 type Order struct {
@@ -26,14 +28,6 @@ type Order struct {
 	ChapterId      int64     `json:"chapterId" orm:"column(chapter_id"`
 }
 
-func init() {
-	orm.RegisterModel(new(Order))
-}
-
-func (o *Order) TableName() string {
-	return "orders"
-}
-
 const (
 	ORDER_STATUS_CREATED     = "created"
 	ORDER_STATUS_DISPATHCING = "dispatching"
@@ -49,37 +43,53 @@ const (
 	ORDER_TYPE_COURSE_APPOINTMENT    = "course_appointment"
 )
 
+func init() {
+	orm.RegisterModel(new(Order))
+}
+
+func (o *Order) TableName() string {
+	return "orders"
+}
+
 func CreateOrder(order *Order) (*Order, error) {
+	var err error
+
 	o := orm.NewOrm()
 
 	id, err := o.Insert(order)
 	if err != nil {
-		return nil, err
+		seelog.Error("%s", err.Error())
+		return nil, errors.New("创建订单失败")
 	}
 	order.Id = id
 	return order, nil
 }
 
 func ReadOrder(orderId int64) (*Order, error) {
+	var err error
+
 	o := orm.NewOrm()
 
 	order := Order{Id: orderId}
-	err := o.Read(&order)
+	err = o.Read(&order)
 	if err != nil {
-		return nil, err
+		seelog.Errorf("%s | OrderId: %d", err.Error(), orderId)
+		return nil, errors.New("订单不存在")
 	}
 
 	return &order, nil
 }
 
-func UpdateOrder(orderId int64, orderInfo map[string]interface{}) {
+func UpdateOrder(order *Order) (*Order, error) {
+	var err error
+
 	o := orm.NewOrm()
 
-	var params orm.Params = make(orm.Params)
-	for k, v := range orderInfo {
-		params[k] = v
+	_, err = o.Update(order)
+	if err != nil {
+		seelog.Errorf("%s | OrderId: %d", err.Error(), order.Id)
+		return nil, errors.New("更新订单失败")
 	}
 
-	o.QueryTable("orders").Filter("id", orderId).Update(params)
-	return
+	return order, nil
 }

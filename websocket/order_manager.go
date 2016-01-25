@@ -139,35 +139,65 @@ func (osm *OrderStatusManager) GetOrderChan(orderId int64) (chan POIWSMessage, e
 }
 
 func (osm *OrderStatusManager) SetOrderDispatching(orderId int64) error {
-	orderInfo := map[string]interface{}{
-		"Status": models.ORDER_STATUS_DISPATHCING,
+	var err error
+
+	order, err := models.ReadOrder(orderId)
+	if err != nil {
+		return err
 	}
-	models.UpdateOrder(orderId, orderInfo)
+
+	order.Status = models.ORDER_STATUS_DISPATHCING
+	order, err = models.UpdateOrder(order)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
 func (osm *OrderStatusManager) SetOrderCancelled(orderId int64) error {
-	orderInfo := map[string]interface{}{
-		"Status": models.ORDER_STATUS_CANCELLED,
+	var err error
+
+	order, err := models.ReadOrder(orderId)
+	if err != nil {
+		return err
 	}
-	models.UpdateOrder(orderId, orderInfo)
+
+	order.Status = models.ORDER_STATUS_CANCELLED
+	order, err = models.UpdateOrder(order)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (osm *OrderStatusManager) SetOrderConfirm(orderId int64, teacherId int64) error {
-	teacher, _ := models.ReadTeacherProfile(teacherId)
-	tier, err := models.ReadTeacherTierHourly(teacher.TierId)
+	var err error
+
+	teacher, err := models.ReadTeacherProfile(teacherId)
 	if err != nil {
-		tier, _ = models.ReadTeacherTierHourly(3)
+		return err
 	}
 
-	orderInfo := map[string]interface{}{
-		"Status":       models.ORDER_STATUS_CONFIRMED,
-		"PriceHourly":  tier.QAPriceHourly,
-		"SalaryHourly": tier.QASalaryHourly,
+	tier, err := models.ReadTeacherTierHourly(teacher.TierId)
+	if err != nil {
+		tier, _ = models.ReadTeacherTierHourly(models.LOWEST_TEACHER_TIER)
 	}
-	models.UpdateOrder(orderId, orderInfo)
+
+	order, err := models.ReadOrder(orderId)
+	if err != nil {
+		return err
+	}
+
+	order.Status = models.ORDER_STATUS_CONFIRMED
+	order.PriceHourly = tier.QAPriceHourly
+	order.SalaryHourly = tier.QASalaryHourly
+	order, err = models.UpdateOrder(order)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -183,13 +213,13 @@ func (osm *OrderStatusManager) SetDispatchTarget(orderId int64, userId int64) er
 
 	status.dispatchMap[userId] = time.Now().Unix()
 
-	orderDispatch := models.POIOrderDispatch{
+	orderDispatch := models.OrderDispatch{
 		OrderId:      orderId,
 		TeacherId:    userId,
 		PlanTime:     status.orderInfo.Date,
 		DispatchType: models.ORDER_DISPATCH_TYPE_DISPATCH,
 	}
-	models.InsertOrderDispatch(&orderDispatch)
+	models.CreateOrderDispatch(&orderDispatch)
 
 	return nil
 }
@@ -208,13 +238,13 @@ func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) erro
 	status.currentAssign = userId
 
 	//将指派对象写入分发表中，并标识为指派单
-	orderDispatch := models.POIOrderDispatch{
+	orderDispatch := models.OrderDispatch{
 		OrderId:      orderId,
 		TeacherId:    userId,
 		PlanTime:     status.orderInfo.Date,
 		DispatchType: models.ORDER_DISPATCH_TYPE_ASSIGN,
 	}
-	models.InsertOrderDispatch(&orderDispatch)
+	models.CreateOrderDispatch(&orderDispatch)
 
 	return nil
 }
