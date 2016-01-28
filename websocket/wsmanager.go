@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"WolaiWebservice/models"
 	"time"
 
 	seelog "github.com/cihub/seelog"
@@ -193,4 +194,19 @@ func (wsm *POIWSManager) GetUserStatus(userId int64) string {
 		return "online"
 	}
 	return "offline"
+}
+
+func (wsm *POIWSManager) GetOnlineTeachers() []int64 {
+	teacherIds := make([]int64, 0)
+	for userId, _ := range wsm.OnlineUserMap {
+		user, err := models.ReadUser(userId)
+		if err != nil {
+			continue
+		}
+
+		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+			teacherIds = append(teacherIds, userId)
+		}
+	}
+	return teacherIds
 }
