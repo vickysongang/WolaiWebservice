@@ -16,6 +16,10 @@ type TeacherTierHourly struct {
 	QASalaryHourly     int64  `json:"qaSalaryHourly" orm:"column(qa_salary_hourly)"`
 }
 
+const (
+	LOWEST_TEACHER_TIER = 3
+)
+
 func init() {
 	orm.RegisterModel(new(TeacherTierHourly))
 }

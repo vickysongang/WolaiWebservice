@@ -3,6 +3,7 @@ package user
 import (
 	"WolaiWebservice/models"
 	userService "WolaiWebservice/service/user"
+	"WolaiWebservice/websocket"
 )
 
 func SearchUser(userId int64, keyword string, page, count int64) (int64, error, []*UserListItem) {
@@ -54,12 +55,19 @@ func GetTeacherRecommendation(userId, page, count int64) (int64, error, []*UserL
 
 	result := make([]*UserListItem, 0)
 
-	teacherIds, err := userService.QueryTeacherRecommendation(userId, page, count)
+	onlineTeacherIds := websocket.WsManager.GetOnlineTeachers()
+	teacherIds, err := userService.QueryTeacherRecommendationExcludeOnline(userId, page, count, onlineTeacherIds)
 	if err != nil {
 		return 0, nil, result
 	}
-
-	for _, teacherId := range teacherIds {
+	resultTeacherIds := make([]int64, 0)
+	if page == 0 {
+		resultTeacherIds = append(resultTeacherIds, onlineTeacherIds...)
+		resultTeacherIds = append(resultTeacherIds, teacherIds...)
+	} else {
+		resultTeacherIds = teacherIds
+	}
+	for _, teacherId := range resultTeacherIds {
 		item, err := AssembleUserListItem(teacherId)
 		if err != nil {
 			continue

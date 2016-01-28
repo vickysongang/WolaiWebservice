@@ -10,6 +10,7 @@ import (
 
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
+	orderService "WolaiWebservice/service/order"
 	"WolaiWebservice/service/push"
 )
 
@@ -72,6 +73,8 @@ func generalOrderHandler(orderId int64) {
 					userChan := WsManager.GetUserChan(teacherId)
 					userChan <- expireMsg
 				}
+
+				orderService.UpdateOrderDispatchResult(orderId, teacherId, false)
 				TeacherManager.RemoveOrderDispatch(teacherId, orderId)
 			}
 
@@ -98,6 +101,8 @@ func generalOrderHandler(orderId int64) {
 					teacherChan := WsManager.GetUserChan(assignTarget)
 					teacherChan <- expireMsg
 				}
+
+				orderService.UpdateOrderAssignResult(orderId, assignTarget, false)
 				TeacherManager.SetAssignUnlock(assignTarget)
 			}
 
@@ -232,25 +237,19 @@ func generalOrderHandler(orderId int64) {
 					resultMsg.Attribute["orderId"] = orderIdStr
 					for dispatchId, _ := range OrderManager.orderMap[orderId].dispatchMap {
 						var status int64
-						var orderDispatchInfo map[string]interface{}
 						if dispatchId == teacher.Id {
 							status = 0
-							orderDispatchInfo = map[string]interface{}{
-								"Result":    "success",
-								"ReplyTime": time.Now(), //回写老师抢单的时间
-							}
+							orderService.UpdateOrderDispatchResult(orderId, dispatchId, true)
 						} else {
 							status = -1
-							orderDispatchInfo = map[string]interface{}{
-								"Result": "fail",
-							}
-
+							orderService.UpdateOrderDispatchResult(orderId, dispatchId, false)
 						}
-						models.UpdateOrderDispatchInfo(orderId, dispatchId, orderDispatchInfo)
 						TeacherManager.RemoveOrderDispatch(dispatchId, orderId)
+
 						if !WsManager.HasUserChan(dispatchId) {
 							continue
 						}
+
 						dispatchChan := WsManager.GetUserChan(dispatchId)
 						resultMsg.UserId = dispatchId
 						resultMsg.Attribute["status"] = strconv.FormatInt(status, 10)
@@ -323,7 +322,7 @@ func generalOrderHandler(orderId int64) {
 					WsManager.RemoveOrderDispatch(orderId, order.Creator)
 
 					//修改指派单的结果
-					models.UpdateAssignOrderResult(orderId, teacher.Id)
+					orderService.UpdateOrderAssignResult(orderId, teacher.Id, true)
 
 					handleSessionCreation(orderId, msg.UserId)
 					return

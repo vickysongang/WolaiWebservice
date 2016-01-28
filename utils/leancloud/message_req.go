@@ -4,6 +4,7 @@ package leancloud
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -30,16 +31,27 @@ type LCMessage struct {
 	Transient      bool   `json:"transient"`
 }
 
-func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
-	user, _ := models.ReadUser(userId)
-	target, _ := models.ReadUser(targetId)
-	if user == nil || target == nil {
-		return
+func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) error {
+	var err error
+
+	_, err = models.ReadUser(userId)
+	if err != nil {
+		return err
+	}
+
+	_, err = models.ReadUser(targetId)
+	if err != nil {
+		return err
 	}
 
 	userIdStr := strconv.FormatInt(userId, 10)
 	lcTMsgByte, _ := json.Marshal(&lcTMsg)
-	convId := GetConversation(userId, targetId)
+
+	convId, err := GetConversation(userId, targetId)
+	if err != nil {
+		return err
+	}
+
 	lcMsg := LCMessage{
 		SendId:         userIdStr,
 		ConversationId: convId,
@@ -47,25 +59,28 @@ func LCSendTypedMessage(userId, targetId int64, lcTMsg *LCTypedMessage) {
 		Transient:      false,
 	}
 
-	lcSendMessage(&lcMsg)
+	return lcSendMessage(&lcMsg)
 }
 
-func LCSendSystemMessage(senderId, userId1, userId2 int64, lcTMsg *LCTypedMessage) {
-	_, err := models.ReadUser(userId1)
+func LCSendSystemMessage(senderId, userId1, userId2 int64, lcTMsg *LCTypedMessage) error {
+	var err error
+
+	_, err = models.ReadUser(userId1)
 	if err != nil {
-		return
+		return err
 	}
 
 	_, err = models.ReadUser(userId2)
 	if err != nil {
-		return
+		return err
 	}
 
-	convId := GetConversation(userId1, userId2)
 	senderIdStr := strconv.FormatInt(senderId, 10)
-	lcTMsgByte, err := json.Marshal(&lcTMsg)
+	lcTMsgByte, _ := json.Marshal(&lcTMsg)
+
+	convId, err := GetConversation(userId1, userId2)
 	if err != nil {
-		return
+		return err
 	}
 
 	lcMsg := LCMessage{
@@ -75,10 +90,12 @@ func LCSendSystemMessage(senderId, userId1, userId2 int64, lcTMsg *LCTypedMessag
 		Transient:      false,
 	}
 
-	lcSendMessage(&lcMsg)
+	return lcSendMessage(&lcMsg)
 }
 
-func lcSendMessage(lcMsg *LCMessage) {
+func lcSendMessage(lcMsg *LCMessage) error {
+	var err error
+
 	url := LC_SEND_MSG
 
 	query, _ := json.Marshal(lcMsg)
@@ -87,14 +104,17 @@ func lcSendMessage(lcMsg *LCMessage) {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(query))
 	if err != nil {
 		seelog.Error(err.Error())
+		return errors.New("创建消息请求失败")
 	}
 	req.Header.Set("X-AVOSCloud-Application-Id", config.Env.LeanCloud.AppId)
 	req.Header.Set("X-AVOSCloud-Master-Key", config.Env.LeanCloud.MasterKey)
 	req.Header.Set("Content-Type", "application/json")
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		seelog.Error(err.Error())
+		return errors.New("发送消息请求失败")
 	}
 
 	defer func() {
@@ -103,5 +123,5 @@ func lcSendMessage(lcMsg *LCMessage) {
 		}
 	}()
 	defer resp.Body.Close()
-	return
+	return nil
 }

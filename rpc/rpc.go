@@ -66,6 +66,7 @@ func (watcher *RpcWatcher) PayByPingpp(request *RpcRequest, resp *RpcResponse) e
 
 func (watcher *RpcWatcher) QueryPingppRecordByChargeId(request *RpcRequest, resp *RpcResponse) error {
 	chargeId := request.Args["chargeId"]
+
 	content, err := models.QueryPingppRecordByChargeId(chargeId)
 	if err != nil {
 		*resp = NewRpcResponse(2, err.Error(), response.NullObject)
@@ -78,8 +79,13 @@ func (watcher *RpcWatcher) QueryPingppRecordByChargeId(request *RpcRequest, resp
 func (watcher *RpcWatcher) GetUserConversation(request *RpcRequest, resp *RpcResponse) error {
 	userId, _ := strconv.ParseInt(request.Args["userId"], 10, 64)
 	targetId, _ := strconv.ParseInt(request.Args["targetId"], 10, 64)
-	status, content := message.GetConversation(userId, targetId)
-	*resp = NewRpcResponse(status, "", content)
+
+	status, err, content := message.GetConversation(userId, targetId)
+	if err != nil {
+		*resp = NewRpcResponse(status, err.Error(), response.NullObject)
+	} else {
+		*resp = NewRpcResponse(status, "", content)
+	}
 	return nil
 }
 

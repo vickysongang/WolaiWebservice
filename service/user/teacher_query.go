@@ -67,3 +67,27 @@ func QueryTeacherRecommendation(userId, page, count int64) ([]int64, error) {
 
 	return result, nil
 }
+
+func QueryTeacherRecommendationExcludeOnline(userId, page, count int64, excludeUserIds []int64) ([]int64, error) {
+	var err error
+
+	o := orm.NewOrm()
+	cond := orm.NewCondition()
+	cond = cond.AndNot("user_id__in", excludeUserIds, models.USER_WOLAI_TEAM, models.USER_WOLAI_TUTOR)
+	var teachers []*models.TeacherProfile
+	num, err := o.QueryTable(new(models.TeacherProfile).TableName()).SetCond(cond).
+		OrderBy("-service_time").
+		Limit(count).Offset(page * count).
+		All(&teachers)
+	if err != nil {
+		return nil, errors.New("导师资料异常")
+	}
+
+	result := make([]int64, num)
+
+	for i, teacher := range teachers {
+		result[i] = teacher.UserId
+	}
+
+	return result, nil
+}
