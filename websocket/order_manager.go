@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"WolaiWebservice/models"
@@ -19,9 +20,11 @@ type OrderStatus struct {
 }
 
 type OrderStatusManager struct {
-	orderMap map[int64]*OrderStatus
+	orderMap   map[int64]*OrderStatus
+	orderMutex sync.RWMutex
 
-	personalOrderMap map[int64]map[int64]int64 // studentId to teacherId to orderId
+	personalOrderMap   map[int64]map[int64]int64 // studentId to teacherId to orderId
+	personalOrderMutex sync.RWMutex
 }
 
 var ErrOrderNotFound = errors.New("Order is not serving")
@@ -64,11 +67,15 @@ func NewOrderStatusManager() *OrderStatusManager {
 }
 
 func (osm *OrderStatusManager) IsOrderOnline(orderId int64) bool {
+	osm.orderMutex.RLock()
+	defer osm.orderMutex.RUnlock()
 	_, ok := osm.orderMap[orderId]
 	return ok
 }
 
 func (osm *OrderStatusManager) IsOrderDispatching(orderId int64) bool {
+	osm.orderMutex.RLock()
+	defer osm.orderMutex.RUnlock()
 	status, ok := osm.orderMap[orderId]
 	if !ok {
 		return false
@@ -77,6 +84,8 @@ func (osm *OrderStatusManager) IsOrderDispatching(orderId int64) bool {
 }
 
 func (osm *OrderStatusManager) IsOrderAssigning(orderId int64) bool {
+	osm.orderMutex.RLock()
+	defer osm.orderMutex.RUnlock()
 	status, ok := osm.orderMap[orderId]
 	if !ok {
 		return false
@@ -93,16 +102,19 @@ func (osm *OrderStatusManager) SetOnline(orderId int64) error {
 	if err != nil {
 		return err
 	}
-
+	osm.orderMutex.Lock()
 	osm.orderMap[orderId] = NewOrderStatus(orderId)
+	osm.orderMutex.Unlock()
 
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		osm.personalOrderMutex.Lock()
 		if _, ok := osm.personalOrderMap[order.Creator]; !ok {
 			osm.personalOrderMap[order.Creator] = make(map[int64]int64)
 		}
 
 		osm.personalOrderMap[order.Creator][order.TeacherId] = orderId
+		osm.personalOrderMutex.Unlock()
 	}
 
 	return nil
@@ -118,13 +130,17 @@ func (osm *OrderStatusManager) SetOffline(orderId int64) error {
 		return err
 	}
 
+	osm.orderMutex.Lock()
 	delete(osm.orderMap, orderId)
+	osm.orderMutex.Unlock()
 
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		osm.personalOrderMutex.Lock()
 		if _, ok := osm.personalOrderMap[order.Creator]; ok {
 			delete(osm.personalOrderMap[order.Creator], order.TeacherId)
 		}
+		osm.personalOrderMutex.Unlock()
 	}
 
 	return nil
@@ -134,7 +150,8 @@ func (osm *OrderStatusManager) GetOrderChan(orderId int64) (chan POIWSMessage, e
 	if !osm.IsOrderOnline(orderId) {
 		return nil, ErrOrderNotFound
 	}
-
+	osm.orderMutex.RLock()
+	defer osm.orderMutex.Unlock()
 	return osm.orderMap[orderId].orderChan, nil
 }
 
@@ -202,6 +219,8 @@ func (osm *OrderStatusManager) SetOrderConfirm(orderId int64, teacherId int64) e
 }
 
 func (osm *OrderStatusManager) SetDispatchTarget(orderId int64, userId int64) error {
+	osm.orderMutex.Lock()
+	defer osm.orderMutex.Unlock()
 	status, ok := osm.orderMap[orderId]
 	if !ok {
 		return ErrOrderNotFound
@@ -225,6 +244,8 @@ func (osm *OrderStatusManager) SetDispatchTarget(orderId int64, userId int64) er
 }
 
 func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) error {
+	osm.orderMutex.Lock()
+	defer osm.orderMutex.Unlock()
 	status, ok := osm.orderMap[orderId]
 	if !ok {
 		return ErrOrderNotFound
@@ -250,6 +271,8 @@ func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) erro
 }
 
 func (osm *OrderStatusManager) GetCurrentAssign(orderId int64) (int64, error) {
+	osm.orderMutex.RLock()
+	defer osm.orderMutex.RUnlock()
 	status, ok := osm.orderMap[orderId]
 	if !ok {
 		return 0, ErrOrderNotFound
@@ -263,6 +286,8 @@ func (osm *OrderStatusManager) GetCurrentAssign(orderId int64) (int64, error) {
 }
 
 func (osm *OrderStatusManager) RemoveCurrentAssign(orderId int64) error {
+	osm.orderMutex.Lock()
+	defer osm.orderMutex.Unlock()
 	status, ok := osm.orderMap[orderId]
 	if !ok {
 		return ErrOrderNotFound
@@ -273,6 +298,8 @@ func (osm *OrderStatusManager) RemoveCurrentAssign(orderId int64) error {
 }
 
 func (osm *OrderStatusManager) HasOrderOnline(studentId, teacherId int64) bool {
+	osm.personalOrderMutex.RLock()
+	defer osm.personalOrderMutex.RUnlock()
 	if _, ok := osm.personalOrderMap[studentId]; !ok {
 		return false
 	}
