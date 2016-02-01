@@ -72,5 +72,4 @@ func main() {
 
 	router := routers.NewRouter()
 	seelog.Critical(http.ListenAndServe(config.Env.Server.Port, router))
-
 }

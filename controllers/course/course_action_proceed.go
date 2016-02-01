@@ -45,6 +45,8 @@ const (
 )
 
 func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProceedResponse) {
+	var err error
+
 	o := orm.NewOrm()
 
 	course, err := models.ReadCourse(courseId)
@@ -166,7 +168,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 				Extra:   session,
 			}
 
-			createCourseOrder(userId, record.TeacherId, courseId)
+			createCourseOrder(record.Id)
 
 		}
 
@@ -249,8 +251,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 				Extra:   session,
 			}
 
-			createCourseOrder(userId, record.TeacherId, courseId)
-
+			createCourseOrder(record.Id)
 		}
 
 	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:
