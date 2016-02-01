@@ -86,7 +86,7 @@ func GetContactRecommendation(userId, page, count int64) (int64, error, []*UserL
 
 	// 如果是第一页，加入我来团队和助教
 	if page == 0 {
-		wolaiItem, err := AssembleUserListItem(models.USER_WOLAI_TEAM)
+		wolaiItem, err := AssembleUserListItem(models.USER_WOLAI_SUPPORT)
 		if err == nil {
 			result = append(result, wolaiItem)
 		}
