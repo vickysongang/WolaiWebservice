@@ -22,6 +22,7 @@ type OrderStatusManager struct {
 	orderMap map[int64]*OrderStatus
 
 	personalOrderMap map[int64]map[int64]int64 // studentId to teacherId to orderId
+
 }
 
 var ErrOrderNotFound = errors.New("Order is not serving")
@@ -93,7 +94,6 @@ func (osm *OrderStatusManager) SetOnline(orderId int64) error {
 	if err != nil {
 		return err
 	}
-
 	osm.orderMap[orderId] = NewOrderStatus(orderId)
 
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
@@ -104,7 +104,6 @@ func (osm *OrderStatusManager) SetOnline(orderId int64) error {
 
 		osm.personalOrderMap[order.Creator][order.TeacherId] = orderId
 	}
-
 	return nil
 }
 
@@ -126,7 +125,6 @@ func (osm *OrderStatusManager) SetOffline(orderId int64) error {
 			delete(osm.personalOrderMap[order.Creator], order.TeacherId)
 		}
 	}
-
 	return nil
 }
 
@@ -134,7 +132,6 @@ func (osm *OrderStatusManager) GetOrderChan(orderId int64) (chan POIWSMessage, e
 	if !osm.IsOrderOnline(orderId) {
 		return nil, ErrOrderNotFound
 	}
-
 	return osm.orderMap[orderId].orderChan, nil
 }
 
@@ -269,6 +266,7 @@ func (osm *OrderStatusManager) RemoveCurrentAssign(orderId int64) error {
 	}
 
 	status.currentAssign = -1
+
 	return nil
 }
 

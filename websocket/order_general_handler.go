@@ -201,7 +201,7 @@ func generalOrderHandler(orderId int64) {
 
 				case WS_ORDER2_ACCEPT:
 					acceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_ACCEPT_RESP)
-
+					acceptResp.Attribute["orderId"] = orderIdStr
 					if WsManager.HasSessionWithOther(order.Creator) {
 						acceptResp.Attribute["errCode"] = "2"
 						acceptResp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
@@ -271,6 +271,7 @@ func generalOrderHandler(orderId int64) {
 				case WS_ORDER2_ASSIGN_ACCEPT:
 					//发送反馈消息
 					acceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_ASSIGN_ACCEPT_RESP)
+					acceptResp.Attribute["orderId"] = orderIdStr
 					if currentAssign, _ := OrderManager.GetCurrentAssign(orderId); currentAssign != msg.UserId {
 						acceptResp.Attribute["errCode"] = "2"
 						acceptResp.Attribute["errMsg"] = "This order is not assigned to you"
