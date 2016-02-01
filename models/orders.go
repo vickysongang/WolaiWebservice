@@ -84,7 +84,7 @@ func UpdateOrder(order *Order) (*Order, error) {
 	var err error
 
 	o := orm.NewOrm()
-
+	order.LastUpdateTime = time.Now()
 	_, err = o.Update(order)
 	if err != nil {
 		seelog.Errorf("%s | OrderId: %d", err.Error(), order.Id)
