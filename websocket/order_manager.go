@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"errors"
-	"sync"
 	"time"
 
 	"WolaiWebservice/models"
@@ -24,7 +23,6 @@ type OrderStatusManager struct {
 
 	personalOrderMap map[int64]map[int64]int64 // studentId to teacherId to orderId
 
-	lock sync.RWMutex
 }
 
 var ErrOrderNotFound = errors.New("Order is not serving")
@@ -67,16 +65,12 @@ func NewOrderStatusManager() *OrderStatusManager {
 }
 
 func (osm *OrderStatusManager) IsOrderOnline(orderId int64) bool {
-	osm.lock.RLock()
 	_, ok := osm.orderMap[orderId]
-	osm.lock.RUnlock()
 	return ok
 }
 
 func (osm *OrderStatusManager) IsOrderDispatching(orderId int64) bool {
-	osm.lock.RLock()
 	status, ok := osm.orderMap[orderId]
-	osm.lock.RUnlock()
 	if !ok {
 		return false
 	}
@@ -84,9 +78,7 @@ func (osm *OrderStatusManager) IsOrderDispatching(orderId int64) bool {
 }
 
 func (osm *OrderStatusManager) IsOrderAssigning(orderId int64) bool {
-	osm.lock.RLock()
 	status, ok := osm.orderMap[orderId]
-	osm.lock.RUnlock()
 	if !ok {
 		return false
 	}
@@ -102,8 +94,6 @@ func (osm *OrderStatusManager) SetOnline(orderId int64) error {
 	if err != nil {
 		return err
 	}
-	osm.lock.Lock()
-
 	osm.orderMap[orderId] = NewOrderStatus(orderId)
 
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
@@ -114,7 +104,6 @@ func (osm *OrderStatusManager) SetOnline(orderId int64) error {
 
 		osm.personalOrderMap[order.Creator][order.TeacherId] = orderId
 	}
-	osm.lock.Unlock()
 	return nil
 }
 
@@ -127,7 +116,6 @@ func (osm *OrderStatusManager) SetOffline(orderId int64) error {
 	if err != nil {
 		return err
 	}
-	osm.lock.Lock()
 
 	delete(osm.orderMap, orderId)
 
@@ -137,7 +125,6 @@ func (osm *OrderStatusManager) SetOffline(orderId int64) error {
 			delete(osm.personalOrderMap[order.Creator], order.TeacherId)
 		}
 	}
-	osm.lock.Unlock()
 	return nil
 }
 
@@ -145,8 +132,6 @@ func (osm *OrderStatusManager) GetOrderChan(orderId int64) (chan POIWSMessage, e
 	if !osm.IsOrderOnline(orderId) {
 		return nil, ErrOrderNotFound
 	}
-	osm.lock.RLock()
-	defer osm.lock.RUnlock()
 	return osm.orderMap[orderId].orderChan, nil
 }
 
@@ -214,8 +199,6 @@ func (osm *OrderStatusManager) SetOrderConfirm(orderId int64, teacherId int64) e
 }
 
 func (osm *OrderStatusManager) SetDispatchTarget(orderId int64, userId int64) error {
-	osm.lock.Lock()
-	defer osm.lock.Unlock()
 	status, ok := osm.orderMap[orderId]
 	if !ok {
 		return ErrOrderNotFound
@@ -239,8 +222,6 @@ func (osm *OrderStatusManager) SetDispatchTarget(orderId int64, userId int64) er
 }
 
 func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) error {
-	osm.lock.Lock()
-	defer osm.lock.Unlock()
 	status, ok := osm.orderMap[orderId]
 	if !ok {
 		return ErrOrderNotFound
@@ -266,9 +247,7 @@ func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) erro
 }
 
 func (osm *OrderStatusManager) GetCurrentAssign(orderId int64) (int64, error) {
-	osm.lock.RLock()
 	status, ok := osm.orderMap[orderId]
-	osm.lock.RUnlock()
 	if !ok {
 		return 0, ErrOrderNotFound
 	}
@@ -281,8 +260,6 @@ func (osm *OrderStatusManager) GetCurrentAssign(orderId int64) (int64, error) {
 }
 
 func (osm *OrderStatusManager) RemoveCurrentAssign(orderId int64) error {
-	osm.lock.Lock()
-	defer osm.lock.Unlock()
 	status, ok := osm.orderMap[orderId]
 	if !ok {
 		return ErrOrderNotFound
@@ -294,8 +271,6 @@ func (osm *OrderStatusManager) RemoveCurrentAssign(orderId int64) error {
 }
 
 func (osm *OrderStatusManager) HasOrderOnline(studentId, teacherId int64) bool {
-	osm.lock.RLock()
-	defer osm.lock.Unlock()
 	if _, ok := osm.personalOrderMap[studentId]; !ok {
 		return false
 	}
