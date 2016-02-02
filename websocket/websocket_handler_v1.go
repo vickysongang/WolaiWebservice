@@ -104,6 +104,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		loginResp.Attribute["pingPeriod"] = strconv.FormatInt(pingPeriodInt, 10)
 		err = conn.WriteJSON(loginResp)
 		if err == nil {
+			seelog.Trace("send login response to user:", msg.UserId, " ", loginResp)
 			logger.InsertUserEventLog(msg.UserId, "用户上线", msg)
 		} else {
 			seelog.Error("send login response to user ", msg.UserId, " fail")
