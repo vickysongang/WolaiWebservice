@@ -144,7 +144,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 				WSUserLogout(userId)
 				close(userChan)
 			}
-
+			return
 		}
 
 		// 信息反序列化
