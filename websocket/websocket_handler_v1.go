@@ -5,7 +5,6 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	seelog "github.com/cihub/seelog"
@@ -139,17 +138,12 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			errMsg := err.Error()
 			seelog.Debug("WebSocketWriteHandler: socket disconnect; UserId: ", userId, "; ErrorInfo:", errMsg)
-			if strings.Contains(errMsg, "close") {
-				logger.InsertUserEventLog(userId, "用户掉线", errMsg)
-				if WsManager.GetUserOnlineStatus(userId) == loginTS {
-					WSUserLogout(userId)
-					close(userChan)
-				}
-				return
-			} else {
-				seelog.Debug("WebSocketWriteHandler:wait for reconnect;UserId:", userId)
-				continue
+			logger.InsertUserEventLog(userId, "用户掉线", errMsg)
+			if WsManager.GetUserOnlineStatus(userId) == loginTS {
+				WSUserLogout(userId)
+				close(userChan)
 			}
+			return
 		}
 
 		// 信息反序列化
