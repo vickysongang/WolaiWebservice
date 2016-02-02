@@ -38,7 +38,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 
-	seelog.Debug("orderHandler|HandlerInit: ", orderId)
+	seelog.Trace("orderHandler|HandlerInit: ", orderId)
 
 	for {
 		select {
@@ -58,17 +58,18 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 				case WS_ORDER2_CANCEL:
 					cancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_CANCEL_RESP)
 					cancelResp.Attribute["errCode"] = "0"
+					cancelResp.Attribute["orderId"] = orderIdStr
 					userChan <- cancelResp
 
 					// 结束订单派发，记录状态
 					OrderManager.SetOrderCancelled(orderId)
 					OrderManager.SetOffline(orderId)
-					seelog.Debug("orderHandler|orderCancelled: ", orderId)
+					seelog.Trace("orderHandler|orderCancelled: ", orderId)
 					return
 
 				case WS_ORDER2_PERSONAL_REPLY:
 					resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
-
+					resp.Attribute["orderId"] = orderIdStr
 					if WsManager.HasSessionWithOther(order.Creator) {
 						resp.Attribute["errCode"] = "2"
 						resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
@@ -88,7 +89,6 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						OrderManager.SetOffline(orderId)
 						return
 					}
-
 					resp.Attribute["errCode"] = "0"
 					userChan <- resp
 
@@ -120,6 +120,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					OrderManager.SetOrderConfirm(orderId, msg.UserId)
 					OrderManager.SetOffline(orderId)
 					handleSessionCreation(orderId, msg.UserId)
+
+					seelog.Trace("orderHandler|orderReply: ", orderId)
 					return
 				}
 			}
