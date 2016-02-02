@@ -625,7 +625,7 @@ func POIWSSessionHandler(sessionId int64) {
 						//停止超时计时器
 						waitingTimer.Stop()
 
-						seelog.Debug("POIWSSessionHandler: session resumed: " + sessionIdStr)
+						seelog.Trace("POIWSSessionHandler: session resumed: ", sessionIdStr)
 						logger.InsertSessionEventLog(sessionId, 0, "课程中断后重新恢复", "")
 						go lcmessage.SendSessionResumeMsg(sessionId)
 					}
