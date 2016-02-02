@@ -786,34 +786,35 @@ func RecoverUserSession(userId int64, msg POIWSMessage) {
 				sessionChan <- recoverMsg
 			}
 		}
-	} else {
-		if msg.OperationCode == WS_RECONNECT {
-			userChan := WsManager.GetUserChan(userId)
-			sessionIdStr, ok := msg.Attribute["sessionId"]
-			if !ok {
+	}
+
+	if msg.OperationCode == WS_RECONNECT {
+		userChan := WsManager.GetUserChan(userId)
+		sessionIdStr, ok := msg.Attribute["sessionId"]
+		if !ok {
+			return
+		}
+		if sessionIdStr != "" {
+			resp := NewPOIWSMessage("", msg.UserId, WS_SESSION_STATUS_SYNC)
+			sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
+			if err != nil {
+				resp.Attribute["errCode"] = "2"
+				userChan <- resp
 				return
 			}
-			if sessionIdStr != "" {
-				resp := NewPOIWSMessage("", msg.UserId, WS_SESSION_STATUS_SYNC)
-				sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
-				if err != nil {
-					resp.Attribute["errCode"] = "2"
-					userChan <- resp
-					return
-				}
-				resp.Attribute["errCode"] = "0"
-				session, _ := models.ReadSession(sessionId)
-				if session.Creator == userId {
-					_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
-					studentByte, _ := json.Marshal(studentInfo)
-					resp.Attribute["sessionInfo"] = string(studentByte)
-				} else if session.Tutor == userId {
-					_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
-					teacherByte, _ := json.Marshal(teacherInfo)
-					resp.Attribute["sessionInfo"] = string(teacherByte)
-				}
-				userChan <- resp
+			resp.Attribute["errCode"] = "0"
+			session, _ := models.ReadSession(sessionId)
+			if session.Creator == userId {
+				_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
+				studentByte, _ := json.Marshal(studentInfo)
+				resp.Attribute["sessionInfo"] = string(studentByte)
+			} else if session.Tutor == userId {
+				_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
+				teacherByte, _ := json.Marshal(teacherInfo)
+				resp.Attribute["sessionInfo"] = string(teacherByte)
 			}
+			userChan <- resp
 		}
 	}
+
 }
