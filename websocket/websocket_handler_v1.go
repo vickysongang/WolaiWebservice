@@ -119,7 +119,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	// 恢复可能存在的用户被中断的发单请求
 	recoverTeacherOrder(userId)
 	recoverStudentOrder(userId)
-	go RecoverUserSession(userId)
+	go RecoverUserSession(userId, msg)
 
 	//处理心跳的pong消息
 	conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -220,27 +220,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			sessionChan := WsManager.GetSessionChan(sessionId)
 			sessionChan <- msg
-		case WS_SESSION_FINISH_CHECK:
-			resp := NewPOIWSMessage("", userId, WS_SESSION_FINISH_CHECK_RESP)
-
-			sessionIdStr, ok := msg.Attribute["sessionId"]
-			if !ok {
-				resp.Attribute["errCode"] = "2"
-				userChan <- resp
-				break
-			}
-			resp.Attribute["sessionId"] = sessionIdStr
-			sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
-			if err != nil {
-				resp.Attribute["errCode"] = "2"
-				userChan <- resp
-				break
-			}
-
-			session, _ := models.ReadSession(sessionId)
-
-			resp.Attribute["sessionStatus"] = session.Status
-			userChan <- resp
 
 		case WS_ORDER2_TEACHER_ONLINE:
 			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_ONLINE_RESP)
