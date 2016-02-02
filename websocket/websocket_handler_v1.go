@@ -147,7 +147,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				return
 			} else {
-				seelog.Debug("WebSocketWriteHandler:wait for reconnect!")
+				seelog.Debug("WebSocketWriteHandler:wait for reconnect;UserId:", userId)
 				continue
 			}
 		}
