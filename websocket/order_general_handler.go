@@ -40,7 +40,7 @@ func generalOrderHandler(orderId int64) {
 	assignTimer.Stop()
 
 	timestamp := time.Now().Unix()
-	seelog.Trace("orderHandler|HandlerInit: ", orderId)
+	seelog.Debug("orderHandler|HandlerInit: ", orderId)
 
 	for {
 		select {
@@ -57,7 +57,7 @@ func generalOrderHandler(orderId int64) {
 
 			OrderManager.SetOrderCancelled(orderId)
 			OrderManager.SetOffline(orderId)
-			seelog.Trace("orderHandler|orderExpired: ", orderId)
+			seelog.Debug("orderHandler|orderExpired: ", orderId)
 			return
 
 		case <-dispatchTimer.C:
@@ -148,7 +148,7 @@ func generalOrderHandler(orderId int64) {
 				userChan := WsManager.GetUserChan(msg.UserId)
 				switch msg.OperationCode {
 				case WS_ORDER2_RECOVER_CREATE:
-					seelog.Trace("In ORDER Create Recover:", orderId)
+					seelog.Debug("In ORDER Create Recover:", orderId)
 					recoverMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RECOVER_CREATE)
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
 					recoverMsg.Attribute["countdown"] = strconv.FormatInt(orderDispatchCountdown, 10)
@@ -156,13 +156,13 @@ func generalOrderHandler(orderId int64) {
 					userChan <- recoverMsg
 
 				case WS_ORDER2_RECOVER_DISPATCH:
-					seelog.Trace("In ORDER Dispatch Recover:", orderId)
+					seelog.Debug("In ORDER Dispatch Recover:", orderId)
 					recoverMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RECOVER_DISPATCH)
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
 					userChan <- recoverMsg
 
 				case WS_ORDER2_RECOVER_ASSIGN:
-					seelog.Trace("In ORDER Assign Recover:", orderId)
+					seelog.Debug("In ORDER Assign Recover:", orderId)
 					recoverMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RECOVER_ASSIGN)
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
 					countdown := OrderManager.orderMap[orderId].assignMap[msg.UserId] + orderAssignCountdown - timestamp
@@ -197,7 +197,7 @@ func generalOrderHandler(orderId int64) {
 					// 结束订单派发，记录状态
 					OrderManager.SetOrderCancelled(orderId)
 					OrderManager.SetOffline(orderId)
-					seelog.Trace("orderHandler|orderCancelled: ", orderId)
+					seelog.Debug("orderHandler|orderCancelled: ", orderId)
 					return
 
 				case WS_ORDER2_ACCEPT:
@@ -215,6 +215,7 @@ func generalOrderHandler(orderId int64) {
 
 					//发送反馈消息
 					acceptResp.Attribute["errCode"] = "0"
+					seelog.Debug("send 148 to teacher ", msg.UserId, " userChan size:", len(userChan))
 					userChan <- acceptResp
 
 					//向学生发送结果
@@ -259,7 +260,7 @@ func generalOrderHandler(orderId int64) {
 
 					}
 
-					seelog.Trace("orderHandler|orderAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
+					seelog.Debug("orderHandler|orderAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
 
 					// 结束派单流程，记录结果
 					OrderManager.SetOrderConfirm(orderId, teacher.Id)
@@ -316,7 +317,7 @@ func generalOrderHandler(orderId int64) {
 					resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 					userChan <- resultMsg
 
-					seelog.Trace("orderHandler|orderAssignAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
+					seelog.Debug("orderHandler|orderAssignAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
 
 					// 结束派单流程，记录结果
 					OrderManager.SetOrderConfirm(orderId, teacher.Id)
@@ -338,12 +339,12 @@ func assignNextTeacher(orderId int64) int64 {
 	order := OrderManager.orderMap[orderId].orderInfo
 	for teacherId, _ := range TeacherManager.teacherMap {
 		if !TeacherManager.IsTeacherAssignOpen(teacherId) {
-			seelog.Trace("orderHandler|orderAssign FAIL ASSIGN OFF: ", orderId, " to teacher: ", teacherId)
+			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN OFF: ", orderId, " to teacher: ", teacherId)
 			continue
 		}
 
 		if TeacherManager.IsTeacherAssignLocked(teacherId) {
-			seelog.Trace("orderHandler|orderAssign FAIL ASSIGN LOCK: ", orderId, " to teacher: ", teacherId)
+			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN LOCK: ", orderId, " to teacher: ", teacherId)
 			continue
 		}
 
@@ -353,7 +354,7 @@ func assignNextTeacher(orderId int64) int64 {
 		}
 
 		if order.TierId != 0 && order.TierId != profile.TierId {
-			seelog.Trace("orderHandler|orderAssign FAIL TEACHER TIER MISS MATCH: ", orderId, " to teacher: ", teacherId)
+			seelog.Debug("orderHandler|orderAssign FAIL TEACHER TIER MISS MATCH: ", orderId, " to teacher: ", teacherId)
 			continue
 		}
 
@@ -366,14 +367,14 @@ func assignNextTeacher(orderId int64) int64 {
 		}
 
 		if WsManager.HasSessionWithOther(teacherId) {
-			seelog.Trace("orderHandler|orderAssign FAIL ASSIGN TEACHER IN SESSION: ", orderId, " to teacher: ", teacherId)
+			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN TEACHER IN SESSION: ", orderId, " to teacher: ", teacherId)
 			continue
 		}
 
 		if err := OrderManager.SetAssignTarget(orderId, teacherId); err == nil {
 			// 更新老师发单记录
 			TeacherManager.SetAssignLock(teacherId, orderId)
-			seelog.Trace("orderHandler|orderAssignSUCCESS: ", orderId, " to teacher: ", teacherId)
+			seelog.Debug("orderHandler|orderAssignSUCCESS: ", orderId, " to teacher: ", teacherId)
 			return teacherId
 		}
 
@@ -408,7 +409,7 @@ func dispatchNextTeacher(orderId int64) int64 {
 
 		if err := OrderManager.SetDispatchTarget(orderId, teacherId); err == nil {
 			TeacherManager.SetOrderDispatch(teacherId, orderId)
-			seelog.Trace("orderHandler|orderDispatchSUCCESS: ", orderId, " to Teacher: ", teacherId)
+			seelog.Debug("orderHandler|orderDispatchSUCCESS: ", orderId, " to Teacher: ", teacherId)
 			return teacherId
 		}
 
@@ -433,7 +434,7 @@ func recoverTeacherOrder(userId int64) {
 
 	if orderId := TeacherManager.teacherMap[userId].currentAssign; orderId != -1 {
 		if orderChan, err := OrderManager.GetOrderChan(orderId); err == nil {
-			seelog.Trace("orderHandler|orderAssignRecover: ", orderId, " to Teacher: ", userId)
+			seelog.Debug("orderHandler|orderAssignRecover: ", orderId, " to Teacher: ", userId)
 			recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_ASSIGN)
 			orderChan <- recoverMsg
 		}
@@ -441,7 +442,7 @@ func recoverTeacherOrder(userId int64) {
 
 	for orderId, _ := range TeacherManager.teacherMap[userId].dispatchMap {
 		if orderChan, err := OrderManager.GetOrderChan(orderId); err == nil {
-			seelog.Trace("orderHandler|orderDispatchRecover: ", orderId, " to Teacher: ", userId)
+			seelog.Debug("orderHandler|orderDispatchRecover: ", orderId, " to Teacher: ", userId)
 			recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_DISPATCH)
 			orderChan <- recoverMsg
 		}
@@ -465,7 +466,7 @@ func recoverStudentOrder(userId int64) {
 
 	for orderId, _ := range WsManager.UserOrderDispatchMap[userId] {
 		if orderChan, err := OrderManager.GetOrderChan(orderId); err == nil {
-			seelog.Trace("orderHandler|orderCreateRecover: ", orderId, " to user: ", userId)
+			seelog.Debug("orderHandler|orderCreateRecover: ", orderId, " to user: ", userId)
 			recoverMsg := NewPOIWSMessage("", userId, WS_ORDER2_RECOVER_CREATE)
 			orderChan <- recoverMsg
 		}
