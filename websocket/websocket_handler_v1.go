@@ -104,6 +104,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		loginResp.Attribute["pingPeriod"] = strconv.FormatInt(pingPeriodInt, 10)
 		err = conn.WriteJSON(loginResp)
 		if err == nil {
+			seelog.Trace("send login response to user:", msg.UserId, " ", loginResp)
 			logger.InsertUserEventLog(msg.UserId, "用户上线", msg)
 		} else {
 			seelog.Error("send login response to user ", msg.UserId, " fail")
@@ -118,7 +119,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	// 恢复可能存在的用户被中断的发单请求
 	recoverTeacherOrder(userId)
 	recoverStudentOrder(userId)
-	go RecoverUserSession(userId)
+	go RecoverUserSession(userId, msg)
 
 	//处理心跳的pong消息
 	conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -138,6 +139,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			errMsg := err.Error()
 			seelog.Debug("WebSocketWriteHandler: socket disconnect; UserId: ", userId, "; ErrorInfo:", errMsg)
+
 			logger.InsertUserEventLog(userId, "用户掉线", errMsg)
 			if WsManager.GetUserOnlineStatus(userId) == loginTS {
 				WSUserLogout(userId)
