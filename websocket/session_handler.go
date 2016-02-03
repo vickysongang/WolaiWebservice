@@ -1,12 +1,14 @@
 package websocket
 
 import (
+	"encoding/json"
 	"strconv"
 	"time"
 
 	"github.com/cihub/seelog"
 
 	"WolaiWebservice/config/settings"
+	sessionController "WolaiWebservice/controllers/session"
 	"WolaiWebservice/logger"
 	"WolaiWebservice/models"
 	"WolaiWebservice/service/push"
@@ -625,7 +627,7 @@ func POIWSSessionHandler(sessionId int64) {
 						//停止超时计时器
 						waitingTimer.Stop()
 
-						seelog.Debug("POIWSSessionHandler: session resumed: " + sessionIdStr)
+						seelog.Trace("POIWSSessionHandler: session resumed: ", sessionIdStr)
 						logger.InsertSessionEventLog(sessionId, 0, "课程中断后重新恢复", "")
 						go lcmessage.SendSessionResumeMsg(sessionId)
 					}
@@ -728,7 +730,7 @@ func CheckSessionBreak(userId int64) {
 	}
 }
 
-func RecoverUserSession(userId int64) {
+func RecoverUserSession(userId int64, msg POIWSMessage) {
 	defer func() {
 		if r := recover(); r != nil {
 			seelog.Error(r)
@@ -739,57 +741,80 @@ func RecoverUserSession(userId int64) {
 		return
 	}
 
-	if _, ok := WsManager.UserSessionLiveMap[userId]; !ok {
-		return
+	if _, ok := WsManager.UserSessionLiveMap[userId]; ok {
+		for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
+			session, _ := models.ReadSession(sessionId)
+			if session == nil {
+				continue
+			}
+
+			if !WsManager.HasSessionChan(sessionId) {
+				continue
+			}
+
+			order, err := models.ReadOrder(session.OrderId)
+			if err != nil {
+				continue
+			}
+
+			sessionStatus := session.Status
+			sessionIdStr := strconv.FormatInt(sessionId, 10)
+			//如果是预约的课还未开始的话，则发送201，否则发送回溯
+			if (order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT ||
+				order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
+				order.Type == models.ORDER_TYPE_COURSE_APPOINTMENT) &&
+				sessionStatus == models.SESSION_STATUS_CREATED {
+				alertMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_ALERT)
+				alertMsg.Attribute["sessionId"] = sessionIdStr
+				alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+				alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+				alertMsg.Attribute["planTime"] = session.PlanTime
+
+				if order.Type == models.ORDER_TYPE_COURSE_APPOINTMENT {
+					alertMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+				}
+				if WsManager.HasUserChan(session.Tutor) {
+					teacherChan := WsManager.GetUserChan(session.Tutor)
+					teacherChan <- alertMsg
+				}
+			} else {
+				recoverMsg := NewPOIWSMessage("", userId, WS_SESSION_RECOVER_STU)
+				if session.Tutor == userId {
+					recoverMsg.OperationCode = WS_SESSION_RECOVER_TEACHER
+				}
+				sessionChan := WsManager.GetSessionChan(sessionId)
+				sessionChan <- recoverMsg
+			}
+		}
 	}
 
-	for sessionId, _ := range WsManager.UserSessionLiveMap[userId] {
-		session, _ := models.ReadSession(sessionId)
-		if session == nil {
-			continue
+	if msg.OperationCode == WS_RECONNECT {
+		userChan := WsManager.GetUserChan(userId)
+		sessionIdStr, ok := msg.Attribute["sessionId"]
+		if !ok {
+			return
 		}
-
-		if !WsManager.HasSessionChan(sessionId) {
-			continue
-		}
-
-		order, err := models.ReadOrder(session.OrderId)
-		if err != nil {
-			continue
-		}
-
-		sessionStatus := session.Status
-		sessionIdStr := strconv.FormatInt(sessionId, 10)
-		//如果是预约的课还未开始的话，则发送201，否则发送回溯
-		if (order.Type == models.ORDER_TYPE_PERSONAL_APPOINTEMENT ||
-			order.Type == models.ORDER_TYPE_GENERAL_APPOINTMENT ||
-			order.Type == models.ORDER_TYPE_COURSE_APPOINTMENT) &&
-			sessionStatus == models.SESSION_STATUS_CREATED {
-			alertMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_ALERT)
-			alertMsg.Attribute["sessionId"] = sessionIdStr
-			alertMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
-			alertMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-			alertMsg.Attribute["planTime"] = session.PlanTime
-
-			if order.Type == models.ORDER_TYPE_COURSE_APPOINTMENT {
-				alertMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+		if sessionIdStr != "" {
+			resp := NewPOIWSMessage("", msg.UserId, WS_SESSION_STATUS_SYNC)
+			sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
+			if err != nil {
+				resp.Attribute["errCode"] = "2"
+				userChan <- resp
+				return
 			}
-			if WsManager.HasUserChan(session.Tutor) {
-				teacherChan := WsManager.GetUserChan(session.Tutor)
-				teacherChan <- alertMsg
+			resp.Attribute["errCode"] = "0"
+			session, _ := models.ReadSession(sessionId)
+			if session.Creator == userId {
+				_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
+				studentByte, _ := json.Marshal(studentInfo)
+				resp.Attribute["sessionInfo"] = string(studentByte)
+			} else if session.Tutor == userId {
+				_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
+				teacherByte, _ := json.Marshal(teacherInfo)
+				resp.Attribute["sessionInfo"] = string(teacherByte)
 			}
-
-			// go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-			// 	alertMsg.OperationCode, session.Tutor))
-			// go leancloud.LCPushNotification(leancloud.NewSessionPushReq(sessionId,
-			// 	alertMsg.OperationCode, session.Creator))
-		} else {
-			recoverMsg := NewPOIWSMessage("", userId, WS_SESSION_RECOVER_STU)
-			if session.Tutor == userId {
-				recoverMsg.OperationCode = WS_SESSION_RECOVER_TEACHER
-			}
-			sessionChan := WsManager.GetSessionChan(sessionId)
-			sessionChan <- recoverMsg
+			userChan <- resp
 		}
 	}
+
 }
