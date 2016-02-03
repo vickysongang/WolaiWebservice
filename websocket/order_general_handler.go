@@ -215,7 +215,7 @@ func generalOrderHandler(orderId int64) {
 
 					//发送反馈消息
 					acceptResp.Attribute["errCode"] = "0"
-					seelog.Debug("send 148 to teacher ", msg.UserId, " userChan size:", len(userChan))
+					seelog.Debug("order ", orderId, " send 148 to teacher ", msg.UserId, " userChan size:", len(userChan))
 					userChan <- acceptResp
 
 					//向学生发送结果
