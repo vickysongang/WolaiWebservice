@@ -23,15 +23,12 @@ func generalOrderHandler(orderId int64) {
 
 	order, _ := models.ReadOrder(orderId)
 	orderIdStr := strconv.FormatInt(orderId, 10)
-	orderChan, _ := OrderManager.GetOrderChan(orderId)
 	orderInfo := GetOrderInfo(orderId)
 	orderByte, _ := json.Marshal(orderInfo)
 
 	orderLifespan := settings.OrderLifespanGI()
 	orderDispatchLimit := settings.OrderDispatchLimit()
 	orderAssignCountdown := settings.OrderAssignCountdown()
-	orderSessionCountdown := settings.OrderSessionCountdown()
-	orderDispatchCountdown := settings.OrderDispatchCountdown()
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 	dispatchTimer := time.NewTimer(time.Second * time.Duration(orderDispatchLimit))
@@ -39,9 +36,8 @@ func generalOrderHandler(orderId int64) {
 	assignTimer := time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
 	assignTimer.Stop()
 
-	timestamp := time.Now().Unix()
 	seelog.Debug("orderHandler|HandlerInit: ", orderId)
-
+	orderSignalChan, _ := OrderManager.GetOrderSignalChan(orderId)
 	for {
 		select {
 		case <-orderTimer.C:
@@ -124,7 +120,6 @@ func generalOrderHandler(orderId int64) {
 
 		case <-dispatchTicker.C:
 			// 组装派发信息
-			timestamp = time.Now().Unix()
 			dispatchMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_DISPATCH)
 			dispatchMsg.Attribute["orderInfo"] = string(orderByte)
 
@@ -136,12 +131,45 @@ func generalOrderHandler(orderId int64) {
 					teacherChan := WsManager.GetUserChan(teacherId)
 					teacherChan <- dispatchMsg
 				} else {
-					//leancloud.LCPushNotification(leancloud.NewOrderPushReq(orderId, teacherId))
 					push.PushNewOrderDispatch(teacherId, orderId)
 				}
 				teacherId = dispatchNextTeacher(orderId)
 			}
+		case signal, ok := <-orderSignalChan:
+			if ok {
+				if signal == ORDER_SIGNAL_QUIT {
+					seelog.Debug("End dispatch| assign for order:", orderId)
+					return
+				}
+			}
+		}
+	}
+}
 
+func generalOrderChanHandler(orderId int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
+
+	order, _ := models.ReadOrder(orderId)
+	orderIdStr := strconv.FormatInt(orderId, 10)
+	orderChan, _ := OrderManager.GetOrderChan(orderId)
+	orderSignalChan, _ := OrderManager.GetOrderSignalChan(orderId)
+	orderInfo := GetOrderInfo(orderId)
+	orderByte, _ := json.Marshal(orderInfo)
+
+	orderAssignCountdown := settings.OrderAssignCountdown()
+	orderSessionCountdown := settings.OrderSessionCountdown()
+	orderDispatchCountdown := settings.OrderDispatchCountdown()
+
+	assignTimer := time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
+	assignTimer.Stop()
+
+	timestamp := time.Now().Unix()
+	for {
+		select {
 		case msg, ok := <-orderChan:
 			if ok {
 				timestamp = time.Now().Unix()
@@ -198,6 +226,7 @@ func generalOrderHandler(orderId int64) {
 					OrderManager.SetOrderCancelled(orderId)
 					OrderManager.SetOffline(orderId)
 					seelog.Debug("orderHandler|orderCancelled: ", orderId)
+					orderSignalChan <- ORDER_SIGNAL_QUIT
 					return
 
 				case WS_ORDER2_ACCEPT:
@@ -210,6 +239,7 @@ func generalOrderHandler(orderId int64) {
 
 						OrderManager.SetOrderCancelled(orderId)
 						OrderManager.SetOffline(orderId)
+						orderSignalChan <- ORDER_SIGNAL_QUIT
 						return
 					}
 
@@ -268,6 +298,7 @@ func generalOrderHandler(orderId int64) {
 					WsManager.RemoveOrderDispatch(orderId, order.Creator)
 
 					handleSessionCreation(orderId, msg.UserId)
+					orderSignalChan <- ORDER_SIGNAL_QUIT
 					return
 
 				case WS_ORDER2_ASSIGN_ACCEPT:
@@ -287,6 +318,7 @@ func generalOrderHandler(orderId int64) {
 
 						OrderManager.SetOrderCancelled(orderId)
 						OrderManager.SetOffline(orderId)
+						orderSignalChan <- ORDER_SIGNAL_QUIT
 						return
 					}
 
@@ -328,6 +360,7 @@ func generalOrderHandler(orderId int64) {
 					orderService.UpdateOrderAssignResult(orderId, teacher.Id, true)
 
 					handleSessionCreation(orderId, msg.UserId)
+					orderSignalChan <- ORDER_SIGNAL_QUIT
 					return
 				}
 			}
@@ -509,6 +542,7 @@ func InitOrderDispatch(msg POIWSMessage, timestamp int64) error {
 	OrderManager.SetOnline(orderId)
 	OrderManager.SetOrderDispatching(orderId)
 	go generalOrderHandler(orderId)
+	go generalOrderChanHandler(orderId)
 
 	return nil
 }
