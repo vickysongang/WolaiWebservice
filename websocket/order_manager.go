@@ -7,10 +7,15 @@ import (
 	"WolaiWebservice/models"
 )
 
+const (
+	ORDER_SIGNAL_QUIT = 1
+)
+
 type OrderStatus struct {
 	orderId         int64
 	orderInfo       *models.Order
 	orderChan       chan POIWSMessage
+	orderSignalChan chan int64
 	onlineTimestamp int64
 	isDispatching   bool
 	currentAssign   int64
@@ -44,6 +49,7 @@ func NewOrderStatus(orderId int64) *OrderStatus {
 		orderId:         orderId,
 		orderInfo:       order,
 		orderChan:       make(chan POIWSMessage),
+		orderSignalChan: make(chan int64),
 		onlineTimestamp: timestamp,
 		isDispatching:   false,
 		currentAssign:   -1,
@@ -133,6 +139,13 @@ func (osm *OrderStatusManager) GetOrderChan(orderId int64) (chan POIWSMessage, e
 		return nil, ErrOrderNotFound
 	}
 	return osm.orderMap[orderId].orderChan, nil
+}
+
+func (osm *OrderStatusManager) GetOrderSignalChan(orderId int64) (chan int64, error) {
+	if !osm.IsOrderOnline(orderId) {
+		return nil, ErrOrderNotFound
+	}
+	return osm.orderMap[orderId].orderSignalChan, nil
 }
 
 func (osm *OrderStatusManager) SetOrderDispatching(orderId int64) error {

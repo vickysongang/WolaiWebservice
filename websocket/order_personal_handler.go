@@ -38,7 +38,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 
-	seelog.Trace("orderHandler|HandlerInit: ", orderId)
+	seelog.Debug("orderHandler|HandlerInit: ", orderId)
 
 	for {
 		select {
@@ -64,7 +64,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					// 结束订单派发，记录状态
 					OrderManager.SetOrderCancelled(orderId)
 					OrderManager.SetOffline(orderId)
-					seelog.Trace("orderHandler|orderCancelled: ", orderId)
+					seelog.Debug("orderHandler|orderCancelled: ", orderId)
 					return
 
 				case WS_ORDER2_PERSONAL_REPLY:
@@ -121,7 +121,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					OrderManager.SetOffline(orderId)
 					handleSessionCreation(orderId, msg.UserId)
 
-					seelog.Trace("orderHandler|orderReply: ", orderId)
+					seelog.Debug("orderHandler|orderReply: ", orderId)
 					return
 				}
 			}
