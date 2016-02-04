@@ -229,7 +229,7 @@ func (osm *OrderStatusManager) SetDispatchTarget(orderId int64, userId int64) er
 		PlanTime:     status.orderInfo.Date,
 		DispatchType: models.ORDER_DISPATCH_TYPE_DISPATCH,
 	}
-	models.CreateOrderDispatch(&orderDispatch)
+	go models.CreateOrderDispatch(&orderDispatch)
 
 	return nil
 }

@@ -70,7 +70,7 @@ func generalOrderHandler(orderId int64) {
 					userChan <- expireMsg
 				}
 
-				orderService.UpdateOrderDispatchResult(orderId, teacherId, false)
+				go orderService.UpdateOrderDispatchResult(orderId, teacherId, false)
 				TeacherManager.RemoveOrderDispatch(teacherId, orderId)
 			}
 
@@ -98,7 +98,7 @@ func generalOrderHandler(orderId int64) {
 					teacherChan <- expireMsg
 				}
 
-				orderService.UpdateOrderAssignResult(orderId, assignTarget, false)
+				go orderService.UpdateOrderAssignResult(orderId, assignTarget, false)
 				TeacherManager.SetAssignUnlock(assignTarget)
 			}
 
@@ -120,21 +120,22 @@ func generalOrderHandler(orderId int64) {
 
 		case <-dispatchTicker.C:
 			// 组装派发信息
-			dispatchMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_DISPATCH)
-			dispatchMsg.Attribute["orderInfo"] = string(orderByte)
+			dispatchOrderToTeachers(orderId, string(orderByte))
+			//			dispatchMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_DISPATCH)
+			//			dispatchMsg.Attribute["orderInfo"] = string(orderByte)
 
-			teacherId := dispatchNextTeacher(orderId)
-			for teacherId != -1 {
-				dispatchMsg.UserId = teacherId
+			//			teacherId := dispatchNextTeacher(orderId)
+			//			for teacherId != -1 {
+			//				dispatchMsg.UserId = teacherId
 
-				if WsManager.HasUserChan(teacherId) {
-					teacherChan := WsManager.GetUserChan(teacherId)
-					teacherChan <- dispatchMsg
-				} else {
-					push.PushNewOrderDispatch(teacherId, orderId)
-				}
-				teacherId = dispatchNextTeacher(orderId)
-			}
+			//				if WsManager.HasUserChan(teacherId) {
+			//					teacherChan := WsManager.GetUserChan(teacherId)
+			//					teacherChan <- dispatchMsg
+			//				} else {
+			//					push.PushNewOrderDispatch(teacherId, orderId)
+			//				}
+			//				teacherId = dispatchNextTeacher(orderId)
+			//			}
 		case signal, ok := <-orderSignalChan:
 			if ok {
 				if signal == ORDER_SIGNAL_QUIT {
@@ -417,39 +418,49 @@ func assignNextTeacher(orderId int64) int64 {
 	return -1
 }
 
-func dispatchNextTeacher(orderId int64) int64 {
+func dispatchOrderToTeachers(orderId int64, orderInfo string) {
 	order := OrderManager.orderMap[orderId].orderInfo
 	// 遍历在线老师名单，如果未派发则直接派发
 	for teacherId, _ := range TeacherManager.teacherMap {
-		profile, err := models.ReadTeacherProfile(teacherId)
-		if err != nil {
-			continue
-		}
-
-		if order.TierId != 0 && order.TierId != profile.TierId {
-			continue
-		}
-
-		if TeacherManager.IsTeacherDispatchLocked(teacherId) {
-			continue
-		}
-
-		if order.Creator == teacherId {
-			continue
-		}
-
-		if WsManager.HasSessionWithOther(teacherId) {
-			continue
-		}
-
-		if err := OrderManager.SetDispatchTarget(orderId, teacherId); err == nil {
-			TeacherManager.SetOrderDispatch(teacherId, orderId)
-			seelog.Debug("orderHandler|orderDispatchSUCCESS: ", orderId, " to Teacher: ", teacherId)
-			return teacherId
-		}
-
+		go dispatchOrderToTeacher(order, teacherId, orderInfo)
 	}
-	return -1
+}
+
+func dispatchOrderToTeacher(order *models.Order, teacherId int64, orderInfo string) {
+	profile, err := models.ReadTeacherProfile(teacherId)
+	if err != nil {
+		return
+	}
+
+	if order.TierId != 0 && order.TierId != profile.TierId {
+		return
+	}
+
+	if TeacherManager.IsTeacherDispatchLocked(teacherId) {
+		return
+	}
+
+	if order.Creator == teacherId {
+		return
+	}
+
+	if WsManager.HasSessionWithOther(teacherId) {
+		return
+	}
+
+	dispatchMsg := NewPOIWSMessage("", teacherId, WS_ORDER2_DISPATCH)
+	dispatchMsg.Attribute["orderInfo"] = orderInfo
+
+	if err := OrderManager.SetDispatchTarget(order.Id, teacherId); err == nil {
+		TeacherManager.SetOrderDispatch(teacherId, order.Id)
+		if WsManager.HasUserChan(teacherId) {
+			teacherChan := WsManager.GetUserChan(teacherId)
+			teacherChan <- dispatchMsg
+		} else {
+			push.PushNewOrderDispatch(teacherId, order.Id)
+		}
+		seelog.Debug("orderHandler|orderDispatchSUCCESS: ", order.Id, " to Teacher: ", teacherId)
+	}
 }
 
 func recoverTeacherOrder(userId int64) {
