@@ -291,6 +291,7 @@ func generalOrderChanHandler(orderId int64) {
 					}
 
 					seelog.Debug("orderHandler|orderAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
+					orderSignalChan <- ORDER_SIGNAL_QUIT
 
 					// 结束派单流程，记录结果
 					OrderManager.SetOrderConfirm(orderId, teacher.Id)
@@ -298,7 +299,7 @@ func generalOrderChanHandler(orderId int64) {
 					WsManager.RemoveOrderDispatch(orderId, order.Creator)
 
 					handleSessionCreation(orderId, msg.UserId)
-					orderSignalChan <- ORDER_SIGNAL_QUIT
+
 					return
 
 				case WS_ORDER2_ASSIGN_ACCEPT:
@@ -350,6 +351,7 @@ func generalOrderChanHandler(orderId int64) {
 					userChan <- resultMsg
 
 					seelog.Debug("orderHandler|orderAssignAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
+					orderSignalChan <- ORDER_SIGNAL_QUIT
 
 					// 结束派单流程，记录结果
 					OrderManager.SetOrderConfirm(orderId, teacher.Id)
@@ -360,7 +362,7 @@ func generalOrderChanHandler(orderId int64) {
 					orderService.UpdateOrderAssignResult(orderId, teacher.Id, true)
 
 					handleSessionCreation(orderId, msg.UserId)
-					orderSignalChan <- ORDER_SIGNAL_QUIT
+
 					return
 				}
 			}
