@@ -22,6 +22,8 @@ type Course struct {
 	CreateTime     time.Time `json:"-" orm:"type(datetime);auto_now_add"`
 	Creator        int64     `json:"-"`
 	LastUpdateTime time.Time `json:"-"`
+	SuitCrowd      string    `json:"suitCrowd"`
+	Proposal       string    `json:"proposal"`
 }
 
 func init() {

@@ -15,19 +15,21 @@ type teacherItem struct {
 	AccessRight  int64    `json:"accessRight"`
 	School       string   `json:"school"`
 	Major        string   `json:"major"`
+	Intro        string   `json:"intro"`
 	SubjectList  []string `json:"subjectList,omitempty"`
 	OnlineStatus string   `json:"onlineStatus,omitempty"`
 }
 
 type courseDetailStudent struct {
 	models.Course
-	StudentCount           int64                  `json:"studentCount"`
-	ChapterCount           int64                  `json:"chapterCount"`
-	AuditionStatus         string                 `json:"auditionStatus"`
-	PurchaseStatus         string                 `json:"purchaseStatus"`
-	ChapterCompletedPeriod int64                  `json:"chapterCompletePeriod"`
-	ChapterList            []*courseChapterStatus `json:"chapterList"`
-	TeacherList            []*teacherItem         `json:"teacherList"`
+	StudentCount           int64                                `json:"studentCount"`
+	ChapterCount           int64                                `json:"chapterCount"`
+	AuditionStatus         string                               `json:"auditionStatus"`
+	PurchaseStatus         string                               `json:"purchaseStatus"`
+	ChapterCompletedPeriod int64                                `json:"chapterCompletePeriod"`
+	CharacteristicList     []models.CourseContentCharacteristic `json:"characteristicList"`
+	ChapterList            []*courseChapterStatus               `json:"chapterList"`
+	TeacherList            []*teacherItem                       `json:"teacherList"`
 }
 
 func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailStudent) {
@@ -47,6 +49,8 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 		StudentCount: studentCount,
 		ChapterCount: chapterCount - 1,
 	}
+	characteristicList, _ := queryCourseContentCharacteristics(courseId)
+	detail.CharacteristicList = characteristicList
 
 	var purchaseRecord models.CoursePurchaseRecord
 	err = o.QueryTable("course_purchase_record").Filter("user_id", userId).Filter("course_id", courseId).
@@ -104,6 +108,7 @@ func queryCourseTeacherList(courseId int64) ([]*teacherItem, error) {
 			Gender:       user.Gender,
 			AccessRight:  user.AccessRight,
 			School:       school.Name,
+			Intro:        profile.Intro,
 			SubjectList:  subjectNames,
 			OnlineStatus: "online",
 		}
@@ -135,6 +140,7 @@ func queryCourseCurrentTeacher(teacherId int64) ([]*teacherItem, error) {
 		Gender:       user.Gender,
 		AccessRight:  user.AccessRight,
 		School:       school.Name,
+		Intro:        profile.Intro,
 		SubjectList:  subjectNames,
 		OnlineStatus: "online",
 	}
