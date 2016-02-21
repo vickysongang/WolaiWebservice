@@ -53,5 +53,10 @@ func AttachRoute(r *mux.Router) {
 		"X-Wolai-ID", "").Subrouter()
 	attachCourseRoute(courseRouter)
 
+	cometRouter := v2Router.PathPrefix("/comet/").Headers(
+		"X-Wolai-Token", "",
+		"X-Wolai-ID", "").Subrouter()
+	attachCometRoute(cometRouter)
+
 	attachMiscRoute(v2Router)
 }
