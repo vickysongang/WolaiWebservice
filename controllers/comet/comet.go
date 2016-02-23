@@ -90,6 +90,77 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = err.Error()
 		}
+	case websocket.WS_ORDER2_PERSONAL_CHECK:
+		resp.OperationCode = websocket.WS_ORDER2_PERSONAL_CHECK_RESP
+		resp.Attribute["errCode"] = "0"
+
+		orderIdStr, ok := msg.Attribute["orderId"]
+		if !ok {
+			resp.Attribute["errCode"] = "2"
+			return &resp, nil
+		}
+
+		orderId, err := strconv.ParseInt(orderIdStr, 10, 64)
+		if err != nil {
+			resp.Attribute["errCode"] = "2"
+			return &resp, nil
+		}
+
+		status, err := websocket.CheckOrderValidation(orderId)
+		resp.Attribute["status"] = strconv.FormatInt(status, 10)
+		if err != nil {
+			resp.Attribute["errMsg"] = err.Error()
+		}
+	case websocket.WS_SESSION_START,
+		websocket.WS_SESSION_ACCEPT,
+		websocket.WS_SESSION_PAUSE,
+		websocket.WS_SESSION_RESUME,
+		websocket.WS_SESSION_FINISH,
+		websocket.WS_SESSION_CANCEL,
+		websocket.WS_SESSION_RESUME_ACCEPT,
+		websocket.WS_SESSION_RESUME_CANCEL:
+		resp.OperationCode = msg.OperationCode + 1
+		sessionIdStr, ok := msg.Attribute["sessionId"]
+		if !ok {
+			resp.Attribute["errCode"] = "2"
+			return &resp, nil
+		}
+		sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
+		if err != nil {
+			resp.Attribute["errCode"] = "2"
+			return &resp, nil
+		}
+		if !websocket.WsManager.HasSessionChan(sessionId) {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "no session chan"
+			return &resp, nil
+		}
+		sessionChan := websocket.WsManager.GetSessionChan(sessionId)
+		sessionChan <- msg
+	case websocket.WS_ORDER2_CANCEL,
+		websocket.WS_ORDER2_ACCEPT,
+		websocket.WS_ORDER2_ASSIGN_ACCEPT,
+		websocket.WS_ORDER2_PERSONAL_REPLY:
+		resp.OperationCode = msg.OperationCode + 1
+		resp.Attribute["errCode"] = "0"
+
+		orderIdStr, ok := msg.Attribute["orderId"]
+		if !ok {
+			resp.Attribute["errCode"] = "2"
+			return &resp, nil
+		}
+
+		orderId, err := strconv.ParseInt(orderIdStr, 10, 64)
+		if err != nil {
+			resp.Attribute["errCode"] = "2"
+			return &resp, nil
+		}
+
+		if orderChan, err := websocket.OrderManager.GetOrderChan(orderId); err != nil {
+			resp.Attribute["errCode"] = "2"
+		} else {
+			orderChan <- msg
+		}
 	}
 	return &resp, nil
 }

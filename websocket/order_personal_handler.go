@@ -129,7 +129,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	}
 }
 
-func checkOrderValidation(orderId int64) (int64, error) {
+func CheckOrderValidation(orderId int64) (int64, error) {
 	if OrderManager.IsOrderOnline(orderId) {
 		return 0, nil
 	}
