@@ -8,12 +8,12 @@ import (
 
 type courseDetailTeacher struct {
 	models.Course
-	StudentCount           int64                                `json:"studentCount"`
-	ChapterCount           int64                                `json:"chapterCount"`
-	ChapterCompletedPeriod int64                                `json:"chapterCompletePeriod"`
-	CharacteristicList     []models.CourseContentCharacteristic `json:"characteristicList"`
-	ChapterList            []*courseChapterStatus               `json:"chapterList"`
-	StudentList            []*models.User                       `json:"studentList"`
+	StudentCount           int64                       `json:"studentCount"`
+	ChapterCount           int64                       `json:"chapterCount"`
+	ChapterCompletedPeriod int64                       `json:"chapterCompletePeriod"`
+	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
+	ChapterList            []*courseChapterStatus      `json:"chapterList"`
+	StudentList            []*models.User              `json:"studentList"`
 }
 
 func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeacher) {
@@ -35,7 +35,7 @@ func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeac
 		Course: *course,
 	}
 
-	characteristicList, _ := queryCourseContentCharacteristics(courseId)
+	characteristicList, _ := queryCourseContentIntros(courseId)
 	detail.CharacteristicList = characteristicList
 
 	detail.StudentCount = queryCourseStudentCount(courseId)

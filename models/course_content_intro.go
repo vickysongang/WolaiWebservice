@@ -7,7 +7,7 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type CourseContentCharacteristic struct {
+type CourseContentIntro struct {
 	Id         int64     `json:"id" orm:"pk"`
 	CourseId   int64     `json:"courseId"`
 	Content    string    `json:"content"`
@@ -17,21 +17,21 @@ type CourseContentCharacteristic struct {
 }
 
 func init() {
-	orm.RegisterModel(new(CourseContentCharacteristic))
+	orm.RegisterModel(new(CourseContentIntro))
 }
 
-func (ccc *CourseContentCharacteristic) TableName() string {
-	return "course_content_characteristic"
+func (ccc *CourseContentIntro) TableName() string {
+	return "course_content_intro"
 }
 
-func ReadCourseContentCharacteristic(id int64) (*CourseContentCharacteristic, error) {
+func ReadCourseContentIntro(id int64) (*CourseContentIntro, error) {
 	o := orm.NewOrm()
 
-	characteristic := CourseContentCharacteristic{Id: id}
-	err := o.Read(&characteristic)
+	intro := CourseContentIntro{Id: id}
+	err := o.Read(&intro)
 	if err != nil {
 		return nil, err
 	}
 
-	return &characteristic, nil
+	return &intro, nil
 }

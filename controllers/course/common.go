@@ -81,9 +81,9 @@ func queryLatestCourseChapterPeriod(courseId, userId int64) (int64, error) {
 	return period, err
 }
 
-func queryCourseContentCharacteristics(courseId int64) ([]models.CourseContentCharacteristic, error) {
+func queryCourseContentIntros(courseId int64) ([]models.CourseContentIntro, error) {
 	o := orm.NewOrm()
-	characteristics := make([]models.CourseContentCharacteristic, 0)
-	_, err := o.QueryTable(new(models.CourseContentCharacteristic).TableName()).Filter("course_id", courseId).OrderBy("rank").All(&characteristics)
-	return characteristics, err
+	intros := make([]models.CourseContentIntro, 0)
+	_, err := o.QueryTable(new(models.CourseContentIntro).TableName()).Filter("course_id", courseId).OrderBy("rank").All(&intros)
+	return intros, err
 }
