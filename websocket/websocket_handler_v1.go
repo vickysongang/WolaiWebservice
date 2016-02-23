@@ -314,7 +314,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
-			status, err := checkOrderValidation(orderId)
+			status, err := CheckOrderValidation(orderId)
 			resp.Attribute["status"] = strconv.FormatInt(status, 10)
 			if err != nil {
 				resp.Attribute["errMsg"] = err.Error()

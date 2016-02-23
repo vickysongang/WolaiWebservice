@@ -7,7 +7,6 @@ import (
 	"WolaiWebservice/models"
 )
 
-////////////////////////////////////////////////////////////////////////////////
 type courseChapterStatus struct {
 	models.CourseChapter
 	Status string `json:"status"`
@@ -48,7 +47,6 @@ func queryCourseChapterStatus(courseId int64, current int64) ([]*courseChapterSt
 	return statusList, nil
 }
 
-////////////////////////////////////////////////////////////////////////////////
 //查询课程在学的学生数,此处的判断逻辑为只要学生购买了该课程，就认为学生在学该课程
 func queryCourseStudentCount(courseId int64) int64 {
 	o := orm.NewOrm()
@@ -83,4 +81,9 @@ func queryLatestCourseChapterPeriod(courseId, userId int64) (int64, error) {
 	return period, err
 }
 
-////////////////////////////////////////////////////////////////////////////////
+func queryCourseContentIntros(courseId int64) ([]models.CourseContentIntro, error) {
+	o := orm.NewOrm()
+	intros := make([]models.CourseContentIntro, 0)
+	_, err := o.QueryTable(new(models.CourseContentIntro).TableName()).Filter("course_id", courseId).OrderBy("rank").All(&intros)
+	return intros, err
+}
