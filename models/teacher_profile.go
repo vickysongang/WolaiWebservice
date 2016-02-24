@@ -18,6 +18,7 @@ type TeacherProfile struct {
 	TierId       int64  `json:"tierId" orm:"column(tier_id)"`
 	PriceHourly  int64  `json:"-" orm:"column(price_hourly)"`
 	SalaryHourly int64  `json:"-" orm:"column(salary_hourly)"`
+	CertifyFlag  string `json:"certifyFlag"`
 }
 
 func init() {

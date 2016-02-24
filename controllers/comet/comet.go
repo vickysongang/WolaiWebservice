@@ -120,6 +120,7 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 		websocket.WS_SESSION_RESUME_ACCEPT,
 		websocket.WS_SESSION_RESUME_CANCEL:
 		resp.OperationCode = msg.OperationCode + 1
+		resp.Attribute["errCode"] = "0"
 		sessionIdStr, ok := msg.Attribute["sessionId"]
 		if !ok {
 			resp.Attribute["errCode"] = "2"

@@ -38,7 +38,7 @@ func QueryUserByKeyword(keyword string, page, count int64) ([]*models.User, erro
 
 	var users []*models.User
 	_, err = o.QueryTable(new(models.User).TableName()).
-		SetCond(condFin).
+		SetCond(condFin).OrderBy("-certify_flag").
 		Limit(count).Offset(page * count).
 		All(&users)
 	if err != nil {

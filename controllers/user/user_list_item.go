@@ -14,6 +14,7 @@ type UserListItem struct {
 	AccessRight  int64    `json:"accessRight"`
 	School       string   `json:"school"`
 	Major        string   `json:"major"`
+	CertifyFlag  string   `json:"certifyFlag"`
 	SubjectList  []string `json:"subjectList,omitempty"`
 	OnlineStatus string   `json:"onlineStatus,omitempty"`
 }
@@ -47,6 +48,7 @@ func AssembleUserListItem(userId int64) (*UserListItem, error) {
 		}
 
 		item.Major = profile.Major
+		item.CertifyFlag = profile.CertifyFlag
 
 		subjects, err := userService.GetTeacherSubjectNameSlice(userId)
 		if err == nil {
