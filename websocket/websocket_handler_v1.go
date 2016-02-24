@@ -11,7 +11,6 @@ import (
 	"github.com/gorilla/websocket"
 
 	"WolaiWebservice/config/settings"
-	"WolaiWebservice/logger"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
 )
@@ -105,7 +104,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		err = conn.WriteJSON(loginResp)
 		if err == nil {
 			seelog.Trace("send login response to user:", msg.UserId, " ", loginResp)
-			logger.InsertUserEventLog(msg.UserId, "用户上线", msg)
 		} else {
 			seelog.Error("send login response to user ", msg.UserId, " fail")
 		}
@@ -140,7 +138,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			errMsg := err.Error()
 			seelog.Debug("WebSocketWriteHandler: socket disconnect; UserId: ", userId, "; ErrorInfo:", errMsg)
 
-			logger.InsertUserEventLog(userId, "用户掉线", errMsg)
 			if WsManager.GetUserOnlineStatus(userId) == loginTS {
 				WSUserLogout(userId)
 				close(userChan)
@@ -163,7 +160,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 		if msg.OperationCode != WS_PONG {
 			seelog.Trace("V1Handler websocket recieve message:", string(p))
-			logger.InsertUserEventLog(userId, "", string(p))
 		}
 
 		// 比对客户端时间和系统时间
@@ -191,12 +187,9 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			close(userChan)
 
 		// 上课相关信息，直接转发处理
-		case WS_SESSION_START,
-			WS_SESSION_ACCEPT,
-			WS_SESSION_PAUSE,
+		case WS_SESSION_PAUSE,
 			WS_SESSION_RESUME,
 			WS_SESSION_FINISH,
-			WS_SESSION_CANCEL,
 			WS_SESSION_RESUME_ACCEPT,
 			WS_SESSION_RESUME_CANCEL:
 			resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
@@ -215,10 +208,14 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 
-			if !WsManager.HasSessionChan(sessionId) {
+			//			if !WsManager.HasSessionChan(sessionId) {
+			//				break
+			//			}
+			if !SessionManager.IsSessionOnline(sessionId) {
 				break
 			}
-			sessionChan := WsManager.GetSessionChan(sessionId)
+			//			sessionChan := WsManager.GetSessionChan(sessionId)
+			sessionChan, _ := SessionManager.GetSessionChan(sessionId)
 			sessionChan <- msg
 
 		case WS_ORDER2_TEACHER_ONLINE:
@@ -392,12 +389,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 			if ok {
 				conn.SetWriteDeadline(time.Now().Add(writeWait))
 				err := conn.WriteJSON(msg)
-
-				//持久化跟Session相关的消息
-				if sessionIdStr, ok := msg.Attribute["sessionId"]; ok {
-					sessionId, _ := strconv.Atoi(sessionIdStr)
-					logger.InsertSessionEventLog(int64(sessionId), userId, "", msg)
-				}
 
 				if err != nil {
 					seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())

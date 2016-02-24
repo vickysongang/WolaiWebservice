@@ -561,7 +561,7 @@ func InitOrderDispatch(msg POIWSMessage, timestamp int64) error {
 }
 
 func handleSessionCreation(orderId int64, teacherId int64) {
-	timestamp := time.Now().Unix()
+	//	timestamp := time.Now().Unix()
 
 	order, _ := models.ReadOrder(orderId)
 	planTime := order.Date
@@ -580,10 +580,11 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 
-		sessionChan := make(chan POIWSMessage)
-		WsManager.SetSessionChan(session.Id, sessionChan)
+		//		sessionChan := make(chan POIWSMessage)
+		//		WsManager.SetSessionChan(session.Id, sessionChan)
+		SessionManager.SetSessionOnline(session.Id)
 
-		WsManager.SetSessionLive(session.Id, timestamp)
+		//		WsManager.SetSessionLive(session.Id, timestamp)
 		WsManager.SetUserSession(session.Id, session.Tutor, session.Creator)
 
 		time.Sleep(time.Second * time.Duration(orderSessionCountdown))

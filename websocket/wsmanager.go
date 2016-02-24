@@ -8,8 +8,8 @@ import (
 )
 
 type POIWSManager struct {
-	UserMap    map[int64](chan POIWSMessage) // userId to chan
-	SessionMap map[int64](chan POIWSMessage) // sessionId to chan
+	UserMap map[int64](chan POIWSMessage) // userId to chan
+	//	SessionMap map[int64](chan POIWSMessage) // sessionId to chan
 
 	OnlineUserMap    map[int64]int64 // userId to online timestamp
 	OnlineTeacherMap map[int64]int64 // teacher userId to online timestamp
@@ -17,7 +17,7 @@ type POIWSManager struct {
 
 	UserOrderDispatchMap map[int64]map[int64]int64 // userId to orderId to timestamp
 
-	SessionLiveMap     map[int64]int64          // sessionId to timestamp
+	//SessionLiveMap     map[int64]int64          // sessionId to timestamp
 	UserSessionLiveMap map[int64]map[int64]bool // userId to sessionId
 }
 
@@ -29,8 +29,8 @@ func init() {
 
 func NewPOIWSManager() POIWSManager {
 	return POIWSManager{
-		UserMap:    make(map[int64](chan POIWSMessage)),
-		SessionMap: make(map[int64](chan POIWSMessage)),
+		UserMap: make(map[int64](chan POIWSMessage)),
+		//SessionMap: make(map[int64](chan POIWSMessage)),
 
 		OnlineUserMap:    make(map[int64]int64),
 		OnlineTeacherMap: make(map[int64]int64),
@@ -38,7 +38,7 @@ func NewPOIWSManager() POIWSManager {
 
 		UserOrderDispatchMap: make(map[int64]map[int64]int64),
 
-		SessionLiveMap:     make(map[int64]int64),
+		//		SessionLiveMap:     make(map[int64]int64),
 		UserSessionLiveMap: make(map[int64]map[int64]bool),
 	}
 }
@@ -62,24 +62,24 @@ func (wsm *POIWSManager) HasUserChan(userId int64) bool {
 	return ok
 }
 
-func (wsm *POIWSManager) SetSessionChan(sessionId int64, sessionChan chan POIWSMessage) {
-	wsm.SessionMap[sessionId] = sessionChan
-}
+//func (wsm *POIWSManager) SetSessionChan(sessionId int64, sessionChan chan POIWSMessage) {
+//	wsm.SessionMap[sessionId] = sessionChan
+//}
 
-func (wsm *POIWSManager) GetSessionChan(sessionId int64) chan POIWSMessage {
-	return wsm.SessionMap[sessionId]
-}
+//func (wsm *POIWSManager) GetSessionChan(sessionId int64) chan POIWSMessage {
+//	return wsm.SessionMap[sessionId]
+//}
 
-func (wsm *POIWSManager) RemoveSessionChan(sessionId int64) {
-	if _, ok := wsm.SessionMap[sessionId]; ok {
-		delete(wsm.SessionMap, sessionId)
-	}
-}
+//func (wsm *POIWSManager) RemoveSessionChan(sessionId int64) {
+//	if _, ok := wsm.SessionMap[sessionId]; ok {
+//		delete(wsm.SessionMap, sessionId)
+//	}
+//}
 
-func (wsm *POIWSManager) HasSessionChan(sessionId int64) bool {
-	_, ok := wsm.SessionMap[sessionId]
-	return ok
-}
+//func (wsm *POIWSManager) HasSessionChan(sessionId int64) bool {
+//	_, ok := wsm.SessionMap[sessionId]
+//	return ok
+//}
 
 func (wsm *POIWSManager) SetUserOnline(userId int64, timestamp int64) {
 	seelog.Debug("SetUserOnline:", userId)
@@ -139,15 +139,15 @@ func (wsm *POIWSManager) RemoveOrderDispatch(orderId int64, userId int64) {
 	delete(wsm.UserOrderDispatchMap[userId], orderId)
 }
 
-func (wsm *POIWSManager) SetSessionLive(sessionId int64, timestamp int64) {
-	wsm.SessionLiveMap[sessionId] = timestamp
-}
+//func (wsm *POIWSManager) SetSessionLive(sessionId int64, timestamp int64) {
+//	wsm.SessionLiveMap[sessionId] = timestamp
+//}
 
-func (wsm *POIWSManager) RemoveSessionLive(sessionId int64) {
-	if _, ok := wsm.SessionLiveMap[sessionId]; ok {
-		delete(wsm.SessionMap, sessionId)
-	}
-}
+//func (wsm *POIWSManager) RemoveSessionLive(sessionId int64) {
+//	if _, ok := wsm.SessionLiveMap[sessionId]; ok {
+//		delete(wsm.SessionMap, sessionId)
+//	}
+//}
 
 func (wsm *POIWSManager) SetUserSession(sessionId int64, teacherId int64, studentId int64) {
 	if _, ok := wsm.UserSessionLiveMap[teacherId]; !ok {

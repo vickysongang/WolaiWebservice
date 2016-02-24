@@ -111,12 +111,9 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 		if err != nil {
 			resp.Attribute["errMsg"] = err.Error()
 		}
-	case websocket.WS_SESSION_START,
-		websocket.WS_SESSION_ACCEPT,
-		websocket.WS_SESSION_PAUSE,
+	case websocket.WS_SESSION_PAUSE,
 		websocket.WS_SESSION_RESUME,
 		websocket.WS_SESSION_FINISH,
-		websocket.WS_SESSION_CANCEL,
 		websocket.WS_SESSION_RESUME_ACCEPT,
 		websocket.WS_SESSION_RESUME_CANCEL:
 		resp.OperationCode = msg.OperationCode + 1
@@ -131,12 +128,13 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 			resp.Attribute["errCode"] = "2"
 			return &resp, nil
 		}
-		if !websocket.WsManager.HasSessionChan(sessionId) {
+		if !websocket.SessionManager.IsSessionOnline(sessionId) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "no session chan"
 			return &resp, nil
 		}
-		sessionChan := websocket.WsManager.GetSessionChan(sessionId)
+		//		sessionChan := websocket.WsManager.GetSessionChan(sessionId)
+		sessionChan, _ := websocket.SessionManager.GetSessionChan(sessionId)
 		sessionChan <- msg
 	case websocket.WS_ORDER2_CANCEL,
 		websocket.WS_ORDER2_ACCEPT,
