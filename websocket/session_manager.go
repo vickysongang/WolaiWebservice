@@ -23,12 +23,11 @@ type SessionStatus struct {
 }
 
 const (
-	SESSION_STATUS_CREATED   = "created"
-	SESSION_STATUS_SERVING   = "serving"
-	SESSION_STATUS_BREAKED   = "breaked"
-	SESSION_STATUS_CALLING   = "calling"
-	SESSION_STATUS_PAUSED    = "paused"
-	SESSION_STATUS_COMPLETED = "completed"
+	SESSION_STATUS_CREATED = "created"
+	SESSION_STATUS_SERVING = "serving"
+	SESSION_STATUS_BREAKED = "breaked"
+	SESSION_STATUS_CALLING = "calling"
+	SESSION_STATUS_PAUSED  = "paused"
 )
 
 var ErrSessionNotFound = errors.New("Session is not serving")

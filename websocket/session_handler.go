@@ -46,6 +46,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 	//将课程标记为上课中，并将该状态存在内存中
 	SessionManager.SetSessionServing(sessionId, true)
+	SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
 
 	//设置课程的开始时间并更改课程的状态
 	SessionManager.SetSessionStatusServing(sessionId)
