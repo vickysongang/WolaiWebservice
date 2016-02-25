@@ -55,7 +55,7 @@ func GetTeacherRecommendation(userId, page, count int64) (int64, error, []*UserL
 
 	result := make([]*UserListItem, 0)
 
-	onlineTeacherIds := websocket.WsManager.GetOnlineTeachers()
+	onlineTeacherIds := websocket.UserManager.GetOnlineTeachers()
 	teacherIds, err := userService.QueryTeacherRecommendationExcludeOnline(userId, page, count, onlineTeacherIds)
 	if err != nil {
 		return 0, nil, result

@@ -32,7 +32,6 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 	case websocket.WS_ORDER2_TEACHER_ONLINE:
 		resp.OperationCode = websocket.WS_ORDER2_TEACHER_ONLINE_RESP
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-			websocket.WsManager.SetTeacherOnline(userId, timestamp)
 			resp.Attribute["errCode"] = "0"
 			resp.Attribute["assign"] = "off"
 		} else {
@@ -43,7 +42,6 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 	case websocket.WS_ORDER2_TEACHER_OFFLINE:
 		resp.OperationCode = websocket.WS_ORDER2_TEACHER_OFFLINE_RESP
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-			websocket.WsManager.SetTeacherOnline(userId, timestamp)
 			resp.Attribute["errCode"] = "0"
 		} else {
 			resp.Attribute["errCode"] = "2"
@@ -56,7 +54,6 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 	case websocket.WS_ORDER2_TEACHER_ASSIGNON:
 		resp.OperationCode = websocket.WS_ORDER2_TEACHER_ASSIGNON_RESP
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-			websocket.WsManager.SetTeacherOnline(userId, timestamp)
 			resp.Attribute["errCode"] = "0"
 		} else {
 			resp.Attribute["errCode"] = "2"
@@ -69,7 +66,6 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 	case websocket.WS_ORDER2_TEACHER_ASSIGNOFF:
 		resp.OperationCode = websocket.WS_ORDER2_TEACHER_ASSIGNOFF_RESP
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-			websocket.WsManager.SetTeacherOnline(userId, timestamp)
 			resp.Attribute["errCode"] = "0"
 		} else {
 			resp.Attribute["errCode"] = "2"
@@ -133,7 +129,6 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 			resp.Attribute["errMsg"] = "no session chan"
 			return &resp, nil
 		}
-		//		sessionChan := websocket.WsManager.GetSessionChan(sessionId)
 		sessionChan, _ := websocket.SessionManager.GetSessionChan(sessionId)
 		sessionChan <- msg
 	case websocket.WS_ORDER2_CANCEL,
@@ -160,7 +155,6 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 		} else {
 			orderChan <- msg
 		}
-		seelog.Debug("handle comet message:", msg.OperationCode, " by user ", msg.UserId)
 	}
 	return &resp, nil
 }

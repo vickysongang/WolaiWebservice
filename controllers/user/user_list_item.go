@@ -33,7 +33,7 @@ func AssembleUserListItem(userId int64) (*UserListItem, error) {
 		Avatar:       user.Avatar,
 		Gender:       user.Gender,
 		AccessRight:  user.AccessRight,
-		OnlineStatus: websocket.WsManager.GetUserStatus(user.Id),
+		OnlineStatus: websocket.UserManager.GetUserStatus(user.Id),
 	}
 
 	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
