@@ -160,6 +160,7 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 		} else {
 			orderChan <- msg
 		}
+		seelog.Debug("handle comet message:", msg.OperationCode, " by user ", msg.UserId)
 	}
 	return &resp, nil
 }

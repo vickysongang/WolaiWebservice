@@ -246,7 +246,7 @@ func generalOrderChanHandler(orderId int64) {
 
 					//发送反馈消息
 					acceptResp.Attribute["errCode"] = "0"
-					seelog.Debug("order ", orderId, " send 148 to teacher ", msg.UserId, " userChan size:", len(userChan))
+					seelog.Debug("order ", orderId, " send ", WS_ORDER2_ACCEPT_RESP, " to teacher ", msg.UserId)
 					userChan <- acceptResp
 
 					//向学生发送结果
@@ -258,6 +258,8 @@ func generalOrderChanHandler(orderId int64) {
 					acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 					acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
 					acceptMsg.Attribute["title"] = orderInfo.Title
+
+					seelog.Debug("order ", orderId, " send ", WS_ORDER2_ACCEPT, " to student ", order.Creator)
 
 					if WsManager.HasUserChan(order.Creator) {
 						creatorChan := WsManager.GetUserChan(order.Creator)
@@ -287,8 +289,8 @@ func generalOrderChanHandler(orderId int64) {
 						resultMsg.UserId = dispatchId
 						resultMsg.Attribute["status"] = strconv.FormatInt(status, 10)
 						resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
+						seelog.Debug("order ", orderId, " send ", WS_ORDER2_RESULT, " to teacher ", dispatchId)
 						dispatchChan <- resultMsg
-
 					}
 
 					seelog.Debug("orderHandler|orderAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
