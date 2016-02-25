@@ -481,6 +481,8 @@ func POIWSSessionHandler(sessionId int64) {
 
 						SessionManager.SetSessionBreaked(sessionId, false)
 
+						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
+
 						//启动时间同步计时器
 						syncTicker = time.NewTicker(time.Second * 60)
 						//停止超时计时器
