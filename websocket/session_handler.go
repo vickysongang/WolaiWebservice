@@ -14,7 +14,7 @@ import (
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
-func POIWSSessionHandler(sessionId int64) {
+func sessionHandler(sessionId int64) {
 	defer func() {
 		if r := recover(); r != nil {
 			seelog.Error(r)
@@ -37,15 +37,15 @@ func POIWSSessionHandler(sessionId int64) {
 	//初始停止时间同步计时器，待正式上课的时候启动该计时器
 	syncTicker.Stop()
 
-	//超时计时器，预约的课二十分钟内没有发起上课则二十分钟会课程自动超时结束，中断的课程在五分钟内如果没有重新恢复则五分钟后课程自动超时结束
+	//超时计时器，课程中段在规定时间内如果没有重新恢复则规定时间过后课程自动超时结束
 	sessionExpireLimit := settings.SessionExpireLimit()
 
 	waitingTimer := time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
-	//马上辅导单，进入倒计时,停止超时计时器
+	//初始停止超时计时器
 	waitingTimer.Stop()
 
-	//将课程标记为上课中，并将该状态存在内存中
+	//激活课程，并将课程状态设置为服务中
 	SessionManager.SetSessionActived(sessionId, true)
 	SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
 
@@ -85,7 +85,7 @@ func POIWSSessionHandler(sessionId int64) {
 	} else {
 		//启动时间同步计时器
 		syncTicker = time.NewTicker(time.Second * 60)
-		seelog.Debug("POIWSSessionHandler: instant session start: " + sessionIdStr)
+		seelog.Debug("WSSessionHandler: instant session start: " + sessionIdStr)
 	}
 
 	for {
@@ -105,7 +105,7 @@ func POIWSSessionHandler(sessionId int64) {
 				userChan <- expireMsg
 			}
 
-			//如果课程没有在进行，超时后该课自动被取消，否则课程自动被结束
+			//如果课程没有被激活，超时后该课自动被取消，否则课程自动被结束
 			if !SessionManager.IsSessionActived(sessionId) {
 				SessionManager.SetSessionStatusCancelled(sessionId)
 			} else {
@@ -560,7 +560,7 @@ func InitSessionMonitor(sessionId int64) bool {
 	}
 
 	go lcmessage.SendSessionStartMsg(sessionId)
-	go POIWSSessionHandler(sessionId)
+	go sessionHandler(sessionId)
 
 	return true
 }
@@ -628,7 +628,7 @@ func RecoverUserSession(userId int64, msg POIWSMessage) {
 			if session.Tutor == userId {
 				recoverMsg.OperationCode = WS_SESSION_RECOVER_TEACHER
 			}
-
+			seelog.Debug("sessionHandler|recover:", userId, "operCode:", recoverMsg.OperationCode)
 			sessionChan, _ := SessionManager.GetSessionChan(sessionId)
 			sessionChan <- recoverMsg
 		}
