@@ -46,10 +46,7 @@ func ReadTeacherProfile(userId int64) (*TeacherProfile, error) {
 
 func UpdateTeacherServiceTime(userId int64, length int64) {
 	o := orm.NewOrm()
-	_, err := o.QueryTable("teacher_profile").Filter("user_id", userId).Update(orm.Params{
-		"service_time": orm.ColValue(orm.Col_Add, length),
+	o.QueryTable("teacher_profile").Filter("user_id", userId).Update(orm.Params{
+		"service_time": orm.ColValue(orm.ColAdd, length),
 	})
-	if err != nil {
-		//seelog.Error("userId:", userId, " length:", length, " ", err.Error())
-	}
 }

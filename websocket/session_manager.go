@@ -16,7 +16,7 @@ type SessionStatus struct {
 	lastSync    int64
 	isCalling   bool //是否正在拨号中
 	isAccepted  bool //学生是否接受了老师的上课请求
-	isServing   bool //课程是否在进行中
+	isActived   bool //课程是否是激活的
 	isPaused    bool //课程是否被暂停
 	isBreaked   bool //课程是否被中断
 	status      string
@@ -55,7 +55,7 @@ func NewSessionStatus(sessionId int64) *SessionStatus {
 		isCalling:   false,
 		isAccepted:  false,
 		isPaused:    false,
-		isServing:   false,
+		isActived:   false,
 		isBreaked:   false,
 		status:      SESSION_STATUS_CREATED,
 	}
@@ -167,20 +167,20 @@ func (ssm *SessionStatusManager) SetSessionCalling(sessionId int64, isCalling bo
 	return nil
 }
 
-func (ssm *SessionStatusManager) IsSessionServing(sessionId int64) bool {
+func (ssm *SessionStatusManager) IsSessionActived(sessionId int64) bool {
 	sessionStatus, ok := ssm.sessionMap[sessionId]
 	if !ok {
 		return false
 	}
-	return sessionStatus.isServing
+	return sessionStatus.isActived
 }
 
-func (ssm *SessionStatusManager) SetSessionServing(sessionId int64, isServing bool) error {
+func (ssm *SessionStatusManager) SetSessionActived(sessionId int64, isActived bool) error {
 	sessionStatus, ok := ssm.sessionMap[sessionId]
 	if !ok {
 		return ErrSessionNotFound
 	}
-	sessionStatus.isServing = isServing
+	sessionStatus.isActived = isActived
 	return nil
 }
 

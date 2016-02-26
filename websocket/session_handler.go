@@ -44,7 +44,7 @@ func POIWSSessionHandler(sessionId int64) {
 	waitingTimer.Stop()
 
 	//将课程标记为上课中，并将该状态存在内存中
-	SessionManager.SetSessionServing(sessionId, true)
+	SessionManager.SetSessionActived(sessionId, true)
 	SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
 
 	//设置课程的开始时间并更改课程的状态
@@ -104,7 +104,7 @@ func POIWSSessionHandler(sessionId int64) {
 			}
 
 			//如果课程没有在进行，超时后该课自动被取消，否则课程自动被结束
-			if !SessionManager.IsSessionServing(sessionId) {
+			if !SessionManager.IsSessionActived(sessionId) {
 				SessionManager.SetSessionStatusCancelled(sessionId)
 			} else {
 				SessionManager.SetSessionStatusCompleted(sessionId, length)
@@ -126,7 +126,7 @@ func POIWSSessionHandler(sessionId int64) {
 
 		case cur := <-syncTicker.C:
 			//如果课程不在进行中或者被暂停，则停止同步时间
-			if !SessionManager.IsSessionServing(sessionId) ||
+			if !SessionManager.IsSessionActived(sessionId) ||
 				SessionManager.IsSessionPaused(sessionId) ||
 				SessionManager.IsSessionBreaked(sessionId) {
 				break
@@ -183,7 +183,9 @@ func POIWSSessionHandler(sessionId int64) {
 					}
 
 					//如果课程没有被暂停且正在进行中，则累计计算时长
-					if !SessionManager.IsSessionPaused(sessionId) && SessionManager.IsSessionServing(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) &&
+						!SessionManager.IsSessionBreaked(sessionId) &&
+						SessionManager.IsSessionActived(sessionId) {
 						length = length + (timestamp - lastSync)
 					}
 
@@ -211,7 +213,7 @@ func POIWSSessionHandler(sessionId int64) {
 					//如果课程被暂停，则退出
 					if SessionManager.IsSessionPaused(sessionId) ||
 						SessionManager.IsSessionBreaked(sessionId) ||
-						!SessionManager.IsSessionServing(sessionId) {
+						!SessionManager.IsSessionActived(sessionId) {
 						break
 					}
 
@@ -253,7 +255,7 @@ func POIWSSessionHandler(sessionId int64) {
 					//如果老师所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
 					if !SessionManager.IsSessionPaused(sessionId) &&
 						!SessionManager.IsSessionBreaked(sessionId) &&
-						SessionManager.IsSessionServing(sessionId) {
+						SessionManager.IsSessionActived(sessionId) {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
 						length = length + (timestamp - lastSync)
 						//将中断时间设置为最后同步时间，用于下次时间的计算
@@ -290,7 +292,7 @@ func POIWSSessionHandler(sessionId int64) {
 					//如果学生所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
 					if !SessionManager.IsSessionPaused(sessionId) &&
 						!SessionManager.IsSessionBreaked(sessionId) &&
-						SessionManager.IsSessionServing(sessionId) {
+						SessionManager.IsSessionActived(sessionId) {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
 						length = length + (timestamp - lastSync)
 						//将中断时间设置为最后同步时间，用于下次时间的计算
@@ -328,7 +330,7 @@ func POIWSSessionHandler(sessionId int64) {
 					pauseResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_PAUSE_RESP)
 					if SessionManager.IsSessionPaused(sessionId) ||
 						SessionManager.IsSessionBreaked(sessionId) ||
-						!SessionManager.IsSessionServing(sessionId) {
+						!SessionManager.IsSessionActived(sessionId) {
 						pauseResp.Attribute["errCode"] = "2"
 						userChan <- pauseResp
 						break
@@ -368,12 +370,19 @@ func POIWSSessionHandler(sessionId int64) {
 				case WS_SESSION_RESUME: //老师发起恢复上课的请求
 					//向老师发送恢复上课的响应消息
 					resumeResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_RESP)
-					if !SessionManager.IsSessionPaused(sessionId) || !SessionManager.IsSessionServing(sessionId) {
+					if !SessionManager.IsSessionActived(sessionId) {
 						resumeResp.Attribute["errCode"] = "2"
-						resumeResp.Attribute["errMsg"] = "session is not serving"
+						resumeResp.Attribute["errMsg"] = "session is not actived"
 						userChan <- resumeResp
 						break
 					}
+					if !SessionManager.IsSessionBreaked(sessionId) && !SessionManager.IsSessionPaused(sessionId) {
+						resumeResp.Attribute["errCode"] = "2"
+						resumeResp.Attribute["errMsg"] = "session is not paused or breaked"
+						userChan <- resumeResp
+						break
+					}
+
 					resumeResp.Attribute["errCode"] = "0"
 					userChan <- resumeResp
 
@@ -475,7 +484,7 @@ func POIWSSessionHandler(sessionId int64) {
 						lastSync = timestamp
 
 						//设置课程状态为正在服务中
-						SessionManager.SetSessionServing(sessionId, true)
+						SessionManager.SetSessionActived(sessionId, true)
 
 						SessionManager.SetSessionPaused(sessionId, false)
 

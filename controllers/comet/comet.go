@@ -126,7 +126,7 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 		}
 		if !websocket.SessionManager.IsSessionOnline(sessionId) {
 			resp.Attribute["errCode"] = "2"
-			resp.Attribute["errMsg"] = "no session chan"
+			resp.Attribute["errMsg"] = "session is not serving"
 			return &resp, nil
 		}
 		sessionChan, _ := websocket.SessionManager.GetSessionChan(sessionId)
