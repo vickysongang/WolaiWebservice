@@ -126,11 +126,13 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 		}
 		if !websocket.SessionManager.IsSessionOnline(sessionId) {
 			resp.Attribute["errCode"] = "2"
-			resp.Attribute["errMsg"] = "session is not serving"
-			return &resp, nil
+			resp.Attribute["errMsg"] = "session is not actived"
+		} else {
+			seelog.Debug("handle session message start:", sessionId)
+			sessionChan, _ := websocket.SessionManager.GetSessionChan(sessionId)
+			sessionChan <- msg
+			seelog.Debug("handle session message start:", sessionId)
 		}
-		sessionChan, _ := websocket.SessionManager.GetSessionChan(sessionId)
-		sessionChan <- msg
 	case websocket.WS_ORDER2_CANCEL,
 		websocket.WS_ORDER2_ACCEPT,
 		websocket.WS_ORDER2_ASSIGN_ACCEPT,
