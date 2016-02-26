@@ -360,6 +360,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 	loginTS := UserManager.GetUserOnlineStatus(userId)
 
 	for {
+		seelog.Debug("userChanSize:", userId, "  size:", len(userChan))
 		select {
 		// 发送心跳
 		case <-pingTicker.C:
