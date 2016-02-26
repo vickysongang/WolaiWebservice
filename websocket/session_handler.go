@@ -27,11 +27,6 @@ func sessionHandler(sessionId int64) {
 	sessionChan, _ := SessionManager.GetSessionChan(sessionId)
 	timestamp := time.Now().Unix()
 
-	//课程时长，初始为0
-	var length int64
-	//初始化最后同步时间为当前时间
-	var lastSync int64 = timestamp
-
 	//时间同步计时器，每60s向客户端同步服务器端的时间来校准客户端的计时
 	syncTicker := time.NewTicker(time.Second * 60)
 	//初始停止时间同步计时器，待正式上课的时候启动该计时器
@@ -62,6 +57,7 @@ func sessionHandler(sessionId int64) {
 			breakMsg.Attribute["sessionId"] = sessionIdStr
 			breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
 			breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+			length, _ := SessionManager.GetSessionLength(sessionId)
 			breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 			breakChan := UserManager.GetUserChan(breakMsg.UserId)
 			breakChan <- breakMsg
@@ -76,6 +72,7 @@ func sessionHandler(sessionId int64) {
 			breakMsg.Attribute["sessionId"] = sessionIdStr
 			breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
 			breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+			length, _ := SessionManager.GetSessionLength(sessionId)
 			breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 			breakChan := UserManager.GetUserChan(breakMsg.UserId)
 			breakChan <- breakMsg
@@ -109,6 +106,7 @@ func sessionHandler(sessionId int64) {
 			if !SessionManager.IsSessionActived(sessionId) {
 				SessionManager.SetSessionStatusCancelled(sessionId)
 			} else {
+				length, _ := SessionManager.GetSessionLength(sessionId)
 				SessionManager.SetSessionStatusCompleted(sessionId, length)
 
 				//修改老师的辅导时长
@@ -135,9 +133,14 @@ func sessionHandler(sessionId int64) {
 			}
 			//计算课程时长，已计时长＋（本次同步时间－上次同步时间）
 			timestamp = cur.Unix()
+			length, _ := SessionManager.GetSessionLength(sessionId)
+			lastSync, _ := SessionManager.GetLastSync(sessionId)
 			length = length + (timestamp - lastSync)
+			SessionManager.SetSessionLength(sessionId, length)
+
 			//将本次同步时间设置为最后同步时间，用于下次时间的计算
 			lastSync = timestamp
+			SessionManager.SetLastSync(sessionId, lastSync)
 
 			//向老师和学生同步时间
 			syncMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_SYNC)
@@ -188,10 +191,14 @@ func sessionHandler(sessionId int64) {
 					if !SessionManager.IsSessionPaused(sessionId) &&
 						!SessionManager.IsSessionBreaked(sessionId) &&
 						SessionManager.IsSessionActived(sessionId) {
+						length, _ := SessionManager.GetSessionLength(sessionId)
+						lastSync, _ := SessionManager.GetLastSync(sessionId)
 						length = length + (timestamp - lastSync)
+						SessionManager.SetSessionLength(sessionId, length)
 					}
 
 					//将当前时间设置为课程结束时间，同时将课程状态更改为已完成，将时长设置为计算后的总时长
+					length, _ := SessionManager.GetSessionLength(sessionId)
 					SessionManager.SetSessionStatusCompleted(sessionId, length)
 
 					//修改老师的辅导时长
@@ -220,9 +227,14 @@ func sessionHandler(sessionId int64) {
 					}
 
 					//计算课程时长，已计时长＋（中断时间－上次同步时间）
+					length, _ := SessionManager.GetSessionLength(sessionId)
+					lastSync, _ := SessionManager.GetLastSync(sessionId)
 					length = length + (timestamp - lastSync)
+					SessionManager.SetSessionLength(sessionId, length)
+
 					//将中断时间设置为最后同步时间，用于下次时间的计算
 					lastSync = timestamp
+					SessionManager.SetLastSync(sessionId, lastSync)
 
 					//课程暂停，从内存中移除课程正在进行当状态
 					SessionManager.SetSessionPaused(sessionId, true)
@@ -259,15 +271,21 @@ func sessionHandler(sessionId int64) {
 						!SessionManager.IsSessionBreaked(sessionId) &&
 						SessionManager.IsSessionActived(sessionId) {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
+						length, _ := SessionManager.GetSessionLength(sessionId)
+						lastSync, _ := SessionManager.GetLastSync(sessionId)
 						length = length + (timestamp - lastSync)
+						SessionManager.SetSessionLength(sessionId, length)
+
 						//将中断时间设置为最后同步时间，用于下次时间的计算
 						lastSync = timestamp
+						SessionManager.SetLastSync(sessionId, lastSync)
 					}
 
 					//向老师发送恢复课程信息
 					recoverTeacherMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_RECOVER_TEACHER)
 					recoverTeacherMsg.Attribute["sessionId"] = sessionIdStr
 					recoverTeacherMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+					length, _ := SessionManager.GetSessionLength(sessionId)
 					recoverTeacherMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 					if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 						recoverTeacherMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
@@ -296,15 +314,21 @@ func sessionHandler(sessionId int64) {
 						!SessionManager.IsSessionBreaked(sessionId) &&
 						SessionManager.IsSessionActived(sessionId) {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
+						length, _ := SessionManager.GetSessionLength(sessionId)
+						lastSync, _ := SessionManager.GetLastSync(sessionId)
 						length = length + (timestamp - lastSync)
+						SessionManager.SetSessionLength(sessionId, length)
+
 						//将中断时间设置为最后同步时间，用于下次时间的计算
 						lastSync = timestamp
+						SessionManager.SetLastSync(sessionId, lastSync)
 					}
 
 					//向学生发送恢复课程信息
 					recoverStuMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_RECOVER_STU)
 					recoverStuMsg.Attribute["sessionId"] = sessionIdStr
 					recoverStuMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+					length, _ := SessionManager.GetSessionLength(sessionId)
 					recoverStuMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 					if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 						recoverStuMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
@@ -341,9 +365,13 @@ func sessionHandler(sessionId int64) {
 					userChan <- pauseResp
 
 					//计算课程时长，已计时长＋（暂停时间－上次同步时间）
+					length, _ := SessionManager.GetSessionLength(sessionId)
+					lastSync, _ := SessionManager.GetLastSync(sessionId)
 					length = length + (timestamp - lastSync)
+					SessionManager.SetSessionLength(sessionId, length)
 					//将暂停时间设置为最后同步时间，用于下次时间的计算
 					lastSync = timestamp
+					SessionManager.SetLastSync(sessionId, lastSync)
 
 					//课程暂停，从内存中移除课程正在进行当状态
 					SessionManager.SetSessionPaused(sessionId, true)
@@ -483,7 +511,8 @@ func sessionHandler(sessionId int64) {
 						SessionManager.SetSessionAccepted(sessionId, true)
 
 						//学生接受老师的恢复上课请求后，将当前时间设置为最后一次同步时间
-						lastSync = timestamp
+						lastSync := timestamp
+						SessionManager.SetLastSync(sessionId, lastSync)
 
 						//设置课程状态为正在服务中
 						SessionManager.SetSessionActived(sessionId, true)
