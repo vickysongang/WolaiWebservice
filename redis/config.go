@@ -22,6 +22,7 @@ const (
 
 	CONFIG_SESSION                  = "config:session"
 	CONFIG_KEY_SESSION_RECONN_LIMIT = "reconn_limit"
+	CONFIG_KEY_SESSION_EXPIRE_LIMIT = "expire_limit"
 
 	CONFIG_WEBSOCKET                 = "config:websocket"
 	CONFIG_KEY_WEBSOCKET_PING_PERIOD = "ping_period"
@@ -44,6 +45,7 @@ var defaultMap = map[string]map[string]string{
 	},
 	CONFIG_SESSION: map[string]string{
 		CONFIG_KEY_SESSION_RECONN_LIMIT: "30",
+		CONFIG_KEY_SESSION_EXPIRE_LIMIT: "300",
 	},
 	CONFIG_WEBSOCKET: map[string]string{
 		CONFIG_KEY_WEBSOCKET_PING_PERIOD: "5",

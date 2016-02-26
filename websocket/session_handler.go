@@ -38,7 +38,9 @@ func POIWSSessionHandler(sessionId int64) {
 	syncTicker.Stop()
 
 	//超时计时器，预约的课二十分钟内没有发起上课则二十分钟会课程自动超时结束，中断的课程在五分钟内如果没有重新恢复则五分钟后课程自动超时结束
-	waitingTimer := time.NewTimer(time.Minute * 5)
+	sessionExpireLimit := settings.SessionExpireLimit()
+
+	waitingTimer := time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
 	//马上辅导单，进入倒计时,停止超时计时器
 	waitingTimer.Stop()
@@ -64,7 +66,7 @@ func POIWSSessionHandler(sessionId int64) {
 			breakChan := UserManager.GetUserChan(breakMsg.UserId)
 			breakChan <- breakMsg
 		}
-		waitingTimer = time.NewTimer(time.Minute * 5)
+		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
 		SessionManager.SetSessionBreaked(sessionId, true)
 	} else if !studentOnline {
@@ -78,7 +80,7 @@ func POIWSSessionHandler(sessionId int64) {
 			breakChan := UserManager.GetUserChan(breakMsg.UserId)
 			breakChan <- breakMsg
 		}
-		waitingTimer = time.NewTimer(time.Minute * 5)
+		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 		SessionManager.SetSessionBreaked(sessionId, true)
 	} else {
 		//启动时间同步计时器
@@ -230,7 +232,7 @@ func POIWSSessionHandler(sessionId int64) {
 					SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
-					waitingTimer = time.NewTimer(time.Minute * 5)
+					waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
 					//停止时间同步计时器
 					syncTicker.Stop()
@@ -350,7 +352,7 @@ func POIWSSessionHandler(sessionId int64) {
 					SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
 
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
-					//waitingTimer = time.NewTimer(time.Minute * 5)
+					//waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
 					//停止时间同步计时器
 					syncTicker.Stop()
