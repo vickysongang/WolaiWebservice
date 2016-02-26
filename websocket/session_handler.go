@@ -657,5 +657,4 @@ func RecoverUserSession(userId int64, msg POIWSMessage) {
 			userChan <- resp
 		}
 	}
-
 }

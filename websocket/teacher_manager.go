@@ -194,7 +194,7 @@ func (tsm *TeacherStatusManager) SetDispatchLock(userId int64) error {
 	return nil
 }
 
-func (tsm *TeacherStatusManager) SetdispatchUnlock(userId int64) error {
+func (tsm *TeacherStatusManager) SetDispatchUnlock(userId int64) error {
 	status, ok := tsm.teacherMap[userId]
 	if !ok {
 		return ErrTeacherOffline
