@@ -132,9 +132,9 @@ func HandleCometMessage(param string) (*websocket.POIWSMessage, error) {
 		if sessionChan, err := websocket.SessionManager.GetSessionChan(sessionId); err != nil {
 			resp.Attribute["errCode"] = "2"
 		} else {
-			seelog.Debug("handle session message start:", sessionId, " operCode:", msg.OperationCode)
+			seelog.Debug("handle session message start:", sessionId, " operCode:", msg.OperationCode, "chanSize:", len(sessionChan))
 			sessionChan <- msg
-			seelog.Debug("handle session message end:", sessionId, " operCode:", msg.OperationCode)
+			seelog.Debug("handle session message end:", sessionId, " operCode:", msg.OperationCode, "chanSize:", len(sessionChan))
 		}
 	case websocket.WS_ORDER2_CANCEL,
 		websocket.WS_ORDER2_ACCEPT,
