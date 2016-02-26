@@ -628,7 +628,7 @@ func RecoverUserSession(userId int64, msg POIWSMessage) {
 			if session.Tutor == userId {
 				recoverMsg.OperationCode = WS_SESSION_RECOVER_TEACHER
 			}
-			seelog.Debug("sessionHandler|recover session:", sessionId, " userId:", userId, "operCode:", recoverMsg.OperationCode)
+			seelog.Debug("sessionHandler|recover session:", sessionId, " userId:", userId, " operCode:", recoverMsg.OperationCode)
 			sessionChan, _ := SessionManager.GetSessionChan(sessionId)
 			sessionChan <- recoverMsg
 		}

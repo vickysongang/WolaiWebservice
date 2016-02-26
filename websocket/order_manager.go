@@ -48,7 +48,7 @@ func NewOrderStatus(orderId int64) *OrderStatus {
 	orderStatus := OrderStatus{
 		orderId:         orderId,
 		orderInfo:       order,
-		orderChan:       make(chan POIWSMessage),
+		orderChan:       make(chan POIWSMessage, 1024),
 		orderSignalChan: make(chan int64),
 		onlineTimestamp: timestamp,
 		isDispatching:   false,

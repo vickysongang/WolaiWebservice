@@ -48,7 +48,7 @@ func NewSessionStatus(sessionId int64) *SessionStatus {
 	sessionStatus := SessionStatus{
 		sessionId:   sessionId,
 		sessionInfo: session,
-		sessionChan: make(chan POIWSMessage, 10),
+		sessionChan: make(chan POIWSMessage, 1024),
 		length:      0,
 		lastSync:    nowUnix,
 		liveTime:    nowUnix,
