@@ -6,7 +6,7 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-type POIWSMessage struct {
+type WSMessage struct {
 	MessageId     string            `json:"msgId"`
 	UserId        int64             `json:"userId"`
 	OperationCode int64             `json:"oprCode"`
@@ -121,7 +121,7 @@ const (
 	WS_ORDER2_RECOVER_CREATE         = 175
 )
 
-func NewPOIWSMessage(msgId string, userId int64, oprCode int64) POIWSMessage {
+func NewWSMessage(msgId string, userId int64, oprCode int64) WSMessage {
 	timestampNano := time.Now().UnixNano()
 	timestampMillis := timestampNano / 1000
 	timestamp := float64(timestampMillis) / 1000000.0
@@ -129,7 +129,7 @@ func NewPOIWSMessage(msgId string, userId int64, oprCode int64) POIWSMessage {
 	if msgId == "" {
 		msgId = uuid.NewV4().String()
 	}
-	return POIWSMessage{
+	return WSMessage{
 		MessageId:     msgId,
 		UserId:        userId,
 		OperationCode: oprCode,

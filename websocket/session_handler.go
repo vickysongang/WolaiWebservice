@@ -53,7 +53,7 @@ func sessionHandler(sessionId int64) {
 	if !teacherOnline {
 		//如果老师不在线，学生在线，则向学生发送课程中断消息
 		if studentOnline {
-			breakMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_BREAK)
+			breakMsg := NewWSMessage("", session.Creator, WS_SESSION_BREAK)
 			breakMsg.Attribute["sessionId"] = sessionIdStr
 			breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
 			breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
@@ -68,7 +68,7 @@ func sessionHandler(sessionId int64) {
 	} else if !studentOnline {
 		//如果学生不在线老师在线，则向老师发送课程中断消息
 		if teacherOnline {
-			breakMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_BREAK)
+			breakMsg := NewWSMessage("", session.Tutor, WS_SESSION_BREAK)
 			breakMsg.Attribute["sessionId"] = sessionIdStr
 			breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
 			breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
@@ -88,7 +88,7 @@ func sessionHandler(sessionId int64) {
 	for {
 		select {
 		case <-waitingTimer.C:
-			expireMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_EXPIRE)
+			expireMsg := NewWSMessage("", session.Creator, WS_SESSION_EXPIRE)
 			expireMsg.Attribute["sessionId"] = sessionIdStr
 			//如果学生在线，则给学生发送课程过时消息
 			if UserManager.HasUserChan(session.Creator) {
@@ -143,7 +143,7 @@ func sessionHandler(sessionId int64) {
 			SessionManager.SetLastSync(sessionId, lastSync)
 
 			//向老师和学生同步时间
-			syncMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_SYNC)
+			syncMsg := NewWSMessage("", session.Tutor, WS_SESSION_SYNC)
 			syncMsg.Attribute["sessionId"] = sessionIdStr
 			syncMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 
@@ -169,7 +169,7 @@ func sessionHandler(sessionId int64) {
 
 				case WS_SESSION_FINISH: //老师下课
 					//向老师发送下课的响应消息
-					finishResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_FINISH_RESP)
+					finishResp := NewWSMessage(msg.MessageId, msg.UserId, WS_SESSION_FINISH_RESP)
 					if msg.UserId != session.Tutor {
 						finishResp.Attribute["errCode"] = "2"
 						finishResp.Attribute["errMsg"] = "You are not the teacher of this session"
@@ -180,7 +180,7 @@ func sessionHandler(sessionId int64) {
 					userChan <- finishResp
 
 					//向学生发送下课消息
-					finishMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_FINISH)
+					finishMsg := NewWSMessage("", session.Creator, WS_SESSION_FINISH)
 					finishMsg.Attribute["sessionId"] = sessionIdStr
 					if UserManager.HasUserChan(session.Creator) {
 						creatorChan := UserManager.GetUserChan(session.Creator)
@@ -250,7 +250,7 @@ func sessionHandler(sessionId int64) {
 					syncTicker.Stop()
 
 					//如果学生掉线，则向老师发送课程中断消息，如果老师掉线，则向学生发送课程中断消息
-					breakMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_BREAK)
+					breakMsg := NewWSMessage("", session.Creator, WS_SESSION_BREAK)
 					if msg.UserId == session.Creator {
 						breakMsg.UserId = session.Tutor
 					}
@@ -282,7 +282,7 @@ func sessionHandler(sessionId int64) {
 					}
 
 					//向老师发送恢复课程信息
-					recoverTeacherMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_RECOVER_TEACHER)
+					recoverTeacherMsg := NewWSMessage("", session.Tutor, WS_SESSION_RECOVER_TEACHER)
 					recoverTeacherMsg.Attribute["sessionId"] = sessionIdStr
 					recoverTeacherMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
 					length, _ := SessionManager.GetSessionLength(sessionId)
@@ -300,7 +300,7 @@ func sessionHandler(sessionId int64) {
 					//如果老师所在的课程正在进行中，则通知老师该课正在进行中
 					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBreaked(sessionId) {
 						seelog.Debug("send session:", sessionId, " live status message to teacher:", session.Tutor)
-						sessionStatusMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_BREAK_RECONNECT_SUCCESS)
+						sessionStatusMsg := NewWSMessage("", session.Tutor, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
 						sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
 						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
@@ -325,7 +325,7 @@ func sessionHandler(sessionId int64) {
 					}
 
 					//向学生发送恢复课程信息
-					recoverStuMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_RECOVER_STU)
+					recoverStuMsg := NewWSMessage("", session.Creator, WS_SESSION_RECOVER_STU)
 					recoverStuMsg.Attribute["sessionId"] = sessionIdStr
 					recoverStuMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 					length, _ := SessionManager.GetSessionLength(sessionId)
@@ -343,7 +343,7 @@ func sessionHandler(sessionId int64) {
 					//如果学生所在的课程正在进行中，则通知学生该课正在进行中
 					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBreaked(sessionId) {
 						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator)
-						sessionStatusMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_BREAK_RECONNECT_SUCCESS)
+						sessionStatusMsg := NewWSMessage("", session.Creator, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
 						sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
 						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
@@ -353,7 +353,7 @@ func sessionHandler(sessionId int64) {
 
 				case WS_SESSION_PAUSE: //课程暂停
 					//向老师发送课程暂停的响应消息
-					pauseResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_PAUSE_RESP)
+					pauseResp := NewWSMessage(msg.MessageId, msg.UserId, WS_SESSION_PAUSE_RESP)
 					if SessionManager.IsSessionPaused(sessionId) ||
 						SessionManager.IsSessionBreaked(sessionId) ||
 						!SessionManager.IsSessionActived(sessionId) {
@@ -386,7 +386,7 @@ func sessionHandler(sessionId int64) {
 					syncTicker.Stop()
 
 					//向学生发送课程暂停的消息
-					pauseMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_PAUSE)
+					pauseMsg := NewWSMessage("", session.Creator, WS_SESSION_PAUSE)
 					pauseMsg.Attribute["sessionId"] = sessionIdStr
 					pauseMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 					pauseMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
@@ -399,7 +399,7 @@ func sessionHandler(sessionId int64) {
 
 				case WS_SESSION_RESUME: //老师发起恢复上课的请求
 					//向老师发送恢复上课的响应消息
-					resumeResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_RESP)
+					resumeResp := NewWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_RESP)
 					if !SessionManager.IsSessionActived(sessionId) {
 						resumeResp.Attribute["errCode"] = "2"
 						resumeResp.Attribute["errMsg"] = "session is not actived"
@@ -417,7 +417,7 @@ func sessionHandler(sessionId int64) {
 					userChan <- resumeResp
 
 					//向学生发送恢复上课的消息
-					resumeMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_RESUME)
+					resumeMsg := NewWSMessage("", session.Creator, WS_SESSION_RESUME)
 					resumeMsg.Attribute["sessionId"] = sessionIdStr
 					resumeMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 					if UserManager.HasUserChan(session.Creator) {
@@ -438,7 +438,7 @@ func sessionHandler(sessionId int64) {
 					}
 
 					//向老师发送取消恢复上课的响应消息
-					resCancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_CANCEL_RESP)
+					resCancelResp := NewWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_CANCEL_RESP)
 					if !SessionManager.IsSessionCalling(sessionId) {
 						resCancelResp.Attribute["errCode"] = "2"
 						resCancelResp.Attribute["errMsg"] = "nobody is calling"
@@ -449,7 +449,7 @@ func sessionHandler(sessionId int64) {
 					userChan <- resCancelResp
 
 					//向学生发送老师取消恢复上课的消息
-					resCancelMsg := NewPOIWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
+					resCancelMsg := NewWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
 					resCancelMsg.Attribute["sessionId"] = sessionIdStr
 					resCancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 					if !UserManager.HasUserChan(session.Creator) {
@@ -472,7 +472,7 @@ func sessionHandler(sessionId int64) {
 
 				case WS_SESSION_RESUME_ACCEPT: //学生响应老师的恢复上课请求
 					//向学生发送响应老师恢复上课请求的响应消息
-					resAcceptResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_ACCEPT_RESP)
+					resAcceptResp := NewWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_ACCEPT_RESP)
 
 					//根据accpet参数来判断学生是接受还是拒绝，1代表接受，-1代表拒绝
 					acceptStr, ok := msg.Attribute["accept"]
@@ -495,7 +495,7 @@ func sessionHandler(sessionId int64) {
 					SessionManager.SetSessionCalling(sessionId, false)
 
 					//向老师发送响应恢复上课请求的消息
-					resAcceptMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_RESUME_ACCEPT)
+					resAcceptMsg := NewWSMessage("", session.Tutor, WS_SESSION_RESUME_ACCEPT)
 					resAcceptMsg.Attribute["sessionId"] = sessionIdStr
 					resAcceptMsg.Attribute["accept"] = acceptStr
 					if UserManager.HasUserChan(session.Tutor) {
@@ -564,7 +564,7 @@ func InitSessionMonitor(sessionId int64) bool {
 		return false
 	}
 
-	startMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_INSTANT_START)
+	startMsg := NewWSMessage("", session.Tutor, WS_SESSION_INSTANT_START)
 	startMsg.Attribute["sessionId"] = sessionIdStr
 	startMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
 	startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
@@ -625,13 +625,13 @@ func CheckSessionBreak(userId int64) {
 		}
 
 		sessionChan, _ := SessionManager.GetSessionChan(sessionId)
-		breakMsg := NewPOIWSMessage("", userId, WS_SESSION_BREAK)
+		breakMsg := NewWSMessage("", userId, WS_SESSION_BREAK)
 		sessionChan <- breakMsg
 		seelog.Debug("send break message when user", userId, " offline!")
 	}
 }
 
-func RecoverUserSession(userId int64, msg POIWSMessage) {
+func RecoverUserSession(userId int64, msg WSMessage) {
 	defer func() {
 		if r := recover(); r != nil {
 			seelog.Error(r)
@@ -653,7 +653,7 @@ func RecoverUserSession(userId int64, msg POIWSMessage) {
 				continue
 			}
 
-			recoverMsg := NewPOIWSMessage("", userId, WS_SESSION_RECOVER_STU)
+			recoverMsg := NewWSMessage("", userId, WS_SESSION_RECOVER_STU)
 			if session.Tutor == userId {
 				recoverMsg.OperationCode = WS_SESSION_RECOVER_TEACHER
 			}
@@ -670,7 +670,7 @@ func RecoverUserSession(userId int64, msg POIWSMessage) {
 			return
 		}
 		if sessionIdStr != "" {
-			resp := NewPOIWSMessage("", msg.UserId, WS_SESSION_STATUS_SYNC)
+			resp := NewWSMessage("", msg.UserId, WS_SESSION_STATUS_SYNC)
 			sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
 			if err != nil {
 				resp.Attribute["errCode"] = "2"

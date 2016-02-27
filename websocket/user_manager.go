@@ -8,7 +8,7 @@ import (
 )
 
 type UserStatusManager struct {
-	UserMap map[int64](chan POIWSMessage) // userId to chan
+	UserMap map[int64](chan WSMessage) // userId to chan
 
 	OnlineUserMap map[int64]int64 // userId to online timestamp
 
@@ -27,7 +27,7 @@ func init() {
 
 func NewUserStatusManager() UserStatusManager {
 	return UserStatusManager{
-		UserMap: make(map[int64](chan POIWSMessage)),
+		UserMap: make(map[int64](chan WSMessage)),
 
 		OnlineUserMap:  make(map[int64]int64),
 		OfflineUserMap: make(map[int64]int64),
@@ -38,11 +38,11 @@ func NewUserStatusManager() UserStatusManager {
 	}
 }
 
-func (usm *UserStatusManager) SetUserChan(userId int64, userChan chan POIWSMessage) {
+func (usm *UserStatusManager) SetUserChan(userId int64, userChan chan WSMessage) {
 	usm.UserMap[userId] = userChan
 }
 
-func (usm *UserStatusManager) GetUserChan(userId int64) chan POIWSMessage {
+func (usm *UserStatusManager) GetUserChan(userId int64) chan WSMessage {
 	return usm.UserMap[userId]
 }
 

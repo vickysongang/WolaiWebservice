@@ -15,15 +15,15 @@ import (
 	"github.com/cihub/seelog"
 )
 
-func HandleCometMessage(param string) (*POIWSMessage, error) {
-	var msg POIWSMessage
+func HandleCometMessage(param string) (*WSMessage, error) {
+	var msg WSMessage
 	err := json.Unmarshal([]byte(param), &msg)
 	if err != nil {
 		return nil, err
 	}
 	userId := msg.UserId
 	user, _ := models.ReadUser(userId)
-	resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
+	resp := NewWSMessage(msg.MessageId, userId, msg.OperationCode+1)
 	timestamp := time.Now().Unix()
 	switch msg.OperationCode {
 	case WS_LOGOUT:
@@ -88,8 +88,8 @@ func HandleCometMessage(param string) (*POIWSMessage, error) {
 	return &resp, nil
 }
 
-func teacherMessageHandler(msg POIWSMessage, user *models.User, timestamp int64) (POIWSMessage, error) {
-	resp := NewPOIWSMessage(msg.MessageId, user.Id, msg.OperationCode+1)
+func teacherMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSMessage, error) {
+	resp := NewWSMessage(msg.MessageId, user.Id, msg.OperationCode+1)
 	switch msg.OperationCode {
 	case WS_ORDER2_TEACHER_ONLINE:
 		resp.OperationCode = WS_ORDER2_TEACHER_ONLINE_RESP
@@ -141,8 +141,8 @@ func teacherMessageHandler(msg POIWSMessage, user *models.User, timestamp int64)
 	return resp, nil
 }
 
-func sessionMessageHandler(msg POIWSMessage, user *models.User, timestamp int64) (POIWSMessage, error) {
-	resp := NewPOIWSMessage(msg.MessageId, user.Id, msg.OperationCode+1)
+func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSMessage, error) {
+	resp := NewWSMessage(msg.MessageId, user.Id, msg.OperationCode+1)
 
 	sessionIdStr, ok := msg.Attribute["sessionId"]
 	if !ok {
@@ -182,7 +182,7 @@ func sessionMessageHandler(msg POIWSMessage, user *models.User, timestamp int64)
 		resp.Attribute["errCode"] = "0"
 
 		//向学生发送恢复上课的消息
-		resumeMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_RESUME)
+		resumeMsg := NewWSMessage("", session.Creator, WS_SESSION_RESUME)
 		resumeMsg.Attribute["sessionId"] = sessionIdStr
 		resumeMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 		if UserManager.HasUserChan(session.Creator) {
@@ -209,7 +209,7 @@ func sessionMessageHandler(msg POIWSMessage, user *models.User, timestamp int64)
 		resp.Attribute["errCode"] = "0"
 
 		//向学生发送下课消息
-		finishMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_FINISH)
+		finishMsg := NewWSMessage("", session.Creator, WS_SESSION_FINISH)
 		finishMsg.Attribute["sessionId"] = sessionIdStr
 		if UserManager.HasUserChan(session.Creator) {
 			creatorChan := UserManager.GetUserChan(session.Creator)
@@ -260,7 +260,7 @@ func sessionMessageHandler(msg POIWSMessage, user *models.User, timestamp int64)
 		resp.Attribute["errCode"] = "0"
 
 		//向学生发送老师取消恢复上课的消息
-		resCancelMsg := NewPOIWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
+		resCancelMsg := NewWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
 		resCancelMsg.Attribute["sessionId"] = sessionIdStr
 		resCancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 		if !UserManager.HasUserChan(session.Creator) {
@@ -295,8 +295,8 @@ func sessionMessageHandler(msg POIWSMessage, user *models.User, timestamp int64)
 	return resp, nil
 }
 
-func orderMessageHandler(msg POIWSMessage, user *models.User, timestamp int64) (POIWSMessage, error) {
-	resp := NewPOIWSMessage(msg.MessageId, user.Id, msg.OperationCode+1)
+func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSMessage, error) {
+	resp := NewWSMessage(msg.MessageId, user.Id, msg.OperationCode+1)
 	orderIdStr, ok := msg.Attribute["orderId"]
 	if !ok {
 		resp.Attribute["errCode"] = "2"
@@ -326,7 +326,7 @@ func orderMessageHandler(msg POIWSMessage, user *models.User, timestamp int64) (
 		resp.Attribute["errCode"] = "0"
 
 		// 向已经派到的老师发送学生取消订单的信息
-		cancelMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_CANCEL)
+		cancelMsg := NewWSMessage("", order.Creator, WS_ORDER2_CANCEL)
 		cancelMsg.Attribute["orderId"] = orderIdStr
 		for teacherId, _ := range OrderManager.orderMap[orderId].dispatchMap {
 			if UserManager.HasUserChan(teacherId) {
@@ -371,7 +371,7 @@ func orderMessageHandler(msg POIWSMessage, user *models.User, timestamp int64) (
 		teacher, _ := models.ReadUser(msg.UserId)
 		teacherByte, _ := json.Marshal(teacher)
 
-		acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_ACCEPT)
+		acceptMsg := NewWSMessage("", order.Creator, WS_ORDER2_ACCEPT)
 		acceptMsg.Attribute["orderId"] = orderIdStr
 		acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 		acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
@@ -384,7 +384,7 @@ func orderMessageHandler(msg POIWSMessage, user *models.User, timestamp int64) (
 			push.PushOrderAccept(order.Creator, orderId, msg.UserId)
 		}
 
-		resultMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RESULT)
+		resultMsg := NewWSMessage("", msg.UserId, WS_ORDER2_RESULT)
 		resultMsg.Attribute["orderId"] = orderIdStr
 		for dispatchId, _ := range OrderManager.orderMap[orderId].dispatchMap {
 			var status int64
@@ -448,7 +448,7 @@ func orderMessageHandler(msg POIWSMessage, user *models.User, timestamp int64) (
 		teacher, _ := models.ReadUser(msg.UserId)
 		teacherByte, _ := json.Marshal(teacher)
 
-		acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_ASSIGN_ACCEPT)
+		acceptMsg := NewWSMessage("", order.Creator, WS_ORDER2_ASSIGN_ACCEPT)
 		acceptMsg.Attribute["orderId"] = orderIdStr
 		acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 		acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
@@ -509,7 +509,7 @@ func orderMessageHandler(msg POIWSMessage, user *models.User, timestamp int64) (
 			teacher, _ := models.ReadUser(msg.UserId)
 			teacherByte, _ := json.Marshal(teacher)
 
-			acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_PERSONAL_REPLY)
+			acceptMsg := NewWSMessage("", order.Creator, WS_ORDER2_PERSONAL_REPLY)
 			acceptMsg.Attribute["orderId"] = orderIdStr
 			acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 			acceptMsg.Attribute["teacherInfo"] = string(teacherByte)

@@ -9,14 +9,14 @@ import (
 	"WolaiWebservice/redis"
 )
 
-func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
+func WSUserLogin(msg WSMessage) (chan WSMessage, bool) {
 	seelog.Debug("WsUserLogin:", msg.UserId)
 	defer func() {
 		if r := recover(); r != nil {
 			seelog.Error(r)
 		}
 	}()
-	userChan := make(chan POIWSMessage, 10)
+	userChan := make(chan WSMessage, 10)
 
 	//如果用户不是登陆或重连，则直接返回新的userChan
 	if msg.OperationCode != WS_LOGIN && msg.OperationCode != WS_RECONNECT {
@@ -47,7 +47,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 				if ok {
 					if msg.OperationCode == WS_LOGIN || msg.OperationCode == WS_RECONNECT {
 						seelog.Debug("Send Force Logout message to ", msg.UserId, " when old chan exsits!")
-						msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
+						msgFL := NewWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
 						oldChan <- msgFL
 					}
 					close(oldChan)
@@ -55,7 +55,7 @@ func WSUserLogin(msg POIWSMessage) (chan POIWSMessage, bool) {
 			default:
 				if msg.OperationCode == WS_LOGIN || msg.OperationCode == WS_RECONNECT {
 					seelog.Debug("Send Force Logout message to ", msg.UserId, " when old chan doesn't exsits!")
-					msgFL := NewPOIWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
+					msgFL := NewWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
 					oldChan <- msgFL
 				}
 			}
