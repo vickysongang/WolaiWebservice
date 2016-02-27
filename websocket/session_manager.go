@@ -10,7 +10,7 @@ import (
 type SessionStatus struct {
 	sessionId   int64
 	sessionInfo *models.Session
-	sessionChan chan POIWSMessage
+	sessionChan chan WSMessage
 	liveTime    int64
 	length      int64
 	lastSync    int64
@@ -48,7 +48,7 @@ func NewSessionStatus(sessionId int64) *SessionStatus {
 	sessionStatus := SessionStatus{
 		sessionId:   sessionId,
 		sessionInfo: session,
-		sessionChan: make(chan POIWSMessage, 1024),
+		sessionChan: make(chan WSMessage, 1024),
 		length:      0,
 		lastSync:    nowUnix,
 		liveTime:    nowUnix,
@@ -90,7 +90,7 @@ func (ssm *SessionStatusManager) SetSessionOffline(sessionId int64) error {
 	return nil
 }
 
-func (ssm *SessionStatusManager) GetSessionChan(sessionId int64) (chan POIWSMessage, error) {
+func (ssm *SessionStatusManager) GetSessionChan(sessionId int64) (chan WSMessage, error) {
 	if !ssm.IsSessionOnline(sessionId) {
 		return nil, ErrSessionNotFound
 	}

@@ -25,7 +25,7 @@ func SendSessionReport(sessionId int64) {
 	studentByte, _ := json.Marshal(studentInfo)
 	teacherByte, _ := json.Marshal(teacherInfo)
 
-	studentMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_REPORT)
+	studentMsg := NewWSMessage("", session.Creator, WS_SESSION_REPORT)
 	studentMsg.Attribute["sessionInfo"] = string(studentByte)
 
 	if UserManager.HasUserChan(session.Creator) {
@@ -33,7 +33,7 @@ func SendSessionReport(sessionId int64) {
 		studentChan <- studentMsg
 	}
 
-	teacherMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_REPORT)
+	teacherMsg := NewWSMessage("", session.Tutor, WS_SESSION_REPORT)
 	teacherMsg.Attribute["sessionInfo"] = string(teacherByte)
 
 	if UserManager.HasUserChan(session.Tutor) {

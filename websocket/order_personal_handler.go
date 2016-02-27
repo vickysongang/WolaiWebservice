@@ -56,7 +56,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 
 				switch msg.OperationCode {
 				case WS_ORDER2_CANCEL:
-					cancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_CANCEL_RESP)
+					cancelResp := NewWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_CANCEL_RESP)
 					cancelResp.Attribute["errCode"] = "0"
 					cancelResp.Attribute["orderId"] = orderIdStr
 					userChan <- cancelResp
@@ -68,7 +68,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					return
 
 				case WS_ORDER2_PERSONAL_REPLY:
-					resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
+					resp := NewWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
 					resp.Attribute["orderId"] = orderIdStr
 					if UserManager.IsUserBusyInSession(order.Creator) {
 						resp.Attribute["errCode"] = "2"
@@ -92,7 +92,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					resp.Attribute["errCode"] = "0"
 					userChan <- resp
 
-					resultMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RESULT)
+					resultMsg := NewWSMessage("", msg.UserId, WS_ORDER2_RESULT)
 					resultMsg.Attribute["orderId"] = orderIdStr
 					resultMsg.Attribute["status"] = "0"
 					resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
@@ -103,7 +103,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						teacher, _ := models.ReadUser(msg.UserId)
 						teacherByte, _ := json.Marshal(teacher)
 
-						acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_PERSONAL_REPLY)
+						acceptMsg := NewWSMessage("", order.Creator, WS_ORDER2_PERSONAL_REPLY)
 						acceptMsg.Attribute["orderId"] = orderIdStr
 						acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 						acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
@@ -165,7 +165,7 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 		if UserManager.HasUserChan(teacherId) &&
 			!UserManager.IsUserBusyInSession(teacherId) {
 			teacherChan := UserManager.GetUserChan(teacherId)
-			orderMsg := NewPOIWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
+			orderMsg := NewWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
 			orderMsg.Attribute["orderInfo"] = string(orderByte)
 			teacherChan <- orderMsg
 		} else if !UserManager.HasUserChan(teacherId) {

@@ -43,11 +43,11 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 消息反序列化
-	var msg POIWSMessage
+	var msg WSMessage
 	err = json.Unmarshal([]byte(p), &msg)
 	if err != nil {
 		// Force quit the user if msg is unstructed
-		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
+		resp := NewWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
 		resp.Attribute["errCode"] = "2"
 		resp.Attribute["errMsg"] = "unstructed message"
 		err = conn.WriteJSON(resp)
@@ -69,7 +69,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	timestamp := time.Now().Unix()
 	if math.Abs(msg.Timestamp-float64(timestamp)) > 12*3600 {
 		// Force quit the user if timestamp difference is too significant
-		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
+		resp := NewWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
 		resp.Attribute["errCode"] = "3"
 		resp.Attribute["errMsg"] = "local time not accepted"
 		err = conn.WriteJSON(resp)
@@ -81,13 +81,13 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	userChan, ok := WSUserLogin(msg)
 	if !ok {
 		// Force quit illegal login
-		resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
+		resp := NewWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
 		resp.Attribute["errCode"] = "4"
 		resp.Attribute["errMsg"] = "illegal websocket login"
 		err = conn.WriteJSON(resp)
 		return
 	} else {
-		loginResp := NewPOIWSMessage(msg.MessageId, msg.UserId, msg.OperationCode+1)
+		loginResp := NewWSMessage(msg.MessageId, msg.UserId, msg.OperationCode+1)
 		if TeacherManager.IsTeacherOnline(msg.UserId) {
 			loginResp.Attribute["online"] = "on"
 			if TeacherManager.IsTeacherAssignOpen(msg.UserId) {
@@ -166,7 +166,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		if math.Abs(msg.Timestamp-float64(timestamp)) > 12*3600 {
 			// Force quit the user if timestamp difference is too significant
 			seelog.Debug("V1WSHandler: User local time not accepted; UserId: ", msg.UserId)
-			resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
+			resp := NewWSMessage(msg.MessageId, msg.UserId, WS_FORCE_QUIT)
 			resp.Attribute["errCode"] = "3"
 			resp.Attribute["errMsg"] = "local time not accepted"
 			userChan <- resp
@@ -179,7 +179,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		// 用户登出信息
 		case WS_LOGOUT:
 			seelog.Debug("User:", userId, " logout correctly!")
-			resp := NewPOIWSMessage("", userId, WS_LOGOUT_RESP)
+			resp := NewWSMessage("", userId, WS_LOGOUT_RESP)
 			userChan <- resp
 			WSUserLogout(userId)
 			redis.RemoveUserObjectId(userId)
@@ -191,7 +191,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			WS_SESSION_FINISH,
 			WS_SESSION_RESUME_ACCEPT,
 			WS_SESSION_RESUME_CANCEL:
-			resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
+			resp := NewWSMessage(msg.MessageId, userId, msg.OperationCode+1)
 
 			sessionIdStr, ok := msg.Attribute["sessionId"]
 			if !ok {
@@ -215,7 +215,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			sessionChan <- msg
 
 		case WS_ORDER2_TEACHER_ONLINE:
-			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_ONLINE_RESP)
+			resp := NewWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_ONLINE_RESP)
 			if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
 				resp.Attribute["errCode"] = "0"
 				resp.Attribute["assign"] = "off"
@@ -227,7 +227,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			TeacherManager.SetOnline(userId)
 
 		case WS_ORDER2_TEACHER_OFFLINE:
-			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_OFFLINE_RESP)
+			resp := NewWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_OFFLINE_RESP)
 			if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
 				resp.Attribute["errCode"] = "0"
 			} else {
@@ -241,7 +241,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			userChan <- resp
 
 		case WS_ORDER2_TEACHER_ASSIGNON:
-			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_ASSIGNON_RESP)
+			resp := NewWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_ASSIGNON_RESP)
 			if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
 				resp.Attribute["errCode"] = "0"
 			} else {
@@ -255,7 +255,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			userChan <- resp
 
 		case WS_ORDER2_TEACHER_ASSIGNOFF:
-			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_ASSIGNOFF_RESP)
+			resp := NewWSMessage(msg.MessageId, userId, WS_ORDER2_TEACHER_ASSIGNOFF_RESP)
 			if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
 				resp.Attribute["errCode"] = "0"
 			} else {
@@ -269,7 +269,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			userChan <- resp
 
 		case WS_ORDER2_CREATE:
-			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_CREATE_RESP)
+			resp := NewWSMessage(msg.MessageId, userId, WS_ORDER2_CREATE_RESP)
 			if err := InitOrderDispatch(msg, timestamp); err == nil {
 				orderDispatchCountdown := settings.OrderDispatchCountdown()
 				resp.Attribute["errCode"] = "0"
@@ -282,7 +282,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			userChan <- resp
 
 		case WS_ORDER2_PERSONAL_CHECK:
-			resp := NewPOIWSMessage(msg.MessageId, userId, WS_ORDER2_PERSONAL_CHECK_RESP)
+			resp := NewWSMessage(msg.MessageId, userId, WS_ORDER2_PERSONAL_CHECK_RESP)
 			resp.Attribute["errCode"] = "0"
 
 			orderIdStr, ok := msg.Attribute["orderId"]
@@ -310,7 +310,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			WS_ORDER2_ACCEPT,
 			WS_ORDER2_ASSIGN_ACCEPT,
 			WS_ORDER2_PERSONAL_REPLY:
-			resp := NewPOIWSMessage(msg.MessageId, userId, msg.OperationCode+1)
+			resp := NewWSMessage(msg.MessageId, userId, msg.OperationCode+1)
 			resp.Attribute["errCode"] = "0"
 
 			orderIdStr, ok := msg.Attribute["orderId"]
@@ -337,7 +337,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POIWSMessage) {
+func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan WSMessage) {
 	// Time allowed to write a message to the peer.
 	writeWaitInt := settings.WebsocketWriteWait()
 	writeWait := time.Duration(writeWaitInt) * time.Second
@@ -360,7 +360,6 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan POI
 	loginTS := UserManager.GetUserOnlineStatus(userId)
 
 	for {
-		seelog.Debug("userChanSize:", userId, "  size:", len(userChan))
 		select {
 		// 发送心跳
 		case <-pingTicker.C:

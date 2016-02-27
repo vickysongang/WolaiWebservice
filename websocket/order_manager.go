@@ -14,7 +14,7 @@ const (
 type OrderStatus struct {
 	orderId         int64
 	orderInfo       *models.Order
-	orderChan       chan POIWSMessage
+	orderChan       chan WSMessage
 	orderSignalChan chan int64
 	onlineTimestamp int64
 	isDispatching   bool
@@ -48,7 +48,7 @@ func NewOrderStatus(orderId int64) *OrderStatus {
 	orderStatus := OrderStatus{
 		orderId:         orderId,
 		orderInfo:       order,
-		orderChan:       make(chan POIWSMessage, 1024),
+		orderChan:       make(chan WSMessage, 1024),
 		orderSignalChan: make(chan int64),
 		onlineTimestamp: timestamp,
 		isDispatching:   false,
@@ -134,7 +134,7 @@ func (osm *OrderStatusManager) SetOffline(orderId int64) error {
 	return nil
 }
 
-func (osm *OrderStatusManager) GetOrderChan(orderId int64) (chan POIWSMessage, error) {
+func (osm *OrderStatusManager) GetOrderChan(orderId int64) (chan WSMessage, error) {
 	if !osm.IsOrderOnline(orderId) {
 		return nil, ErrOrderNotFound
 	}
