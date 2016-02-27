@@ -14,6 +14,7 @@ type UserListItem struct {
 	AccessRight  int64    `json:"accessRight"`
 	School       string   `json:"school"`
 	Major        string   `json:"major"`
+	CertifyFlag  string   `json:"certifyFlag"`
 	SubjectList  []string `json:"subjectList,omitempty"`
 	OnlineStatus string   `json:"onlineStatus,omitempty"`
 }
@@ -32,7 +33,7 @@ func AssembleUserListItem(userId int64) (*UserListItem, error) {
 		Avatar:       user.Avatar,
 		Gender:       user.Gender,
 		AccessRight:  user.AccessRight,
-		OnlineStatus: websocket.WsManager.GetUserStatus(user.Id),
+		OnlineStatus: websocket.UserManager.GetUserStatus(user.Id),
 	}
 
 	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
@@ -47,6 +48,7 @@ func AssembleUserListItem(userId int64) (*UserListItem, error) {
 		}
 
 		item.Major = profile.Major
+		item.CertifyFlag = profile.CertifyFlag
 
 		subjects, err := userService.GetTeacherSubjectNameSlice(userId)
 		if err == nil {

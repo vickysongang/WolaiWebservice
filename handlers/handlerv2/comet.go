@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	cometController "WolaiWebservice/controllers/comet"
+	"WolaiWebservice/websocket"
 
 	"github.com/cihub/seelog"
 )
@@ -24,7 +24,8 @@ func HandleCometMessage(w http.ResponseWriter, r *http.Request) {
 	vars := r.Form
 
 	param := vars["param"][0]
-	content, err := cometController.HandleCometMessage(param)
+
+	content, err := websocket.HandleCometMessage(param)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {

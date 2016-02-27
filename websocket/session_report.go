@@ -28,16 +28,16 @@ func SendSessionReport(sessionId int64) {
 	studentMsg := NewPOIWSMessage("", session.Creator, WS_SESSION_REPORT)
 	studentMsg.Attribute["sessionInfo"] = string(studentByte)
 
-	if WsManager.HasUserChan(session.Creator) {
-		studentChan := WsManager.GetUserChan(session.Creator)
+	if UserManager.HasUserChan(session.Creator) {
+		studentChan := UserManager.GetUserChan(session.Creator)
 		studentChan <- studentMsg
 	}
 
 	teacherMsg := NewPOIWSMessage("", session.Tutor, WS_SESSION_REPORT)
 	teacherMsg.Attribute["sessionInfo"] = string(teacherByte)
 
-	if WsManager.HasUserChan(session.Tutor) {
-		teacherChan := WsManager.GetUserChan(session.Tutor)
+	if UserManager.HasUserChan(session.Tutor) {
+		teacherChan := UserManager.GetUserChan(session.Tutor)
 		teacherChan <- teacherMsg
 	}
 

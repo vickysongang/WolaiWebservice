@@ -9,10 +9,10 @@ import (
 )
 
 func (watcher *RpcWatcher) GetStatusLive(request *RpcRequest, resp *RpcResponse) error {
-	allOnlineUsers := len(websocket.WsManager.OnlineUserMap)
+	allOnlineUsers := len(websocket.UserManager.OnlineUserMap)
 	onlineStudentsCount := 0
 	onlineTeachersCount := 0
-	for userId, _ := range websocket.WsManager.OnlineUserMap {
+	for userId, _ := range websocket.UserManager.OnlineUserMap {
 		user, _ := models.ReadUser(userId)
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
 			onlineTeachersCount++
@@ -33,7 +33,7 @@ func (watcher *RpcWatcher) GetStatusLive(request *RpcRequest, resp *RpcResponse)
 
 func (watcher *RpcWatcher) GetOnlineTeacher(request *RpcRequest, resp *RpcResponse) error {
 	teacherList := make([]*models.User, 0)
-	for userId, _ := range websocket.WsManager.OnlineUserMap {
+	for userId, _ := range websocket.UserManager.OnlineUserMap {
 		user, err := models.ReadUser(userId)
 		if err != nil {
 			continue
@@ -50,7 +50,7 @@ func (watcher *RpcWatcher) GetOnlineTeacher(request *RpcRequest, resp *RpcRespon
 
 func (watcher *RpcWatcher) GetOnlineStudent(request *RpcRequest, resp *RpcResponse) error {
 	studentList := make([]*models.User, 0)
-	for userId, _ := range websocket.WsManager.OnlineUserMap {
+	for userId, _ := range websocket.UserManager.OnlineUserMap {
 		user, err := models.ReadUser(userId)
 		if err != nil {
 			continue
@@ -108,7 +108,7 @@ func (watcher *RpcWatcher) GetUserStatus(request *RpcRequest, resp *RpcResponse)
 		return err
 	}
 
-	status := websocket.WsManager.GetUserStatus(userId)
+	status := websocket.UserManager.GetUserStatus(userId)
 
 	*resp = NewRpcResponse(0, "", status)
 	return nil

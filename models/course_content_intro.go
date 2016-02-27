@@ -26,12 +26,10 @@ func (ccc *CourseContentIntro) TableName() string {
 
 func ReadCourseContentIntro(id int64) (*CourseContentIntro, error) {
 	o := orm.NewOrm()
-
 	intro := CourseContentIntro{Id: id}
 	err := o.Read(&intro)
 	if err != nil {
 		return nil, err
 	}
-
 	return &intro, nil
 }
