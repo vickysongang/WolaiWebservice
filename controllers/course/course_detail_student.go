@@ -49,6 +49,7 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 		StudentCount: studentCount,
 		ChapterCount: chapterCount - 1,
 	}
+
 	characteristicList, _ := queryCourseContentIntros(courseId)
 	detail.CharacteristicList = characteristicList
 
@@ -59,22 +60,23 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 		return 2, nil
 	}
 
-	purchaseFlag := (err != orm.ErrNoRows)
+	purchaseFlag := (err != orm.ErrNoRows) //判断是否购买或者试听
 	if !purchaseFlag {
 		detail.AuditionStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.TeacherList, _ = queryCourseTeacherList(courseId)
+		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0)
 	} else {
 		detail.AuditionStatus = purchaseRecord.AuditionStatus
 		detail.PurchaseStatus = purchaseRecord.PurchaseStatus
 		detail.TeacherList, _ = queryCourseCurrentTeacher(purchaseRecord.TeacherId)
-	}
 
-	detail.ChapterCompletedPeriod, err = queryLatestCourseChapterPeriod(courseId, userId)
-	if err != nil {
-		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod)
-	} else {
-		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod+1)
+		detail.ChapterCompletedPeriod, err = queryLatestCourseChapterPeriod(courseId, userId)
+		if err != nil {
+			detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, userId, purchaseRecord.TeacherId)
+		} else {
+			detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, userId, purchaseRecord.TeacherId)
+		}
 	}
 
 	return 0, &detail

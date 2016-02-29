@@ -38,7 +38,8 @@ func GetCourseListTeacher(userId, page, count int64) (int64, []*courseTeacherLis
 		}
 
 		studentCount := queryCourseStudentCount(record.CourseId)
-		chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", record.CourseId).Count()
+		chapterCount := queryCourseChapterCount(record.CourseId)
+
 		chapterCompletePeriod, _ := queryLatestCourseChapterPeriod(record.CourseId, record.UserId)
 		student, err := models.ReadUser(record.UserId)
 		if err != nil {

@@ -39,13 +39,15 @@ func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeac
 	detail.CharacteristicList = characteristicList
 
 	detail.StudentCount = queryCourseStudentCount(courseId)
-	chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", courseId).Count()
+	chapterCount := queryCourseChapterCount(courseId)
+
 	detail.ChapterCount = chapterCount - 1
+
 	detail.ChapterCompletedPeriod, err = queryLatestCourseChapterPeriod(courseId, studentId)
 	if err != nil {
-		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, studentId, purchaseRecord.TeacherId)
 	} else {
-		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod+1)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, studentId, purchaseRecord.TeacherId)
 	}
 
 	studentList := make([]*models.User, 0)

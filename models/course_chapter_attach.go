@@ -21,3 +21,15 @@ func init() {
 func (c *CourseChapterAttach) TableName() string {
 	return "course_chapter_attach"
 }
+
+func ReadCourseChapterAttach(attachId int64) (*CourseChapterAttach, error) {
+	o := orm.NewOrm()
+
+	attach := CourseChapterAttach{Id: attachId}
+	err := o.Read(&attach)
+	if err != nil {
+		return nil, err
+	}
+
+	return &attach, nil
+}

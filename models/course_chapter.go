@@ -13,6 +13,7 @@ type CourseChapter struct {
 	Abstract   string    `json:"brief"`
 	Period     int64     `json:"period"`
 	CreateTime time.Time `json:"-" orm:"type(datetime);auto_now_add"`
+	AttachId   int64     `json:"attachId"`
 }
 
 func init() {
