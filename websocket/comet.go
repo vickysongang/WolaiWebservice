@@ -389,22 +389,24 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			resp.Attribute["errCode"] = "0"
 
 			// 向已经派到的老师发送学生取消订单的信息
-			cancelMsg := NewWSMessage("", order.Creator, WS_ORDER2_CANCEL)
-			cancelMsg.Attribute["orderId"] = orderIdStr
-			for teacherId, _ := range OrderManager.orderMap[orderId].dispatchMap {
-				if UserManager.HasUserChan(teacherId) {
-					cancelMsg.UserId = teacherId
-					userChan := UserManager.GetUserChan(teacherId)
-					userChan <- cancelMsg
+			go func() {
+				cancelMsg := NewWSMessage("", order.Creator, WS_ORDER2_CANCEL)
+				cancelMsg.Attribute["orderId"] = orderIdStr
+				for teacherId, _ := range OrderManager.orderMap[orderId].dispatchMap {
+					if UserManager.HasUserChan(teacherId) {
+						cancelMsg.UserId = teacherId
+						userChan := UserManager.GetUserChan(teacherId)
+						userChan <- cancelMsg
+					}
 				}
-			}
-			if assignId, err := OrderManager.GetCurrentAssign(orderId); err == nil {
-				if UserManager.HasUserChan(assignId) {
-					cancelMsg.UserId = assignId
-					userChan := UserManager.GetUserChan(assignId)
-					userChan <- cancelMsg
+				if assignId, err := OrderManager.GetCurrentAssign(orderId); err == nil {
+					if UserManager.HasUserChan(assignId) {
+						cancelMsg.UserId = assignId
+						userChan := UserManager.GetUserChan(assignId)
+						userChan <- cancelMsg
+					}
 				}
-			}
+			}()
 
 			// 结束订单派发，记录状态
 			OrderManager.SetOrderCancelled(orderId)
