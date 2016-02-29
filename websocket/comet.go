@@ -525,7 +525,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 		OrderManager.SetOrderConfirm(orderId, msg.UserId)
 		OrderManager.SetOffline(orderId)
-		handleSessionCreation(orderId, msg.UserId)
+		go handleSessionCreation(orderId, msg.UserId)
 
 		seelog.Debug("orderHandler|orderReply: ", orderId)
 	}
