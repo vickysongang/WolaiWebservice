@@ -427,7 +427,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		OrderManager.SetOffline(orderId)
 		UserManager.RemoveOrderDispatch(orderId, order.Creator)
 
-		handleSessionCreation(orderId, msg.UserId)
+		go handleSessionCreation(orderId, msg.UserId)
 
 	case WS_ORDER2_ASSIGN_ACCEPT:
 
@@ -487,7 +487,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		//修改指派单的结果
 		orderService.UpdateOrderAssignResult(orderId, teacher.Id, true)
 
-		handleSessionCreation(orderId, msg.UserId)
+		go handleSessionCreation(orderId, msg.UserId)
 
 	case WS_ORDER2_PERSONAL_REPLY:
 		resp.OperationCode = WS_ORDER2_PERSONAL_REPLY_RESP
