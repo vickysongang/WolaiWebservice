@@ -25,7 +25,6 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
 	orderInfo := GetOrderInfo(orderId)
-	//studentId := order.Creator
 
 	var orderLifespan int64
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||

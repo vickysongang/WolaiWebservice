@@ -320,36 +320,45 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 	switch msg.OperationCode {
 	case WS_ORDER2_CANCEL:
-		// 发送反馈消息
-		resp.OperationCode = WS_ORDER2_CANCEL_RESP
-		resp.Attribute["orderId"] = orderIdStr
-		resp.Attribute["errCode"] = "0"
+		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT || order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+			resp.OperationCode = WS_ORDER2_CANCEL_RESP
+			resp.Attribute["errCode"] = "0"
+			resp.Attribute["orderId"] = orderIdStr
+			// 结束订单派发，记录状态
+			OrderManager.SetOrderCancelled(orderId)
+			OrderManager.SetOffline(orderId)
+			seelog.Debug("orderHandler|orderCancelled: ", orderId)
+		} else {
+			// 发送反馈消息
+			resp.OperationCode = WS_ORDER2_CANCEL_RESP
+			resp.Attribute["orderId"] = orderIdStr
+			resp.Attribute["errCode"] = "0"
 
-		// 向已经派到的老师发送学生取消订单的信息
-		cancelMsg := NewWSMessage("", order.Creator, WS_ORDER2_CANCEL)
-		cancelMsg.Attribute["orderId"] = orderIdStr
-		for teacherId, _ := range OrderManager.orderMap[orderId].dispatchMap {
-			if UserManager.HasUserChan(teacherId) {
-				cancelMsg.UserId = teacherId
-				userChan := UserManager.GetUserChan(teacherId)
-				userChan <- cancelMsg
+			// 向已经派到的老师发送学生取消订单的信息
+			cancelMsg := NewWSMessage("", order.Creator, WS_ORDER2_CANCEL)
+			cancelMsg.Attribute["orderId"] = orderIdStr
+			for teacherId, _ := range OrderManager.orderMap[orderId].dispatchMap {
+				if UserManager.HasUserChan(teacherId) {
+					cancelMsg.UserId = teacherId
+					userChan := UserManager.GetUserChan(teacherId)
+					userChan <- cancelMsg
+				}
 			}
-		}
-		if assignId, err := OrderManager.GetCurrentAssign(orderId); err == nil {
-			if UserManager.HasUserChan(assignId) {
-				cancelMsg.UserId = assignId
-				userChan := UserManager.GetUserChan(assignId)
-				userChan <- cancelMsg
+			if assignId, err := OrderManager.GetCurrentAssign(orderId); err == nil {
+				if UserManager.HasUserChan(assignId) {
+					cancelMsg.UserId = assignId
+					userChan := UserManager.GetUserChan(assignId)
+					userChan <- cancelMsg
+				}
 			}
+
+			// 结束订单派发，记录状态
+			OrderManager.SetOrderCancelled(orderId)
+			OrderManager.SetOffline(orderId)
+			seelog.Debug("orderHandler|orderCancelled: ", orderId)
+
+			orderSignalChan <- ORDER_SIGNAL_QUIT
 		}
-
-		// 结束订单派发，记录状态
-		OrderManager.SetOrderCancelled(orderId)
-		OrderManager.SetOffline(orderId)
-		seelog.Debug("orderHandler|orderCancelled: ", orderId)
-
-		orderSignalChan <- ORDER_SIGNAL_QUIT
-
 	case WS_ORDER2_ACCEPT:
 		resp.OperationCode = WS_ORDER2_ACCEPT_RESP
 		resp.Attribute["orderId"] = orderIdStr
@@ -384,29 +393,31 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			push.PushOrderAccept(order.Creator, orderId, msg.UserId)
 		}
 
-		resultMsg := NewWSMessage("", msg.UserId, WS_ORDER2_RESULT)
-		resultMsg.Attribute["orderId"] = orderIdStr
-		for dispatchId, _ := range OrderManager.orderMap[orderId].dispatchMap {
-			var status int64
-			if dispatchId == teacher.Id {
-				status = 0
-				orderService.UpdateOrderDispatchResult(orderId, dispatchId, true)
-			} else {
-				status = -1
-				orderService.UpdateOrderDispatchResult(orderId, dispatchId, false)
-			}
-			TeacherManager.RemoveOrderDispatch(dispatchId, orderId)
+		go func() {
+			resultMsg := NewWSMessage("", msg.UserId, WS_ORDER2_RESULT)
+			resultMsg.Attribute["orderId"] = orderIdStr
+			for dispatchId, _ := range OrderManager.orderMap[orderId].dispatchMap {
+				var status int64
+				if dispatchId == teacher.Id {
+					status = 0
+					orderService.UpdateOrderDispatchResult(orderId, dispatchId, true)
+				} else {
+					status = -1
+					orderService.UpdateOrderDispatchResult(orderId, dispatchId, false)
+				}
+				TeacherManager.RemoveOrderDispatch(dispatchId, orderId)
 
-			if !UserManager.HasUserChan(dispatchId) {
-				continue
-			}
+				if !UserManager.HasUserChan(dispatchId) {
+					continue
+				}
 
-			dispatchChan := UserManager.GetUserChan(dispatchId)
-			resultMsg.UserId = dispatchId
-			resultMsg.Attribute["status"] = strconv.FormatInt(status, 10)
-			resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
-			dispatchChan <- resultMsg
-		}
+				dispatchChan := UserManager.GetUserChan(dispatchId)
+				resultMsg.UserId = dispatchId
+				resultMsg.Attribute["status"] = strconv.FormatInt(status, 10)
+				resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
+				dispatchChan <- resultMsg
+			}
+		}()
 
 		seelog.Debug("orderHandler|orderAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
 		orderSignalChan <- ORDER_SIGNAL_QUIT
