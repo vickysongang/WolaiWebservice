@@ -71,11 +71,15 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 		detail.PurchaseStatus = purchaseRecord.PurchaseStatus
 		detail.TeacherList, _ = queryCourseCurrentTeacher(purchaseRecord.TeacherId)
 
-		detail.ChapterCompletedPeriod, err = queryLatestCourseChapterPeriod(courseId, userId)
-		if err != nil {
-			detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, userId, purchaseRecord.TeacherId)
+		if purchaseRecord.TeacherId == 0 {
+			detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0)
 		} else {
-			detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, userId, purchaseRecord.TeacherId)
+			detail.ChapterCompletedPeriod, err = queryLatestCourseChapterPeriod(courseId, userId)
+			if err != nil {
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, userId, purchaseRecord.TeacherId)
+			} else {
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, userId, purchaseRecord.TeacherId)
+			}
 		}
 	}
 
