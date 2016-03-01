@@ -77,7 +77,8 @@ func HandleCometMessage(param string) (*WSMessage, error) {
 		WS_SESSION_RESUME_ACCEPT,
 		WS_SESSION_RESUME_CANCEL,
 		WS_SESSION_ASK_FINISH,
-		WS_SESSION_ASK_FINISH_REJECT:
+		WS_SESSION_ASK_FINISH_REJECT,
+		WS_SESSION_CONTINUE:
 		resp, _ = sessionMessageHandler(msg, user, timestamp)
 
 	case WS_ORDER2_CANCEL,

@@ -344,3 +344,26 @@ func SessionWhiteboardCheckQACard(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(resp)
 }
+
+// 6.5.3
+func SessionTutorPauseValidateTargetVersion(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	targetIdStr := vars["targetId"][0]
+	targetId, _ := strconv.ParseInt(targetIdStr, 10, 60)
+
+	status, err := sessionController.SessionTutorPauseValidateTargetVersion(targetId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", response.NullObject)
+	}
+	json.NewEncoder(w).Encode(resp)
+}

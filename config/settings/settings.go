@@ -72,3 +72,13 @@ func TokenDuration() int64 {
 	return redis.GetConfigInt64(redis.CONFIG_TOKEN,
 		redis.CONFIG_KEY_TOKEN_DURATION)
 }
+
+func VersionIOSTutorPause() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_VERSION,
+		redis.CONFIG_KEY_VERSION_IOS_TUTOR_PAUSE)
+}
+
+func VersionAndroidTutorPause() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_VERSION,
+		redis.CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE)
+}

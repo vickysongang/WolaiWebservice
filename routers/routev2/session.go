@@ -138,4 +138,14 @@ var sessionRoutes = route.Routes{
 		true,
 		true,
 	},
+
+	// 6.5.3
+	route.Route{
+		"SessionTutorPauseValidateTargetVersion",
+		"POST",
+		"/tutor/pause/validate",
+		handlerv2.SessionTutorPauseValidateTargetVersion,
+		true,
+		true,
+	},
 }

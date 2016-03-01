@@ -3,6 +3,8 @@ package session
 import (
 	"errors"
 
+	"WolaiWebservice/config/settings"
+
 	"WolaiWebservice/service/push"
 	"WolaiWebservice/service/user"
 
@@ -25,6 +27,23 @@ func SessionWhiteboardCheckQACard(targetId int64) (int64, error) {
 
 	if !user.CheckUserVersion(targetId, &req) {
 		return 2, errors.New("对方版本过低，暂不支持答疑卡片")
+	}
+
+	return 0, nil
+}
+
+func SessionTutorPauseValidateTargetVersion(targetId int64) (int64, error) {
+
+	minIOSVersion := settings.VersionIOSTutorPause()
+	minAndroidVersion := settings.VersionAndroidTutorPause()
+
+	req := user.VersionRequire{
+		MinIOSVersion:     minIOSVersion,
+		MinAndroidVersion: minAndroidVersion,
+	}
+
+	if !user.CheckUserVersion(targetId, &req) {
+		return 2, errors.New("对方版本过低，暂不支持课程暂停，提醒学生更新吧")
 	}
 
 	return 0, nil
