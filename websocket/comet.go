@@ -75,7 +75,9 @@ func HandleCometMessage(param string) (*WSMessage, error) {
 		WS_SESSION_RESUME,
 		WS_SESSION_FINISH,
 		WS_SESSION_RESUME_ACCEPT,
-		WS_SESSION_RESUME_CANCEL:
+		WS_SESSION_RESUME_CANCEL,
+		WS_SESSION_ASK_FINISH,
+		WS_SESSION_ASK_FINISH_REJECT:
 		resp, _ = sessionMessageHandler(msg, user, timestamp)
 
 	case WS_ORDER2_CANCEL,
@@ -291,6 +293,58 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 			sessionChan <- msg
 			seelog.Debug("handle session message end:", sessionId, " operCode:", msg.OperationCode, "chanSize:", len(sessionChan))
 		}
+	case WS_SESSION_ASK_FINISH:
+		//学生主动发起下课请求
+
+		resp.OperationCode = WS_SESSION_ASK_FINISH_RESP
+
+		if msg.UserId != session.Creator {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "You are not the student of this session"
+			return resp, nil
+		}
+
+		resp.Attribute["errCode"] = "0"
+
+		//向老师发送下课请求
+		askFinishMsg := NewWSMessage("", session.Tutor, WS_SESSION_ASK_FINISH)
+		askFinishMsg.Attribute["sessionId"] = sessionIdStr
+		askFinishMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+		if UserManager.HasUserChan(session.Tutor) {
+			tutorChan := UserManager.GetUserChan(session.Tutor)
+			tutorChan <- askFinishMsg
+		} else {
+			// FIXME: ASK PRD if we need to do push notification on this operation
+			// push.PushSessionAskFinish(session.Creator, sessionId)
+		}
+
+		//TODO: 设置服务器状态记住这条消息，如果老师没有收到回溯时候可以再次知道学生发起了下课请求
+
+	case WS_SESSION_ASK_FINISH_REJECT:
+		//老师拒绝学生的下课请求
+
+		resp.OperationCode = WS_SESSION_ASK_FINISH_REJECT_RESP
+
+		if msg.UserId != session.Tutor {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "You are not the tutor of this session"
+			return resp, nil
+		}
+
+		resp.Attribute["errCode"] = "0"
+
+		//向学生通知结果
+		askFinishRejectedMsg := NewWSMessage("", session.Creator, WS_SESSION_ASK_FINISH_REJECT)
+		askFinishRejectedMsg.Attribute["sessionId"] = sessionIdStr
+		askFinishRejectedMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		if UserManager.HasUserChan(session.Creator) {
+			stuChan := UserManager.GetUserChan(session.Creator)
+			stuChan <- askFinishRejectedMsg
+		} else {
+			// FIXME: ASK PRD if we need to do push notification on this operation
+			// push.PushSessionAskFinish(session.Creator, sessionId)
+		}
+
 	}
 	return resp, nil
 }
@@ -335,22 +389,24 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			resp.Attribute["errCode"] = "0"
 
 			// 向已经派到的老师发送学生取消订单的信息
-			cancelMsg := NewWSMessage("", order.Creator, WS_ORDER2_CANCEL)
-			cancelMsg.Attribute["orderId"] = orderIdStr
-			for teacherId, _ := range OrderManager.orderMap[orderId].dispatchMap {
-				if UserManager.HasUserChan(teacherId) {
-					cancelMsg.UserId = teacherId
-					userChan := UserManager.GetUserChan(teacherId)
-					userChan <- cancelMsg
+			go func() {
+				cancelMsg := NewWSMessage("", order.Creator, WS_ORDER2_CANCEL)
+				cancelMsg.Attribute["orderId"] = orderIdStr
+				for teacherId, _ := range OrderManager.orderMap[orderId].dispatchMap {
+					if UserManager.HasUserChan(teacherId) {
+						cancelMsg.UserId = teacherId
+						userChan := UserManager.GetUserChan(teacherId)
+						userChan <- cancelMsg
+					}
 				}
-			}
-			if assignId, err := OrderManager.GetCurrentAssign(orderId); err == nil {
-				if UserManager.HasUserChan(assignId) {
-					cancelMsg.UserId = assignId
-					userChan := UserManager.GetUserChan(assignId)
-					userChan <- cancelMsg
+				if assignId, err := OrderManager.GetCurrentAssign(orderId); err == nil {
+					if UserManager.HasUserChan(assignId) {
+						cancelMsg.UserId = assignId
+						userChan := UserManager.GetUserChan(assignId)
+						userChan <- cancelMsg
+					}
 				}
-			}
+			}()
 
 			// 结束订单派发，记录状态
 			OrderManager.SetOrderCancelled(orderId)
