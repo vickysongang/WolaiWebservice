@@ -34,7 +34,7 @@ func SessionWhiteboardCheckQACard(targetId int64) (int64, error) {
 
 func SessionTutorPauseValidateTargetVersion(targetId int64) (int64, error) {
 
-	minIOSVersion := settings.VersionAndroidTutorPause()
+	minIOSVersion := settings.VersionIOSTutorPause()
 	minAndroidVersion := settings.VersionAndroidTutorPause()
 
 	req := user.VersionRequire{
