@@ -43,15 +43,18 @@ func QueryTeacherBySessionFreq(userId, page, count int64) ([]int64, error) {
 	return result, nil
 }
 
-func QueryTeacherRecommendation(userId, page, count int64) ([]int64, error) {
+func QueryTeacherRecommendation(userId int64, assistants []int64, page, count int64) ([]int64, error) {
 	var err error
 
 	o := orm.NewOrm()
-
+	var excludeIds []int64
+	excludeIds = append(excludeIds, models.USER_WOLAI_TEAM)
+	excludeIds = append(excludeIds, models.USER_WOLAI_TUTOR)
+	excludeIds = append(excludeIds, assistants...)
 	var teachers []*models.TeacherProfile
-	num, err := o.QueryTable(new(models.TeacherProfile).TableName()).
-		Exclude("user_id", models.USER_WOLAI_TEAM).
-		Exclude("user_id", models.USER_WOLAI_TUTOR).
+	cond := orm.NewCondition()
+	cond = cond.AndNot("user_id__in", excludeIds)
+	num, err := o.QueryTable(new(models.TeacherProfile).TableName()).SetCond(cond).
 		OrderBy("-service_time").
 		Limit(count).Offset(page * count).
 		All(&teachers)

@@ -36,7 +36,7 @@ func AssembleUserListItem(userId int64) (*UserListItem, error) {
 		OnlineStatus: websocket.UserManager.GetUserStatus(user.Id),
 	}
 
-	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+	if user.AccessRight != models.USER_ACCESSRIGHT_STUDENT {
 		profile, err := models.ReadTeacherProfile(userId)
 		if err != nil {
 			return nil, err
