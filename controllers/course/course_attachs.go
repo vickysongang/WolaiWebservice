@@ -16,15 +16,12 @@ type chapterAttachInfo struct {
 	AttachList []*attachInfo `json:"attachInfo"`
 }
 
-func GetCourseAttachs(courseId int64, studentId int64, teacherId int64) (int64, []*chapterAttachInfo) {
+func GetCourseAttachs(courseId int64) (int64, []*chapterAttachInfo) {
 	o := orm.NewOrm()
 
 	var courseCustomChapters []*models.CourseCustomChapter
 	_, err := o.QueryTable("course_custom_chapter").
-		Filter("course_id", courseId).
-		Filter("user_id", studentId).
-		Filter("teacher_id", teacherId).
-		OrderBy("period").
+		Filter("rel_id", courseId).
 		All(&courseCustomChapters)
 	if err != nil {
 		return 2, nil

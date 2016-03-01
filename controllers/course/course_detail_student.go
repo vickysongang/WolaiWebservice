@@ -42,7 +42,7 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 
 	studentCount := queryCourseStudentCount(courseId)
 
-	chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", courseId).Count()
+	chapterCount := queryCourseChapterCount(courseId)
 
 	detail := courseDetailStudent{
 		Course:       *course,

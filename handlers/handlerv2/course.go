@@ -353,7 +353,7 @@ func CourseAttachs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userIdStr := r.Header.Get("X-Wolai-ID")
-	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
@@ -363,10 +363,7 @@ func CourseAttachs(w http.ResponseWriter, r *http.Request) {
 	courseIdStr := vars["courseId"][0]
 	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
 
-	studentIdStr := vars["studentId"][0]
-	studentId, _ := strconv.ParseInt(studentIdStr, 10, 64)
-
-	status, content := courseController.GetCourseAttachs(courseId, studentId, userId)
+	status, content := courseController.GetCourseAttachs(courseId)
 	if content == nil {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
 	} else {

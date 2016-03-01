@@ -10,6 +10,7 @@ import (
 	"WolaiWebservice/config/settings"
 	sessionController "WolaiWebservice/controllers/session"
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/service/push"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
@@ -288,7 +289,11 @@ func sessionHandler(sessionId int64) {
 					length, _ := SessionManager.GetSessionLength(sessionId)
 					recoverTeacherMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 					if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
-						recoverTeacherMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+						courseRelation, _ := courseService.GetCourseRelation(order.CourseId, order.Creator, order.TeacherId)
+						virturlCourseId := courseRelation.Id
+
+						//						recoverTeacherMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+						recoverTeacherMsg.Attribute["courseId"] = strconv.FormatInt(virturlCourseId, 10)
 					}
 
 					if !UserManager.HasUserChan(session.Tutor) {
@@ -571,7 +576,10 @@ func InitSessionMonitor(sessionId int64) bool {
 	startMsg.Attribute["planTime"] = session.PlanTime
 
 	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
-		startMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+		courseRelation, _ := courseService.GetCourseRelation(order.CourseId, order.Creator, order.TeacherId)
+		virturlCourseId := courseRelation.Id
+		//startMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+		startMsg.Attribute["courseId"] = strconv.FormatInt(virturlCourseId, 10)
 	}
 
 	if UserManager.HasUserChan(session.Tutor) {
