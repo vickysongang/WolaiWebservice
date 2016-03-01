@@ -170,6 +170,44 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 	}
 
 	switch msg.OperationCode {
+
+	case WS_SESSION_CONTINUE:
+
+		//老师从主动恢复的暂停状态中点击继续计时
+		resp.OperationCode = WS_SESSION_CONTINUE_RESP
+
+		if !SessionManager.IsSessionPaused(sessionId) {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "session is not paused"
+			return resp, nil
+		}
+
+		resp.Attribute["errCode"] = "0"
+
+		//向学生发送重新开始上课的消息
+		continueMsg := NewWSMessage("", session.Creator, WS_SESSION_CONTINUE)
+		continueMsg.Attribute["sessionId"] = sessionIdStr
+		continueMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		if UserManager.HasUserChan(session.Creator) {
+			studentChan := UserManager.GetUserChan(session.Creator)
+			studentChan <- continueMsg
+		} else {
+			// TODO: whether do we need to push a notification of this operation? Need to confirm with PROD
+			//push.PushSessionContinue(session.Creator, sessionId)
+		}
+
+		//设置上课状态为拨号中
+		SessionManager.SetSessionActived(sessionId, true)
+		SessionManager.SetSessionPaused(sessionId, false)
+		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
+
+		if sessionChan, err := SessionManager.GetSessionChan(sessionId); err != nil {
+			resp.Attribute["errCode"] = "2"
+		} else {
+			// Put to session channel to start the sync ticker again
+			sessionChan <- msg
+		}
+
 	case WS_SESSION_RESUME:
 		//向老师发送恢复上课的响应消息
 		resp.OperationCode = WS_SESSION_RESUME_RESP

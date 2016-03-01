@@ -536,6 +536,20 @@ func sessionHandler(sessionId int64) {
 						seelog.Trace("POIWSSessionHandler: session resumed: ", sessionIdStr)
 						go lcmessage.SendSessionResumeMsg(sessionId)
 					}
+				case WS_SESSION_CONTINUE:
+					//新信号，只是为了从HTTP收到的请求来恢复或者暂停计时器等，不能单独使用
+					//启动时间同步计时器
+
+					lastSync := timestamp
+					SessionManager.SetLastSync(sessionId, lastSync)
+
+					syncTicker = time.NewTicker(time.Second * 60)
+					waitingTimer.Stop()
+					seelog.Trace("POIWSSessionHandler: session continued: ", sessionIdStr)
+
+					// Need to confirm with PROD to see whether we need to push a leancloud message
+					//go lcmessage.SendSessionResumeMsg(sessionId)
+
 				}
 			} else {
 				return
