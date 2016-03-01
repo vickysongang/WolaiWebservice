@@ -17,6 +17,7 @@ type CourseCustomChapter struct {
 	TeacherId  int64     `json:"teacherId"`
 	CreateTime time.Time `json:"-" orm:"type(datetime);auto_now_add"`
 	AttachId   int64     `json:"attachId"`
+	RelId      int64     `json:"relId"`
 }
 
 func init() {

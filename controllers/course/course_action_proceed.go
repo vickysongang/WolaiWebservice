@@ -160,16 +160,13 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 				Message: "你已经向该导师发过一条上课请求了，请耐心等待回复哦",
 				Extra:   nullObject{},
 			}
-
 		} else {
 			response = actionProceedResponse{
 				Action:  ACTION_PROCEED_SERVE,
 				Message: "",
 				Extra:   session,
 			}
-
 			createCourseOrder(record.Id)
-
 		}
 
 	case record.AuditionStatus == models.PURCHASE_RECORD_STATUS_COMPLETE &&
