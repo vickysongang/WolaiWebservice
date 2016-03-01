@@ -237,7 +237,7 @@ func sessionHandler(sessionId int64) {
 					SessionManager.SetLastSync(sessionId, lastSync)
 
 					//课程暂停，从内存中移除课程正在进行当状态
-					SessionManager.SetSessionPaused(sessionId, true)
+					SessionManager.SetSessionBreaked(sessionId, true)
 
 					SessionManager.SetSessionAccepted(sessionId, false)
 
