@@ -9,9 +9,10 @@ import (
 	"WolaiWebservice/service/push"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 	"encoding/json"
-	"github.com/cihub/seelog"
 	"strconv"
 	"time"
+
+	"github.com/cihub/seelog"
 )
 
 func HandleCometMessage(param string) (*WSMessage, error) {
@@ -457,27 +458,22 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		resp.OperationCode = WS_ORDER2_ACCEPT_RESP
 		resp.Attribute["orderId"] = orderIdStr
 
+		if OrderManager.IsOrderLocked(orderId) {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "该订单已被抢"
+			return resp, nil
+		}
+
 		if UserManager.IsUserBusyInSession(order.Creator) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
 
-			OrderManager.SetOrderCancelled(orderId)
-			OrderManager.SetOffline(orderId)
+			if OrderManager.IsOrderOnline(orderId) {
+				OrderManager.SetOrderCancelled(orderId)
+				OrderManager.SetOffline(orderId)
 
-			orderSignalChan <- ORDER_SIGNAL_QUIT
-
-			return resp, nil
-		}
-
-		if OrderManager.IsOrderLocked(orderId) {
-			resp.Attribute["errCode"] = "2"
-			resp.Attribute["errMsg"] = "该订单已被抢"
-
-			OrderManager.SetOrderCancelled(orderId)
-			OrderManager.SetOffline(orderId)
-
-			orderSignalChan <- ORDER_SIGNAL_QUIT
-
+				orderSignalChan <- ORDER_SIGNAL_QUIT
+			}
 			return resp, nil
 		}
 
@@ -550,8 +546,8 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "This order is not assigned to you"
 			return resp, nil
-
 		}
+
 		if UserManager.IsUserBusyInSession(order.Creator) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"

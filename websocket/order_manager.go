@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"WolaiWebservice/models"
@@ -29,6 +30,7 @@ type OrderStatusManager struct {
 
 	personalOrderMap map[int64]map[int64]int64 // studentId to teacherId to orderId
 
+	lock sync.RWMutex
 }
 
 var ErrOrderNotFound = errors.New("Order is not serving")
@@ -295,7 +297,9 @@ func (osm *OrderStatusManager) HasOrderOnline(studentId, teacherId int64) bool {
 }
 
 func (osm *OrderStatusManager) IsOrderLocked(orderId int64) bool {
+	osm.lock.RLock()
 	status, ok := osm.orderMap[orderId]
+	osm.lock.RUnlock()
 	if !ok {
 		return false
 	}
@@ -303,6 +307,8 @@ func (osm *OrderStatusManager) IsOrderLocked(orderId int64) bool {
 }
 
 func (osm *OrderStatusManager) SetOrderLocked(orderId int64, isLocked bool) error {
+	osm.lock.Lock()
+	defer osm.lock.Unlock()
 	status, ok := osm.orderMap[orderId]
 	if !ok {
 		return ErrOrderNotFound
