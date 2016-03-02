@@ -220,9 +220,8 @@ func sessionHandler(sessionId int64) {
 					return
 
 				case WS_SESSION_BREAK:
-					//如果课程被暂停，则退出
-					if SessionManager.IsSessionPaused(sessionId) ||
-						SessionManager.IsSessionBreaked(sessionId) ||
+					//如果课程已经中断，则退出
+					if SessionManager.IsSessionBreaked(sessionId) ||
 						!SessionManager.IsSessionActived(sessionId) {
 						break
 					}
@@ -510,6 +509,11 @@ func sessionHandler(sessionId int64) {
 
 					if acceptStr == "-1" {
 						//拒绝上课
+						if SessionManager.IsSessionBreaked(sessionId) {
+							SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
+						} else if SessionManager.IsSessionPaused(sessionId) {
+							SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
+						}
 						break
 					} else if acceptStr == "1" {
 						//标记学生接受了老师的上课请求
