@@ -9,10 +9,9 @@ import (
 	"WolaiWebservice/service/push"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 	"encoding/json"
+	"github.com/cihub/seelog"
 	"strconv"
 	"time"
-
-	"github.com/cihub/seelog"
 )
 
 func HandleCometMessage(param string) (*WSMessage, error) {
@@ -177,9 +176,9 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		//老师从主动恢复的暂停状态中点击继续计时
 		resp.OperationCode = WS_SESSION_CONTINUE_RESP
 
-		if !SessionManager.IsSessionPaused(sessionId) {
+		if !SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBreaked(sessionId) {
 			resp.Attribute["errCode"] = "2"
-			resp.Attribute["errMsg"] = "session is not paused"
+			resp.Attribute["errMsg"] = "session is not paused or is currently broken"
 			return resp, nil
 		}
 
@@ -197,7 +196,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 			//push.PushSessionContinue(session.Creator, sessionId)
 		}
 
-		//设置上课状态为拨号中
+		//设置上课状态为上课中
 		SessionManager.SetSessionActived(sessionId, true)
 		SessionManager.SetSessionPaused(sessionId, false)
 		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
