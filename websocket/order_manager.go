@@ -21,6 +21,7 @@ type OrderStatus struct {
 	currentAssign   int64
 	dispatchMap     map[int64]int64 //teacherId to timestamp
 	assignMap       map[int64]int64 //teacherId to timestamp
+	isLocked        bool            //用来控制是否被抢
 }
 
 type OrderStatusManager struct {
@@ -55,6 +56,7 @@ func NewOrderStatus(orderId int64) *OrderStatus {
 		currentAssign:   -1,
 		dispatchMap:     make(map[int64]int64),
 		assignMap:       make(map[int64]int64),
+		isLocked:        false,
 	}
 
 	return &orderStatus
@@ -290,4 +292,21 @@ func (osm *OrderStatusManager) HasOrderOnline(studentId, teacherId int64) bool {
 
 	_, ok := osm.personalOrderMap[studentId][teacherId]
 	return ok
+}
+
+func (osm *OrderStatusManager) IsOrderLocked(orderId int64) bool {
+	status, ok := osm.orderMap[orderId]
+	if !ok {
+		return false
+	}
+	return status.isLocked
+}
+
+func (osm *OrderStatusManager) SetOrderLocked(orderId int64, isLocked bool) error {
+	status, ok := osm.orderMap[orderId]
+	if !ok {
+		return ErrOrderNotFound
+	}
+	status.isLocked = isLocked
+	return nil
 }

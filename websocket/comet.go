@@ -457,6 +457,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 	case WS_ORDER2_ACCEPT:
 		resp.OperationCode = WS_ORDER2_ACCEPT_RESP
 		resp.Attribute["orderId"] = orderIdStr
+
 		if UserManager.IsUserBusyInSession(order.Creator) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
@@ -469,8 +470,24 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			return resp, nil
 		}
 
+		if OrderManager.IsOrderLocked(orderId) {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "该订单已被抢"
+
+			OrderManager.SetOrderCancelled(orderId)
+			OrderManager.SetOffline(orderId)
+
+			orderSignalChan <- ORDER_SIGNAL_QUIT
+
+			return resp, nil
+		}
+
+		OrderManager.SetOrderLocked(orderId, true)
+
 		//发送反馈消息
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
+
 		//向学生发送结果
 		teacher, _ := models.ReadUser(msg.UserId)
 		teacherByte, _ := json.Marshal(teacher)
