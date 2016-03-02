@@ -37,16 +37,14 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 	}
 	feed.ImageList = tmpList
 
-	if redis.RedisFailErr == nil {
-		feed.OriginFeed = redis.GetFeed(originFeedId)
-	} else {
-		originFeed, err := models.GetFeed(originFeedId)
+	originFeed := redis.GetFeed(originFeedId)
+	if originFeed == nil {
+		originFeed, err = models.GetFeed(originFeedId)
 		if err != nil {
 			return nil, err
-		} else {
-			feed.OriginFeed = originFeed
 		}
 	}
+	feed.OriginFeed = originFeed
 
 	tmpMap := make(map[string]string)
 	err = json.Unmarshal([]byte(attributeStr), &tmpMap)
@@ -76,9 +74,9 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 //action:mark代表标记，undo代表取消
 func MarkPOIFeed(feedId string, plateType string, action string) (*models.POIFeed, error) {
 	var feed *models.POIFeed
-	if redis.RedisFailErr == nil {
-		feed = redis.GetFeed(feedId)
-	} else {
+
+	feed = redis.GetFeed(feedId)
+	if feed == nil {
 		feed, _ = models.GetFeed(feedId)
 	}
 	feedPlateType := ""
@@ -98,9 +96,8 @@ func MarkPOIFeed(feedId string, plateType string, action string) (*models.POIFee
 func LikePOIFeed(userId int64, feedId string, timestamp float64) (*models.POIFeed, error) {
 	var feed *models.POIFeed
 	var err error
-	if redis.RedisFailErr == nil {
-		feed = redis.GetFeed(feedId)
-	} else {
+	feed = redis.GetFeed(feedId)
+	if feed == nil {
 		feed, err = models.GetFeed(feedId)
 		if err != nil {
 			return nil, err
@@ -118,7 +115,6 @@ func LikePOIFeed(userId int64, feedId string, timestamp float64) (*models.POIFee
 	} else {
 		likeFeedFlag = models.HasLikedFeed(feed, user)
 	}
-
 	if !likeFeedFlag {
 		feed.IncreaseLike()
 		if redis.RedisFailErr == nil {
@@ -151,10 +147,10 @@ func GetFeedDetail(feedId string, userId int64) (*models.POIFeedDetail, error) {
 	var feed *models.POIFeed
 	var err error
 	var likedUserList []models.User
-	if redis.RedisFailErr == nil {
-		feed = redis.GetFeed(feedId)
-		likedUserList = redis.GetFeedLikeList(feedId)
-	} else {
+
+	feed = redis.GetFeed(feedId)
+	likedUserList = redis.GetFeedLikeList(feedId)
+	if feed == nil {
 		feed, err = models.GetFeed(feedId)
 		if err != nil {
 			return nil, err
@@ -175,7 +171,6 @@ func GetFeedDetail(feedId string, userId int64) (*models.POIFeedDetail, error) {
 			comments[i].HasLiked = redis.HasLikedFeedComment(&comment, user)
 		}
 		feed.HasLiked = redis.HasLikedFeed(feed, user)
-		feed.HasFaved = redis.HasFavedFeed(feed, user)
 	} else {
 		comments = models.GetFeedComments(feedId)
 		feed.HasLiked = models.HasLikedFeed(feed, user)
@@ -200,7 +195,6 @@ func GetAtrium(userId int64, page int64, count int64, plateType string) (models.
 		for i := range feeds {
 			feed := feeds[i]
 			feeds[i].HasLiked = redis.HasLikedFeed(&feed, user)
-			feeds[i].HasFaved = redis.HasFavedFeed(&feed, user)
 		}
 	} else {
 		if plateType == "" {
@@ -223,8 +217,6 @@ func GetUserFeed(userId int64, page int64, count int64) (models.POIFeeds, error)
 	user, _ := models.ReadUser(userId)
 	var err error
 	if user == nil {
-		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")
-		seelog.Error(err.Error())
 		return nil, err
 	}
 
@@ -236,7 +228,6 @@ func GetUserFeed(userId int64, page int64, count int64) (models.POIFeeds, error)
 		for i := range feeds {
 			feed := feeds[i]
 			feeds[i].HasLiked = redis.HasLikedFeed(&feed, user)
-			feeds[i].HasFaved = redis.HasFavedFeed(&feed, user)
 		}
 	} else {
 		feeds = models.GetFeedFlowUserFeed(userId, int(start), int(count))
@@ -252,8 +243,6 @@ func GetTopFeed(userId int64, plateType string) (models.POIFeeds, error) {
 	user, _ := models.ReadUser(userId)
 	var err error
 	if user == nil {
-		err = errors.New("user " + strconv.Itoa(int(userId)) + " doesn't exsit.")
-		seelog.Error(err.Error())
 		return nil, err
 	}
 	var feeds models.POIFeeds
@@ -345,7 +334,6 @@ func GetUserLike(userId int64, page int64, count int64) (models.POIFeeds, error)
 		for i := range feeds {
 			feed := feeds[i]
 			feeds[i].HasLiked = redis.HasLikedFeed(&feed, user)
-			feeds[i].HasFaved = redis.HasFavedFeed(&feed, user)
 		}
 	} else {
 		feeds = models.GetFeedFlowUserFeedLike(userId, int(start), int(count))

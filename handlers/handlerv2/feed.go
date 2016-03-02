@@ -164,7 +164,7 @@ func FeedDetail(w http.ResponseWriter, r *http.Request) {
 
 // 3.1.5
 func FeedLike(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	//	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
