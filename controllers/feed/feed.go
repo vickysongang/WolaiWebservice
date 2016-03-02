@@ -39,12 +39,11 @@ func PostPOIFeed(userId int64, timestamp float64, feedType int64, text string, i
 
 	originFeed := redis.GetFeed(originFeedId)
 	if originFeed == nil {
-		originFeed, err = models.GetFeed(originFeedId)
-		if err != nil {
-			return nil, err
-		}
+		originFeed, _ = models.GetFeed(originFeedId)
 	}
-	feed.OriginFeed = originFeed
+	if originFeed != nil {
+		feed.OriginFeed = originFeed
+	}
 
 	tmpMap := make(map[string]string)
 	err = json.Unmarshal([]byte(attributeStr), &tmpMap)

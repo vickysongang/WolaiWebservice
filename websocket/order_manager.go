@@ -23,6 +23,7 @@ type OrderStatus struct {
 	dispatchMap     map[int64]int64 //teacherId to timestamp
 	assignMap       map[int64]int64 //teacherId to timestamp
 	isLocked        bool            //用来控制是否被抢
+	lock            sync.RWMutex
 }
 
 type OrderStatusManager struct {
@@ -30,7 +31,6 @@ type OrderStatusManager struct {
 
 	personalOrderMap map[int64]map[int64]int64 // studentId to teacherId to orderId
 
-	lock sync.RWMutex
 }
 
 var ErrOrderNotFound = errors.New("Order is not serving")
@@ -297,22 +297,22 @@ func (osm *OrderStatusManager) HasOrderOnline(studentId, teacherId int64) bool {
 }
 
 func (osm *OrderStatusManager) IsOrderLocked(orderId int64) bool {
-	osm.lock.RLock()
 	status, ok := osm.orderMap[orderId]
-	osm.lock.RUnlock()
 	if !ok {
 		return false
 	}
+	status.lock.RLock()
+	defer status.lock.RUnlock()
 	return status.isLocked
 }
 
 func (osm *OrderStatusManager) SetOrderLocked(orderId int64, isLocked bool) error {
-	osm.lock.Lock()
-	defer osm.lock.Unlock()
 	status, ok := osm.orderMap[orderId]
 	if !ok {
 		return ErrOrderNotFound
 	}
+	status.lock.Lock()
 	status.isLocked = isLocked
+	status.lock.Unlock()
 	return nil
 }
