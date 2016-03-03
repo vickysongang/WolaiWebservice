@@ -16,6 +16,11 @@ import (
 )
 
 func HandleCometMessage(param string) (*WSMessage, error) {
+	defer func() {
+		if x := recover(); x != nil {
+			seelog.Error(x)
+		}
+	}()
 	var msg WSMessage
 	err := json.Unmarshal([]byte(param), &msg)
 	if err != nil {
@@ -92,6 +97,12 @@ func HandleCometMessage(param string) (*WSMessage, error) {
 }
 
 func teacherMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSMessage, error) {
+	defer func() {
+		if x := recover(); x != nil {
+			seelog.Error(x)
+		}
+	}()
+
 	resp := NewWSMessage(msg.MessageId, user.Id, msg.OperationCode+1)
 	switch msg.OperationCode {
 	case WS_ORDER2_TEACHER_ONLINE:
@@ -145,6 +156,12 @@ func teacherMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 }
 
 func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSMessage, error) {
+	defer func() {
+		if x := recover(); x != nil {
+			seelog.Error(x)
+		}
+	}()
+
 	resp := NewWSMessage(msg.MessageId, user.Id, msg.OperationCode+1)
 
 	sessionIdStr, ok := msg.Attribute["sessionId"]
@@ -328,9 +345,8 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		if sessionChan, err := SessionManager.GetSessionChan(sessionId); err != nil {
 			resp.Attribute["errCode"] = "2"
 		} else {
-			seelog.Debug("handle session message start:", sessionId, " operCode:", msg.OperationCode, "chanSize:", len(sessionChan))
 			sessionChan <- msg
-			seelog.Debug("handle session message end:", sessionId, " operCode:", msg.OperationCode, "chanSize:", len(sessionChan))
+			seelog.Debug("Handle session message:", sessionId, " operCode:", msg.OperationCode, "chanSize:", len(sessionChan))
 		}
 	case WS_SESSION_ASK_FINISH:
 		//学生主动发起下课请求
@@ -389,6 +405,12 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 }
 
 func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSMessage, error) {
+	defer func() {
+		if x := recover(); x != nil {
+			seelog.Error(x)
+		}
+	}()
+
 	resp := NewWSMessage(msg.MessageId, user.Id, msg.OperationCode+1)
 	orderIdStr, ok := msg.Attribute["orderId"]
 	if !ok {
@@ -445,11 +467,13 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 						userChan <- cancelMsg
 					}
 				}
+
+				OrderManager.SetOffline(orderId)
 			}()
 
 			// 结束订单派发，记录状态
 			OrderManager.SetOrderCancelled(orderId)
-			OrderManager.SetOffline(orderId)
+
 			seelog.Debug("orderHandler|orderCancelled: ", orderId)
 
 			orderSignalChan <- ORDER_SIGNAL_QUIT
@@ -524,6 +548,8 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 				resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 				dispatchChan <- resultMsg
 			}
+
+			OrderManager.SetOffline(orderId)
 		}()
 
 		seelog.Debug("orderHandler|orderAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
@@ -531,7 +557,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 		// 结束派单流程，记录结果
 		OrderManager.SetOrderConfirm(orderId, teacher.Id)
-		OrderManager.SetOffline(orderId)
+
 		UserManager.RemoveOrderDispatch(orderId, order.Creator)
 
 		go handleSessionCreation(orderId, msg.UserId)
