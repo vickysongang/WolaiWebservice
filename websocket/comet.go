@@ -187,6 +187,12 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		return resp, nil
 	}
 
+	if !SessionManager.IsSessionActived(sessionId) {
+		resp.Attribute["errCode"] = "2"
+		resp.Attribute["errMsg"] = "session is not active"
+		return resp, nil
+	}
+
 	switch msg.OperationCode {
 
 	case WS_SESSION_CONTINUE:
