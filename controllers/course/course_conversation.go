@@ -29,6 +29,11 @@ func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (i
 		return 2, items, errors.New("对方不是导师")
 	}
 
+	courseCount := QueryCourseCountOfConversation(userId, teacherId)
+	if courseCount == 0 {
+		return 2, items, errors.New("您还未购买该导师的课程")
+	}
+
 	var records []*models.CoursePurchaseRecord
 	_, err = o.QueryTable("course_purchase_record").
 		Filter("user_id", userId).
