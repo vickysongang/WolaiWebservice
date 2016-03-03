@@ -3,6 +3,7 @@ package course
 
 import (
 	"WolaiWebservice/models"
+	"errors"
 
 	"github.com/astaxie/beego/orm"
 )
@@ -15,18 +16,26 @@ func QueryCourseCountOfConversation(studentId, teacherId int64) int64 {
 	return count
 }
 
-func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (int64, []*courseStudentListItem) {
+func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (int64, []*courseStudentListItem, error) {
 	o := orm.NewOrm()
 
 	items := make([]*courseStudentListItem, 0)
 
+	teacher, err := models.ReadUser(teacherId)
+	if err != nil {
+		return 2, items, errors.New("对方用户不存在")
+	}
+	if teacher.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
+		return 2, items, errors.New("对方不是导师")
+	}
+
 	var records []*models.CoursePurchaseRecord
-	_, err := o.QueryTable("course_purchase_record").
+	_, err = o.QueryTable("course_purchase_record").
 		Filter("user_id", userId).
 		Filter("teacher_id", teacherId).
 		OrderBy("-last_update_time").Offset(page * count).Limit(count).All(&records)
 	if err != nil {
-		return 0, items
+		return 2, items, err
 	}
 
 	for _, record := range records {
@@ -52,5 +61,5 @@ func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (i
 		items = append(items, &item)
 	}
 
-	return 0, items
+	return 0, items, nil
 }

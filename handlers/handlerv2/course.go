@@ -453,9 +453,9 @@ func CourseListStudentOfConversation(w http.ResponseWriter, r *http.Request) {
 		count = 10
 	}
 
-	status, content := courseController.GetCourseListStudentOfConversation(userId, teacherId, page, count)
-	if content == nil {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	status, content, err := courseController.GetCourseListStudentOfConversation(userId, teacherId, page, count)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
