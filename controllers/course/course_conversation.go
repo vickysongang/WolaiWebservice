@@ -26,7 +26,7 @@ func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (i
 		return 2, items, errors.New("对方用户不存在")
 	}
 	if teacher.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
-		return 2, items, errors.New("对方不是导师")
+		return 2, items, errors.New("对方不是导师，没有可以选择的课程哦")
 	}
 
 	courseCount := QueryCourseCountOfConversation(userId, teacherId)
