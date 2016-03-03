@@ -31,7 +31,7 @@ func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (i
 
 	courseCount := QueryCourseCountOfConversation(userId, teacherId)
 	if courseCount == 0 {
-		return 2, items, errors.New("您还未购买该导师的课程")
+		return 2, items, errors.New("还没有选择该导师的课程，可以先去导师的个人主页看看哦")
 	}
 
 	var records []*models.CoursePurchaseRecord

@@ -429,6 +429,12 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		return resp, nil
 	}
 
+	if !OrderManager.IsOrderOnline(orderId) {
+		resp.Attribute["errCode"] = "2"
+		resp.Attribute["errMsg"] = "订单已失效"
+		return resp, nil
+	}
+
 	orderInfo := GetOrderInfo(orderId)
 	orderSignalChan, _ := OrderManager.GetOrderSignalChan(orderId)
 	orderSessionCountdown := settings.OrderSessionCountdown()
