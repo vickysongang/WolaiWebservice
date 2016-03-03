@@ -625,6 +625,8 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 	case WS_ORDER2_PERSONAL_REPLY:
 		resp.OperationCode = WS_ORDER2_PERSONAL_REPLY_RESP
 		resp.Attribute["orderId"] = orderIdStr
+		resp.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
+
 		if UserManager.IsUserBusyInSession(order.Creator) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
@@ -643,10 +645,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			return resp, nil
 		}
 		resp.Attribute["errCode"] = "0"
-
-		resp.Attribute["orderId"] = orderIdStr
 		resp.Attribute["status"] = "0"
-		resp.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 
 		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
 			order.Type == models.ORDER_TYPE_COURSE_INSTANT {

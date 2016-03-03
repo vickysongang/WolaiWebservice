@@ -121,21 +121,7 @@ func generalOrderHandler(orderId int64) {
 		case <-dispatchTicker.C:
 			// 组装派发信息
 			dispatchOrderToTeachers(orderId, string(orderByte))
-			//			dispatchMsg := NewWSMessage("", order.Creator, WS_ORDER2_DISPATCH)
-			//			dispatchMsg.Attribute["orderInfo"] = string(orderByte)
 
-			//			teacherId := dispatchNextTeacher(orderId)
-			//			for teacherId != -1 {
-			//				dispatchMsg.UserId = teacherId
-
-			//				if WsManager.HasUserChan(teacherId) {
-			//					teacherChan := WsManager.GetUserChan(teacherId)
-			//					teacherChan <- dispatchMsg
-			//				} else {
-			//					push.PushNewOrderDispatch(teacherId, orderId)
-			//				}
-			//				teacherId = dispatchNextTeacher(orderId)
-			//			}
 		case signal, ok := <-orderSignalChan:
 			if ok {
 				if signal == ORDER_SIGNAL_QUIT {
@@ -177,7 +163,7 @@ func generalOrderChanHandler(orderId int64) {
 				userChan := UserManager.GetUserChan(msg.UserId)
 				switch msg.OperationCode {
 				case WS_ORDER2_RECOVER_CREATE:
-					seelog.Debug("In ORDER Create Recover:", orderId)
+					seelog.Debug("In Order Create Recover:", orderId)
 					recoverMsg := NewWSMessage("", msg.UserId, WS_ORDER2_RECOVER_CREATE)
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
 					recoverMsg.Attribute["countdown"] = strconv.FormatInt(orderDispatchCountdown, 10)
@@ -185,13 +171,13 @@ func generalOrderChanHandler(orderId int64) {
 					userChan <- recoverMsg
 
 				case WS_ORDER2_RECOVER_DISPATCH:
-					seelog.Debug("In ORDER Dispatch Recover:", orderId)
+					seelog.Debug("In Order Dispatch Recover:", orderId)
 					recoverMsg := NewWSMessage("", msg.UserId, WS_ORDER2_RECOVER_DISPATCH)
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
 					userChan <- recoverMsg
 
 				case WS_ORDER2_RECOVER_ASSIGN:
-					seelog.Debug("In ORDER Assign Recover:", orderId)
+					seelog.Debug("In Order Assign Recover:", orderId)
 					recoverMsg := NewWSMessage("", msg.UserId, WS_ORDER2_RECOVER_ASSIGN)
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
 					countdown := OrderManager.orderMap[orderId].assignMap[msg.UserId] + orderAssignCountdown - timestamp
