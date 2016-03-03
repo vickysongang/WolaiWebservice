@@ -36,7 +36,7 @@ func UserLaunch(userId, versionCode int64, objectId, address, ip, userAgent stri
 		return 2, err, nil
 	}
 
-	go userService.SaveDeviceInfo(userId, versionCode, objectId)
+	go userService.SaveDeviceInfo(userId, versionCode, objectId, userAgent)
 
 	resp := map[string]string{
 		"websocket": settings.WebsocketAddress(),
