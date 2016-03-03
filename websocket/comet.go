@@ -410,6 +410,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			seelog.Error(x)
 		}
 	}()
+	orderSessionCountdown := settings.OrderSessionCountdown()
 
 	resp := NewWSMessage(msg.MessageId, user.Id, msg.OperationCode+1)
 	orderIdStr, ok := msg.Attribute["orderId"]
@@ -423,6 +424,10 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		resp.Attribute["errCode"] = "2"
 		return resp, nil
 	}
+
+	resp.Attribute["orderId"] = orderIdStr
+	resp.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
+
 	order, err := models.ReadOrder(orderId)
 	if err != nil {
 		resp.Attribute["errCode"] = "2"
@@ -437,14 +442,12 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 	orderInfo := GetOrderInfo(orderId)
 	orderSignalChan, _ := OrderManager.GetOrderSignalChan(orderId)
-	orderSessionCountdown := settings.OrderSessionCountdown()
 
 	switch msg.OperationCode {
 	case WS_ORDER2_CANCEL:
 		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT || order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 			resp.OperationCode = WS_ORDER2_CANCEL_RESP
 			resp.Attribute["errCode"] = "0"
-			resp.Attribute["orderId"] = orderIdStr
 			// 结束订单派发，记录状态
 			OrderManager.SetOrderCancelled(orderId)
 			OrderManager.SetOffline(orderId)
@@ -452,7 +455,6 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		} else {
 			// 发送反馈消息
 			resp.OperationCode = WS_ORDER2_CANCEL_RESP
-			resp.Attribute["orderId"] = orderIdStr
 			resp.Attribute["errCode"] = "0"
 
 			// 向已经派到的老师发送学生取消订单的信息
@@ -486,7 +488,6 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		}
 	case WS_ORDER2_ACCEPT:
 		resp.OperationCode = WS_ORDER2_ACCEPT_RESP
-		resp.Attribute["orderId"] = orderIdStr
 
 		if OrderManager.IsOrderLocked(orderId) {
 			resp.Attribute["errCode"] = "2"
@@ -511,7 +512,6 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 		//发送反馈消息
 		resp.Attribute["errCode"] = "0"
-		resp.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 
 		//向学生发送结果
 		teacher, _ := models.ReadUser(msg.UserId)
@@ -573,7 +573,6 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		//发送反馈消息
 		resp.OperationCode = WS_ORDER2_ASSIGN_ACCEPT_RESP
 
-		resp.Attribute["orderId"] = orderIdStr
 		if currentAssign, _ := OrderManager.GetCurrentAssign(orderId); currentAssign != msg.UserId {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "This order is not assigned to you"
@@ -611,9 +610,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			push.PushOrderAccept(order.Creator, orderId, msg.UserId)
 		}
 
-		resp.Attribute["orderId"] = orderIdStr
 		resp.Attribute["status"] = "0"
-		resp.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 
 		seelog.Debug("orderHandler|orderAssignAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
 		orderSignalChan <- ORDER_SIGNAL_QUIT
@@ -630,8 +627,6 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 	case WS_ORDER2_PERSONAL_REPLY:
 		resp.OperationCode = WS_ORDER2_PERSONAL_REPLY_RESP
-		resp.Attribute["orderId"] = orderIdStr
-		resp.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 
 		if UserManager.IsUserBusyInSession(order.Creator) {
 			resp.Attribute["errCode"] = "2"
