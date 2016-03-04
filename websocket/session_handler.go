@@ -89,6 +89,7 @@ func sessionHandler(sessionId int64) {
 	for {
 		select {
 		case <-waitingTimer.C:
+
 			expireMsg := NewWSMessage("", session.Creator, WS_SESSION_EXPIRE)
 			expireMsg.Attribute["sessionId"] = sessionIdStr
 			//如果学生在线，则给学生发送课程过时消息
@@ -103,20 +104,17 @@ func sessionHandler(sessionId int64) {
 				userChan <- expireMsg
 			}
 
-			//如果课程没有被激活，超时后该课自动被取消，否则课程自动被结束
-			if !SessionManager.IsSessionActived(sessionId) {
-				SessionManager.SetSessionStatusCancelled(sessionId)
-			} else {
-				length, _ := SessionManager.GetSessionLength(sessionId)
-				SessionManager.SetSessionStatusCompleted(sessionId, length)
+			SessionManager.SetSessionActived(sessionId, false)
+			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_COMPLETE)
+			length, _ := SessionManager.GetSessionLength(sessionId)
+			SessionManager.SetSessionStatusCompleted(sessionId, length)
 
-				//修改老师的辅导时长
-				models.UpdateTeacherServiceTime(session.Tutor, length)
+			//修改老师的辅导时长
+			models.UpdateTeacherServiceTime(session.Tutor, length)
 
-				//课后结算，产生交易记录
-				SendSessionReport(sessionId)
-				go lcmessage.SendSessionExpireMsg(sessionId)
-			}
+			//课后结算，产生交易记录
+			SendSessionReport(sessionId)
+			go lcmessage.SendSessionExpireMsg(sessionId)
 
 			UserManager.RemoveUserSession(sessionId, session.Tutor, session.Creator)
 			SessionManager.SetSessionOffline(sessionId)
