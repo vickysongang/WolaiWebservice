@@ -15,7 +15,9 @@ type WSMessage struct {
 }
 
 const (
-	WS_FORCE_QUIT = -1
+	WS_FORCE_QUIT       = -1
+	SIGNAL_ORDER_QUIT   = -2
+	SIGNAL_SESSION_QUIT = -3
 
 	WS_PING = 0
 	WS_PONG = 1

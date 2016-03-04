@@ -124,10 +124,12 @@ func GeneralOrderHandler(orderId int64) {
 
 		case signal, ok := <-orderSignalChan:
 			if ok {
-				if signal == ORDER_SIGNAL_QUIT {
+				if signal == SIGNAL_ORDER_QUIT {
 					seelog.Debug("End dispatch| assign for order:", orderId)
 					return
 				}
+			} else {
+				return
 			}
 		}
 	}
@@ -213,7 +215,7 @@ func GeneralOrderChanHandler(orderId int64) {
 					OrderManager.SetOrderCancelled(orderId)
 					OrderManager.SetOffline(orderId)
 					seelog.Debug("orderHandler|orderCancelled: ", orderId)
-					orderSignalChan <- ORDER_SIGNAL_QUIT
+					orderSignalChan <- SIGNAL_ORDER_QUIT
 					return
 
 				case WS_ORDER2_ACCEPT:
@@ -226,7 +228,7 @@ func GeneralOrderChanHandler(orderId int64) {
 
 						OrderManager.SetOrderCancelled(orderId)
 						OrderManager.SetOffline(orderId)
-						orderSignalChan <- ORDER_SIGNAL_QUIT
+						orderSignalChan <- SIGNAL_ORDER_QUIT
 						return
 					}
 
@@ -275,7 +277,7 @@ func GeneralOrderChanHandler(orderId int64) {
 					}
 
 					seelog.Debug("orderHandler|orderAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
-					orderSignalChan <- ORDER_SIGNAL_QUIT
+					orderSignalChan <- SIGNAL_ORDER_QUIT
 
 					// 结束派单流程，记录结果
 					OrderManager.SetOrderConfirm(orderId, teacher.Id)
@@ -303,7 +305,7 @@ func GeneralOrderChanHandler(orderId int64) {
 
 						OrderManager.SetOrderCancelled(orderId)
 						OrderManager.SetOffline(orderId)
-						orderSignalChan <- ORDER_SIGNAL_QUIT
+						orderSignalChan <- SIGNAL_ORDER_QUIT
 						return
 					}
 
@@ -335,7 +337,7 @@ func GeneralOrderChanHandler(orderId int64) {
 					userChan <- resultMsg
 
 					seelog.Debug("orderHandler|orderAssignAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
-					orderSignalChan <- ORDER_SIGNAL_QUIT
+					orderSignalChan <- SIGNAL_ORDER_QUIT
 
 					// 结束派单流程，记录结果
 					OrderManager.SetOrderConfirm(orderId, teacher.Id)
@@ -348,7 +350,14 @@ func GeneralOrderChanHandler(orderId int64) {
 					handleSessionCreation(orderId, msg.UserId)
 
 					return
+
+				case SIGNAL_ORDER_QUIT:
+					seelog.Debug("End Order Goroutine:", orderId)
+					orderSignalChan <- SIGNAL_ORDER_QUIT
+					return
 				}
+			} else {
+				return
 			}
 		}
 	}

@@ -551,7 +551,9 @@ func sessionHandler(sessionId int64) {
 
 					// Need to confirm with PROD to see whether we need to push a leancloud message
 					//go lcmessage.SendSessionResumeMsg(sessionId)
-
+				case SIGNAL_SESSION_QUIT:
+					seelog.Debug("End Session Goroutine:", sessionId)
+					return
 				}
 			} else {
 				return

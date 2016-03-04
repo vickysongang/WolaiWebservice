@@ -122,6 +122,9 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 
 					seelog.Debug("orderHandler|orderReply: ", orderId)
 					return
+				case SIGNAL_ORDER_QUIT:
+					seelog.Debug("End Order Goroutine:", orderId)
+					return
 				}
 			}
 		}

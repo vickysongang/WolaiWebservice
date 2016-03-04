@@ -192,6 +192,8 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		resp.Attribute["errMsg"] = "session is not active"
 		return resp, nil
 	}
+	sessionChan, _ := SessionManager.GetSessionChan(sessionId)
+	quitMsg := NewWSMessage(msg.MessageId, msg.UserId, SIGNAL_SESSION_QUIT)
 
 	switch msg.OperationCode {
 
@@ -302,6 +304,8 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 
 		SendSessionReport(sessionId)
 
+		sessionChan <- quitMsg
+
 		seelog.Debug("POIWSSessionHandler: session end: " + sessionIdStr)
 
 		UserManager.RemoveUserSession(sessionId, session.Tutor, session.Creator)
@@ -348,12 +352,10 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		WS_SESSION_RESUME_ACCEPT:
 		resp.OperationCode = msg.OperationCode + 1
 		resp.Attribute["errCode"] = "0"
-		if sessionChan, err := SessionManager.GetSessionChan(sessionId); err != nil {
-			resp.Attribute["errCode"] = "2"
-		} else {
-			sessionChan <- msg
-			seelog.Debug("Handle session message:", sessionId, " operCode:", msg.OperationCode, "chanSize:", len(sessionChan))
-		}
+
+		sessionChan <- msg
+		seelog.Debug("Handle session message:", sessionId, " operCode:", msg.OperationCode, "chanSize:", len(sessionChan))
+
 	case WS_SESSION_ASK_FINISH:
 		//学生主动发起下课请求
 
@@ -447,17 +449,20 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 	}
 
 	orderInfo := GetOrderInfo(orderId)
-	orderSignalChan, _ := OrderManager.GetOrderSignalChan(orderId)
+	orderChan, _ := OrderManager.GetOrderChan(orderId)
+
+	quitMsg := NewWSMessage(msg.MessageId, msg.UserId, SIGNAL_ORDER_QUIT)
 
 	switch msg.OperationCode {
 	case WS_ORDER2_CANCEL:
 		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT || order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 			resp.OperationCode = WS_ORDER2_CANCEL_RESP
 			resp.Attribute["errCode"] = "0"
+
 			// 结束订单派发，记录状态
 			OrderManager.SetOrderCancelled(orderId)
+			orderChan <- quitMsg
 			OrderManager.SetOffline(orderId)
-			seelog.Debug("orderHandler|orderCancelled: ", orderId)
 		} else {
 			// 发送反馈消息
 			resp.OperationCode = WS_ORDER2_CANCEL_RESP
@@ -481,17 +486,15 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 						userChan <- cancelMsg
 					}
 				}
-
+				orderChan <- quitMsg
 				OrderManager.SetOffline(orderId)
 			}()
 
 			// 结束订单派发，记录状态
 			OrderManager.SetOrderCancelled(orderId)
-
-			seelog.Debug("orderHandler|orderCancelled: ", orderId)
-
-			orderSignalChan <- ORDER_SIGNAL_QUIT
 		}
+		seelog.Debug("orderHandler|orderCancelled: ", orderId)
+
 	case WS_ORDER2_ACCEPT:
 		resp.OperationCode = WS_ORDER2_ACCEPT_RESP
 
@@ -507,9 +510,8 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 			if OrderManager.IsOrderOnline(orderId) {
 				OrderManager.SetOrderCancelled(orderId)
+				orderChan <- quitMsg
 				OrderManager.SetOffline(orderId)
-
-				orderSignalChan <- ORDER_SIGNAL_QUIT
 			}
 			return resp, nil
 		}
@@ -560,12 +562,11 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 				resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 				dispatchChan <- resultMsg
 			}
-
+			orderChan <- quitMsg
 			OrderManager.SetOffline(orderId)
 		}()
 
 		seelog.Debug("orderHandler|orderAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
-		orderSignalChan <- ORDER_SIGNAL_QUIT
 
 		// 结束派单流程，记录结果
 		OrderManager.SetOrderConfirm(orderId, teacher.Id)
@@ -590,8 +591,8 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
 
 			OrderManager.SetOrderCancelled(orderId)
+			orderChan <- quitMsg
 			OrderManager.SetOffline(orderId)
-			orderSignalChan <- ORDER_SIGNAL_QUIT
 			return resp, nil
 		}
 
@@ -619,7 +620,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		resp.Attribute["status"] = "0"
 
 		seelog.Debug("orderHandler|orderAssignAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
-		orderSignalChan <- ORDER_SIGNAL_QUIT
+		orderChan <- quitMsg
 
 		// 结束派单流程，记录结果
 		OrderManager.SetOrderConfirm(orderId, teacher.Id)
@@ -637,9 +638,11 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		if UserManager.IsUserBusyInSession(order.Creator) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
-
-			OrderManager.SetOrderCancelled(orderId)
-			OrderManager.SetOffline(orderId)
+			if OrderManager.IsOrderOnline(orderId) {
+				OrderManager.SetOrderCancelled(orderId)
+				orderChan <- quitMsg
+				OrderManager.SetOffline(orderId)
+			}
 			return resp, nil
 		}
 
@@ -647,8 +650,11 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
 
-			OrderManager.SetOrderCancelled(orderId)
-			OrderManager.SetOffline(orderId)
+			if OrderManager.IsOrderOnline(orderId) {
+				OrderManager.SetOrderCancelled(orderId)
+				orderChan <- quitMsg
+				OrderManager.SetOffline(orderId)
+			}
 			return resp, nil
 		}
 		resp.Attribute["errCode"] = "0"
@@ -674,6 +680,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		}
 
 		OrderManager.SetOrderConfirm(orderId, msg.UserId)
+		orderChan <- quitMsg
 		OrderManager.SetOffline(orderId)
 		go handleSessionCreation(orderId, msg.UserId)
 

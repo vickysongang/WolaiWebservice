@@ -8,10 +8,6 @@ import (
 	"WolaiWebservice/models"
 )
 
-const (
-	ORDER_SIGNAL_QUIT = 1
-)
-
 type OrderStatus struct {
 	orderId         int64
 	orderInfo       *models.Order

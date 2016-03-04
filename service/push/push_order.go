@@ -2,6 +2,7 @@ package push
 
 import (
 	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 	"WolaiWebservice/utils/apnsprovider"
 	"WolaiWebservice/utils/leancloud/lcpush"
 )
@@ -18,13 +19,13 @@ func PushNewOrderDispatch(userId, orderId int64) error {
 	if err != nil {
 		return err
 	}
-
-	if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-		apnsprovider.PushNewOrderDispatch(userDevice.DeviceToken, userDevice.DeviceProfile, orderId)
-	} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
-		lcpush.PushNewOrderDispatch(userDevice.ObjectId, orderId)
+	if redis.HasUserObjectId(userId) {
+		if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
+			apnsprovider.PushNewOrderDispatch(userDevice.DeviceToken, userDevice.DeviceProfile, orderId)
+		} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
+			lcpush.PushNewOrderDispatch(userDevice.ObjectId, orderId)
+		}
 	}
-
 	return nil
 }
 
@@ -40,13 +41,13 @@ func PushNewOrderAssign(userId, orderId int64) error {
 	if err != nil {
 		return err
 	}
-
-	if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-		apnsprovider.PushNewOrderAssign(userDevice.DeviceToken, userDevice.DeviceProfile, orderId)
-	} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
-		lcpush.PushNewOrderAssign(userDevice.ObjectId, orderId)
+	if redis.HasUserObjectId(userId) {
+		if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
+			apnsprovider.PushNewOrderAssign(userDevice.DeviceToken, userDevice.DeviceProfile, orderId)
+		} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
+			lcpush.PushNewOrderAssign(userDevice.ObjectId, orderId)
+		}
 	}
-
 	return nil
 }
 
@@ -62,13 +63,13 @@ func PushOrderAccept(userId, orderId, teacherId int64) error {
 	if err != nil {
 		return err
 	}
-
-	if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-		apnsprovider.PushOrderAccept(userDevice.DeviceToken, userDevice.DeviceProfile, orderId, teacherId)
-	} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
-		lcpush.PushOrderAccept(userDevice.ObjectId, orderId, teacherId)
+	if redis.HasUserObjectId(userId) {
+		if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
+			apnsprovider.PushOrderAccept(userDevice.DeviceToken, userDevice.DeviceProfile, orderId, teacherId)
+		} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
+			lcpush.PushOrderAccept(userDevice.ObjectId, orderId, teacherId)
+		}
 	}
-
 	return nil
 }
 
@@ -84,12 +85,12 @@ func PushOrderPersonalAccept(userId, orderId, teacherId int64) error {
 	if err != nil {
 		return err
 	}
-
-	if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-		apnsprovider.PushOrderPersonalAccept(userDevice.DeviceToken, userDevice.DeviceProfile, orderId, teacherId)
-	} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
-		lcpush.PushOrderAccept(userDevice.ObjectId, orderId, teacherId)
+	if redis.HasUserObjectId(userId) {
+		if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
+			apnsprovider.PushOrderPersonalAccept(userDevice.DeviceToken, userDevice.DeviceProfile, orderId, teacherId)
+		} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
+			lcpush.PushOrderAccept(userDevice.ObjectId, orderId, teacherId)
+		}
 	}
-
 	return nil
 }
