@@ -66,6 +66,8 @@ func sessionHandler(sessionId int64) {
 		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
 		SessionManager.SetSessionBreaked(sessionId, true)
+		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
+
 	} else if !studentOnline {
 		//如果学生不在线老师在线，则向老师发送课程中断消息
 		if teacherOnline {
@@ -80,6 +82,8 @@ func sessionHandler(sessionId int64) {
 		}
 		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 		SessionManager.SetSessionBreaked(sessionId, true)
+		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
+
 	} else {
 		//启动时间同步计时器
 		syncTicker = time.NewTicker(time.Second * 60)
