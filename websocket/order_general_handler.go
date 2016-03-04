@@ -125,10 +125,11 @@ func GeneralOrderHandler(orderId int64) {
 		case signal, ok := <-orderSignalChan:
 			if ok {
 				if signal == SIGNAL_ORDER_QUIT {
-					seelog.Debug("End dispatch| assign for order:", orderId)
+					seelog.Debug("End Order Goroutine | GeneralOrderHandler:", orderId)
 					return
 				}
 			} else {
+				seelog.Debug("End Order Goroutine | GeneralOrderHandler:", orderId)
 				return
 			}
 		}
@@ -352,11 +353,12 @@ func GeneralOrderChanHandler(orderId int64) {
 					return
 
 				case SIGNAL_ORDER_QUIT:
-					seelog.Debug("End Order Goroutine:", orderId)
+					seelog.Debug("End Order Goroutine By Signal | GeneralOrderChanHandler:", orderId)
 					orderSignalChan <- SIGNAL_ORDER_QUIT
 					return
 				}
 			} else {
+				seelog.Debug("End Order Goroutine | GeneralOrderChanHandler:", orderId)
 				return
 			}
 		}
