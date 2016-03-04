@@ -52,7 +52,14 @@ func OrderCreate(w http.ResponseWriter, r *http.Request) {
 		ignoreFlagStr = orderController.IGNORE_FLAG_FALSE
 	}
 
-	status, err, content := orderController.CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId, ignoreFlagStr)
+	var directFlag string
+	if len(vars["directFlag"]) > 0 {
+		directFlag = vars["directFlag"][0]
+	} else {
+		directFlag = "N"
+	}
+
+	status, err, content := orderController.CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId, ignoreFlagStr, directFlag)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullObject)

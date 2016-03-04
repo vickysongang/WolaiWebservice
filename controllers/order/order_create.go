@@ -2,7 +2,9 @@ package order
 
 import (
 	"errors"
+	"time"
 
+	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
 	orderService "WolaiWebservice/service/order"
 	"WolaiWebservice/websocket"
@@ -17,9 +19,15 @@ const (
 	IGNORE_FLAG_FALSE = "N"
 )
 
-func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignoreFlagStr string) (int64, error, *models.Order) {
-	var err error
+type OrderInfo struct {
+	*models.Order
+	Countdown int64 `json:"countdown"`
+	Countfrom int64 `json:"countfrom"`
+}
 
+func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignoreFlagStr, directFlag string) (int64, error, *OrderInfo) {
+	var err error
+	var orderInfo OrderInfo
 	user, err := models.ReadUser(userId)
 	if err != nil {
 		return 2, err, nil
@@ -49,10 +57,21 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignor
 	if err != nil {
 		return 2, err, nil
 	}
-
+	orderInfo.Order = order
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 		go websocket.InitOrderMonitor(order.Id, teacherId)
+	} else if order.Type == models.ORDER_TYPE_GENERAL_INSTANT {
+		if directFlag == "Y" {
+			orderInfo.Countfrom = 0
+			orderInfo.Countdown = settings.OrderDispatchCountdown()
+			websocket.UserManager.SetOrderCreate(order.Id, userId, time.Now().Unix())
+
+			websocket.OrderManager.SetOnline(order.Id)
+			websocket.OrderManager.SetOrderDispatching(order.Id)
+			go websocket.GeneralOrderHandler(order.Id)
+			go websocket.GeneralOrderChanHandler(order.Id)
+		}
 	}
 
-	return 0, nil, order
+	return 0, nil, &orderInfo
 }

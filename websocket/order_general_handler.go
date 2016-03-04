@@ -14,7 +14,7 @@ import (
 	"WolaiWebservice/service/push"
 )
 
-func generalOrderHandler(orderId int64) {
+func GeneralOrderHandler(orderId int64) {
 	defer func() {
 		if r := recover(); r != nil {
 			seelog.Error(r)
@@ -133,7 +133,7 @@ func generalOrderHandler(orderId int64) {
 	}
 }
 
-func generalOrderChanHandler(orderId int64) {
+func GeneralOrderChanHandler(orderId int64) {
 	defer func() {
 		if r := recover(); r != nil {
 			seelog.Error(r)
@@ -537,8 +537,8 @@ func InitOrderDispatch(msg WSMessage, timestamp int64) error {
 
 	OrderManager.SetOnline(orderId)
 	OrderManager.SetOrderDispatching(orderId)
-	go generalOrderHandler(orderId)
-	go generalOrderChanHandler(orderId)
+	go GeneralOrderHandler(orderId)
+	go GeneralOrderChanHandler(orderId)
 
 	return nil
 }
