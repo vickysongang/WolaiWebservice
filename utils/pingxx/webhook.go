@@ -15,7 +15,7 @@ import (
 
 type PingxxWebhookManager struct {
 	chargeMap map[string]int64
-	lock      *sync.RWMutex
+	lock      sync.RWMutex
 }
 
 var ErrChargeNotFound = errors.New("Charge is not found")
@@ -33,28 +33,30 @@ func init() {
 	WebhookManager = NewPingxxWebhookManager()
 }
 
-func (pwm *PingxxWebhookManager) SetChargeOnline(chargeId string) {
+func (pwm *PingxxWebhookManager) SetChargeOnline(chargeId string) int64 {
 	_, ok := pwm.chargeMap[chargeId]
 	if ok {
-		return
+		return -1
 	}
 	pwm.lock.Lock()
 	defer pwm.lock.Unlock()
 	pwm.chargeMap[chargeId] = time.Now().Unix()
 	seelog.Debug("Pingxx webhook | SetChargeOnline:", chargeId)
+	return 0
 }
 
 func (pwm *PingxxWebhookManager) IsChargeOnline(chargeId string) bool {
-	pwm.lock.RLock()
 	_, ok := pwm.chargeMap[chargeId]
-	defer pwm.lock.RUnlock()
 	seelog.Debug("Pingxx webhook | IsChargeOnline:", chargeId, " ", ok)
 	return ok
 }
 
 func (pwm *PingxxWebhookManager) ChargeSuccessEvent(chargeId string) {
 	if !pwm.IsChargeOnline(chargeId) {
-		pwm.SetChargeOnline(chargeId)
+		state := pwm.SetChargeOnline(chargeId)
+		if state == -1 {
+			return
+		}
 	} else {
 		return
 	}
