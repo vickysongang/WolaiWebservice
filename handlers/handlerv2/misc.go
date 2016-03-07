@@ -56,7 +56,9 @@ func HookPingpp(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if webhook.Type == "charge.succeeded" {
-			pingxx.WebhookManager.ChargeSuccessEvent(webhook.Data.Object["id"].(string))
+			chargeId := webhook.Data.Object["id"].(string)
+			seelog.Debug("Ping webhook | chargeId:", chargeId)
+			pingxx.WebhookManager.ChargeSuccessEvent(chargeId)
 			w.WriteHeader(http.StatusOK)
 		} else if webhook.Type == "refund.succeeded" {
 			pingxx.WebhookManager.RefundSuccessEvent(webhook.Data.Object["charge"].(string), webhook.Data.Object["id"].(string))

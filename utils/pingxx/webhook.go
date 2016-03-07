@@ -9,6 +9,8 @@ import (
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/service/trade"
+
+	seelog "github.com/cihub/seelog"
 )
 
 type PingxxWebhookManager struct {
@@ -39,12 +41,14 @@ func (pwm *PingxxWebhookManager) SetChargeOnline(chargeId string) {
 	pwm.lock.Lock()
 	defer pwm.lock.Unlock()
 	pwm.chargeMap[chargeId] = time.Now().Unix()
+	seelog.Debug("Pingxx webhook | SetChargeOnline:", chargeId)
 }
 
 func (pwm *PingxxWebhookManager) IsChargeOnline(chargeId string) bool {
 	pwm.lock.RLock()
 	_, ok := pwm.chargeMap[chargeId]
 	defer pwm.lock.RUnlock()
+	seelog.Debug("Pingxx webhook | IsChargeOnline:", chargeId, " ", ok)
 	return ok
 }
 
