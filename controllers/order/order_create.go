@@ -48,7 +48,9 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignor
 			return 2, errors.New("你已经向该导师发过一条上课请求了，请耐心等待回复哦"), nil
 		}
 	} else {
-		// 我才不管我发的是多少钱...
+		if websocket.UserManager.IsUserBusyInSession(userId) {
+			return 2, errors.New("你有一堂课正在进行中，暂时不能发单哦"), nil
+		}
 		orderType = models.ORDER_TYPE_GENERAL_INSTANT
 	}
 
