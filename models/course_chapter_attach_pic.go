@@ -8,6 +8,7 @@ import (
 
 type CourseChapterAttachPic struct {
 	Id         int64     `json:"-" orm:"pk"`
+	ChapterId  int64     `json:"chapterId" orm:"-"`
 	AttachId   int64     `json:"attachId"`
 	PicName    string    `json:"picName"`
 	MediaId    string    `json:"mediaId"`

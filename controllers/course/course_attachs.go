@@ -44,6 +44,9 @@ func GetCourseAttachs(courseId int64) (int64, []*chapterAttachInfo) {
 		if err != nil {
 			continue
 		}
+		for _, attachPic := range attachPics {
+			attachPic.ChapterId = courseChapter.Id
+		}
 
 		aInfo := attachInfo{
 			CourseChapterAttach: courseChapterAttach,
