@@ -5,6 +5,7 @@ import (
 
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/service/trade"
+	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
 func (watcher *RpcWatcher) HandleTradeVoucher(request *RpcRequest, resp *RpcResponse) error {
@@ -104,6 +105,36 @@ func (watcher *RpcWatcher) HandleTradeWithdraw(request *RpcRequest, resp *RpcRes
 	}
 
 	err = trade.HandleTradeWithdraw(userId, amount)
+	if err != nil {
+		*resp = NewRpcResponse(2, "交易失败", response.NullObject)
+		return err
+	}
+
+	*resp = NewRpcResponse(0, "", response.NullObject)
+	return nil
+}
+
+func (watcher *RpcWatcher) HandleCourseEarning(request *RpcRequest, resp *RpcResponse) error {
+	var err error
+
+	recordId, err := strconv.ParseInt(request.Args["recordId"], 10, 64)
+	if err != nil {
+		*resp = NewRpcResponse(2, "无效的购买记录ID", response.NullObject)
+		return err
+	}
+	chapterId, err := strconv.ParseInt(request.Args["chapterId"], 10, 64)
+	if err != nil {
+		*resp = NewRpcResponse(2, "无效的课时ID", response.NullObject)
+		return err
+	}
+	period, err := strconv.ParseInt(request.Args["period"], 10, 64)
+	if err != nil {
+		*resp = NewRpcResponse(2, "无效的课时号", response.NullObject)
+		return err
+	}
+	go lcmessage.SendCourseChapterCompleteMsg(recordId, chapterId)
+
+	err = trade.HandleCourseEarning(recordId, period)
 	if err != nil {
 		*resp = NewRpcResponse(2, "交易失败", response.NullObject)
 		return err

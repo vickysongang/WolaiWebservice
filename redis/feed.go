@@ -184,6 +184,9 @@ func GetFeedLikeList(feedId string) []models.User {
 		str := userStrs[i]
 		userId, _ := strconv.ParseInt(str, 10, 64)
 		user, _ := models.ReadUser(userId)
+		if user == nil {
+			continue
+		}
 		users[i] = *(user)
 	}
 

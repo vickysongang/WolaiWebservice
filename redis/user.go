@@ -78,3 +78,11 @@ func GetUserInstallation(userId int64) (
 
 	return objectId, deviceType, deviceToken, installationId
 }
+
+func HasUserObjectId(userId int64) bool {
+	objectId := GetUserObjectId(userId)
+	if objectId == "" {
+		return false
+	}
+	return true
+}

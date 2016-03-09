@@ -1,13 +1,65 @@
 package pingxx
 
 import (
+	"errors"
+	"sync"
+	"time"
+
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/service/trade"
+
+	seelog "github.com/cihub/seelog"
 )
 
-func ChargeSuccessEvent(chargeId string) {
+type PingxxWebhookManager struct {
+	chargeMap map[string]int64
+	lock      sync.RWMutex
+}
+
+var ErrChargeNotFound = errors.New("Charge is not found")
+
+var WebhookManager *PingxxWebhookManager
+
+func NewPingxxWebhookManager() *PingxxWebhookManager {
+	manager := PingxxWebhookManager{
+		chargeMap: make(map[string]int64),
+	}
+	return &manager
+}
+
+func init() {
+	WebhookManager = NewPingxxWebhookManager()
+}
+
+func (pwm *PingxxWebhookManager) SetChargeOnline(chargeId string) int64 {
+	_, ok := pwm.chargeMap[chargeId]
+	if ok {
+		return -1
+	}
+	pwm.lock.Lock()
+	defer pwm.lock.Unlock()
+	pwm.chargeMap[chargeId] = time.Now().Unix()
+	seelog.Debug("Pingxx webhook | SetChargeOnline:", chargeId)
+	return 0
+}
+
+func (pwm *PingxxWebhookManager) IsChargeOnline(chargeId string) bool {
+	_, ok := pwm.chargeMap[chargeId]
+	seelog.Debug("Pingxx webhook | IsChargeOnline:", chargeId, " ", ok)
+	return ok
+}
+
+func (pwm *PingxxWebhookManager) ChargeSuccessEvent(chargeId string) {
+	if !pwm.IsChargeOnline(chargeId) {
+		state := pwm.SetChargeOnline(chargeId)
+		if state == -1 {
+			return
+		}
+	} else {
+		return
+	}
 	var err error
 
 	recordInfo := map[string]interface{}{
@@ -20,7 +72,7 @@ func ChargeSuccessEvent(chargeId string) {
 		return
 	}
 
-	if checkChargeSuccessExist(record) {
+	if pwm.checkChargeSuccessExist(record) {
 		return
 	}
 
@@ -31,17 +83,15 @@ func ChargeSuccessEvent(chargeId string) {
 	}
 }
 
-func RefundSuccessEvent(chargeId string, refundId string) {
+func (pwm *PingxxWebhookManager) RefundSuccessEvent(chargeId string, refundId string) {
 	recordInfo := map[string]interface{}{
 		"Result":   "success",
 		"RefundId": refundId,
 	}
 	models.UpdatePingppRecord(chargeId, recordInfo)
-	//record, _ := models.QueryPingppRecordByChargeId(chargeId)
-	//_ = models.QueryUserByPhone(record.Phone)
 }
 
-func checkChargeSuccessExist(record *models.PingppRecord) bool {
+func (pwm *PingxxWebhookManager) checkChargeSuccessExist(record *models.PingppRecord) bool {
 	o := orm.NewOrm()
 
 	exist := o.QueryTable(new(models.TradeRecord).TableName()).

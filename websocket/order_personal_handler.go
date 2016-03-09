@@ -25,7 +25,6 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
 	orderInfo := GetOrderInfo(orderId)
-	//studentId := order.Creator
 
 	var orderLifespan int64
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
@@ -52,11 +51,11 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 
 		case msg, ok := <-orderChan:
 			if ok {
-				userChan := WsManager.GetUserChan(msg.UserId)
+				userChan := UserManager.GetUserChan(msg.UserId)
 
 				switch msg.OperationCode {
 				case WS_ORDER2_CANCEL:
-					cancelResp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_CANCEL_RESP)
+					cancelResp := NewWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_CANCEL_RESP)
 					cancelResp.Attribute["errCode"] = "0"
 					cancelResp.Attribute["orderId"] = orderIdStr
 					userChan <- cancelResp
@@ -68,9 +67,9 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					return
 
 				case WS_ORDER2_PERSONAL_REPLY:
-					resp := NewPOIWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
+					resp := NewWSMessage(msg.MessageId, msg.UserId, WS_ORDER2_PERSONAL_REPLY_RESP)
 					resp.Attribute["orderId"] = orderIdStr
-					if WsManager.HasSessionWithOther(order.Creator) {
+					if UserManager.IsUserBusyInSession(order.Creator) {
 						resp.Attribute["errCode"] = "2"
 						resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
 						userChan <- resp
@@ -80,7 +79,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						return
 					}
 
-					if WsManager.HasSessionWithOther(msg.UserId) {
+					if UserManager.IsUserBusyInSession(msg.UserId) {
 						resp.Attribute["errCode"] = "2"
 						resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
 						userChan <- resp
@@ -92,7 +91,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					resp.Attribute["errCode"] = "0"
 					userChan <- resp
 
-					resultMsg := NewPOIWSMessage("", msg.UserId, WS_ORDER2_RESULT)
+					resultMsg := NewWSMessage("", msg.UserId, WS_ORDER2_RESULT)
 					resultMsg.Attribute["orderId"] = orderIdStr
 					resultMsg.Attribute["status"] = "0"
 					resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
@@ -103,14 +102,14 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						teacher, _ := models.ReadUser(msg.UserId)
 						teacherByte, _ := json.Marshal(teacher)
 
-						acceptMsg := NewPOIWSMessage("", order.Creator, WS_ORDER2_PERSONAL_REPLY)
+						acceptMsg := NewWSMessage("", order.Creator, WS_ORDER2_PERSONAL_REPLY)
 						acceptMsg.Attribute["orderId"] = orderIdStr
 						acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 						acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
 						acceptMsg.Attribute["title"] = orderInfo.Title
 
-						if WsManager.HasUserChan(order.Creator) {
-							creatorChan := WsManager.GetUserChan(order.Creator)
+						if UserManager.HasUserChan(order.Creator) {
+							creatorChan := UserManager.GetUserChan(order.Creator)
 							creatorChan <- acceptMsg
 						} else {
 							push.PushOrderAccept(order.Creator, orderId, msg.UserId)
@@ -123,13 +122,19 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 
 					seelog.Debug("orderHandler|orderReply: ", orderId)
 					return
+				case SIGNAL_ORDER_QUIT:
+					seelog.Debug("End Order Goroutine By Signal | personalOrderHandler:", orderId)
+					return
 				}
+			} else {
+				seelog.Debug("End Order Goroutine | personalOrderHandler:", orderId)
+				return
 			}
 		}
 	}
 }
 
-func checkOrderValidation(orderId int64) (int64, error) {
+func CheckOrderValidation(orderId int64) (int64, error) {
 	if OrderManager.IsOrderOnline(orderId) {
 		return 0, nil
 	}
@@ -162,26 +167,26 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
 		go lcmessage.SendOrderPersonalNotification(orderId, teacherId)
 
-		if WsManager.HasUserChan(teacherId) &&
-			!WsManager.HasSessionWithOther(teacherId) {
-			teacherChan := WsManager.GetUserChan(teacherId)
-			orderMsg := NewPOIWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
+		if UserManager.HasUserChan(teacherId) &&
+			!UserManager.IsUserBusyInSession(teacherId) {
+			teacherChan := UserManager.GetUserChan(teacherId)
+			orderMsg := NewWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
 			orderMsg.Attribute["orderInfo"] = string(orderByte)
 			teacherChan <- orderMsg
-		} else if !WsManager.HasUserChan(teacherId) {
+		} else if !UserManager.HasUserChan(teacherId) {
 			push.PushNewOrderDispatch(teacherId, orderId)
 		}
 
 	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 		go lcmessage.SendOrderCourseNotification(orderId, teacherId)
-		if !WsManager.HasUserChan(teacherId) {
+		if !UserManager.HasUserChan(teacherId) {
 			push.PushNewOrderDispatch(teacherId, orderId)
 		}
 	}
 
-	if !WsManager.HasUserChan(teacherId) {
+	if !UserManager.HasUserChan(teacherId) {
 		go lcmessage.SendOrderPersonalTutorOfflineMsg(orderId)
-	} else if WsManager.HasSessionWithOther(teacherId) {
+	} else if UserManager.IsUserBusyInSession(teacherId) {
 		go lcmessage.SendOrderPersonalTutorBusyMsg(orderId)
 	}
 

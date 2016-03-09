@@ -1,7 +1,6 @@
 package user
 
 import (
-	"WolaiWebservice/models"
 	userService "WolaiWebservice/service/user"
 	"WolaiWebservice/websocket"
 )
@@ -55,7 +54,7 @@ func GetTeacherRecommendation(userId, page, count int64) (int64, error, []*UserL
 
 	result := make([]*UserListItem, 0)
 
-	onlineTeacherIds := websocket.WsManager.GetOnlineTeachers()
+	onlineTeacherIds := websocket.UserManager.GetOnlineTeachers()
 	teacherIds, err := userService.QueryTeacherRecommendationExcludeOnline(userId, page, count, onlineTeacherIds)
 	if err != nil {
 		return 0, nil, result
@@ -85,27 +84,21 @@ func GetContactRecommendation(userId, page, count int64) (int64, error, []*UserL
 	result := make([]*UserListItem, 0)
 
 	// 如果是第一页，加入我来团队和助教
+	assistants, err := userService.QueryAssistants()
 	if page == 0 {
-		wolaiItem, err := AssembleUserListItem(models.USER_WOLAI_SUPPORT)
 		if err == nil {
-			result = append(result, wolaiItem)
-		}
-
-		assistants, err := userService.QueryUserByAccessRight(models.USER_ACCESSRIGHT_ASSISTANT, 0, 10)
-		if err == nil {
-			for _, assistant := range assistants {
-				assistItem, err := AssembleUserListItem(assistant.Id)
+			for _, userId := range assistants {
+				assistItem, err := AssembleUserListItem(userId)
 				if err != nil {
 					continue
 				}
-
 				result = append(result, assistItem)
 			}
 		}
 
 	}
 
-	teacherIds, err := userService.QueryTeacherRecommendation(userId, page, count)
+	teacherIds, err := userService.QueryTeacherRecommendation(userId, assistants, page, count)
 	if err != nil {
 		return 0, nil, result
 	}

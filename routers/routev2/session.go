@@ -138,4 +138,14 @@ var sessionRoutes = route.Routes{
 		true,
 		true,
 	},
+
+	// 6.5.3 老师暂停计时功能和学生主动功能都会调这个接口检查对方是否版本足够高
+	route.Route{
+		"SessionTutorPauseValidateTargetVersion",
+		"POST",
+		"/tutor/pause/validate",
+		handlerv2.SessionTutorPauseValidateTargetVersion,
+		true,
+		true,
+	},
 }

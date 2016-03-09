@@ -18,6 +18,7 @@ type TeacherProfile struct {
 	TierId       int64  `json:"tierId" orm:"column(tier_id)"`
 	PriceHourly  int64  `json:"-" orm:"column(price_hourly)"`
 	SalaryHourly int64  `json:"-" orm:"column(salary_hourly)"`
+	CertifyFlag  string `json:"certifyFlag"`
 }
 
 func init() {
@@ -45,10 +46,7 @@ func ReadTeacherProfile(userId int64) (*TeacherProfile, error) {
 
 func UpdateTeacherServiceTime(userId int64, length int64) {
 	o := orm.NewOrm()
-	_, err := o.QueryTable("teacher_profile").Filter("user_id", userId).Update(orm.Params{
-		"service_time": orm.ColValue(orm.Col_Add, length),
+	o.QueryTable("teacher_profile").Filter("user_id", userId).Update(orm.Params{
+		"service_time": orm.ColValue(orm.ColAdd, length),
 	})
-	if err != nil {
-		//seelog.Error("userId:", userId, " length:", length, " ", err.Error())
-	}
 }

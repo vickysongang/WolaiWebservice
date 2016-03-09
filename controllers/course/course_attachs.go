@@ -7,28 +7,34 @@ import (
 )
 
 type attachInfo struct {
-	models.CourseChapterAttach
+	*models.CourseChapterAttach
 	AttachPics []*models.CourseChapterAttachPic `json:"attachPics"`
 }
 
 type chapterAttachInfo struct {
-	models.CourseChapter
+	models.CourseCustomChapter
 	AttachList []*attachInfo `json:"attachInfo"`
 }
 
 func GetCourseAttachs(courseId int64) (int64, []*chapterAttachInfo) {
 	o := orm.NewOrm()
 
-	var courseChapters []*models.CourseChapter
-	_, err := o.QueryTable("course_chapter").Filter("course_id", courseId).OrderBy("period").All(&courseChapters)
+	var courseCustomChapters []*models.CourseCustomChapter
+	_, err := o.QueryTable("course_custom_chapter").
+		Filter("rel_id", courseId).
+		All(&courseCustomChapters)
 	if err != nil {
 		return 2, nil
 	}
 
 	infos := make([]*chapterAttachInfo, 0)
-	for _, courseChapter := range courseChapters {
-		var courseChapterAttach models.CourseChapterAttach
-		err := o.QueryTable("course_chapter_attach").Filter("chapter_id", courseChapter.Id).One(&courseChapterAttach)
+	for _, courseChapter := range courseCustomChapters {
+
+		if courseChapter.AttachId == 0 {
+			continue
+		}
+
+		courseChapterAttach, err := models.ReadCourseChapterAttach(courseChapter.AttachId)
 		if err != nil {
 			continue
 		}
@@ -48,8 +54,8 @@ func GetCourseAttachs(courseId int64) (int64, []*chapterAttachInfo) {
 		aInfos = append(aInfos, &aInfo)
 
 		cInfo := chapterAttachInfo{
-			CourseChapter: *courseChapter,
-			AttachList:    aInfos,
+			CourseCustomChapter: *courseChapter,
+			AttachList:          aInfos,
 		}
 
 		infos = append(infos, &cInfo)
@@ -61,13 +67,16 @@ func GetCourseAttachs(courseId int64) (int64, []*chapterAttachInfo) {
 func GetCourseChapterAttachs(chapterId int64) (int64, *chapterAttachInfo) {
 	o := orm.NewOrm()
 
-	courseChapter, err := models.ReadCourseChapter(chapterId)
+	courseChapter, err := models.ReadCourseCustomChapter(chapterId)
 	if err != nil {
 		return 2, nil
 	}
 
-	var courseChapterAttach models.CourseChapterAttach
-	err = o.QueryTable("course_chapter_attach").Filter("chapter_id", courseChapter.Id).One(&courseChapterAttach)
+	if courseChapter.AttachId == 0 {
+		return 2, nil
+	}
+
+	courseChapterAttach, err := models.ReadCourseChapterAttach(courseChapter.AttachId)
 	if err != nil {
 		return 2, nil
 	}
@@ -87,8 +96,8 @@ func GetCourseChapterAttachs(chapterId int64) (int64, *chapterAttachInfo) {
 	aInfos = append(aInfos, &aInfo)
 
 	cInfo := chapterAttachInfo{
-		CourseChapter: *courseChapter,
-		AttachList:    aInfos,
+		CourseCustomChapter: *courseChapter,
+		AttachList:          aInfos,
 	}
 
 	return 0, &cInfo

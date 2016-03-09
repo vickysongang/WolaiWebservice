@@ -55,7 +55,7 @@ func addUserBalance(userId int64, amount int64) error {
 	o := orm.NewOrm()
 
 	_, err := o.QueryTable("users").Filter("id", userId).Update(orm.Params{
-		"balance": orm.ColValue(orm.Col_Add, amount),
+		"balance": orm.ColValue(orm.ColAdd, amount),
 	})
 
 	return err
@@ -68,7 +68,7 @@ func minusUserBalance(userId int64, amount int64) error {
 	o := orm.NewOrm()
 
 	_, err := o.QueryTable("users").Filter("id", userId).Update(orm.Params{
-		"balance": orm.ColValue(orm.Col_Minus, amount),
+		"balance": orm.ColValue(orm.ColMinus, amount),
 	})
 
 	return err

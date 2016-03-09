@@ -1,3 +1,4 @@
+// course_custom_chapter
 package models
 
 import (
@@ -6,28 +7,31 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type CourseChapter struct {
+type CourseCustomChapter struct {
 	Id         int64     `json:"id" orm:"pk"`
 	CourseId   int64     `json:"courseId"`
 	Title      string    `json:"title"`
 	Abstract   string    `json:"brief"`
 	Period     int64     `json:"period"`
+	UserId     int64     `json:"userId"`
+	TeacherId  int64     `json:"teacherId"`
 	CreateTime time.Time `json:"-" orm:"type(datetime);auto_now_add"`
 	AttachId   int64     `json:"attachId"`
+	RelId      int64     `json:"relId"`
 }
 
 func init() {
-	orm.RegisterModel(new(CourseChapter))
+	orm.RegisterModel(new(CourseCustomChapter))
 }
 
-func (cc *CourseChapter) TableName() string {
-	return "course_chapter"
+func (cc *CourseCustomChapter) TableName() string {
+	return "course_custom_chapter"
 }
 
-func ReadCourseChapter(chapterId int64) (*CourseChapter, error) {
+func ReadCourseCustomChapter(chapterId int64) (*CourseCustomChapter, error) {
 	o := orm.NewOrm()
 
-	chapter := CourseChapter{Id: chapterId}
+	chapter := CourseCustomChapter{Id: chapterId}
 	err := o.Read(&chapter)
 	if err != nil {
 		return nil, err

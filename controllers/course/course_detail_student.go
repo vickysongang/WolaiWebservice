@@ -15,19 +15,21 @@ type teacherItem struct {
 	AccessRight  int64    `json:"accessRight"`
 	School       string   `json:"school"`
 	Major        string   `json:"major"`
+	Intro        string   `json:"intro"`
 	SubjectList  []string `json:"subjectList,omitempty"`
 	OnlineStatus string   `json:"onlineStatus,omitempty"`
 }
 
 type courseDetailStudent struct {
 	models.Course
-	StudentCount           int64                  `json:"studentCount"`
-	ChapterCount           int64                  `json:"chapterCount"`
-	AuditionStatus         string                 `json:"auditionStatus"`
-	PurchaseStatus         string                 `json:"purchaseStatus"`
-	ChapterCompletedPeriod int64                  `json:"chapterCompletePeriod"`
-	ChapterList            []*courseChapterStatus `json:"chapterList"`
-	TeacherList            []*teacherItem         `json:"teacherList"`
+	StudentCount           int64                       `json:"studentCount"`
+	ChapterCount           int64                       `json:"chapterCount"`
+	AuditionStatus         string                      `json:"auditionStatus"`
+	PurchaseStatus         string                      `json:"purchaseStatus"`
+	ChapterCompletedPeriod int64                       `json:"chapterCompletePeriod"`
+	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
+	ChapterList            []*courseChapterStatus      `json:"chapterList"`
+	TeacherList            []*teacherItem              `json:"teacherList"`
 }
 
 func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailStudent) {
@@ -40,13 +42,16 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 
 	studentCount := queryCourseStudentCount(courseId)
 
-	chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", courseId).Count()
+	chapterCount := queryCourseChapterCount(courseId)
 
 	detail := courseDetailStudent{
 		Course:       *course,
 		StudentCount: studentCount,
 		ChapterCount: chapterCount - 1,
 	}
+
+	characteristicList, _ := queryCourseContentIntros(courseId)
+	detail.CharacteristicList = characteristicList
 
 	var purchaseRecord models.CoursePurchaseRecord
 	err = o.QueryTable("course_purchase_record").Filter("user_id", userId).Filter("course_id", courseId).
@@ -55,22 +60,27 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 		return 2, nil
 	}
 
-	purchaseFlag := (err != orm.ErrNoRows)
+	purchaseFlag := (err != orm.ErrNoRows) //判断是否购买或者试听
 	if !purchaseFlag {
 		detail.AuditionStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.TeacherList, _ = queryCourseTeacherList(courseId)
+		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0)
 	} else {
 		detail.AuditionStatus = purchaseRecord.AuditionStatus
 		detail.PurchaseStatus = purchaseRecord.PurchaseStatus
 		detail.TeacherList, _ = queryCourseCurrentTeacher(purchaseRecord.TeacherId)
-	}
 
-	detail.ChapterCompletedPeriod, err = queryLatestCourseChapterPeriod(courseId, userId)
-	if err != nil {
-		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod)
-	} else {
-		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod+1)
+		if purchaseRecord.TeacherId == 0 {
+			detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0)
+		} else {
+			detail.ChapterCompletedPeriod, err = queryLatestCourseChapterPeriod(courseId, userId)
+			if err != nil {
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, userId, purchaseRecord.TeacherId)
+			} else {
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, userId, purchaseRecord.TeacherId)
+			}
+		}
 	}
 
 	return 0, &detail
@@ -104,6 +114,7 @@ func queryCourseTeacherList(courseId int64) ([]*teacherItem, error) {
 			Gender:       user.Gender,
 			AccessRight:  user.AccessRight,
 			School:       school.Name,
+			Intro:        profile.Intro,
 			SubjectList:  subjectNames,
 			OnlineStatus: "online",
 		}
@@ -135,6 +146,7 @@ func queryCourseCurrentTeacher(teacherId int64) ([]*teacherItem, error) {
 		Gender:       user.Gender,
 		AccessRight:  user.AccessRight,
 		School:       school.Name,
+		Intro:        profile.Intro,
 		SubjectList:  subjectNames,
 		OnlineStatus: "online",
 	}

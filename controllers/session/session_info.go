@@ -55,8 +55,7 @@ func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
 	}
 
 	var isCourse bool
-	if order.Type == models.ORDER_TYPE_COURSE_APPOINTMENT ||
-		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 		isCourse = true
 	}
 

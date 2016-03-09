@@ -64,3 +64,18 @@ func QueryUserByAccessRight(accessRight, page, count int64) ([]*models.User, err
 
 	return users, nil
 }
+
+func QueryAssistants() ([]int64, error) {
+	var err error
+	o := orm.NewOrm()
+	var teacherProfiles []models.TeacherProfile
+	_, err = o.QueryTable(new(models.TeacherProfile).TableName()).Filter("certify_flag", "Y").OrderBy("user_id").
+		All(&teacherProfiles, "UserId")
+	userIds := make([]int64, 0)
+	if err == nil {
+		for _, profile := range teacherProfiles {
+			userIds = append(userIds, profile.UserId)
+		}
+	}
+	return userIds, err
+}

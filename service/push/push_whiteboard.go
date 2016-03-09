@@ -2,6 +2,7 @@ package push
 
 import (
 	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 	"WolaiWebservice/utils/apnsprovider"
 	"WolaiWebservice/utils/leancloud/lcpush"
 )
@@ -23,12 +24,12 @@ func PushWhiteboardCall(userId, callerId int64) error {
 	if err != nil {
 		return err
 	}
-
-	if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-		apnsprovider.PushWhiteboardCall(userDevice.DeviceToken, userDevice.DeviceProfile, callerId)
-	} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
-		lcpush.PushWhiteboardCall(userDevice.ObjectId, callerId)
+	if redis.HasUserObjectId(userId) {
+		if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
+			apnsprovider.PushWhiteboardCall(userDevice.DeviceToken, userDevice.DeviceProfile, callerId)
+		} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
+			lcpush.PushWhiteboardCall(userDevice.ObjectId, callerId)
+		}
 	}
-
 	return nil
 }

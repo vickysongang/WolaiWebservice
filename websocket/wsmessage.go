@@ -6,7 +6,7 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-type POIWSMessage struct {
+type WSMessage struct {
 	MessageId     string            `json:"msgId"`
 	UserId        int64             `json:"userId"`
 	OperationCode int64             `json:"oprCode"`
@@ -15,7 +15,9 @@ type POIWSMessage struct {
 }
 
 const (
-	WS_FORCE_QUIT = -1
+	WS_FORCE_QUIT       = -1
+	SIGNAL_ORDER_QUIT   = -2
+	SIGNAL_SESSION_QUIT = -3
 
 	WS_PING = 0
 	WS_PONG = 1
@@ -51,25 +53,25 @@ const (
 	// WS_ORDER_RECOVER_STU          = 121
 	// WS_ORDER_RECOVER_TEACHER      = 122
 
-	WS_SESSION_ALERT                   = 201
-	WS_SESSION_ALERT_RESP              = 202
-	WS_SESSION_START                   = 203
-	WS_SESSION_START_RESP              = 204
-	WS_SESSION_ACCEPT                  = 205
-	WS_SESSION_ACCEPT_RESP             = 206
-	WS_SESSION_PAUSE                   = 207
-	WS_SESSION_PAUSE_RESP              = 208
-	WS_SESSION_RESUME                  = 209
-	WS_SESSION_RESUME_RESP             = 210
-	WS_SESSION_FINISH                  = 211
-	WS_SESSION_FINISH_RESP             = 212
-	WS_SESSION_BREAK                   = 213
-	WS_SESSION_BREAK_RESP              = 214
-	WS_SESSION_SYNC                    = 215
-	WS_SESSION_EXPIRE                  = 217
-	WS_SESSION_EXPIRE_RESP             = 218
-	WS_SESSION_CANCEL                  = 219
-	WS_SESSION_CANCEL_RESP             = 220
+	//	WS_SESSION_ALERT                   = 201
+	//	WS_SESSION_ALERT_RESP              = 202
+	//	WS_SESSION_START                   = 203
+	//	WS_SESSION_START_RESP              = 204
+	//	WS_SESSION_ACCEPT                  = 205
+	//	WS_SESSION_ACCEPT_RESP             = 206
+	WS_SESSION_PAUSE       = 207
+	WS_SESSION_PAUSE_RESP  = 208
+	WS_SESSION_RESUME      = 209
+	WS_SESSION_RESUME_RESP = 210
+	WS_SESSION_FINISH      = 211
+	WS_SESSION_FINISH_RESP = 212
+	WS_SESSION_BREAK       = 213
+	WS_SESSION_BREAK_RESP  = 214
+	WS_SESSION_SYNC        = 215
+	WS_SESSION_EXPIRE      = 217
+	WS_SESSION_EXPIRE_RESP = 218
+	//	WS_SESSION_CANCEL                  = 219
+	//	WS_SESSION_CANCEL_RESP             = 220
 	WS_SESSION_RECOVER_STU             = 221
 	WS_SESSION_RECOVER_TEACHER         = 222
 	WS_SESSION_INSTANT_ALERT           = 223
@@ -80,7 +82,16 @@ const (
 	WS_SESSION_RESUME_ACCEPT_RESP      = 230
 	WS_SESSION_BREAK_RECONNECT_SUCCESS = 231
 	WS_SESSION_STATUS_SYNC             = 233
-	WS_SESSION_REPORT                  = 251
+
+	WS_SESSION_ASK_FINISH             = 235 // 学生C端主动发起结束，S收到后回复WS_SESSION_ASK_FINISH_RESP，并向老师C端发WS_SESSION_ASK_FINISH
+	WS_SESSION_ASK_FINISH_RESP        = 236
+	WS_SESSION_ASK_FINISH_REJECT      = 237 // 老师C端拒绝下课请求，S端收到后向学生C端再发WS_SESSION_ASK_FINISH_REJECT，并且回复老师WS_SESSION_ASK_FINISH_REJECT_RESP；如果同意C端发WS_SESSION_FINISH
+	WS_SESSION_ASK_FINISH_REJECT_RESP = 238
+
+	WS_SESSION_CONTINUE      = 239 //老师C端从主动暂停中点击恢复，直接开始重新计时
+	WS_SESSION_CONTINUE_RESP = 240
+
+	WS_SESSION_REPORT = 251
 
 	WS_ORDER2_TEACHER_ONLINE         = 131
 	WS_ORDER2_TEACHER_ONLINE_RESP    = 132
@@ -114,14 +125,14 @@ const (
 	WS_ORDER2_PERSONAL_CHECK_RESP    = 164
 	WS_ORDER2_PERSONAL_REPLY         = 165
 	WS_ORDER2_PERSONAL_REPLY_RESP    = 166
-	WS_ORDER2_PERSONAL_CANCEL        = 167
-	WS_ORDER2_PERSONAL_CANCEL_RESP   = 168
-	WS_ORDER2_RECOVER_DISPATCH       = 171
-	WS_ORDER2_RECOVER_ASSIGN         = 173
-	WS_ORDER2_RECOVER_CREATE         = 175
+	//	WS_ORDER2_PERSONAL_CANCEL        = 167
+	//	WS_ORDER2_PERSONAL_CANCEL_RESP   = 168
+	WS_ORDER2_RECOVER_DISPATCH = 171
+	WS_ORDER2_RECOVER_ASSIGN   = 173
+	WS_ORDER2_RECOVER_CREATE   = 175
 )
 
-func NewPOIWSMessage(msgId string, userId int64, oprCode int64) POIWSMessage {
+func NewWSMessage(msgId string, userId int64, oprCode int64) WSMessage {
 	timestampNano := time.Now().UnixNano()
 	timestampMillis := timestampNano / 1000
 	timestamp := float64(timestampMillis) / 1000000.0
@@ -129,7 +140,7 @@ func NewPOIWSMessage(msgId string, userId int64, oprCode int64) POIWSMessage {
 	if msgId == "" {
 		msgId = uuid.NewV4().String()
 	}
-	return POIWSMessage{
+	return WSMessage{
 		MessageId:     msgId,
 		UserId:        userId,
 		OperationCode: oprCode,

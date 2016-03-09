@@ -149,4 +149,24 @@ var courseRoutes = route.Routes{
 		true,
 		true,
 	},
+
+	// 9.6.1
+	route.Route{
+		"CourseCountOfConversation",
+		"POST",
+		"/conversation/count",
+		handlerv2.CourseCountOfConversation,
+		true,
+		true,
+	},
+
+	// 9.6.2
+	route.Route{
+		"CourseListStudentOfConversation",
+		"POST",
+		"/conversation/user/list",
+		handlerv2.CourseListStudentOfConversation,
+		true,
+		true,
+	},
 }

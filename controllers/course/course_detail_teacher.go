@@ -8,11 +8,12 @@ import (
 
 type courseDetailTeacher struct {
 	models.Course
-	StudentCount           int64                  `json:"studentCount"`
-	ChapterCount           int64                  `json:"chapterCount"`
-	ChapterCompletedPeriod int64                  `json:"chapterCompletePeriod"`
-	ChapterList            []*courseChapterStatus `json:"chapterList"`
-	StudentList            []*models.User         `json:"studentList"`
+	StudentCount           int64                       `json:"studentCount"`
+	ChapterCount           int64                       `json:"chapterCount"`
+	ChapterCompletedPeriod int64                       `json:"chapterCompletePeriod"`
+	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
+	ChapterList            []*courseChapterStatus      `json:"chapterList"`
+	StudentList            []*models.User              `json:"studentList"`
 }
 
 func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeacher) {
@@ -33,14 +34,20 @@ func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeac
 	detail := courseDetailTeacher{
 		Course: *course,
 	}
+
+	characteristicList, _ := queryCourseContentIntros(courseId)
+	detail.CharacteristicList = characteristicList
+
 	detail.StudentCount = queryCourseStudentCount(courseId)
-	chapterCount, _ := o.QueryTable("course_chapter").Filter("course_id", courseId).Count()
+	chapterCount := queryCourseChapterCount(courseId)
+
 	detail.ChapterCount = chapterCount - 1
+
 	detail.ChapterCompletedPeriod, err = queryLatestCourseChapterPeriod(courseId, studentId)
 	if err != nil {
-		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, studentId, purchaseRecord.TeacherId)
 	} else {
-		detail.ChapterList, _ = queryCourseChapterStatus(courseId, detail.ChapterCompletedPeriod+1)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, studentId, purchaseRecord.TeacherId)
 	}
 
 	studentList := make([]*models.User, 0)

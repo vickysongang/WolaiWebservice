@@ -59,7 +59,7 @@ func SendOrderCourseNotification(orderId int64, teacherId int64) {
 		return
 	}
 
-	chapter, err := models.ReadCourseChapter(order.ChapterId)
+	chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
 	if err != nil {
 		return
 	}

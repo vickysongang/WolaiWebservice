@@ -7,7 +7,6 @@ import (
 	"WolaiWebservice/models"
 )
 
-////////////////////////////////////////////////////////////////////////////////
 type courseChapterStatus struct {
 	models.CourseChapter
 	Status string `json:"status"`
@@ -48,11 +47,61 @@ func queryCourseChapterStatus(courseId int64, current int64) ([]*courseChapterSt
 	return statusList, nil
 }
 
-////////////////////////////////////////////////////////////////////////////////
+func queryCourseCustomChapterStatus(courseId int64, current int64, userId int64, teacherId int64) ([]*courseChapterStatus, error) {
+	o := orm.NewOrm()
+
+	var courseCustomChapters []*models.CourseCustomChapter
+	count, err := o.QueryTable("course_custom_chapter").
+		Filter("course_id", courseId).
+		Filter("user_id", userId).
+		Filter("teacher_id", teacherId).
+		OrderBy("period").All(&courseCustomChapters)
+	if err != nil {
+		return make([]*courseChapterStatus, 0), err
+	}
+	var courseChapters []*models.CourseChapter
+	for _, courseCustomChapter := range courseCustomChapters {
+		courseChapter := models.CourseChapter{}
+		courseChapter.Id = courseCustomChapter.Id
+		courseChapter.Abstract = courseCustomChapter.Abstract
+		courseChapter.AttachId = courseCustomChapter.AttachId
+		courseChapter.CourseId = courseCustomChapter.CourseId
+		courseChapter.CreateTime = courseCustomChapter.CreateTime
+		courseChapter.Period = courseCustomChapter.Period
+		courseChapter.Title = courseCustomChapter.Title
+		courseChapters = append(courseChapters, &courseChapter)
+	}
+
+	statusList := make([]*courseChapterStatus, count)
+	for i, chapter := range courseChapters {
+		status := courseChapterStatus{
+			CourseChapter: *chapter,
+		}
+
+		if chapter.Period < current {
+			status.Status = COURSE_CHAPTER_STATUS_COMPLETE
+		} else if chapter.Period == current {
+			status.Status = COURSE_CHAPTER_STATUS_CURRENT
+		} else {
+			status.Status = COURSE_CHAPTER_STATUS_IDLE
+		}
+
+		statusList[i] = &status
+	}
+
+	return statusList, nil
+}
+
 //查询课程在学的学生数,此处的判断逻辑为只要学生购买了该课程，就认为学生在学该课程
 func queryCourseStudentCount(courseId int64) int64 {
 	o := orm.NewOrm()
 	count, _ := o.QueryTable("course_purchase_record").Filter("course_id", courseId).Count()
+	return count
+}
+
+func queryCourseChapterCount(courseId int64) int64 {
+	o := orm.NewOrm()
+	count, _ := o.QueryTable("course_chapter").Filter("course_id", courseId).Count()
 	return count
 }
 
@@ -83,4 +132,9 @@ func queryLatestCourseChapterPeriod(courseId, userId int64) (int64, error) {
 	return period, err
 }
 
-////////////////////////////////////////////////////////////////////////////////
+func queryCourseContentIntros(courseId int64) ([]models.CourseContentIntro, error) {
+	o := orm.NewOrm()
+	intros := make([]models.CourseContentIntro, 0)
+	_, err := o.QueryTable(new(models.CourseContentIntro).TableName()).Filter("course_id", courseId).OrderBy("rank").All(&intros)
+	return intros, err
+}

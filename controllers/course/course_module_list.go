@@ -39,8 +39,8 @@ func GetCourseModuleList(moduleType, page, count int64) (int64, []*courseItem) {
 			ImgLongCover: course.ImgLongCover,
 		}
 
-		count, _ := o.QueryTable("course_chapter").Filter("course_id", courseModule.CourseId).Count()
-		item.ChapterCount = count - 1
+		chapterCount := queryCourseChapterCount(courseModule.CourseId)
+		item.ChapterCount = chapterCount - 1
 		item.StudentCount = queryCourseStudentCount(course.Id)
 
 		courses = append(courses, &item)

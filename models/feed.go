@@ -224,6 +224,9 @@ func GetFeedLikeList(feedId string) []User {
 	users := make([]User, len(userIds))
 	for i := range userIds {
 		user, _ := ReadUser(userIds[i])
+		if user == nil {
+			continue
+		}
 		users[i] = *(user)
 	}
 	return users

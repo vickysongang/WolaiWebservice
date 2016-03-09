@@ -6,12 +6,10 @@ import (
 	"time"
 
 	"WolaiWebservice/controllers/message"
-	"WolaiWebservice/handlers"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 	"WolaiWebservice/utils/pingxx"
-	"WolaiWebservice/websocket"
 )
 
 type RpcWatcher struct {
@@ -86,30 +84,5 @@ func (watcher *RpcWatcher) GetUserConversation(request *RpcRequest, resp *RpcRes
 	} else {
 		*resp = NewRpcResponse(status, "", content)
 	}
-	return nil
-}
-
-func (watcher *RpcWatcher) GetUserMonitorInfo(request *RpcRequest, resp *RpcResponse) error {
-	users := handlers.NewPOIMonitorUsers()
-	for userId, timestamp := range websocket.WsManager.OnlineUserMap {
-		user, _ := models.ReadUser(userId)
-		locked := websocket.WsManager.HasSessionWithOther(userId)
-		if user.AccessRight == 2 {
-			users.OnlineTeachers = append(users.OnlineTeachers, handlers.POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
-		} else {
-			users.OnlineStudents = append(users.OnlineStudents, handlers.POIMonitorUser{User: user, LoginTime: timestamp, Locked: locked})
-		}
-	}
-	for _, teacherId := range websocket.TeacherManager.GetLiveTeachers() {
-		user, _ := models.ReadUser(teacherId)
-		locked := websocket.WsManager.HasSessionWithOther(teacherId)
-		users.LiveTeachers = append(users.LiveTeachers, handlers.POIMonitorUser{User: user, LoginTime: user.LastLoginTime.Unix(), Locked: locked})
-	}
-	for _, teacherId := range websocket.TeacherManager.GetAssignOnTeachers() {
-		user, _ := models.ReadUser(teacherId)
-		locked := websocket.WsManager.HasSessionWithOther(teacherId)
-		users.AssignOnTeachers = append(users.AssignOnTeachers, handlers.POIMonitorUser{User: user, LoginTime: user.LastLoginTime.Unix(), Locked: locked})
-	}
-	*resp = NewRpcResponse(0, "", users)
 	return nil
 }

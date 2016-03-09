@@ -22,6 +22,7 @@ const (
 
 	CONFIG_SESSION                  = "config:session"
 	CONFIG_KEY_SESSION_RECONN_LIMIT = "reconn_limit"
+	CONFIG_KEY_SESSION_EXPIRE_LIMIT = "expire_limit"
 
 	CONFIG_WEBSOCKET                 = "config:websocket"
 	CONFIG_KEY_WEBSOCKET_PING_PERIOD = "ping_period"
@@ -30,6 +31,10 @@ const (
 
 	CONFIG_TOKEN              = "config:token"
 	CONFIG_KEY_TOKEN_DURATION = "duration"
+
+	CONFIG_VERSION                         = "config:version"
+	CONFIG_KEY_VERSION_IOS_TUTOR_PAUSE     = "tutor_pause_ios"
+	CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE = "tutor_pause_android"
 )
 
 var defaultMap = map[string]map[string]string{
@@ -44,6 +49,7 @@ var defaultMap = map[string]map[string]string{
 	},
 	CONFIG_SESSION: map[string]string{
 		CONFIG_KEY_SESSION_RECONN_LIMIT: "30",
+		CONFIG_KEY_SESSION_EXPIRE_LIMIT: "300",
 	},
 	CONFIG_WEBSOCKET: map[string]string{
 		CONFIG_KEY_WEBSOCKET_PING_PERIOD: "5",
@@ -56,6 +62,10 @@ var defaultMap = map[string]map[string]string{
 	},
 	CONFIG_TOKEN: map[string]string{
 		CONFIG_KEY_TOKEN_DURATION: "2592000",
+	},
+	CONFIG_VERSION: map[string]string{
+		CONFIG_KEY_VERSION_IOS_TUTOR_PAUSE:     "543",
+		CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE: "122",
 	},
 }
 

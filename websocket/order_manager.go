@@ -2,25 +2,24 @@ package websocket
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"WolaiWebservice/models"
 )
 
-const (
-	ORDER_SIGNAL_QUIT = 1
-)
-
 type OrderStatus struct {
 	orderId         int64
 	orderInfo       *models.Order
-	orderChan       chan POIWSMessage
+	orderChan       chan WSMessage
 	orderSignalChan chan int64
 	onlineTimestamp int64
 	isDispatching   bool
 	currentAssign   int64
 	dispatchMap     map[int64]int64 //teacherId to timestamp
 	assignMap       map[int64]int64 //teacherId to timestamp
+	isLocked        bool            //用来控制是否被抢
+	lock            sync.RWMutex
 }
 
 type OrderStatusManager struct {
@@ -48,13 +47,14 @@ func NewOrderStatus(orderId int64) *OrderStatus {
 	orderStatus := OrderStatus{
 		orderId:         orderId,
 		orderInfo:       order,
-		orderChan:       make(chan POIWSMessage),
+		orderChan:       make(chan WSMessage, 1024),
 		orderSignalChan: make(chan int64),
 		onlineTimestamp: timestamp,
 		isDispatching:   false,
 		currentAssign:   -1,
 		dispatchMap:     make(map[int64]int64),
 		assignMap:       make(map[int64]int64),
+		isLocked:        false,
 	}
 
 	return &orderStatus
@@ -134,7 +134,7 @@ func (osm *OrderStatusManager) SetOffline(orderId int64) error {
 	return nil
 }
 
-func (osm *OrderStatusManager) GetOrderChan(orderId int64) (chan POIWSMessage, error) {
+func (osm *OrderStatusManager) GetOrderChan(orderId int64) (chan WSMessage, error) {
 	if !osm.IsOrderOnline(orderId) {
 		return nil, ErrOrderNotFound
 	}
@@ -290,4 +290,25 @@ func (osm *OrderStatusManager) HasOrderOnline(studentId, teacherId int64) bool {
 
 	_, ok := osm.personalOrderMap[studentId][teacherId]
 	return ok
+}
+
+func (osm *OrderStatusManager) IsOrderLocked(orderId int64) bool {
+	status, ok := osm.orderMap[orderId]
+	if !ok {
+		return false
+	}
+	status.lock.RLock()
+	defer status.lock.RUnlock()
+	return status.isLocked
+}
+
+func (osm *OrderStatusManager) SetOrderLocked(orderId int64, isLocked bool) error {
+	status, ok := osm.orderMap[orderId]
+	if !ok {
+		return ErrOrderNotFound
+	}
+	status.lock.Lock()
+	status.isLocked = isLocked
+	status.lock.Unlock()
+	return nil
 }

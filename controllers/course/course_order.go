@@ -33,8 +33,12 @@ func createCourseOrder(recordId int64) error {
 		currentPeriod = 0
 	}
 
-	var chapter models.CourseChapter
-	err = o.QueryTable("course_chapter").Filter("course_id", record.CourseId).Filter("period", currentPeriod).
+	var chapter models.CourseCustomChapter
+	err = o.QueryTable("course_custom_chapter").
+		Filter("course_id", record.CourseId).
+		Filter("user_id", record.UserId).
+		Filter("teacher_id", record.TeacherId).
+		Filter("period", currentPeriod).
 		One(&chapter)
 	if err != nil {
 		return errors.New("查找当前章节失败")
