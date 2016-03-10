@@ -185,6 +185,8 @@ func sessionHandler(sessionId int64) {
 					if UserManager.HasUserChan(msg.UserId) {
 						userChan := UserManager.GetUserChan(msg.UserId)
 						userChan <- finishResp
+					} else {
+						seelog.Debug("session finish: userChan closes | sessionHandler:", sessionId)
 					}
 					//向学生发送下课消息
 					finishMsg := NewWSMessage("", session.Creator, WS_SESSION_FINISH)
@@ -378,6 +380,8 @@ func sessionHandler(sessionId int64) {
 					if UserManager.HasUserChan(msg.UserId) {
 						userChan := UserManager.GetUserChan(msg.UserId)
 						userChan <- pauseResp
+					} else {
+						seelog.Debug("session pause: userChan closes | sessionHandler:", sessionId)
 					}
 
 					//计算课程时长，已计时长＋（暂停时间－上次同步时间）
@@ -439,6 +443,8 @@ func sessionHandler(sessionId int64) {
 					if UserManager.HasUserChan(msg.UserId) {
 						userChan := UserManager.GetUserChan(msg.UserId)
 						userChan <- resumeResp
+					} else {
+						seelog.Debug("session resume: userChan closes | sessionHandler:", sessionId)
 					}
 
 					//向学生发送恢复上课的消息
@@ -477,6 +483,8 @@ func sessionHandler(sessionId int64) {
 					if UserManager.HasUserChan(msg.UserId) {
 						userChan := UserManager.GetUserChan(msg.UserId)
 						userChan <- resCancelResp
+					} else {
+						seelog.Debug("session resume cancel: userChan closes | sessionHandler:", sessionId)
 					}
 
 					//向学生发送老师取消恢复上课的消息
@@ -529,6 +537,8 @@ func sessionHandler(sessionId int64) {
 					if UserManager.HasUserChan(msg.UserId) {
 						userChan := UserManager.GetUserChan(msg.UserId)
 						userChan <- resAcceptResp
+					} else {
+						seelog.Debug("session resume accept: userChan closes | sessionHandler:", sessionId)
 					}
 
 					//拨号停止
