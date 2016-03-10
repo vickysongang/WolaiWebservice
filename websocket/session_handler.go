@@ -165,7 +165,6 @@ func sessionHandler(sessionId int64) {
 				//重新设置当前时间
 				timestamp = time.Now().Unix()
 
-				userChan := UserManager.GetUserChan(msg.UserId)
 				session, _ = models.ReadSession(sessionId)
 				seelog.Debug("get session message :", sessionId, "operCode:", msg.OperationCode)
 				switch msg.OperationCode {
@@ -176,12 +175,17 @@ func sessionHandler(sessionId int64) {
 					if msg.UserId != session.Tutor {
 						finishResp.Attribute["errCode"] = "2"
 						finishResp.Attribute["errMsg"] = "You are not the teacher of this session"
-						userChan <- finishResp
+						if UserManager.HasUserChan(msg.UserId) {
+							userChan := UserManager.GetUserChan(msg.UserId)
+							userChan <- finishResp
+						}
 						break
 					}
 					finishResp.Attribute["errCode"] = "0"
-					userChan <- finishResp
-
+					if UserManager.HasUserChan(msg.UserId) {
+						userChan := UserManager.GetUserChan(msg.UserId)
+						userChan <- finishResp
+					}
 					//向学生发送下课消息
 					finishMsg := NewWSMessage("", session.Creator, WS_SESSION_FINISH)
 					finishMsg.Attribute["sessionId"] = sessionIdStr
@@ -364,11 +368,17 @@ func sessionHandler(sessionId int64) {
 						SessionManager.IsSessionBreaked(sessionId) ||
 						!SessionManager.IsSessionActived(sessionId) {
 						pauseResp.Attribute["errCode"] = "2"
-						userChan <- pauseResp
+						if UserManager.HasUserChan(msg.UserId) {
+							userChan := UserManager.GetUserChan(msg.UserId)
+							userChan <- pauseResp
+						}
 						break
 					}
 					pauseResp.Attribute["errCode"] = "0"
-					userChan <- pauseResp
+					if UserManager.HasUserChan(msg.UserId) {
+						userChan := UserManager.GetUserChan(msg.UserId)
+						userChan <- pauseResp
+					}
 
 					//计算课程时长，已计时长＋（暂停时间－上次同步时间）
 					length, _ := SessionManager.GetSessionLength(sessionId)
@@ -409,18 +419,27 @@ func sessionHandler(sessionId int64) {
 					if !SessionManager.IsSessionActived(sessionId) {
 						resumeResp.Attribute["errCode"] = "2"
 						resumeResp.Attribute["errMsg"] = "session is not actived"
-						userChan <- resumeResp
+						if UserManager.HasUserChan(msg.UserId) {
+							userChan := UserManager.GetUserChan(msg.UserId)
+							userChan <- resumeResp
+						}
 						break
 					}
 					if !SessionManager.IsSessionBreaked(sessionId) && !SessionManager.IsSessionPaused(sessionId) {
 						resumeResp.Attribute["errCode"] = "2"
 						resumeResp.Attribute["errMsg"] = "session is not paused or breaked"
-						userChan <- resumeResp
+						if UserManager.HasUserChan(msg.UserId) {
+							userChan := UserManager.GetUserChan(msg.UserId)
+							userChan <- resumeResp
+						}
 						break
 					}
 
 					resumeResp.Attribute["errCode"] = "0"
-					userChan <- resumeResp
+					if UserManager.HasUserChan(msg.UserId) {
+						userChan := UserManager.GetUserChan(msg.UserId)
+						userChan <- resumeResp
+					}
 
 					//向学生发送恢复上课的消息
 					resumeMsg := NewWSMessage("", session.Creator, WS_SESSION_RESUME)
@@ -448,11 +467,17 @@ func sessionHandler(sessionId int64) {
 					if !SessionManager.IsSessionCalling(sessionId) {
 						resCancelResp.Attribute["errCode"] = "2"
 						resCancelResp.Attribute["errMsg"] = "nobody is calling"
-						userChan <- resCancelResp
+						if UserManager.HasUserChan(msg.UserId) {
+							userChan := UserManager.GetUserChan(msg.UserId)
+							userChan <- resCancelResp
+						}
 						break
 					}
 					resCancelResp.Attribute["errCode"] = "0"
-					userChan <- resCancelResp
+					if UserManager.HasUserChan(msg.UserId) {
+						userChan := UserManager.GetUserChan(msg.UserId)
+						userChan <- resCancelResp
+					}
 
 					//向学生发送老师取消恢复上课的消息
 					resCancelMsg := NewWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
@@ -485,17 +510,26 @@ func sessionHandler(sessionId int64) {
 					if !ok {
 						resAcceptResp.Attribute["errCode"] = "2"
 						resAcceptResp.Attribute["errMsg"] = "Insufficient argument"
-						userChan <- resAcceptResp
+						if UserManager.HasUserChan(msg.UserId) {
+							userChan := UserManager.GetUserChan(msg.UserId)
+							userChan <- resAcceptResp
+						}
 						break
 					}
 					if !SessionManager.IsSessionCalling(sessionId) {
 						resAcceptResp.Attribute["errCode"] = "2"
 						resAcceptResp.Attribute["errMsg"] = "nobody is calling"
-						userChan <- resAcceptResp
+						if UserManager.HasUserChan(msg.UserId) {
+							userChan := UserManager.GetUserChan(msg.UserId)
+							userChan <- resAcceptResp
+						}
 						break
 					}
 					resAcceptResp.Attribute["errCode"] = "0"
-					userChan <- resAcceptResp
+					if UserManager.HasUserChan(msg.UserId) {
+						userChan := UserManager.GetUserChan(msg.UserId)
+						userChan <- resAcceptResp
+					}
 
 					//拨号停止
 					SessionManager.SetSessionCalling(sessionId, false)
