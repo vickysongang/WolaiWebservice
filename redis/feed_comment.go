@@ -91,12 +91,15 @@ func PostFeedComment(feedComment *models.POIFeedComment) {
 func GetFeedComments(feedId string) models.POIFeedComments {
 	feedCommentZs := redisClient.ZRangeWithScores(FEED_COMMENT+feedId, 0, -1).Val()
 
-	feedComments := make([]models.POIFeedComment, len(feedCommentZs))
+	feedComments := make([]models.POIFeedComment, 0)
 
 	for i := range feedCommentZs {
 		str, _ := feedCommentZs[i].Member.(string)
 		feedComment := GetFeedComment(str)
-		feedComments[i] = *feedComment
+		if feedComment == nil {
+			continue
+		}
+		feedComments = append(feedComments, *feedComment)
 	}
 
 	return feedComments
