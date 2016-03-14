@@ -38,9 +38,13 @@ func UserLaunch(w http.ResponseWriter, r *http.Request) {
 		versionCodeStr := vars["versionCode"][0]
 		versionCode, _ = strconv.ParseInt(versionCodeStr, 10, 64)
 	}
+	var voipToken string
+	if len(vars["voipToken"]) > 0 {
+		voipToken = vars["voipToken"][0]
+	}
 
 	status, err, content := userController.UserLaunch(userId, versionCode,
-		objectId, address, ip, userAgent)
+		objectId, address, ip, userAgent, voipToken)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullObject)

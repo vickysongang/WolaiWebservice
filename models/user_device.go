@@ -16,6 +16,7 @@ type UserDevice struct {
 	DeviceProfile  string `json:"deviceProfile"`
 	InstallationId string `json:"installationId"`
 	TimeZone       string `json:"timeZone"`
+	VoipToken      string `json:"voipToken"`
 }
 
 const (
