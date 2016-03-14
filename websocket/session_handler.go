@@ -86,8 +86,22 @@ func sessionHandler(sessionId int64) {
 
 	} else {
 		//启动时间同步计时器
-		syncTicker = time.NewTicker(time.Second * 60)
+		//		syncTicker = time.NewTicker(time.Second * 60)
 		seelog.Debug("WSSessionHandler: instant session start: " + sessionIdStr)
+		pauseResp := NewWSMessage("", session.Tutor, WS_SESSION_PAUSE_RESP)
+
+		pauseResp.Attribute["errCode"] = "0"
+		teacherChan := UserManager.GetUserChan(session.Tutor)
+		teacherChan <- pauseResp
+
+		//向学生发送课程暂停的消息
+		pauseMsg := NewWSMessage("", session.Creator, WS_SESSION_PAUSE)
+		pauseMsg.Attribute["sessionId"] = sessionIdStr
+		pauseMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		pauseMsg.Attribute["timer"] = strconv.FormatInt(0, 10)
+
+		studentChan := UserManager.GetUserChan(session.Creator)
+		studentChan <- pauseMsg
 	}
 
 	for {
