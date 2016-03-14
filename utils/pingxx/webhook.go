@@ -76,7 +76,7 @@ func (pwm *PingxxWebhookManager) ChargeSuccessEvent(chargeId string) {
 		return
 	}
 
-	premium, err := trade.GetChargePremuim(record.UserId, int64(record.Amount))
+	premium, err := trade.GetChargePremuim(record.UserId, 20000)
 	trade.HandleTradeChargePingpp(record.Id)
 	if premium > 0 {
 		trade.HandleTradeChargePremium(record.UserId, premium, "", record.Id, "")
