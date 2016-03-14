@@ -49,46 +49,56 @@ func sessionHandler(sessionId int64) {
 	SessionManager.SetSessionStatusServing(sessionId)
 
 	teacherOnline := UserManager.HasUserChan(session.Tutor)
-	studentOnline := UserManager.HasUserChan(session.Creator)
-
-	if !teacherOnline {
-		//如果老师不在线，学生在线，则向学生发送课程中断消息
-		if studentOnline {
-			breakMsg := NewWSMessage("", session.Creator, WS_SESSION_BREAK)
-			breakMsg.Attribute["sessionId"] = sessionIdStr
-			breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
-			breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-			length, _ := SessionManager.GetSessionLength(sessionId)
-			breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-			breakChan := UserManager.GetUserChan(breakMsg.UserId)
-			breakChan <- breakMsg
-		}
-		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
-
-		SessionManager.SetSessionBreaked(sessionId, true)
-		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
-
-	} else if !studentOnline {
-		//如果学生不在线老师在线，则向老师发送课程中断消息
-		if teacherOnline {
-			breakMsg := NewWSMessage("", session.Tutor, WS_SESSION_BREAK)
-			breakMsg.Attribute["sessionId"] = sessionIdStr
-			breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
-			breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-			length, _ := SessionManager.GetSessionLength(sessionId)
-			breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-			breakChan := UserManager.GetUserChan(breakMsg.UserId)
-			breakChan <- breakMsg
-		}
-		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
-		SessionManager.SetSessionBreaked(sessionId, true)
-		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
-
-	} else {
-		//启动时间同步计时器
-		syncTicker = time.NewTicker(time.Second * 60)
-		seelog.Debug("WSSessionHandler: instant session start: " + sessionIdStr)
+	//studentOnline := UserManager.HasUserChan(session.Creator)
+	if teacherOnline {
+		breakMsg := NewWSMessage("", session.Tutor, WS_SESSION_BREAK)
+		breakMsg.Attribute["sessionId"] = sessionIdStr
+		breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+		breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		length, _ := SessionManager.GetSessionLength(sessionId)
+		breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+		breakChan := UserManager.GetUserChan(breakMsg.UserId)
+		breakChan <- breakMsg
 	}
+
+	//	if !teacherOnline {
+	//		//如果老师不在线，学生在线，则向学生发送课程中断消息
+	//		if studentOnline {
+	//			breakMsg := NewWSMessage("", session.Creator, WS_SESSION_BREAK)
+	//			breakMsg.Attribute["sessionId"] = sessionIdStr
+	//			breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+	//			breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+	//			length, _ := SessionManager.GetSessionLength(sessionId)
+	//			breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+	//			breakChan := UserManager.GetUserChan(breakMsg.UserId)
+	//			breakChan <- breakMsg
+	//		}
+	//		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
+
+	//		SessionManager.SetSessionBreaked(sessionId, true)
+	//		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
+
+	//	} else if !studentOnline {
+	//		//如果学生不在线老师在线，则向老师发送课程中断消息
+	//		if teacherOnline {
+	//			breakMsg := NewWSMessage("", session.Tutor, WS_SESSION_BREAK)
+	//			breakMsg.Attribute["sessionId"] = sessionIdStr
+	//			breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+	//			breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+	//			length, _ := SessionManager.GetSessionLength(sessionId)
+	//			breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+	//			breakChan := UserManager.GetUserChan(breakMsg.UserId)
+	//			breakChan <- breakMsg
+	//		}
+	//		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
+	//		SessionManager.SetSessionBreaked(sessionId, true)
+	//		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
+
+	//	} else {
+	//		//启动时间同步计时器
+	//		syncTicker = time.NewTicker(time.Second * 60)
+	//		seelog.Debug("WSSessionHandler: instant session start: " + sessionIdStr)
+	//	}
 
 	for {
 		select {
