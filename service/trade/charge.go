@@ -4,6 +4,8 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+
+	seelog "github.com/cihub/seelog"
 )
 
 const (
@@ -32,6 +34,7 @@ func GetChargePremuim(userId, amount int64) (int64, error) {
 	exsit2 := o.QueryTable(new(models.TradeRecord).TableName()).
 		Filter("user_id", userId).
 		Filter("trade_type", models.TRADE_CHARGE_CODE).Exist()
+	seelog.Debug("exsit1:", exsit1, " exsit2:", exsit2)
 	if exsit1 || exsit2 {
 		return 0, nil
 	}
