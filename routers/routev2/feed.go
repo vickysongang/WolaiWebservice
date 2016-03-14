@@ -57,7 +57,7 @@ var feedRoutes = route.Routes{
 		"/detail",
 		handlerv2.FeedDetail,
 		true,
-		true,
+		false,
 	},
 
 	// 3.1.5

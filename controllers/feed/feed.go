@@ -162,7 +162,7 @@ func GetFeedDetail(feedId string, userId int64) (*models.POIFeedDetail, error) {
 		seelog.Error(err.Error())
 		return nil, err
 	}
-	var comments models.POIFeedComments
+	comments := make([]models.POIFeedComment, 0)
 	if redis.RedisFailErr == nil {
 		comments = redis.GetFeedComments(feedId)
 		for i := range comments {
