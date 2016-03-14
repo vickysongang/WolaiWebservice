@@ -19,11 +19,14 @@ func GetChargePremuim(userId, amount int64) (int64, error) {
 	o := orm.NewOrm()
 
 	_, err = models.ReadUser(userId)
+	seelog.Debug("trade record userId:", userId)
 	if err != nil {
+		seelog.Debug("trade record userId err:", userId)
 		return 0, err
 	}
-
+	seelog.Debug("trade record amount1:", amount)
 	if amount < FIRST_CHARGE_PRE_MIN {
+		seelog.Debug("trade record amount2:", amount)
 		return 0, nil
 	}
 
