@@ -87,7 +87,12 @@ func GetFeedComments(feedId string) models.POIFeedComments {
 
 	for i := range feedCommentZs {
 		str, _ := feedCommentZs[i].Member.(string)
-		feedComments[i] = *GetFeedComment(str)
+		feedComment := GetFeedComment(str)
+		user, _ := models.ReadUser(feedComment.Created)
+		if user == nil {
+			continue
+		}
+		feedComments[i] = *feedComment
 	}
 
 	return feedComments
