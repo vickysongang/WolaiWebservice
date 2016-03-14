@@ -6,8 +6,6 @@ import (
 
 	"github.com/astaxie/beego/orm"
 	"github.com/cihub/seelog"
-
-	"WolaiWebservice/config"
 )
 
 type PingppRecord struct {
@@ -68,10 +66,7 @@ func UpdatePingppRecord(chargeId string, recordInfo map[string]interface{}) {
 
 func QueryPingppRecordByChargeId(chargeId string) (*PingppRecord, error) {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
 	record := PingppRecord{}
-	qb.Select("id,phone,charge_id,order_no,amount,channel,currency,subject,body,result,comment,refund_id").From("pingpp_record").Where("charge_id = ?")
-	sql := qb.String()
-	err := o.Raw(sql, chargeId).QueryRow(&record)
+	err := o.QueryTable("pingpp_record").Filter("charge_id", chargeId).One(&record)
 	return &record, err
 }

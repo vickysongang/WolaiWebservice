@@ -60,15 +60,14 @@ func (pwm *PingxxWebhookManager) ChargeSuccessEvent(chargeId string) {
 	} else {
 		return
 	}
-	var err error
 
 	recordInfo := map[string]interface{}{
 		"Result": "success",
 	}
 	models.UpdatePingppRecord(chargeId, recordInfo)
-	record, err := models.QueryPingppRecordByChargeId(chargeId)
+	record, _ := models.QueryPingppRecordByChargeId(chargeId)
 
-	if err != nil {
+	if record.Id == 0 {
 		return
 	}
 
@@ -76,7 +75,7 @@ func (pwm *PingxxWebhookManager) ChargeSuccessEvent(chargeId string) {
 		return
 	}
 
-	premium, err := trade.GetChargePremuim(record.UserId, 20000)
+	premium, _ := trade.GetChargePremuim(record.UserId, 20000)
 	seelog.Debug("premium:", premium)
 	trade.HandleTradeChargePingpp(record.Id)
 	if premium > 0 {
