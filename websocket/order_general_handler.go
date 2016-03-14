@@ -35,13 +35,10 @@ func GeneralOrderHandler(orderId int64) {
 	dispatchTicker := time.NewTicker(time.Second * 3)
 	assignTimer := time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
 
-	//assignTimer.Stop()
-	dispatchTicker.Stop()
-	dispatchTimer.Stop()
+	assignTimer.Stop()
 
 	seelog.Debug("orderHandler|HandlerInit: ", orderId)
 	orderSignalChan, _ := OrderManager.GetOrderSignalChan(orderId)
-	orderChan, _ := OrderManager.GetOrderChan(orderId)
 	for {
 		select {
 		case <-orderTimer.C:
@@ -108,21 +105,19 @@ func GeneralOrderHandler(orderId int64) {
 
 			assignTarget = assignNextTeacher(orderId)
 			if assignTarget != -1 {
-				assignMsg := NewWSMessage("", assignTarget, WS_ORDER2_ASSIGN_ACCEPT)
-				orderChan <- assignMsg
-				//				assignMsg := NewWSMessage("", assignTarget, WS_ORDER2_ASSIGN)
-				//				assignMsg.Attribute["orderInfo"] = string(orderByte)
-				//				assignMsg.Attribute["countdown"] = strconv.FormatInt(orderAssignCountdown, 10)
-				//				if UserManager.HasUserChan(assignTarget) {
-				//					teacherChan := UserManager.GetUserChan(assignTarget)
-				//					teacherChan <- assignMsg
-				//				} else {
-				//					push.PushNewOrderAssign(assignTarget, orderId)
-				//				}
+				assignMsg := NewWSMessage("", assignTarget, WS_ORDER2_ASSIGN)
+				assignMsg.Attribute["orderInfo"] = string(orderByte)
+				assignMsg.Attribute["countdown"] = strconv.FormatInt(orderAssignCountdown, 10)
+				if UserManager.HasUserChan(assignTarget) {
+					teacherChan := UserManager.GetUserChan(assignTarget)
+					teacherChan <- assignMsg
+				} else {
+					push.PushNewOrderAssign(assignTarget, orderId)
+				}
 			} else {
 				OrderManager.RemoveCurrentAssign(orderId)
 			}
-			//assignTimer = time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
+			assignTimer = time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
 
 		case <-dispatchTicker.C:
 			// 组装派发信息
