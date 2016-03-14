@@ -83,6 +83,7 @@ func SaveDeviceInfo(userId, versionCode int64, objectId string, userAgent string
 		userDevice.DeviceProfile = inst.DeviceProfile
 		userDevice.InstallationId = inst.InstallationId
 		userDevice.TimeZone = inst.TimeZone
+		userDevice.VoipToken = voipToken
 
 		userDevice, err = models.UpdateUserDevice(userDevice)
 		if err != nil {

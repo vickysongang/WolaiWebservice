@@ -25,17 +25,14 @@ func GetChargePremuim(userId, amount int64) (int64, error) {
 		return 0, nil
 	}
 
-	var tradeRecord models.TradeRecord
-	err1 := o.QueryTable(new(models.TradeRecord).TableName()).
+	exsit1 := o.QueryTable(new(models.TradeRecord).TableName()).
 		Filter("user_id", userId).
-		Filter("trade_type", models.TRADE_CHARGE).
-		One(&tradeRecord)
+		Filter("trade_type", models.TRADE_CHARGE).Exist()
 
-	err2 := o.QueryTable(new(models.TradeRecord).TableName()).
+	exsit2 := o.QueryTable(new(models.TradeRecord).TableName()).
 		Filter("user_id", userId).
-		Filter("trade_type", models.TRADE_CHARGE_CODE).
-		One(&tradeRecord)
-	if err1 == nil || err2 == nil {
+		Filter("trade_type", models.TRADE_CHARGE_CODE).Exist()
+	if exsit1 || exsit2 {
 		return 0, nil
 	}
 
