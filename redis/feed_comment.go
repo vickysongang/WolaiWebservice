@@ -30,7 +30,11 @@ func GetFeedComment(feedCommentId string) *models.POIFeedComment {
 	feedComment.FeedId = hashMap["feed_id"]
 
 	tmpInt, _ := strconv.ParseInt(hashMap["creator_id"], 10, 64)
-	feedComment.Creator, _ = models.ReadUser(tmpInt)
+	creator, err := models.ReadUser(tmpInt)
+	if err != nil {
+		return nil
+	}
+	feedComment.Creator = creator
 
 	tmpFloat, _ := strconv.ParseFloat(hashMap["create_timestamp"], 64)
 	feedComment.CreateTimestamp = tmpFloat
@@ -40,7 +44,11 @@ func GetFeedComment(feedCommentId string) *models.POIFeedComment {
 
 	if hashMap["reply_to_user_id"] != "" {
 		tmpInt, _ = strconv.ParseInt(hashMap["reply_to_user_id"], 10, 64)
-		feedComment.ReplyTo, _ = models.ReadUser(tmpInt)
+		replyToUser, err := models.ReadUser(tmpInt)
+		if err != nil {
+			return nil
+		}
+		feedComment.ReplyTo = replyToUser
 	}
 
 	tmpInt, _ = strconv.ParseInt(hashMap["like_count"], 10, 64)
@@ -88,10 +96,6 @@ func GetFeedComments(feedId string) models.POIFeedComments {
 	for i := range feedCommentZs {
 		str, _ := feedCommentZs[i].Member.(string)
 		feedComment := GetFeedComment(str)
-		user, _ := models.ReadUser(feedComment.Created)
-		if user == nil {
-			continue
-		}
 		feedComments[i] = *feedComment
 	}
 
