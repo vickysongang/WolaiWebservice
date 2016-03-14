@@ -13,7 +13,10 @@ func (watcher *RpcWatcher) GetStatusLive(request *RpcRequest, resp *RpcResponse)
 	onlineStudentsCount := 0
 	onlineTeachersCount := 0
 	for userId, _ := range websocket.UserManager.OnlineUserMap {
-		user, _ := models.ReadUser(userId)
+		user, err := models.ReadUser(userId)
+		if err != nil {
+			continue
+		}
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
 			onlineTeachersCount++
 		}
