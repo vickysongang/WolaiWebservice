@@ -43,9 +43,9 @@ func sessionHandler(sessionId int64) {
 
 	//激活课程，并将课程状态设置为服务中
 	SessionManager.SetSessionActived(sessionId, true)
-	SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
+	SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
 
-	//设置课程的开始时间并更改课程的状态
+	//设置课程的开始时间并更改数据库的状态
 	SessionManager.SetSessionStatusServing(sessionId)
 
 	teacherOnline := UserManager.HasUserChan(session.Tutor)
@@ -85,9 +85,57 @@ func sessionHandler(sessionId int64) {
 		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 
 	} else {
-		//启动时间同步计时器
-		syncTicker = time.NewTicker(time.Second * 60)
-		seelog.Debug("WSSessionHandler: instant session start: " + sessionIdStr)
+
+		// 如果是学生是3.0.3以下，继续计时
+		_, err := sessionController.SessionTutorPauseValidateTargetVersion(session.Creator)
+		if err != nil {
+			seelog.Debug("WSSessionHandler: instant session started, lower version" + sessionIdStr)
+			// XXX TODO: Start counting and all the stuff
+			syncTicker = time.NewTicker(time.Second * 60)
+			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
+
+		} else {
+
+			go func() {
+				sessionPauseAfterStartTimeDiff := settings.SessionPauseAfterStartTimeDiff()
+				time.Sleep(time.Second * time.Duration(sessionPauseAfterStartTimeDiff))
+
+				pauseResp := NewWSMessage("", session.Tutor, WS_SESSION_PAUSE_RESP)
+				pauseResp.Attribute["errCode"] = "0"
+				if UserManager.HasUserChan(session.Tutor) {
+					userChan := UserManager.GetUserChan(session.Tutor)
+					userChan <- pauseResp
+				} else {
+					seelog.Debugf("session pause when start sessionId: %d, tutor userChan closes userId: %d", sessionId, session.Tutor)
+				}
+
+				SessionManager.SetSessionPaused(sessionId, true)
+				SessionManager.SetSessionAccepted(sessionId, false)
+				SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
+
+				length := int64(0)
+				SessionManager.SetSessionLength(sessionId, length)
+				SessionManager.SetLastSync(sessionId, time.Now().Unix())
+
+				//向学生发送课程暂停的消息
+				pauseMsg := NewWSMessage("", session.Creator, WS_SESSION_PAUSE)
+				pauseMsg.Attribute["sessionId"] = sessionIdStr
+				pauseMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+				pauseMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+
+				if UserManager.HasUserChan(session.Creator) {
+					studentChan := UserManager.GetUserChan(session.Creator)
+					studentChan <- pauseMsg
+				} else {
+					seelog.Debugf("session pause when start sessionId: %d, student userChan closes userId: %d", sessionId, session.Creator)
+				}
+
+			}()
+
+			seelog.Debug("WSSessionHandler: instant session start, now paused: " + sessionIdStr)
+
+		}
+
 	}
 
 	for {

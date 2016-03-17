@@ -20,14 +20,14 @@ const (
 	CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN   = "assign_countdown"
 	CONFIG_KEY_ORDER_SESSION_COUNTDOWN  = "session_countdown"
 
-	CONFIG_SESSION                  = "config:session"
-	CONFIG_KEY_SESSION_RECONN_LIMIT = "reconn_limit"
-	CONFIG_KEY_SESSION_EXPIRE_LIMIT = "expire_limit"
-
-	CONFIG_WEBSOCKET                 = "config:websocket"
-	CONFIG_KEY_WEBSOCKET_PING_PERIOD = "ping_period"
-	CONFIG_KEY_WEBSOCKET_PONG_WAIT   = "pong_wait"
-	CONFIG_KEY_WEBSOCKET_WRITE_WAIT  = "write_wait"
+	CONFIG_SESSION                                = "config:session"
+	CONFIG_KEY_SESSION_RECONN_LIMIT               = "reconn_limit"
+	CONFIG_KEY_SESSION_EXPIRE_LIMIT               = "expire_limit"
+	CONFIG_KEY_SESSION_PAUSE_AFTER_START_TIMEDIFF = "pause_after_start_timediff"
+	CONFIG_WEBSOCKET                              = "config:websocket"
+	CONFIG_KEY_WEBSOCKET_PING_PERIOD              = "ping_period"
+	CONFIG_KEY_WEBSOCKET_PONG_WAIT                = "pong_wait"
+	CONFIG_KEY_WEBSOCKET_WRITE_WAIT               = "write_wait"
 
 	CONFIG_TOKEN              = "config:token"
 	CONFIG_KEY_TOKEN_DURATION = "duration"
@@ -48,8 +48,9 @@ var defaultMap = map[string]map[string]string{
 		CONFIG_KEY_ORDER_SESSION_COUNTDOWN:  "10",
 	},
 	CONFIG_SESSION: map[string]string{
-		CONFIG_KEY_SESSION_RECONN_LIMIT: "30",
-		CONFIG_KEY_SESSION_EXPIRE_LIMIT: "300",
+		CONFIG_KEY_SESSION_RECONN_LIMIT:               "30",
+		CONFIG_KEY_SESSION_EXPIRE_LIMIT:               "300",
+		CONFIG_KEY_SESSION_PAUSE_AFTER_START_TIMEDIFF: "1",
 	},
 	CONFIG_WEBSOCKET: map[string]string{
 		CONFIG_KEY_WEBSOCKET_PING_PERIOD: "5",
