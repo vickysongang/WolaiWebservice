@@ -12,6 +12,7 @@ func PushWhiteboardCall(deviceToken, deviceProfile string, callerId int64) error
 	payload := apns.NewPayload()
 	payload.Alert = "对方正邀请你使用白板"
 	payload.Badge = 1
+	payload.Sound = "wb_sound.caf"
 
 	pn := apns.NewPushNotification()
 	pn.DeviceToken = deviceToken
