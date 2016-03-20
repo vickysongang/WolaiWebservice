@@ -247,6 +247,9 @@ func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) erro
 	status.assignMap[userId] = time.Now().Unix()
 	status.currentAssign = userId
 
+	//Set order to be locked, because currently assign mode and competing mode are in parallel
+	osm.SetOrderLocked(orderId, true)
+
 	//将指派对象写入分发表中，并标识为指派单
 	orderDispatch := models.OrderDispatch{
 		OrderId:      orderId,

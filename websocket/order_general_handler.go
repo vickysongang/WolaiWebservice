@@ -376,7 +376,7 @@ func GeneralOrderChanHandler(orderId int64) {
 					orderSignalChan <- SIGNAL_ORDER_QUIT
 
 					// 结束派单流程，记录结果
-					notifyDispatchResults(orderId, msg.UserId)
+					notifyDispatchResultsAfterAssign(orderId, msg.UserId)
 
 					OrderManager.SetOrderConfirm(orderId, teacher.Id)
 					OrderManager.SetOffline(orderId)
@@ -402,7 +402,7 @@ func GeneralOrderChanHandler(orderId int64) {
 	}
 }
 
-func notifyDispatchResults(orderId, teacherId int64) {
+func notifyDispatchResultsAfterAssign(orderId, teacherId int64) {
 
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderSessionCountdown := settings.OrderSessionCountdown()
@@ -413,14 +413,14 @@ func notifyDispatchResults(orderId, teacherId int64) {
 		var status int64
 		if dispatchId == teacherId {
 			status = 0
-			orderService.UpdateOrderDispatchResult(orderId, dispatchId, true)
+			//orderService.UpdateOrderDispatchResult(orderId, dispatchId, true)
 		} else {
 			status = -1
 			orderService.UpdateOrderDispatchResult(orderId, dispatchId, false)
 		}
 		TeacherManager.RemoveOrderDispatch(dispatchId, orderId)
 
-		if !UserManager.HasUserChan(dispatchId) {
+		if !UserManager.HasUserChan(dispatchId) || dispatchId == teacherId {
 			continue
 		}
 
@@ -457,6 +457,7 @@ func assignNextTeacher(orderId int64) int64 {
 		}
 
 		if !TeacherManager.MatchTeacherSubject(teacherId, order.SubjectId) {
+			seelog.Debug("orderHandler|orderAssign FAIL TEACHER subject miss match: ", orderId, " to teacher: ", teacherId)
 			continue
 		}
 

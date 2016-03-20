@@ -690,6 +690,12 @@ func InitSessionMonitor(sessionId int64) bool {
 	startMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 	startMsg.Attribute["planTime"] = session.PlanTime
 
+	if _, err := sessionController.SessionTutorPauseValidateTargetVersion(session.Creator); err != nil {
+		startMsg.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
+	} else {
+		startMsg.Attribute["sessionStatus"] = SESSION_STATUS_PAUSED
+	}
+
 	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 		courseRelation, _ := courseService.GetCourseRelation(order.CourseId, order.Creator, order.TeacherId)
 		virturlCourseId := courseRelation.Id
