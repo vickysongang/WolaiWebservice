@@ -40,6 +40,7 @@ type UserQaPkgDetail struct {
 	TotalQaTimeLength   int64             `json:"totalQaTimeLength"`
 	UserMonthlyQaPkgs   []*MonthlyQaPkg   `json:"userMonthlyQaPkgs"`
 	UserPermanentQaPkgs []*PermanentQaPkg `json:"userPermanentQaPkgs"`
+	HasDiscount         bool              `json:"hasDiscount"`
 }
 
 func GetQaPkgList() ([]QaPkgModuleInfo, error) {
@@ -118,5 +119,6 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 	}
 	detail.UserPermanentQaPkgs = userPermanentQaPkgs
 	detail.TotalQaTimeLength = totalQaTimeLength
+	detail.HasDiscount = qapkgService.HasQaPkgDiscount()
 	return &detail, nil
 }

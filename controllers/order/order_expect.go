@@ -7,7 +7,8 @@ import (
 )
 
 type priceInfo struct {
-	Price int64 `json:"price"`
+	Price            int64 `json:"price"`
+	LeftQaTimeLength int64 `json:"leftQaTimeLength"`
 }
 
 func CalculateOrderExpect(userId, teacherId, teacherTier, gradeId, subjectId int64) (int64, error, *priceInfo) {

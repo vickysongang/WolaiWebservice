@@ -2,6 +2,7 @@
 package qapkg
 
 import (
+	"WolaiWebBackend/config"
 	"WolaiWebservice/models"
 	"errors"
 
@@ -48,4 +49,18 @@ func GetMonthlyQaPkgRecords(userId int64) ([]*models.QaPkgPurchaseRecord, error)
 		Filter("type", models.QA_PKG_TYPE_MONTHLY).
 		OrderBy("time_to").All(&records)
 	return records, err
+}
+
+func HasQaPkgDiscount() bool {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
+	qb.Select("id").From(new(models.QaPkg).TableName()).
+		Where("discount_price < original_price")
+	sql := qb.String()
+	var ids []int64
+	count, _ := o.Raw(sql).QueryRows(&ids)
+	if count > 0 {
+		return true
+	}
+	return false
 }
