@@ -43,6 +43,10 @@ func SessionExpireLimit() int64 {
 	return redis.GetConfigInt64(redis.CONFIG_SESSION, redis.CONFIG_KEY_SESSION_EXPIRE_LIMIT)
 }
 
+func SessionPauseAfterStartTimeDiff() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_SESSION, redis.CONFIG_KEY_SESSION_PAUSE_AFTER_START_TIMEDIFF)
+}
+
 func WebsocketPingPeriod() int64 {
 	return redis.GetConfigInt64(redis.CONFIG_WEBSOCKET,
 		redis.CONFIG_KEY_WEBSOCKET_PING_PERIOD)

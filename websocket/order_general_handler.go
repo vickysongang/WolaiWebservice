@@ -35,10 +35,14 @@ func GeneralOrderHandler(orderId int64) {
 	dispatchTicker := time.NewTicker(time.Second * 3)
 	assignTimer := time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
 
+	orderSessionCountdown := settings.OrderSessionCountdown()
+
 	assignTimer.Stop()
 
 	seelog.Debug("orderHandler|HandlerInit: ", orderId)
 	orderSignalChan, _ := OrderManager.GetOrderSignalChan(orderId)
+	orderChan, _ := OrderManager.GetOrderChan(orderId)
+
 	for {
 		select {
 		case <-orderTimer.C:
@@ -121,7 +125,31 @@ func GeneralOrderHandler(orderId int64) {
 
 		case <-dispatchTicker.C:
 			// 组装派发信息
-			dispatchOrderToTeachers(orderId, string(orderByte))
+			if OrderManager.IsOrderLocked(orderId) {
+				seelog.Debug("Order has been locked by other tutor, orderId:", orderId)
+				continue
+			}
+
+			assignTarget := assignNextTeacher(orderId)
+			if assignTarget != -1 {
+
+				assignMsg := NewWSMessage("", assignTarget, WS_ORDER2_ASSIGN)
+				assignMsg.Attribute["orderInfo"] = string(orderByte)
+				assignMsg.Attribute["countdown"] = strconv.FormatInt(orderAssignCountdown, 10)
+				assignMsg.Attribute["session_countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
+
+				if UserManager.HasUserChan(assignTarget) {
+					teacherChan := UserManager.GetUserChan(assignTarget)
+					teacherChan <- assignMsg
+				} else {
+					push.PushNewOrderAssign(assignTarget, orderId)
+				}
+
+				forceAssignMsg := NewWSMessage("", assignTarget, WS_ORDER2_ASSIGN_ACCEPT)
+				orderChan <- forceAssignMsg
+			} else {
+				dispatchOrderToTeachers(orderId, string(orderByte))
+			}
 
 		case signal, ok := <-orderSignalChan:
 			if ok {
@@ -164,7 +192,11 @@ func GeneralOrderChanHandler(orderId int64) {
 		case msg, ok := <-orderChan:
 			if ok {
 				timestamp = time.Now().Unix()
+				userChanExists := UserManager.HasUserChan(msg.UserId)
 				userChan := UserManager.GetUserChan(msg.UserId)
+				if !userChanExists {
+					seelog.Debugf("GeneralOrderChanHandler : userChan was already closed userId:%d, orderId:%d", msg.UserId, orderId)
+				}
 				switch msg.OperationCode {
 				case WS_ORDER2_RECOVER_CREATE:
 					seelog.Debug("In Order Create Recover:", orderId)
@@ -285,9 +317,6 @@ func GeneralOrderChanHandler(orderId int64) {
 					OrderManager.SetOrderConfirm(orderId, teacher.Id)
 					OrderManager.SetOffline(orderId)
 					UserManager.RemoveOrderDispatch(orderId, order.Creator)
-
-					handleSessionCreation(orderId, msg.UserId)
-
 					return
 
 				case WS_ORDER2_ASSIGN_ACCEPT:
@@ -297,13 +326,17 @@ func GeneralOrderChanHandler(orderId int64) {
 					if currentAssign, _ := OrderManager.GetCurrentAssign(orderId); currentAssign != msg.UserId {
 						acceptResp.Attribute["errCode"] = "2"
 						acceptResp.Attribute["errMsg"] = "This order is not assigned to you"
-						userChan <- acceptResp
+						if userChanExists {
+							userChan <- acceptResp
+						}
 
 					}
 					if UserManager.IsUserBusyInSession(order.Creator) {
 						acceptResp.Attribute["errCode"] = "2"
 						acceptResp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
-						userChan <- acceptResp
+						if userChanExists {
+							userChan <- acceptResp
+						}
 
 						OrderManager.SetOrderCancelled(orderId)
 						OrderManager.SetOffline(orderId)
@@ -312,7 +345,9 @@ func GeneralOrderChanHandler(orderId int64) {
 					}
 
 					acceptResp.Attribute["errCode"] = "0"
-					userChan <- acceptResp
+					if userChanExists {
+						userChan <- acceptResp
+					}
 					TeacherManager.SetAssignUnlock(msg.UserId)
 
 					//向学生发送结果
@@ -336,12 +371,17 @@ func GeneralOrderChanHandler(orderId int64) {
 					resultMsg.Attribute["orderId"] = orderIdStr
 					resultMsg.Attribute["status"] = "0"
 					resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
-					userChan <- resultMsg
+
+					if userChanExists {
+						userChan <- resultMsg
+					}
 
 					seelog.Debug("orderHandler|orderAssignAccept: ", orderId, " to teacher: ", teacher.Id) // 更新老师发单记录
 					orderSignalChan <- SIGNAL_ORDER_QUIT
 
 					// 结束派单流程，记录结果
+					notifyDispatchResultsAfterAssign(orderId, msg.UserId)
+
 					OrderManager.SetOrderConfirm(orderId, teacher.Id)
 					OrderManager.SetOffline(orderId)
 					UserManager.RemoveOrderDispatch(orderId, order.Creator)
@@ -364,6 +404,37 @@ func GeneralOrderChanHandler(orderId int64) {
 			}
 		}
 	}
+}
+
+func notifyDispatchResultsAfterAssign(orderId, teacherId int64) {
+
+	orderIdStr := strconv.FormatInt(orderId, 10)
+	orderSessionCountdown := settings.OrderSessionCountdown()
+
+	resultMsg := NewWSMessage("", 0, WS_ORDER2_RESULT)
+	resultMsg.Attribute["orderId"] = orderIdStr
+	for dispatchId, _ := range OrderManager.orderMap[orderId].dispatchMap {
+		var status int64
+		if dispatchId == teacherId {
+			status = 0
+			//orderService.UpdateOrderDispatchResult(orderId, dispatchId, true)
+		} else {
+			status = -1
+			orderService.UpdateOrderDispatchResult(orderId, dispatchId, false)
+		}
+		TeacherManager.RemoveOrderDispatch(dispatchId, orderId)
+
+		if !UserManager.HasUserChan(dispatchId) || dispatchId == teacherId {
+			continue
+		}
+
+		dispatchChan := UserManager.GetUserChan(dispatchId)
+		resultMsg.UserId = dispatchId
+		resultMsg.Attribute["status"] = strconv.FormatInt(status, 10)
+		resultMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
+		dispatchChan <- resultMsg
+	}
+
 }
 
 func assignNextTeacher(orderId int64) int64 {
@@ -390,6 +461,7 @@ func assignNextTeacher(orderId int64) int64 {
 		}
 
 		if !TeacherManager.MatchTeacherSubject(teacherId, order.SubjectId) {
+			seelog.Debug("orderHandler|orderAssign FAIL TEACHER subject miss match: ", orderId, " to teacher: ", teacherId)
 			continue
 		}
 
