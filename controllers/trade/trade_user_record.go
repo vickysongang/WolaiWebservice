@@ -218,6 +218,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 
 			info.Avartar = user.Avatar
 			info.Title = trade.COMMENT_COURSE_EARNING
+		case models.TRADE_QA_PKG_PURCHASE:
 
 		default:
 			continue

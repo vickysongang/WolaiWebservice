@@ -30,6 +30,11 @@ func HandleTradeSession(sessionId int64) error {
 	studentAmount := length * order.PriceHourly / 3600 / 10 * 10
 	teacherAmount := length * order.SalaryHourly / 3600 / 10 * 10
 
+	err = AddUserBalance(session.Creator, 0-studentAmount)
+	if err != nil {
+		return err
+	}
+
 	_, err = createTradeRecord(session.Creator, 0-studentAmount,
 		models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
 		session.Id, 0, 0, "")

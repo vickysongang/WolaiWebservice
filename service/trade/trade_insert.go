@@ -14,10 +14,10 @@ func createTradeRecord(userId, amount int64, tradeType, result, comment string,
 	sessionId, recordId, pingppId int64, chargeCode string) (*models.TradeRecord, error) {
 	var err error
 
-	err = addUserBalance(userId, amount)
-	if err != nil {
-		return nil, err
-	}
+	//	err = addUserBalance(userId, amount)
+	//	if err != nil {
+	//		return nil, err
+	//	}
 
 	user, err := models.ReadUser(userId)
 	if err != nil {
@@ -51,7 +51,7 @@ func createTradeRecord(userId, amount int64, tradeType, result, comment string,
 /*
 * 增加用户的余额
  */
-func addUserBalance(userId int64, amount int64) error {
+func AddUserBalance(userId int64, amount int64) error {
 	o := orm.NewOrm()
 
 	_, err := o.QueryTable("users").Filter("id", userId).Update(orm.Params{
@@ -64,7 +64,7 @@ func addUserBalance(userId int64, amount int64) error {
 /*
 * 减少用户的余额
  */
-func minusUserBalance(userId int64, amount int64) error {
+func MinusUserBalance(userId int64, amount int64) error {
 	o := orm.NewOrm()
 
 	_, err := o.QueryTable("users").Filter("id", userId).Update(orm.Params{

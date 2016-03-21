@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"WolaiWebservice/controllers/message"
+	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/leancloud/lcmessage"
-	"WolaiWebservice/utils/pingxx"
 )
 
 type RpcWatcher struct {
@@ -53,11 +53,17 @@ func (watcher *RpcWatcher) PayByPingpp(request *RpcRequest, resp *RpcResponse) e
 	subject := request.Args["subject"]
 	body := request.Args["body"]
 	phone := request.Args["phone"]
-	content, err := pingxx.PayByPingpp(orderNo, 0, amount, channel, currency, clientIp, subject, body, phone, map[string]interface{}{})
+	tradeType := models.TRADE_CHARGE
+	if request.Args["tradeType"] != "" {
+		tradeType = request.Args["tradeType"]
+	}
+	status, content, err := trade.HandleTradePay(orderNo, 0, amount, channel,
+		currency, clientIp, subject, body, phone,
+		map[string]interface{}{}, tradeType, 0, models.TRADE_PAY_TYPE_THIRD)
 	if err != nil {
-		*resp = NewRpcResponse(2, err.Error(), response.NullObject)
+		*resp = NewRpcResponse(status, err.Error(), response.NullObject)
 	} else {
-		*resp = NewRpcResponse(0, "", content)
+		*resp = NewRpcResponse(status, "", content)
 	}
 	return nil
 }
