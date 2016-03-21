@@ -38,9 +38,13 @@ func UserLaunch(w http.ResponseWriter, r *http.Request) {
 		versionCodeStr := vars["versionCode"][0]
 		versionCode, _ = strconv.ParseInt(versionCodeStr, 10, 64)
 	}
+	var voipToken string
+	if len(vars["voipToken"]) > 0 {
+		voipToken = vars["voipToken"][0]
+	}
 
 	status, err, content := userController.UserLaunch(userId, versionCode,
-		objectId, address, ip, userAgent)
+		objectId, address, ip, userAgent, voipToken)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullObject)
@@ -248,6 +252,35 @@ func UserTeacherProfileCourse(w http.ResponseWriter, r *http.Request) {
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullSlice)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 2.2.5
+func UserTeacherProfileChecked(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	teacherIdStr := vars["userId"][0]
+	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
+
+	status, err, content := userController.GetTeacherProfileChecked(userId, teacherId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
 	} else {
 		resp = response.NewResponse(status, "", content)
 	}

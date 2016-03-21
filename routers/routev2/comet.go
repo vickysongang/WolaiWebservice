@@ -14,7 +14,7 @@ func attachCometRoute(router *mux.Router) {
 			Methods(r.Method).
 			Path(r.Pattern).
 			Name(r.Name).
-			Handler(wrapper.HandlerWrapper(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
+			Handler(wrapper.HandlerWrapperLogResponse(r.HandlerFunc, r.Name, r.LogFlag, r.AuthFlag))
 	}
 }
 

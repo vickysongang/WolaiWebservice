@@ -158,7 +158,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if msg.OperationCode != WS_PONG {
-			seelog.Trace("V1Handler websocket recieve message:", string(p))
+			seelog.Trace("V1Handler websocket receive message:", string(p))
 		}
 
 		// 比对客户端时间和系统时间
@@ -183,6 +183,10 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			userChan <- resp
 			WSUserLogout(userId)
 			redis.RemoveUserObjectId(userId)
+			if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+				TeacherManager.SetOffline(userId)
+				TeacherManager.SetAssignOff(userId)
+			}
 			close(userChan)
 
 		// 上课相关信息，直接转发处理

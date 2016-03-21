@@ -20,7 +20,6 @@ func GetChargePremuim(userId, amount int64) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-
 	if amount < FIRST_CHARGE_PRE_MIN {
 		return 0, nil
 	}

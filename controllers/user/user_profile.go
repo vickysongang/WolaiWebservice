@@ -7,6 +7,7 @@ import (
 
 	"WolaiWebservice/models"
 	userService "WolaiWebservice/service/user"
+	"errors"
 )
 
 type teacherProfile struct {
@@ -73,6 +74,22 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherPro
 	}
 
 	return 0, nil, &profile
+}
+
+func GetTeacherProfileChecked(userId int64, teacherId int64) (int64, error, *teacherProfile) {
+	var err error
+
+	user, err := models.ReadUser(teacherId)
+	if err != nil {
+		return 2, err, nil
+	}
+
+	if user.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
+		return 2, errors.New("对方不是导师，不能发起提问哦"), nil
+	}
+
+	status, err, content := GetTeacherProfile(userId, teacherId)
+	return status, err, content
 }
 
 func GetTeacherCourseList(teacherId, page, count int64) (int64, error, []*CourseListItem) {

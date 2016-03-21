@@ -41,7 +41,7 @@ func GetDeviceTypeFromUserAgent(userAgent string) (string, error) {
 	}
 }
 
-func SaveDeviceInfo(userId, versionCode int64, objectId string, userAgent string) (*models.UserDevice, error) {
+func SaveDeviceInfo(userId, versionCode int64, objectId string, userAgent string, voipToken string) (*models.UserDevice, error) {
 	var err error
 
 	inst, err := leancloud.LCGetIntallation(objectId)
@@ -68,6 +68,7 @@ func SaveDeviceInfo(userId, versionCode int64, objectId string, userAgent string
 			DeviceProfile:  inst.DeviceProfile,
 			InstallationId: inst.InstallationId,
 			TimeZone:       inst.TimeZone,
+			VoipToken:      voipToken,
 		}
 
 		userDevice, err = models.CreateUserDevice(&info)
@@ -82,6 +83,7 @@ func SaveDeviceInfo(userId, versionCode int64, objectId string, userAgent string
 		userDevice.DeviceProfile = inst.DeviceProfile
 		userDevice.InstallationId = inst.InstallationId
 		userDevice.TimeZone = inst.TimeZone
+		userDevice.VoipToken = voipToken
 
 		userDevice, err = models.UpdateUserDevice(userDevice)
 		if err != nil {

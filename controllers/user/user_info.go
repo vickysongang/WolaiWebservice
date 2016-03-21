@@ -28,7 +28,7 @@ func UpdateUserInfo(userId, gender int64, nickname, avatar string) (int64, error
 	return 0, nil, user
 }
 
-func UserLaunch(userId, versionCode int64, objectId, address, ip, userAgent string) (int64, error, interface{}) {
+func UserLaunch(userId, versionCode int64, objectId, address, ip, userAgent, voipToken string) (int64, error, interface{}) {
 	var err error
 
 	_, err = userService.SaveLoginInfo(userId, objectId, address, ip, userAgent)
@@ -36,7 +36,7 @@ func UserLaunch(userId, versionCode int64, objectId, address, ip, userAgent stri
 		return 2, err, nil
 	}
 
-	go userService.SaveDeviceInfo(userId, versionCode, objectId, userAgent)
+	go userService.SaveDeviceInfo(userId, versionCode, objectId, userAgent, voipToken)
 
 	resp := map[string]string{
 		"websocket": settings.WebsocketAddress(),

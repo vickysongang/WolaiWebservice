@@ -120,6 +120,16 @@ var userRoutes = route.Routes{
 		true,
 	},
 
+	// 2.2.5
+	route.Route{
+		"TeacherProfileChecked",
+		"POST",
+		"/teacher/profile/checked",
+		handlerv2.UserTeacherProfileChecked,
+		true,
+		true,
+	},
+
 	// 2.3.1
 	route.Route{
 		"UserSearch",
