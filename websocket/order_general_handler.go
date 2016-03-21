@@ -132,7 +132,7 @@ func GeneralOrderHandler(orderId int64) {
 
 			assignTarget := assignNextTeacher(orderId)
 			if assignTarget != -1 {
-
+				dispatchTicker.Stop()
 				assignMsg := NewWSMessage("", assignTarget, WS_ORDER2_ASSIGN)
 				assignMsg.Attribute["orderInfo"] = string(orderByte)
 				assignMsg.Attribute["countdown"] = strconv.FormatInt(orderAssignCountdown, 10)
@@ -439,6 +439,8 @@ func notifyDispatchResultsAfterAssign(orderId, teacherId int64) {
 
 func assignNextTeacher(orderId int64) int64 {
 	order := OrderManager.orderMap[orderId].orderInfo
+	pickedOnlineTutorId := int64(-1)
+	pickedOfflineTutorId := int64(-1)
 	for teacherId, _ := range TeacherManager.teacherMap {
 		if !TeacherManager.IsTeacherAssignOpen(teacherId) {
 			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN OFF: ", orderId, " to teacher: ", teacherId)
@@ -447,11 +449,6 @@ func assignNextTeacher(orderId int64) int64 {
 
 		if TeacherManager.IsTeacherAssignLocked(teacherId) {
 			seelog.Debug("orderHandler|orderAssign FAIL ASSIGN LOCK: ", orderId, " to teacher: ", teacherId)
-			continue
-		}
-
-		if !UserManager.HasUserChan(teacherId) {
-			seelog.Debug("orderHandler|orderAssign FAIL teacher websocket disconnected, orderId: ", orderId, " to teacher: ", teacherId)
 			continue
 		}
 
@@ -479,16 +476,41 @@ func assignNextTeacher(orderId int64) int64 {
 			continue
 		}
 
-		if err := OrderManager.SetAssignTarget(orderId, teacherId); err == nil {
-			// 更新老师发单记录
-			TeacherManager.SetAssignLock(teacherId, orderId)
-			seelog.Debug("orderHandler|orderAssignSUCCESS: ", orderId, " to teacher: ", teacherId)
-			return teacherId
+		if !UserManager.HasUserChan(teacherId) {
+			if pickedOfflineTutorId == -1 {
+				pickedOfflineTutorId = teacherId
+				seelog.Debug("orderHandler|orderAssign found an offline tutor, orderId: ", orderId, "  tutorId: ", teacherId)
+			}
+			seelog.Debug("orderHandler|orderAssign FAIL teacher websocket disconnected, orderId: ", orderId, " to teacher: ", teacherId)
+			continue
+		}
+
+		if pickedOnlineTutorId == -1 {
+			pickedOnlineTutorId = teacherId
+			seelog.Debug("orderHandler|orderAssign found an ONLINE tutor, orderId: ", orderId, "  tutorId: ", teacherId)
+			break
 		}
 
 	}
+	pickedTutorId := int64(-1)
+	if pickedOnlineTutorId != -1 {
+		pickedTutorId = pickedOnlineTutorId
+	} else if pickedOfflineTutorId != -1 {
+		pickedTutorId = pickedOfflineTutorId
+	}
+
+	if pickedTutorId != -1 {
+		if err := OrderManager.SetAssignTarget(orderId, pickedTutorId); err == nil {
+			// 更新老师发单记录
+			TeacherManager.SetAssignLock(pickedTutorId, orderId)
+			seelog.Debug("orderHandler|orderAssignSUCCESS: ", orderId, " to teacher: ", pickedTutorId)
+			return pickedTutorId
+		}
+	}
+
 	seelog.Debug("orderHandler|orderAssign: NO available tutor found, orderId:", orderId)
 	return -1
+
 }
 
 func dispatchOrderToTeachers(orderId int64, orderInfo string) {
