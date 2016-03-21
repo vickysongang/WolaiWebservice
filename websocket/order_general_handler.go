@@ -450,6 +450,11 @@ func assignNextTeacher(orderId int64) int64 {
 			continue
 		}
 
+		if !UserManager.HasUserChan(teacherId) {
+			seelog.Debug("orderHandler|orderAssign FAIL teacher websocket disconnected, orderId: ", orderId, " to teacher: ", teacherId)
+			continue
+		}
+
 		profile, err := models.ReadTeacherProfile(teacherId)
 		if err != nil {
 			continue
@@ -482,6 +487,7 @@ func assignNextTeacher(orderId int64) int64 {
 		}
 
 	}
+	seelog.Debug("orderHandler|orderAssign: NO available tutor found, orderId:", orderId)
 	return -1
 }
 
