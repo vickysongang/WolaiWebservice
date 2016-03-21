@@ -34,6 +34,21 @@ func OrderSessionCountdown() int64 {
 		redis.CONFIG_KEY_ORDER_SESSION_COUNTDOWN)
 }
 
+func OrderBalanceAlert() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_ORDER,
+		redis.CONFIG_KEY_ORDER_BALANCE_ALERT)
+}
+
+func OrderBalanceMin() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_ORDER,
+		redis.CONFIG_KEY_ORDER_BALANCE_MIN)
+}
+
+func OrderQaPkgMin() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_ORDER,
+		redis.CONFIG_KEY_ORDER_QAPKG_MIN)
+}
+
 func SessionReconnLimit() int64 {
 	return redis.GetConfigInt64(redis.CONFIG_SESSION,
 		redis.CONFIG_KEY_SESSION_RECONN_LIMIT)

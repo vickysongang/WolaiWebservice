@@ -5,6 +5,7 @@ import (
 	"WolaiWebBackend/config"
 	"WolaiWebservice/models"
 	"errors"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 )
@@ -63,4 +64,21 @@ func HasQaPkgDiscount() bool {
 		return true
 	}
 	return false
+}
+
+func GetLeftQaTimeLength(userId int64) int64 {
+	now := time.Now()
+	var leftQaTimeLength int64
+	monthlyQaPkgRecords, _ := GetMonthlyQaPkgRecords(userId)
+	for _, monthlyQaPkgRecord := range monthlyQaPkgRecords {
+		if now.After(monthlyQaPkgRecord.TimeFrom) && monthlyQaPkgRecord.TimeTo.After(now) {
+			leftQaTimeLength = leftQaTimeLength + monthlyQaPkgRecord.LeftTime
+			break
+		}
+	}
+	permanentQaPkgRecords, _ := GetPermanentQaPkgRecords(userId)
+	for _, permanentQaPkgRecord := range permanentQaPkgRecords {
+		leftQaTimeLength = leftQaTimeLength + permanentQaPkgRecord.LeftTime
+	}
+	return leftQaTimeLength
 }
