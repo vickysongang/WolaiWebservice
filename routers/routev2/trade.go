@@ -96,6 +96,6 @@ var tradeRoutes = route.Routes{
 		"/qapkg/detail",
 		handlerv2.TradeUserQaPkgDetail,
 		true,
-		false,
+		true,
 	},
 }

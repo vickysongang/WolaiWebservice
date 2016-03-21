@@ -38,7 +38,7 @@ type PermanentQaPkg struct {
 
 type UserQaPkgDetail struct {
 	TotalQaTimeLength   int64             `json:"totalQaTimeLength"`
-	UserMonthlyQaPkgs   []*MonthlyQaPkg   `json:"userMontlyQaPkgs"`
+	UserMonthlyQaPkgs   []*MonthlyQaPkg   `json:"userMonthlyQaPkgs"`
 	UserPermanentQaPkgs []*PermanentQaPkg `json:"userPermanentQaPkgs"`
 }
 
@@ -96,8 +96,8 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 		}
 		userMonthlyQaPkg.CurrentMonth = index
 		userMonthlyQaPkgs = append(userMonthlyQaPkgs, &userMonthlyQaPkg)
-		detail.UserMonthlyQaPkgs = userMonthlyQaPkgs
 	}
+	detail.UserMonthlyQaPkgs = userMonthlyQaPkgs
 
 	userPermanentQaPkgs := make([]*PermanentQaPkg, 0)
 	permanentQaPkgs, err := qapkgService.GetPermanentQaPkgRecords(userId)
