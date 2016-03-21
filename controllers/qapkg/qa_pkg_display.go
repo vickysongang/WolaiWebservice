@@ -74,6 +74,7 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 	if err != nil {
 		return nil, err
 	}
+	var totalQaTimeLength int64
 	if len(monthQaPkgs) > 0 {
 		userMonthlyQaPkg := MonthlyQaPkg{}
 		userMonthlyQaPkg.TotalMonth = int64(len(monthQaPkgs))
@@ -89,6 +90,7 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 				userMonthlyQaPkg.LeftTime = monthlyQaPkgRecord.LeftTime
 				expireTime := monthlyQaPkgRecord.TimeTo.Format("2006-01-02")
 				userMonthlyQaPkg.ExpireComment = fmt.Sprintf("*%v%s", expireTime, "前有效")
+				totalQaTimeLength = totalQaTimeLength + monthlyQaPkgRecord.LeftTime
 				break
 			}
 		}
@@ -111,7 +113,10 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 		userPermanentQaPkg.TotalTime = qaPkg.TimeLength
 		userPermanentQaPkg.LeftTime = permanentQaPkgRecord.LeftTime
 		userPermanentQaPkgs = append(userPermanentQaPkgs, &userPermanentQaPkg)
+
+		totalQaTimeLength = totalQaTimeLength + permanentQaPkgRecord.LeftTime
 	}
 	detail.UserPermanentQaPkgs = userPermanentQaPkgs
+	detail.TotalQaTimeLength = totalQaTimeLength
 	return &detail, nil
 }
