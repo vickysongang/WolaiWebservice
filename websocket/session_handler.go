@@ -368,6 +368,22 @@ func sessionHandler(sessionId int64) {
 						teacherChan <- sessionStatusMsg
 					}
 
+					if SessionManager.IsSessionPaused(sessionId) {
+						syncMsg := NewWSMessage("", session.Tutor, WS_SESSION_STATUS_SYNC)
+						syncMsg.Attribute["errCode"] = "0"
+						sessionStatus, _ := SessionManager.GetSessionStatus(sessionId)
+						syncMsg.Attribute["sessionStatus"] = sessionStatus
+						_, tutorInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
+						tutorInfoByte, _ := json.Marshal(tutorInfo)
+						syncMsg.Attribute["sessionInfo"] = string(tutorInfoByte)
+
+						if !UserManager.HasUserChan(session.Tutor) {
+							break
+						}
+						tutorChan := UserManager.GetUserChan(session.Tutor)
+						tutorChan <- syncMsg
+					}
+
 				case WS_SESSION_RECOVER_STU:
 					//如果学生所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
 					if !SessionManager.IsSessionPaused(sessionId) &&
@@ -409,6 +425,22 @@ func sessionHandler(sessionId int64) {
 						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 						sessionStatusMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
 						studentChan <- sessionStatusMsg
+					}
+
+					if SessionManager.IsSessionPaused(sessionId) {
+						syncMsg := NewWSMessage("", session.Creator, WS_SESSION_STATUS_SYNC)
+						syncMsg.Attribute["errCode"] = "0"
+						sessionStatus, _ := SessionManager.GetSessionStatus(sessionId)
+						syncMsg.Attribute["sessionStatus"] = sessionStatus
+						_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
+						studentByte, _ := json.Marshal(studentInfo)
+						syncMsg.Attribute["sessionInfo"] = string(studentByte)
+
+						if !UserManager.HasUserChan(session.Creator) {
+							break
+						}
+						studentChan := UserManager.GetUserChan(session.Creator)
+						studentChan <- syncMsg
 					}
 
 				case WS_SESSION_PAUSE: //课程暂停
