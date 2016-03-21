@@ -444,7 +444,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 	if !OrderManager.IsOrderOnline(orderId) {
 		resp.Attribute["errCode"] = "2"
-		resp.Attribute["errMsg"] = "订单已失效"
+		resp.Attribute["errMsg"] = "订单状态已变"
 		return resp, nil
 	}
 
@@ -579,6 +579,12 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 		//发送反馈消息
 		resp.OperationCode = WS_ORDER2_ASSIGN_ACCEPT_RESP
+
+		if OrderManager.IsOrderLocked(orderId) {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "该订单已被抢"
+			return resp, nil
+		}
 
 		if currentAssign, _ := OrderManager.GetCurrentAssign(orderId); currentAssign != msg.UserId {
 			resp.Attribute["errCode"] = "2"

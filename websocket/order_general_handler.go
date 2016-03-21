@@ -125,6 +125,10 @@ func GeneralOrderHandler(orderId int64) {
 
 		case <-dispatchTicker.C:
 			// 组装派发信息
+			if OrderManager.IsOrderLocked(orderId) {
+				seelog.Debug("Order has been locked by other tutor, orderId:", orderId)
+				continue
+			}
 
 			assignTarget := assignNextTeacher(orderId)
 			if assignTarget != -1 {
