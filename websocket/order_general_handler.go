@@ -32,6 +32,8 @@ func GeneralOrderHandler(orderId int64) {
 
 	orderTimer := time.NewTimer(time.Second * time.Duration(orderLifespan))
 	dispatchTimer := time.NewTimer(time.Second * time.Duration(orderDispatchLimit))
+	// Now we don't need this dispatchTimer.
+	dispatchTimer.Stop()
 	dispatchTicker := time.NewTicker(time.Second * 3)
 	assignTimer := time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
 
