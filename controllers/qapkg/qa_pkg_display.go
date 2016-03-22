@@ -12,11 +12,19 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
+type QaPkgShowInfo struct {
+	*models.QaPkg
+	Name    string `json:"showName"`
+	Content string `json:"showContent"`
+	Price   string `json:"showPrice"`
+	Comment string `json:"showComment"`
+}
+
 type QaPkgModuleInfo struct {
-	ModuleId      int64           `json:"moduleId"`
-	ModuleName    string          `json:"moduleName"`
-	ModuleComment string          `json:"moduleComment"`
-	QaPkgs        []*models.QaPkg `json:"qaPkgs"`
+	ModuleId      int64            `json:"moduleId"`
+	ModuleName    string           `json:"moduleName"`
+	ModuleComment string           `json:"moduleComment"`
+	QaPkgs        []*QaPkgShowInfo `json:"qaPkgs"`
 }
 
 type MonthlyQaPkg struct {
@@ -60,7 +68,23 @@ func GetQaPkgList() ([]QaPkgModuleInfo, error) {
 		moduleInfo.ModuleId = module.Id
 		moduleInfo.ModuleName = module.Name
 		moduleInfo.ModuleComment = module.Comment
-		moduleInfo.QaPkgs = qaPkgs
+		//		moduleInfo.QaPkgs = qaPkgs
+		for _, qaPkg := range qaPkgs {
+			showInfo := QaPkgShowInfo{}
+			showInfo.QaPkg = qaPkg
+			if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
+				showInfo.Name = fmt.Sprintf("%s-%d%s", module.Name, qaPkg.TimeLength, "分钟")
+				showInfo.Content = fmt.Sprintf("%d分钟", qaPkg.TimeLength)
+				showInfo.Price = fmt.Sprintf("%d元（原价%d元）", qaPkg.DiscountPrice/100, qaPkg.OriginalPrice/100)
+				showInfo.Comment = "购买该优惠包后可以任意使用快速提问功能"
+			} else if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
+				showInfo.Name = fmt.Sprintf("%s-%d%s", module.Name, qaPkg.Month, "个月")
+				showInfo.Content = fmt.Sprintf("%d分钟/月", qaPkg.TimeLength)
+				showInfo.Price = fmt.Sprintf("%d元（原价%d元）", qaPkg.DiscountPrice/100, qaPkg.OriginalPrice/100)
+				showInfo.Comment = "购买该优惠包后可以任意使用快速提问功能"
+			}
+			moduleInfo.QaPkgs = append(moduleInfo.QaPkgs, &showInfo)
+		}
 		pkgModuleInfos = append(pkgModuleInfos, moduleInfo)
 	}
 	return pkgModuleInfos, nil

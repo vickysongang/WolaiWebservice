@@ -78,12 +78,12 @@ func (pwm *PingxxWebhookManager) ChargeSuccessEvent(chargeId string) {
 
 	switch record.Type {
 	case models.TRADE_CHARGE:
-		premium, _ := trade.GetChargePremuim(record.UserId, int64(record.Amount))
+		//		premium, _ := trade.GetChargePremuim(record.UserId, int64(record.Amount))
 
 		trade.HandleTradeChargePingpp(record.Id)
-		if premium > 0 {
-			trade.HandleTradeChargePremium(record.UserId, premium, "", record.Id, "")
-		}
+		//		if premium > 0 {
+		//			trade.HandleTradeChargePremium(record.UserId, premium, "", record.Id, "")
+		//		}
 	case models.TRADE_COURSE_AUDITION:
 		courseController.HandleCourseActionPayByThird(record.UserId, record.RefId, record.Type, int64(record.Amount), record.Id)
 

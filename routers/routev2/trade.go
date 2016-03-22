@@ -86,7 +86,7 @@ var tradeRoutes = route.Routes{
 		"/qapkg/list",
 		handlerv2.TradeQaPkgList,
 		true,
-		true,
+		false,
 	},
 
 	// 7.3.2
@@ -96,6 +96,6 @@ var tradeRoutes = route.Routes{
 		"/qapkg/detail",
 		handlerv2.TradeUserQaPkgDetail,
 		true,
-		false,
+		true,
 	},
 }
