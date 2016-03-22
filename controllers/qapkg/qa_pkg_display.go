@@ -28,6 +28,7 @@ type QaPkgModuleInfo struct {
 }
 
 type MonthlyQaPkg struct {
+	RecordId      int64  `json:"recordId"`
 	QaPkgId       int64  `json:"qaPkgId"`
 	Title         string `json:"title"`
 	CurrentMonth  int64  `json:"currentMonth"`
@@ -38,6 +39,7 @@ type MonthlyQaPkg struct {
 }
 
 type PermanentQaPkg struct {
+	RecordId  int64  `json:"recordId"`
 	QaPkgId   int64  `json:"qaPkgId"`
 	Title     string `json:"title"`
 	LeftTime  int64  `json:"leftTime"`
@@ -107,6 +109,7 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 		for _, monthlyQaPkgRecord := range monthlyQaPkgRecords {
 			index++
 			if now.After(monthlyQaPkgRecord.TimeFrom) && monthlyQaPkgRecord.TimeTo.After(now) {
+				userMonthlyQaPkg.RecordId = monthlyQaPkgRecord.Id
 				userMonthlyQaPkg.QaPkgId = monthlyQaPkgRecord.QaPkgId
 				qaPkg, _ := models.ReadQaPkg(monthlyQaPkgRecord.QaPkgId)
 				qaModule, _ := models.ReadQaPkgModule(qaPkg.ModuleId)
@@ -131,6 +134,7 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 	}
 	for _, permanentQaPkgRecord := range permanentQaPkgRecords {
 		userPermanentQaPkg := PermanentQaPkg{}
+		userPermanentQaPkg.RecordId = permanentQaPkgRecord.Id
 		userPermanentQaPkg.QaPkgId = permanentQaPkgRecord.QaPkgId
 		qaPkg, _ := models.ReadQaPkg(permanentQaPkgRecord.QaPkgId)
 		qaModule, _ := models.ReadQaPkgModule(qaPkg.ModuleId)
