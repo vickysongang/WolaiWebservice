@@ -48,8 +48,11 @@ func sessionHandler(sessionId int64) {
 	//设置课程的开始时间并更改数据库的状态
 	SessionManager.SetSessionStatusServing(sessionId)
 
-	teacherOnline := UserManager.HasUserChan(session.Tutor)
-	studentOnline := UserManager.HasUserChan(session.Creator)
+	// don't check session break at session start for now
+	teacherOnline := true
+	studentOnline := true
+	//	teacherOnline := UserManager.HasUserChan(session.Tutor)
+	//	studentOnline := UserManager.HasUserChan(session.Creator)
 
 	if !teacherOnline {
 		//如果老师不在线，学生在线，则向学生发送课程中断消息
