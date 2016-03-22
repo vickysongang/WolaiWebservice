@@ -18,6 +18,7 @@ func HandleQaPkgPurchaseRecord(userId, qaPkgId int64) (int64, error) {
 			TimeLength: qaPkg.TimeLength,
 			Price:      qaPkg.DiscountPrice,
 			UserId:     userId,
+			LeftTime:   qaPkg.TimeLength,
 			Type:       models.QA_PKG_TYPE_PERMANENT,
 			Status:     models.QA_PKG_PURCHASE_STATUS_SERVING,
 		}
@@ -38,6 +39,7 @@ func HandleQaPkgPurchaseRecord(userId, qaPkgId int64) (int64, error) {
 				UserId:     userId,
 				TimeFrom:   startTime.AddDate(0, 0, i*30),
 				TimeTo:     startTime.AddDate(0, 0, (i+1)*30),
+				LeftTime:   qaPkg.TimeLength,
 				Type:       models.QA_PKG_TYPE_MONTHLY,
 				Status:     models.QA_PKG_PURCHASE_STATUS_SERVING,
 			}
