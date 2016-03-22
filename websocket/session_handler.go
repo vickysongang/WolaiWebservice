@@ -40,8 +40,11 @@ func sessionHandler(sessionId int64) {
 	SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
 	SessionManager.SetSessionStatusServing(sessionId) //设置课程的开始时间并更改数据库的状态
 
-	teacherOnline := UserManager.HasUserChan(session.Tutor)
-	studentOnline := UserManager.HasUserChan(session.Creator)
+	// don't check session break at session start for now
+	teacherOnline := true
+	studentOnline := true
+	//	teacherOnline := UserManager.HasUserChan(session.Tutor)
+	//	studentOnline := UserManager.HasUserChan(session.Creator)
 
 	if !teacherOnline {
 		//如果老师不在线，学生在线，则向学生发送课程中断消息
@@ -510,14 +513,14 @@ func InitSessionMonitor(sessionId int64) bool {
 		teacherChan := UserManager.GetUserChan(session.Tutor)
 		teacherChan <- startMsg
 	} else {
-		push.PushSessionInstantStart(session.Tutor, sessionId)
+		go push.PushSessionInstantStart(session.Tutor, sessionId)
 	}
 	if UserManager.HasUserChan(session.Creator) {
 		startMsg.UserId = session.Creator
 		studentChan := UserManager.GetUserChan(session.Creator)
 		studentChan <- startMsg
 	} else {
-		push.PushSessionInstantStart(session.Creator, sessionId)
+		go push.PushSessionInstantStart(session.Creator, sessionId)
 	}
 
 	go lcmessage.SendSessionStartMsg(sessionId)
