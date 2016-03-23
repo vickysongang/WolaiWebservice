@@ -2,7 +2,7 @@
 package qapkg
 
 import (
-	"WolaiWebBackend/config"
+	"WolaiWebservice/config"
 	"WolaiWebservice/models"
 	"errors"
 	"time"
