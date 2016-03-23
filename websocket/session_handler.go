@@ -33,6 +33,7 @@ func sessionHandler(sessionId int64) {
 
 	student, _ := models.ReadUser(session.Creator)
 	teacherProfile, _ := models.ReadTeacherProfile(session.Tutor)
+
 	teacherTier, _ := models.ReadTeacherTierHourly(teacherProfile.TierId)
 
 	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(session.Creator)                //获取答疑的剩余时间
@@ -66,7 +67,7 @@ func sessionHandler(sessionId int64) {
 
 		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
-		SessionManager.SetSessionBreaked(sessionId, true)
+		SessionManager.SetSessionBroken(sessionId, true)
 		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 
 	} else if !studentOnline {
@@ -77,7 +78,7 @@ func sessionHandler(sessionId int64) {
 
 		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
-		SessionManager.SetSessionBreaked(sessionId, true)
+		SessionManager.SetSessionBroken(sessionId, true)
 		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 
 	} else {
@@ -136,7 +137,7 @@ func sessionHandler(sessionId int64) {
 
 		case cur := <-syncTicker.C:
 			//如果课程不在进行中或者被暂停，则停止同步时间
-			if !SessionManager.IsSessionActived(sessionId) || SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBreaked(sessionId) {
+			if !SessionManager.IsSessionActived(sessionId) || SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBroken(sessionId) {
 				break
 			}
 			//计算课程时长，已计时长＋（本次同步时间－上次同步时间）
@@ -194,7 +195,7 @@ func sessionHandler(sessionId int64) {
 					SendFinishMsgToStudent(session.Creator, sessionId) //向学生发送下课消息
 
 					//如果课程没有被暂停且正在进行中，则累计计算时长
-					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBreaked(sessionId) && SessionManager.IsSessionActived(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) && SessionManager.IsSessionActived(sessionId) {
 						length, _ := SessionManager.GetSessionLength(sessionId)
 						lastSync, _ := SessionManager.GetLastSync(sessionId)
 						length = length + (timestamp - lastSync)
@@ -219,8 +220,7 @@ func sessionHandler(sessionId int64) {
 
 				case WS_SESSION_BREAK:
 					//如果课程已经中断，则退出
-					if SessionManager.IsSessionBreaked(sessionId) ||
-						!SessionManager.IsSessionActived(sessionId) {
+					if SessionManager.IsSessionBroken(sessionId) || !SessionManager.IsSessionActived(sessionId) {
 						break
 					}
 
@@ -235,7 +235,7 @@ func sessionHandler(sessionId int64) {
 					SessionManager.SetLastSync(sessionId, lastSync)
 
 					//课程暂停，从内存中移除课程正在进行当状态
-					SessionManager.SetSessionBreaked(sessionId, true)
+					SessionManager.SetSessionBroken(sessionId, true)
 					SessionManager.SetSessionAccepted(sessionId, false)
 					SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 
@@ -254,7 +254,7 @@ func sessionHandler(sessionId int64) {
 
 				case WS_SESSION_RECOVER_TEACHER:
 					//如果老师所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
-					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBreaked(sessionId) && SessionManager.IsSessionActived(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) && SessionManager.IsSessionActived(sessionId) {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
 						length, _ := SessionManager.GetSessionLength(sessionId)
 						lastSync, _ := SessionManager.GetLastSync(sessionId)
@@ -274,7 +274,7 @@ func sessionHandler(sessionId int64) {
 					}
 
 					//如果老师所在的课程正在进行中，则通知老师该课正在进行中
-					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBreaked(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) {
 						seelog.Debug("send session:", sessionId, " live status message to teacher:", session.Tutor)
 						SendBreakReconnetSuccessMsgToTeacher(session.Creator, session.Tutor, sessionId, length)
 					}
@@ -288,7 +288,7 @@ func sessionHandler(sessionId int64) {
 
 				case WS_SESSION_RECOVER_STU:
 					//如果学生所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
-					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBreaked(sessionId) && SessionManager.IsSessionActived(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) && SessionManager.IsSessionActived(sessionId) {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
 						length, _ := SessionManager.GetSessionLength(sessionId)
 						lastSync, _ := SessionManager.GetLastSync(sessionId)
@@ -309,7 +309,7 @@ func sessionHandler(sessionId int64) {
 					}
 
 					//如果学生所在的课程正在进行中，则通知学生该课正在进行中
-					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBreaked(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) {
 						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator)
 						SendBreakReconnetSuccessMsgToStudent(session.Creator, session.Tutor, sessionId, length)
 					}
@@ -323,7 +323,7 @@ func sessionHandler(sessionId int64) {
 
 				case WS_SESSION_PAUSE: //课程暂停
 					//向老师发送课程暂停的响应消息
-					if SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBreaked(sessionId) || !SessionManager.IsSessionActived(sessionId) {
+					if SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBroken(sessionId) || !SessionManager.IsSessionActived(sessionId) {
 						SendPauseRespMsgToTeacherOnError(msg.MessageId, session.Tutor)
 						break
 					}
@@ -359,7 +359,7 @@ func sessionHandler(sessionId int64) {
 						SendResumeRespMsgToTeacherOnError(msg.MessageId, msg.UserId, "session is not actived")
 						break
 					}
-					if !SessionManager.IsSessionBreaked(sessionId) && !SessionManager.IsSessionPaused(sessionId) {
+					if !SessionManager.IsSessionBroken(sessionId) && !SessionManager.IsSessionPaused(sessionId) {
 						SendResumeRespMsgToTeacherOnError(msg.MessageId, msg.UserId, "session is not paused or breaked")
 						break
 					}
@@ -398,7 +398,7 @@ func sessionHandler(sessionId int64) {
 					//设置上课请求未被接受
 					SessionManager.SetSessionAccepted(sessionId, false)
 
-					if SessionManager.IsSessionBreaked(sessionId) {
+					if SessionManager.IsSessionBroken(sessionId) {
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 					} else if SessionManager.IsSessionPaused(sessionId) {
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
@@ -424,7 +424,7 @@ func sessionHandler(sessionId int64) {
 
 					if acceptStr == "-1" {
 						//拒绝上课
-						if SessionManager.IsSessionBreaked(sessionId) {
+						if SessionManager.IsSessionBroken(sessionId) {
 							SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 						} else if SessionManager.IsSessionPaused(sessionId) {
 							SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
@@ -441,7 +441,7 @@ func sessionHandler(sessionId int64) {
 						//设置课程状态为正在服务中
 						SessionManager.SetSessionActived(sessionId, true)
 						SessionManager.SetSessionPaused(sessionId, false)
-						SessionManager.SetSessionBreaked(sessionId, false)
+						SessionManager.SetSessionBroken(sessionId, false)
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
 
 						//启动时间同步计时器

@@ -206,7 +206,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		//老师从主动恢复的暂停状态中点击继续计时
 		resp.OperationCode = WS_SESSION_CONTINUE_RESP
 
-		if !SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBreaked(sessionId) {
+		if !SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBroken(sessionId) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "session is not paused or is currently broken"
 			return resp, nil
@@ -242,7 +242,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		//向老师发送恢复上课的响应消息
 		resp.OperationCode = WS_SESSION_RESUME_RESP
 
-		if !SessionManager.IsSessionBreaked(sessionId) &&
+		if !SessionManager.IsSessionBroken(sessionId) &&
 			!SessionManager.IsSessionPaused(sessionId) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "session is not paused or breaked"
@@ -288,7 +288,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 
 		//如果课程没有被暂停且正在进行中，则累计计算时长
 		if !SessionManager.IsSessionPaused(sessionId) &&
-			!SessionManager.IsSessionBreaked(sessionId) &&
+			!SessionManager.IsSessionBroken(sessionId) &&
 			SessionManager.IsSessionActived(sessionId) {
 			length, _ := SessionManager.GetSessionLength(sessionId)
 			lastSync, _ := SessionManager.GetLastSync(sessionId)
@@ -347,7 +347,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		//设置上课请求未被接受
 		SessionManager.SetSessionAccepted(sessionId, false)
 
-		if SessionManager.IsSessionBreaked(sessionId) {
+		if SessionManager.IsSessionBroken(sessionId) {
 			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 		} else if SessionManager.IsSessionPaused(sessionId) {
 			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
