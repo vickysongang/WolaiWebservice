@@ -43,7 +43,7 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 			return 2, trade.ErrInsufficientFund
 		}
 
-		err = trade.AddUserBalance(record.UserId, 0-PAYMENT_PRICE_AUDITION)
+		err = trade.HandleUserBalance(record.UserId, 0-PAYMENT_PRICE_AUDITION)
 		if err != nil {
 			return 2, err
 		}
@@ -70,7 +70,7 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 			return 2, trade.ErrInsufficientFund
 		}
 
-		err = trade.AddUserBalance(record.UserId, 0-record.PriceTotal)
+		err = trade.HandleUserBalance(record.UserId, 0-record.PriceTotal)
 		if err != nil {
 			return 2, err
 		}
@@ -148,7 +148,7 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 	switch tradeType {
 	case models.TRADE_COURSE_AUDITION:
 		if pingppAmount < PAYMENT_PRICE_AUDITION {
-			err = trade.AddUserBalance(userId, 0-user.Balance)
+			err = trade.HandleUserBalance(userId, 0-user.Balance)
 			if err != nil {
 				return 2, err
 			}
@@ -169,7 +169,7 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 
 	case models.TRADE_COURSE_PURCHASE:
 		if pingppAmount < record.PriceTotal {
-			err = trade.AddUserBalance(userId, 0-user.Balance)
+			err = trade.HandleUserBalance(userId, 0-user.Balance)
 			if err != nil {
 				return 2, err
 			}

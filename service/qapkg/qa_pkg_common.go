@@ -38,6 +38,7 @@ func GetPermanentQaPkgRecords(userId int64) ([]*models.QaPkgPurchaseRecord, erro
 	_, err := o.QueryTable(new(models.QaPkgPurchaseRecord).TableName()).
 		Filter("user_id", userId).
 		Filter("type", models.QA_PKG_TYPE_PERMANENT).
+		OrderBy("create_time").
 		All(&records)
 	return records, err
 }

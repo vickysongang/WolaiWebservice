@@ -22,7 +22,7 @@ func HandleQaPkgActionPayByBalance(userId, qaPkgId int64, payType string) (int64
 	if user.Balance < qaPkg.DiscountPrice {
 		return 2, ErrInsufficientFund
 	}
-	err = tradeService.AddUserBalance(userId, 0-qaPkg.DiscountPrice)
+	err = tradeService.HandleUserBalance(userId, 0-qaPkg.DiscountPrice)
 	if err != nil {
 		return 2, err
 	}
@@ -48,7 +48,7 @@ func HandleQaPkgActionPayByThird(userId, qaPkgId int64, pingppAmount int64, ping
 		return 2, errors.New("用户资料异常")
 	}
 	if pingppAmount < qaPkg.DiscountPrice {
-		err = tradeService.AddUserBalance(userId, 0-user.Balance)
+		err = tradeService.HandleUserBalance(userId, 0-user.Balance)
 		if err != nil {
 			return 2, err
 		}

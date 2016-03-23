@@ -27,10 +27,12 @@ const (
 	CONFIG_KEY_SESSION_RECONN_LIMIT               = "reconn_limit"
 	CONFIG_KEY_SESSION_EXPIRE_LIMIT               = "expire_limit"
 	CONFIG_KEY_SESSION_PAUSE_AFTER_START_TIMEDIFF = "pause_after_start_timediff"
-	CONFIG_WEBSOCKET                              = "config:websocket"
-	CONFIG_KEY_WEBSOCKET_PING_PERIOD              = "ping_period"
-	CONFIG_KEY_WEBSOCKET_PONG_WAIT                = "pong_wait"
-	CONFIG_KEY_WEBSOCKET_WRITE_WAIT               = "write_wait"
+	CONFIG_KEY_SESSION_AUTO_FINISH_LIMIT          = "auto_finish_limit"
+
+	CONFIG_WEBSOCKET                 = "config:websocket"
+	CONFIG_KEY_WEBSOCKET_PING_PERIOD = "ping_period"
+	CONFIG_KEY_WEBSOCKET_PONG_WAIT   = "pong_wait"
+	CONFIG_KEY_WEBSOCKET_WRITE_WAIT  = "write_wait"
 
 	CONFIG_TOKEN              = "config:token"
 	CONFIG_KEY_TOKEN_DURATION = "duration"

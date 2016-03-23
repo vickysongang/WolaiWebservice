@@ -51,3 +51,13 @@ func ReadQaPkgPurchaseRecord(recordId int64) (*QaPkgPurchaseRecord, error) {
 	}
 	return &record, nil
 }
+
+func UpdateQaPkgPurchaseRecord(recordId int64, recordInfo map[string]interface{}) error {
+	o := orm.NewOrm()
+	var params orm.Params = make(orm.Params)
+	for k, v := range recordInfo {
+		params[k] = v
+	}
+	_, err := o.QueryTable("qa_pkg_purchase_record").Filter("id", recordId).Update(params)
+	return err
+}

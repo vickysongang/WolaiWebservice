@@ -24,27 +24,27 @@ const (
 
 func HandleTradeRewardRegistration(userId int64) error {
 	var err error
-	err = AddUserBalance(userId, AMOUNT_REWARD_REGISTRATION)
+	err = HandleUserBalance(userId, AMOUNT_REWARD_REGISTRATION)
 	if err != nil {
 		return err
 	}
 
 	_, err = createTradeRecord(userId, AMOUNT_REWARD_REGISTRATION,
 		models.TRADE_REWARD_REGISTRATION, models.TRADE_RESULT_SUCCESS, COMMENT_REWARD_REGISTRATION,
-		0, 0, 0, "")
+		0, 0, 0, "", 0)
 
 	return err
 }
 
 func HandleTradeRewardInvitation(userId, amount int64) error {
 	var err error
-	err = AddUserBalance(userId, amount)
+	err = HandleUserBalance(userId, amount)
 	if err != nil {
 		return err
 	}
 	_, err = createTradeRecord(userId, amount,
 		models.TRADE_REWARD_INVITATION, models.TRADE_RESULT_SUCCESS, COMMENT_REWARD_INVITATION,
-		0, 0, 0, "")
+		0, 0, 0, "", 0)
 
 	return err
 }
@@ -56,13 +56,13 @@ func HandleTradeChargePingpp(pingppId int64) error {
 	if err != nil {
 		return err
 	}
-	err = AddUserBalance(record.UserId, int64(record.Amount))
+	err = HandleUserBalance(record.UserId, int64(record.Amount))
 	if err != nil {
 		return err
 	}
 	_, err = createTradeRecord(record.UserId, int64(record.Amount),
 		models.TRADE_CHARGE, models.TRADE_RESULT_SUCCESS, COMMENT_CHARGE,
-		0, 0, pingppId, "")
+		0, 0, pingppId, "", 0)
 
 	return err
 }
@@ -74,53 +74,53 @@ func HandleTradeChargeCode(userId int64, code string) error {
 	if err != nil {
 		return err
 	}
-	err = AddUserBalance(userId, chargeCode.Amount)
+	err = HandleUserBalance(userId, chargeCode.Amount)
 	if err != nil {
 		return err
 	}
 	_, err = createTradeRecord(userId, chargeCode.Amount,
 		models.TRADE_CHARGE_CODE, models.TRADE_RESULT_SUCCESS, COMMENT_CHARGE,
-		0, 0, 0, code)
+		0, 0, 0, code, 0)
 
 	return err
 }
 
 func HandleTradeChargePremium(userId, amount int64, comment string, pingppId int64, code string) error {
 	var err error
-	err = AddUserBalance(userId, amount)
+	err = HandleUserBalance(userId, amount)
 	if err != nil {
 		return err
 	}
 	_, err = createTradeRecord(userId, amount,
 		models.TRADE_CHARGE_PREMIUM, models.TRADE_RESULT_SUCCESS, comment,
-		0, 0, pingppId, code)
+		0, 0, pingppId, code, 0)
 
 	return err
 }
 
 func HandleTradeWithdraw(userId, amount int64) error {
 	var err error
-	err = AddUserBalance(userId, 0-amount)
+	err = HandleUserBalance(userId, 0-amount)
 	if err != nil {
 		return err
 	}
 
 	_, err = createTradeRecord(userId, 0-amount,
 		models.TRADE_WITHDRAW, models.TRADE_RESULT_SUCCESS, COMMENT_WITHDRAW,
-		0, 0, 0, "")
+		0, 0, 0, "", 0)
 
 	return err
 }
 
 func HandleTradePromotion(userId, amount int64, comment string) error {
 	var err error
-	err = AddUserBalance(userId, amount)
+	err = HandleUserBalance(userId, amount)
 	if err != nil {
 		return err
 	}
 	_, err = createTradeRecord(userId, amount,
 		models.TRADE_PROMOTION, models.TRADE_RESULT_SUCCESS, comment,
-		0, 0, 0, "")
+		0, 0, 0, "", 0)
 
 	return err
 }
@@ -130,7 +130,7 @@ func HandleTradeVoucher(userId, amount int64, comment string) error {
 
 	_, err = createTradeRecord(userId, amount,
 		models.TRADE_VOUCHER, models.TRADE_RESULT_SUCCESS, comment,
-		0, 0, 0, "")
+		0, 0, 0, "", 0)
 
 	return err
 }
@@ -140,7 +140,7 @@ func HandleTradeDeduction(userId, amount int64, comment string) error {
 
 	_, err = createTradeRecord(userId, 0-amount,
 		models.TRADE_DEDUCTION, models.TRADE_RESULT_SUCCESS, comment,
-		0, 0, 0, "")
+		0, 0, 0, "", 0)
 
 	return err
 }

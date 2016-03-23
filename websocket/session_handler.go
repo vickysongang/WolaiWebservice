@@ -12,6 +12,7 @@ import (
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/service/push"
+	qapkgService "WolaiWebservice/service/qapkg"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
@@ -27,14 +28,21 @@ func sessionHandler(sessionId int64) {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	sessionChan, _ := SessionManager.GetSessionChan(sessionId)
 	timestamp := time.Now().Unix()
+	sessionExpireLimit := settings.SessionExpireLimit()
+	autoFinishLimit := settings.SessionAutoFinishLimit()
+
+	student, _ := models.ReadUser(session.Creator)
+	teacherProfile, _ := models.ReadTeacherProfile(session.Tutor)
+	teacherTier, _ := models.ReadTeacherTierHourly(teacherProfile.TierId)
+
+	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(session.Creator)                //获取答疑的剩余时间
+	totalTimeLength := leftQaTimeLength + (student.Balance*60)/teacherTier.QAPriceHourly //获取可用的总上课时长
 
 	syncTicker := time.NewTicker(time.Second * 60) //时间同步计时器，每60s向客户端同步服务器端的时间来校准客户端的计时
 	syncTicker.Stop()                              //初始停止时间同步计时器，待正式上课的时候启动该计时器
 
-	sessionExpireLimit := settings.SessionExpireLimit()
 	waitingTimer := time.NewTimer(time.Second * time.Duration(sessionExpireLimit)) //超时计时器，课程中段在规定时间内如果没有重新恢复则规定时间过后课程自动超时结束
-
-	waitingTimer.Stop() //初始停止超时计时器
+	waitingTimer.Stop()                                                            //初始停止超时计时器
 
 	SessionManager.SetSessionActived(sessionId, true) //激活课程，并将课程状态设置为服务中
 	SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
@@ -42,6 +50,10 @@ func sessionHandler(sessionId int64) {
 
 	teacherOnline := UserManager.HasUserChan(session.Tutor)
 	studentOnline := UserManager.HasUserChan(session.Creator)
+
+	qaPkgTimeEndFlag := false
+	autoFinishTipFlag := false
+	autoFinishFlag := false
 
 	if !teacherOnline {
 		//如果老师不在线，学生在线，则向学生发送课程中断消息
@@ -121,9 +133,7 @@ func sessionHandler(sessionId int64) {
 
 		case cur := <-syncTicker.C:
 			//如果课程不在进行中或者被暂停，则停止同步时间
-			if !SessionManager.IsSessionActived(sessionId) ||
-				SessionManager.IsSessionPaused(sessionId) ||
-				SessionManager.IsSessionBreaked(sessionId) {
+			if !SessionManager.IsSessionActived(sessionId) || SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBreaked(sessionId) {
 				break
 			}
 			//计算课程时长，已计时长＋（本次同步时间－上次同步时间）
@@ -141,13 +151,32 @@ func sessionHandler(sessionId int64) {
 			SendSyncMsg(session.Tutor, sessionId, length)
 			SendSyncMsg(session.Creator, sessionId, length)
 
+			//答疑时间用完了，给学生发送提示消息
+			if leftQaTimeLength > 0 && length >= leftQaTimeLength*60 && !qaPkgTimeEndFlag {
+				qaPkgTimeEndFlag = true
+				SendQaPkgTimeEndMsgToStudent(session.Creator, sessionId)
+			}
+
+			//如果剩余时间小于等于autoFinishLimit，发送提醒给学生和老师
+			if length >= (totalTimeLength-autoFinishLimit)*60 && !autoFinishTipFlag {
+				autoFinishTipFlag = true
+				SendAutoFinishTipMsgToStudent(session.Creator, sessionId, autoFinishLimit)
+				SendAutoFinishTipMsgToTeacher(session.Tutor, sessionId, autoFinishLimit)
+			}
+
+			//如果时间全部用户了，则自动下课
+			if length >= totalTimeLength && !autoFinishFlag {
+				autoFinishFlag = true
+				autoFinishMsg := NewWSMessage("", session.Tutor, WS_SESSION_FINISH)
+				sessionChan <- autoFinishMsg
+			}
+
 		case msg, ok := <-sessionChan:
 			if ok {
 				//重新设置当前时间
 				timestamp = time.Now().Unix()
 
 				session, _ = models.ReadSession(sessionId)
-				seelog.Debug("get session message :", sessionId, "operCode:", msg.OperationCode)
 				switch msg.OperationCode {
 
 				case WS_SESSION_FINISH: //老师下课
@@ -162,9 +191,7 @@ func sessionHandler(sessionId int64) {
 					SendFinishMsgToStudent(session.Creator, sessionId) //向学生发送下课消息
 
 					//如果课程没有被暂停且正在进行中，则累计计算时长
-					if !SessionManager.IsSessionPaused(sessionId) &&
-						!SessionManager.IsSessionBreaked(sessionId) &&
-						SessionManager.IsSessionActived(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBreaked(sessionId) && SessionManager.IsSessionActived(sessionId) {
 						length, _ := SessionManager.GetSessionLength(sessionId)
 						lastSync, _ := SessionManager.GetLastSync(sessionId)
 						length = length + (timestamp - lastSync)
@@ -176,9 +203,7 @@ func sessionHandler(sessionId int64) {
 
 					models.UpdateTeacherServiceTime(session.Tutor, length) //修改老师的辅导时长
 
-					session, _ = models.ReadSession(sessionId) //下课后结算，产生交易记录
-
-					SendSessionReport(sessionId)
+					SendSessionReport(sessionId) //下课后结算，产生交易记录
 
 					seelog.Debug("POIWSSessionHandler: session end: " + sessionIdStr)
 
@@ -208,9 +233,7 @@ func sessionHandler(sessionId int64) {
 
 					//课程暂停，从内存中移除课程正在进行当状态
 					SessionManager.SetSessionBreaked(sessionId, true)
-
 					SessionManager.SetSessionAccepted(sessionId, false)
-
 					SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
@@ -228,9 +251,7 @@ func sessionHandler(sessionId int64) {
 
 				case WS_SESSION_RECOVER_TEACHER:
 					//如果老师所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
-					if !SessionManager.IsSessionPaused(sessionId) &&
-						!SessionManager.IsSessionBreaked(sessionId) &&
-						SessionManager.IsSessionActived(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBreaked(sessionId) && SessionManager.IsSessionActived(sessionId) {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
 						length, _ := SessionManager.GetSessionLength(sessionId)
 						lastSync, _ := SessionManager.GetLastSync(sessionId)
@@ -264,9 +285,7 @@ func sessionHandler(sessionId int64) {
 
 				case WS_SESSION_RECOVER_STU:
 					//如果学生所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
-					if !SessionManager.IsSessionPaused(sessionId) &&
-						!SessionManager.IsSessionBreaked(sessionId) &&
-						SessionManager.IsSessionActived(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBreaked(sessionId) && SessionManager.IsSessionActived(sessionId) {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
 						length, _ := SessionManager.GetSessionLength(sessionId)
 						lastSync, _ := SessionManager.GetLastSync(sessionId)
@@ -301,9 +320,7 @@ func sessionHandler(sessionId int64) {
 
 				case WS_SESSION_PAUSE: //课程暂停
 					//向老师发送课程暂停的响应消息
-					if SessionManager.IsSessionPaused(sessionId) ||
-						SessionManager.IsSessionBreaked(sessionId) ||
-						!SessionManager.IsSessionActived(sessionId) {
+					if SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBreaked(sessionId) || !SessionManager.IsSessionActived(sessionId) {
 						SendPauseRespMsgToTeacherOnError(msg.MessageId, session.Tutor)
 						break
 					}
@@ -322,7 +339,6 @@ func sessionHandler(sessionId int64) {
 					//课程暂停，从内存中移除课程正在进行当状态
 					SessionManager.SetSessionPaused(sessionId, true)
 					SessionManager.SetSessionAccepted(sessionId, false)
-
 					SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
 
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
@@ -336,7 +352,6 @@ func sessionHandler(sessionId int64) {
 					}
 
 				case WS_SESSION_RESUME: //老师发起恢复上课的请求
-
 					if !SessionManager.IsSessionActived(sessionId) {
 						SendResumeRespMsgToTeacherOnError(msg.MessageId, msg.UserId, "session is not actived")
 						break
@@ -422,11 +437,8 @@ func sessionHandler(sessionId int64) {
 
 						//设置课程状态为正在服务中
 						SessionManager.SetSessionActived(sessionId, true)
-
 						SessionManager.SetSessionPaused(sessionId, false)
-
 						SessionManager.SetSessionBreaked(sessionId, false)
-
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
 
 						//启动时间同步计时器

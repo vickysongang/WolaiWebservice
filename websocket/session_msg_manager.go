@@ -8,6 +8,7 @@ import (
 	"WolaiWebservice/service/push"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/cihub/seelog"
@@ -345,6 +346,45 @@ func SendResumeAcceptMsgToTeacher(teacherId, sessionId int64, acceptStr string) 
 	if UserManager.HasUserChan(teacherId) {
 		teacherChan := UserManager.GetUserChan(teacherId)
 		teacherChan <- resAcceptMsg
+		return nil
+	}
+	return ErrUserChanClose
+}
+
+func SendQaPkgTimeEndMsgToStudent(studentId, sessionId int64) error {
+	sessionIdStr := strconv.FormatInt(sessionId, 10)
+	qaPkgTimeEndMsg := NewWSMessage("", studentId, WS_SESSION_QAPKG_TIME_END)
+	qaPkgTimeEndMsg.Attribute["sessionId"] = sessionIdStr
+	qaPkgTimeEndMsg.Attribute["comment"] = "答疑时间用完啦，本次上课已经换到钱包余额支付"
+	if UserManager.HasUserChan(studentId) {
+		userChan := UserManager.GetUserChan(studentId)
+		userChan <- qaPkgTimeEndMsg
+		return nil
+	}
+	return ErrUserChanClose
+}
+
+func SendAutoFinishTipMsgToStudent(studentId, sessionId, autoFinishLimit int64) error {
+	sessionIdStr := strconv.FormatInt(sessionId, 10)
+	qaPkgTimeEndMsg := NewWSMessage("", studentId, WS_SESSION_AUTO_FINISH_TIP)
+	qaPkgTimeEndMsg.Attribute["sessionId"] = sessionIdStr
+	qaPkgTimeEndMsg.Attribute["comment"] = fmt.Sprintf("%s%d%s", "哎呀！钱包里的钱都用完了", autoFinishLimit, "分钟后将自动下课哦")
+	if UserManager.HasUserChan(studentId) {
+		userChan := UserManager.GetUserChan(studentId)
+		userChan <- qaPkgTimeEndMsg
+		return nil
+	}
+	return ErrUserChanClose
+}
+
+func SendAutoFinishTipMsgToTeacher(teacherId, sessionId, autoFinishLimit int64) error {
+	sessionIdStr := strconv.FormatInt(sessionId, 10)
+	qaPkgTimeEndMsg := NewWSMessage("", teacherId, WS_SESSION_AUTO_FINISH_TIP)
+	qaPkgTimeEndMsg.Attribute["sessionId"] = sessionIdStr
+	qaPkgTimeEndMsg.Attribute["comment"] = "学生余额不足"
+	if UserManager.HasUserChan(teacherId) {
+		userChan := UserManager.GetUserChan(teacherId)
+		userChan <- qaPkgTimeEndMsg
 		return nil
 	}
 	return ErrUserChanClose

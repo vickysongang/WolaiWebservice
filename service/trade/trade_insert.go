@@ -11,10 +11,10 @@ import (
 )
 
 func createTradeRecord(userId, amount int64, tradeType, result, comment string,
-	sessionId, recordId, pingppId int64, chargeCode string) (*models.TradeRecord, error) {
+	sessionId, recordId, pingppId int64, chargeCode string, qapkgTimeLength int64) (*models.TradeRecord, error) {
 	var err error
 
-	//	err = addUserBalance(userId, amount)
+	//	err = HandleUserBalance(userId, amount)
 	//	if err != nil {
 	//		return nil, err
 	//	}
@@ -25,16 +25,17 @@ func createTradeRecord(userId, amount int64, tradeType, result, comment string,
 	}
 
 	record := models.TradeRecord{
-		UserId:      userId,
-		TradeType:   tradeType,
-		TradeAmount: amount,
-		Result:      result,
-		Balance:     user.Balance,
-		Comment:     comment,
-		SessionId:   sessionId,
-		RecordId:    recordId,
-		PingppId:    pingppId,
-		ChargeCode:  chargeCode,
+		UserId:          userId,
+		TradeType:       tradeType,
+		TradeAmount:     amount,
+		Result:          result,
+		Balance:         user.Balance,
+		Comment:         comment,
+		SessionId:       sessionId,
+		RecordId:        recordId,
+		PingppId:        pingppId,
+		ChargeCode:      chargeCode,
+		QapkgTimeLength: qapkgTimeLength,
 	}
 
 	tradeRecord, err := models.InsertTradeRecord(&record)
@@ -49,26 +50,12 @@ func createTradeRecord(userId, amount int64, tradeType, result, comment string,
 }
 
 /*
-* 增加用户的余额
+ * 操作用户的余额
  */
-func AddUserBalance(userId int64, amount int64) error {
+func HandleUserBalance(userId int64, amount int64) error {
 	o := orm.NewOrm()
-
 	_, err := o.QueryTable("users").Filter("id", userId).Update(orm.Params{
 		"balance": orm.ColValue(orm.ColAdd, amount),
-	})
-
-	return err
-}
-
-/*
-* 减少用户的余额
- */
-func MinusUserBalance(userId int64, amount int64) error {
-	o := orm.NewOrm()
-
-	_, err := o.QueryTable("users").Filter("id", userId).Update(orm.Params{
-		"balance": orm.ColValue(orm.ColMinus, amount),
 	})
 
 	return err
