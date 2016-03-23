@@ -26,7 +26,11 @@ func HandleTradeSession(sessionId int64) error {
 	}
 
 	length := session.Length
-	if length < 60 && length > 0 {
+	if length <= 0 {
+		length = 0
+	}
+
+	if length > 0 && length < 60 {
 		length = 60
 	}
 
