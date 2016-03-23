@@ -43,7 +43,7 @@ func PushNewOrderAssign(deviceToken, deviceProfile string, orderId int64) error 
 	payload := apns.NewPayload()
 	payload.Alert = "有新的提问指派给你，快去答疑吧"
 	payload.Badge = 1
-	payload.Sound = "iOS_new_orde_assign.aif"
+	payload.Sound = "order_assign.caf"
 
 	pn := apns.NewPushNotification()
 	pn.DeviceToken = deviceToken
