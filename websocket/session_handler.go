@@ -288,9 +288,11 @@ func sessionHandler(sessionId int64) {
 					//计算课程时长，已计时长＋（中断时间－上次同步时间）
 					length, _ := SessionManager.GetSessionLength(sessionId)
 					lastSync, _ := SessionManager.GetLastSync(sessionId)
-					length = length + (timestamp - lastSync)
-					SessionManager.SetSessionLength(sessionId, length)
 
+					if !SessionManager.IsSessionPaused(sessionId) {
+						length = length + (timestamp - lastSync)
+						SessionManager.SetSessionLength(sessionId, length)
+					}
 					//将中断时间设置为最后同步时间，用于下次时间的计算
 					lastSync = timestamp
 					SessionManager.SetLastSync(sessionId, lastSync)
