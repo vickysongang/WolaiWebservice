@@ -470,6 +470,15 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		} else {
 			// 发送反馈消息
 			resp.OperationCode = WS_ORDER2_CANCEL_RESP
+
+			if OrderManager.IsOrderLocked(orderId) {
+				resp.Attribute["errCode"] = "2"
+				resp.Attribute["errMsg"] = "该订单已被抢"
+				return resp, nil
+			}
+
+			OrderManager.SetOrderLocked(orderId, true)
+
 			resp.Attribute["errCode"] = "0"
 
 			// 向已经派到的老师发送学生取消订单的信息
