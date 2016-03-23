@@ -741,14 +741,14 @@ func InitSessionMonitor(sessionId int64) bool {
 		teacherChan := UserManager.GetUserChan(session.Tutor)
 		teacherChan <- startMsg
 	} else {
-		go push.PushSessionInstantStart(session.Tutor, sessionId)
+		push.PushSessionInstantStart(session.Tutor, sessionId)
 	}
 	if UserManager.HasUserChan(session.Creator) {
 		startMsg.UserId = session.Creator
 		studentChan := UserManager.GetUserChan(session.Creator)
 		studentChan <- startMsg
 	} else {
-		go push.PushSessionInstantStart(session.Creator, sessionId)
+		push.PushSessionInstantStart(session.Creator, sessionId)
 	}
 
 	go lcmessage.SendSessionStartMsg(sessionId)

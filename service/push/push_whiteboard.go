@@ -26,9 +26,9 @@ func PushWhiteboardCall(userId, callerId int64) error {
 	}
 	if redis.HasUserObjectId(userId) {
 		if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-			apnsprovider.PushWhiteboardCall(userDevice.DeviceToken, userDevice.DeviceProfile, callerId)
+			go apnsprovider.PushWhiteboardCall(userDevice.DeviceToken, userDevice.DeviceProfile, callerId)
 		} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
-			lcpush.PushWhiteboardCall(userDevice.ObjectId, callerId)
+			go lcpush.PushWhiteboardCall(userDevice.ObjectId, callerId)
 		}
 	}
 	return nil
