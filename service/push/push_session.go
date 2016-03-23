@@ -21,9 +21,9 @@ func PushSessionInstantStart(userId, sessionId int64) error {
 	}
 	if redis.HasUserObjectId(userId) {
 		if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-			apnsprovider.PushSessionInstantStart(userDevice.DeviceToken, userDevice.DeviceProfile, sessionId)
+			go apnsprovider.PushSessionInstantStart(userDevice.DeviceToken, userDevice.DeviceProfile, sessionId)
 		} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
-			lcpush.PushSessionInstantStart(userDevice.ObjectId, sessionId)
+			go lcpush.PushSessionInstantStart(userDevice.ObjectId, sessionId)
 		}
 	}
 	return nil
@@ -43,9 +43,9 @@ func PushSessionResume(userId, sessionId int64) error {
 	}
 	if redis.HasUserObjectId(userId) {
 		if userDevice.DeviceType == models.DEVICE_TYPE_IOS {
-			apnsprovider.PushSessionResume(userDevice.DeviceToken, userDevice.DeviceProfile, sessionId)
+			go apnsprovider.PushSessionResume(userDevice.DeviceToken, userDevice.DeviceProfile, sessionId)
 		} else if userDevice.DeviceType == models.DEVICE_TYPE_ANDROID {
-			lcpush.PushSessionResume(userDevice.ObjectId, sessionId)
+			go lcpush.PushSessionResume(userDevice.ObjectId, sessionId)
 		}
 	}
 	return nil
