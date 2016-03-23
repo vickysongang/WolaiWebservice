@@ -220,6 +220,9 @@ func GeneralOrderChanHandler(orderId int64) {
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
 					countdown := OrderManager.orderMap[orderId].assignMap[msg.UserId] + orderAssignCountdown - timestamp
 					recoverMsg.Attribute["countdown"] = strconv.FormatInt(countdown, 10)
+					session_countdown := OrderManager.orderMap[orderId].assignMap[msg.UserId] + orderSessionCountdown - timestamp
+					recoverMsg.Attribute["session_countdown"] = strconv.FormatInt(session_countdown, 10)
+
 					userChan <- recoverMsg
 
 				case WS_ORDER2_CANCEL:
