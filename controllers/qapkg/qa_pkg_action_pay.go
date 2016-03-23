@@ -30,7 +30,7 @@ func HandleQaPkgActionPayByBalance(userId, qaPkgId int64, payType string) (int64
 	if err != nil {
 		return status, err
 	}
-	err = tradeService.HandleQaPkgPurchaseTradeRecord(userId, 0-qaPkg.DiscountPrice, 0)
+	err = tradeService.HandleQaPkgPurchaseTradeRecord(userId, 0-qaPkg.DiscountPrice, qaPkgId, 0)
 	if err != nil {
 		return 2, err
 	}
@@ -57,7 +57,7 @@ func HandleQaPkgActionPayByThird(userId, qaPkgId int64, pingppAmount int64, ping
 	if err != nil {
 		return status, err
 	}
-	err = tradeService.HandleQaPkgPurchaseTradeRecord(userId, 0-qaPkg.DiscountPrice, pingppId)
+	err = tradeService.HandleQaPkgPurchaseTradeRecord(userId, 0-qaPkg.DiscountPrice, qaPkgId, pingppId)
 	if err != nil {
 		return 2, err
 	}

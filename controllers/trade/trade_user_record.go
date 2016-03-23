@@ -18,6 +18,7 @@ type tradeInfo struct {
 	Time    string `json:"time"`
 	Type    string `json:"type"`
 	Amount  int64  `json:"amount"`
+	Comment string `json:"comment"`
 }
 
 const (
@@ -33,6 +34,7 @@ const (
 	AVATAR_REWARD_REGISTRATION = "trade_reward_registration"
 	AVATAR_VOUCHER             = "trade_voucher"
 	AVATAR_WITHDRAW            = "trade_withdraw"
+	AVATAR_QAPKG_PURCHASE      = "trade_qapkg_purchase"
 )
 
 func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) {
@@ -94,6 +96,9 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 
 			info.Avartar = user.Avatar
 			info.Title = fmt.Sprintf("%s %d分钟", title, lengthMin)
+			if math.Abs(float64(record.QapkgTimeLength)) > 0 {
+				info.Comment = fmt.Sprintf("答疑时间%d分钟", record.QapkgTimeLength)
+			}
 
 		case models.TRADE_RECEIVEMENT:
 			// 老师答疑收入
@@ -219,7 +224,20 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Avartar = user.Avatar
 			info.Title = trade.COMMENT_COURSE_EARNING
 		case models.TRADE_QA_PKG_PURCHASE:
-
+			info.Avartar = AVATAR_QAPKG_PURCHASE
+			info.Title = trade.COMMENT_QA_PKG_PURCHASE
+			qaPkgId := record.RecordId
+			if qaPkgId != 0 {
+				qaPkg, err := models.ReadQaPkg(qaPkgId)
+				if err == nil {
+					qaPkgModule, _ := models.ReadQaPkgModule(qaPkg.ModuleId)
+					if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
+						info.Comment = fmt.Sprintf("%s－%d个月", qaPkgModule.Name, qaPkg.Month)
+					} else if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
+						info.Comment = fmt.Sprintf("%s-%d分钟", qaPkgModule.Name, qaPkg.TimeLength)
+					}
+				}
+			}
 		default:
 			continue
 		}
