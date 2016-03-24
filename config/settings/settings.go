@@ -24,6 +24,11 @@ func OrderDispatchCountdown() int64 {
 		redis.CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN)
 }
 
+func OrderHintCountdown() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_ORDER,
+		redis.CONFIG_KEY_ORDER_HINT_COUNTDOWN)
+}
+
 func OrderAssignCountdown() int64 {
 	return redis.GetConfigInt64(redis.CONFIG_ORDER,
 		redis.CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN)

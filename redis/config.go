@@ -22,6 +22,7 @@ const (
 	CONFIG_KEY_ORDER_BALANCE_ALERT      = "balance_alert"
 	CONFIG_KEY_ORDER_BALANCE_MIN        = "balance_min"
 	CONFIG_KEY_ORDER_QAPKG_MIN          = "qa_pkg_min"
+	CONFIG_KEY_ORDER_HINT_COUNTDOWN     = "hint_countdown"
 
 	CONFIG_SESSION                                = "config:session"
 	CONFIG_KEY_SESSION_RECONN_LIMIT               = "reconn_limit"
@@ -54,6 +55,7 @@ var defaultMap = map[string]map[string]string{
 		CONFIG_KEY_ORDER_BALANCE_ALERT:      "1500",
 		CONFIG_KEY_ORDER_BALANCE_MIN:        "0",
 		CONFIG_KEY_ORDER_QAPKG_MIN:          "5",
+		CONFIG_KEY_ORDER_HINT_COUNTDOWN:     "120",
 	},
 	CONFIG_SESSION: map[string]string{
 		CONFIG_KEY_SESSION_RECONN_LIMIT:               "30",
