@@ -195,11 +195,13 @@ func SessionEvaluationLabelPost(w http.ResponseWriter, r *http.Request) {
 
 	sessionIdStr := vars["sessionId"][0]
 	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
-
+	var targetId int64
+	if len(vars["targetId"]) > 0 {
+		targetIdStr := vars["targetId"][0]
+		targetId, _ = strconv.ParseInt(targetIdStr, 10, 64)
+	}
 	evaluationContent := vars["content"][0]
-
-	evaluation := models.Evaluation{UserId: userId, SessionId: sessionId, Content: evaluationContent}
-	content, err := models.CreateEvaluation(&evaluation)
+	content, err := sessionController.CreateEvaluation(userId, targetId, sessionId, evaluationContent)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {

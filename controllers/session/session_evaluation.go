@@ -9,6 +9,11 @@ import (
 	"WolaiWebservice/models"
 )
 
+type evaluationInfo struct {
+	Type      string             `json:"type"`
+	Evalution *models.Evaluation `json:"evaluationInfo"`
+}
+
 func CheckRandNumInSlice(slice []int64, randNum int64) bool {
 	for _, v := range slice {
 		if v == randNum {
@@ -99,45 +104,65 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 	return labels, nil
 }
 
-type evaluationInfo struct {
-	Type      string             `json:"type"`
-	Evalution *models.Evaluation `json:"evaluationInfo"`
+func CreateEvaluation(userId, targetId, sessionId int64, evaluationContent string) (*models.Evaluation, error) {
+	session, _ := models.ReadSession(sessionId)
+	order, _ := models.ReadOrder(session.OrderId)
+	if order.CourseId != 0 && userId == session.Tutor {
+
+		return nil, nil
+	} else {
+		evaluation := models.Evaluation{
+			UserId:    userId,
+			TargetId:  targetId,
+			SessionId: sessionId,
+			Content:   evaluationContent}
+		content, err := models.InsertEvaluation(&evaluation)
+		return content, err
+	}
+	return nil, nil
 }
 
 func QueryEvaluationInfo(userId, sessionId int64) ([]*evaluationInfo, error) {
 	session, _ := models.ReadSession(sessionId)
-	self, err1 := models.QueryEvaluation4Self(userId, sessionId)
-	other, err2 := models.QueryEvaluation4Other(userId, sessionId)
+	studentEvaluation, _ := models.QueryEvaluation(session.Creator, sessionId)
+	teacherEvaluation, _ := models.QueryEvaluation(session.Tutor, sessionId)
 
 	selfEvaluation := evaluationInfo{}
 	otherEvaluation := evaluationInfo{}
 
 	evalutionInfos := make([]*evaluationInfo, 0)
-	if userId == session.Tutor {
-		if err1 == nil {
-			selfEvaluation.Type = "teacher"
-			selfEvaluation.Evalution = self
+	//旧版评价表里targetId为0，新版不为0，故根据该字段来判断获取的是旧版评论还是新版评论
+	if userId == session.Creator {
+		if teacherEvaluation.Id != 0 && studentEvaluation.Id != 0 {
+			if (teacherEvaluation.TargetId != 0 && studentEvaluation.TargetId == 0) || (teacherEvaluation.TargetId == 0 && studentEvaluation.TargetId != 0) {
+				selfEvaluation.Type = "student"
+				selfEvaluation.Evalution = studentEvaluation
+				evalutionInfos = append(evalutionInfos, &selfEvaluation)
+			} else {
+				selfEvaluation.Type = "student"
+				selfEvaluation.Evalution = studentEvaluation
+				evalutionInfos = append(evalutionInfos, &selfEvaluation)
 
-			evalutionInfos = append(evalutionInfos, &selfEvaluation)
+				otherEvaluation.Type = "teacher"
+				otherEvaluation.Evalution = teacherEvaluation
+				evalutionInfos = append(evalutionInfos, &otherEvaluation)
+			}
 		}
-		if err2 == nil {
-			otherEvaluation.Type = "student"
-			otherEvaluation.Evalution = other
+	} else if userId == session.Tutor {
+		if teacherEvaluation.Id != 0 && studentEvaluation.Id != 0 {
+			if (teacherEvaluation.TargetId != 0 && studentEvaluation.TargetId == 0) || (teacherEvaluation.TargetId == 0 && studentEvaluation.TargetId != 0) {
+				selfEvaluation.Type = "teacher"
+				selfEvaluation.Evalution = teacherEvaluation
+				evalutionInfos = append(evalutionInfos, &selfEvaluation)
+			} else {
+				selfEvaluation.Type = "teacher"
+				selfEvaluation.Evalution = teacherEvaluation
+				evalutionInfos = append(evalutionInfos, &selfEvaluation)
 
-			evalutionInfos = append(evalutionInfos, &otherEvaluation)
-		}
-	} else if userId == session.Creator {
-		if err1 == nil {
-			selfEvaluation.Type = "student"
-			selfEvaluation.Evalution = self
-
-			evalutionInfos = append(evalutionInfos, &selfEvaluation)
-		}
-		if err2 == nil {
-			otherEvaluation.Type = "teacher"
-			otherEvaluation.Evalution = other
-
-			evalutionInfos = append(evalutionInfos, &otherEvaluation)
+				otherEvaluation.Type = "student"
+				otherEvaluation.Evalution = studentEvaluation
+				evalutionInfos = append(evalutionInfos, &otherEvaluation)
+			}
 		}
 	}
 	return evalutionInfos, nil

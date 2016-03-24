@@ -28,7 +28,6 @@ func HandleTradeRewardRegistration(userId int64) error {
 	if err != nil {
 		return err
 	}
-
 	_, err = createTradeRecord(userId, AMOUNT_REWARD_REGISTRATION,
 		models.TRADE_REWARD_REGISTRATION, models.TRADE_RESULT_SUCCESS, COMMENT_REWARD_REGISTRATION,
 		0, 0, 0, "", 0)
@@ -127,7 +126,10 @@ func HandleTradePromotion(userId, amount int64, comment string) error {
 
 func HandleTradeVoucher(userId, amount int64, comment string) error {
 	var err error
-
+	err = HandleUserBalance(userId, amount)
+	if err != nil {
+		return err
+	}
 	_, err = createTradeRecord(userId, amount,
 		models.TRADE_VOUCHER, models.TRADE_RESULT_SUCCESS, comment,
 		0, 0, 0, "", 0)
@@ -137,7 +139,10 @@ func HandleTradeVoucher(userId, amount int64, comment string) error {
 
 func HandleTradeDeduction(userId, amount int64, comment string) error {
 	var err error
-
+	err = HandleUserBalance(userId, 0-amount)
+	if err != nil {
+		return err
+	}
 	_, err = createTradeRecord(userId, 0-amount,
 		models.TRADE_DEDUCTION, models.TRADE_RESULT_SUCCESS, comment,
 		0, 0, 0, "", 0)

@@ -20,6 +20,7 @@ func HandleUserQaPkgTime(userId int64, timeLength int64) error {
 			} else {
 				recordInfo := map[string]interface{}{
 					"LeftTime": 0,
+					"Status":   models.QA_PKG_PURCHASE_STATUS_COMPLETE,
 				}
 				models.UpdateQaPkgPurchaseRecord(monthlyQaPkgRecord.Id, recordInfo)
 				balanceTime = timeLength - monthlyQaPkgRecord.LeftTime
@@ -38,6 +39,7 @@ func HandleUserQaPkgTime(userId int64, timeLength int64) error {
 		} else {
 			recordInfo := map[string]interface{}{
 				"LeftTime": 0,
+				"Status":   models.QA_PKG_PURCHASE_STATUS_COMPLETE,
 			}
 			models.UpdateQaPkgPurchaseRecord(permanentQaPkgRecord.Id, recordInfo)
 			balanceTime = balanceTime - permanentQaPkgRecord.LeftTime
