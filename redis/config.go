@@ -19,6 +19,7 @@ const (
 	CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN = "dispatch_countdown"
 	CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN   = "assign_countdown"
 	CONFIG_KEY_ORDER_SESSION_COUNTDOWN  = "session_countdown"
+	CONFIG_KEY_ORDER_HINT_COUNTDOWN     = "hint_countdown"
 
 	CONFIG_SESSION                                = "config:session"
 	CONFIG_KEY_SESSION_RECONN_LIMIT               = "reconn_limit"
@@ -44,8 +45,10 @@ var defaultMap = map[string]map[string]string{
 		CONFIG_KEY_ORDER_LIFESPAN_PA:        "3600",
 		CONFIG_KEY_ORDER_DISPATCH_LIMIT:     "60",
 		CONFIG_KEY_ORDER_DISPATCH_COUNTDOWN: "120",
-		CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN:   "30",
-		CONFIG_KEY_ORDER_SESSION_COUNTDOWN:  "10",
+		CONFIG_KEY_ORDER_HINT_COUNTDOWN:     "120",
+
+		CONFIG_KEY_ORDER_ASSIGN_COUNTDOWN:  "30",
+		CONFIG_KEY_ORDER_SESSION_COUNTDOWN: "10",
 	},
 	CONFIG_SESSION: map[string]string{
 		CONFIG_KEY_SESSION_RECONN_LIMIT:               "30",

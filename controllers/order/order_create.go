@@ -21,8 +21,10 @@ const (
 
 type OrderInfo struct {
 	*models.Order
-	Countdown int64 `json:"countdown"`
-	Countfrom int64 `json:"countfrom"`
+	Countdown     int64 `json:"countdown"`
+	Countfrom     int64 `json:"countfrom"`
+	HintCountdown int64 `json:"hint_countdown"`
+	OrderLifespan int64 `json:"order_lifespan"`
 }
 
 func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignoreFlagStr, directFlag string) (int64, error, *OrderInfo) {
@@ -66,6 +68,8 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignor
 		if directFlag == "Y" {
 			orderInfo.Countfrom = 0
 			orderInfo.Countdown = settings.OrderDispatchCountdown()
+			orderInfo.HintCountdown = settings.OrderHintCountdown()
+			orderInfo.OrderLifespan = settings.OrderLifespanGI()
 			websocket.UserManager.SetOrderCreate(order.Id, userId, time.Now().Unix())
 
 			websocket.OrderManager.SetOnline(order.Id)

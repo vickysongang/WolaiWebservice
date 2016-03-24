@@ -91,7 +91,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if lengthMin < 1 {
 				lengthMin = 1
 			}
-
+			info.Type = TRADE_TYPE_EXPENSE
 			info.Avartar = user.Avatar
 			info.Title = fmt.Sprintf("%s %d分钟", title, lengthMin)
 
@@ -125,7 +125,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if lengthMin < 1 {
 				lengthMin = 1
 			}
-
+			info.Type = TRADE_TYPE_INCOME
 			info.Avartar = user.Avatar
 			info.Title = fmt.Sprintf("%s %d分钟", title, lengthMin)
 
