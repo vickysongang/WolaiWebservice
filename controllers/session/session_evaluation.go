@@ -4,6 +4,8 @@ import (
 	"math/rand"
 	"time"
 
+	evaluationService "WolaiWebservice/service/evaluation"
+
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
@@ -108,7 +110,17 @@ func CreateEvaluation(userId, targetId, sessionId int64, evaluationContent strin
 	session, _ := models.ReadSession(sessionId)
 	order, _ := models.ReadOrder(session.OrderId)
 	if order.CourseId != 0 && userId == session.Tutor {
-
+		apply, _ := evaluationService.GetEvaluationApply(userId, sessionId, order.CourseId)
+		if apply.Id == 0 {
+			evaluationApply := models.EvaluationApply{
+				UserId:    userId,
+				SessionId: sessionId,
+				CourseId:  order.CourseId,
+				Status:    models.EVALUATION_APPLY_STATUS_CREATED,
+				Content:   evaluationContent,
+			}
+			models.InsertEvaluationApply(&evaluationApply)
+		}
 		return nil, nil
 	} else {
 		evaluation := models.Evaluation{

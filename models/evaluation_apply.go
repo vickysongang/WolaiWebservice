@@ -7,6 +7,11 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
+const (
+	EVALUATION_APPLY_STATUS_CREATED  = "created"
+	EVALUATION_APPLY_STATUS_APPROVED = "approved"
+)
+
 type EvaluationApply struct {
 	Id          int64     `json:"id" orm:"pk"`
 	UserId      int64     `json:"userId"`
