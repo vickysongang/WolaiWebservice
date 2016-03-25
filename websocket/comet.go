@@ -689,6 +689,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		}
 		resp.Attribute["errCode"] = "0"
 		resp.Attribute["status"] = "0"
+		resp.Attribute["orderType"] = order.Type
 
 		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
 			order.Type == models.ORDER_TYPE_COURSE_INSTANT {
@@ -700,6 +701,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 			acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
 			acceptMsg.Attribute["title"] = orderInfo.Title
+			acceptMsg.Attribute["orderType"] = order.Type
 
 			if UserManager.HasUserChan(order.Creator) {
 				creatorChan := UserManager.GetUserChan(order.Creator)
