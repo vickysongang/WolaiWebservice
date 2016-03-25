@@ -11,7 +11,7 @@ type Evaluation struct {
 	UserId     int64     `json:"userId"`
 	TargetId   int64     `json:"targetId"`
 	SessionId  int64     `json:"sessionId"`
-	Content    string    `json:"content orm:"type(longtext)"`
+	Content    string    `json:"content" orm:"type(longtext)"`
 	CreateTime time.Time `json:"createTime" orm:"type(datetime);auto_now_add"`
 }
 
