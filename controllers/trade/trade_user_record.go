@@ -90,7 +90,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 
 			lengthMin := session.Length / 60
-			if lengthMin < 1 {
+			if lengthMin < 1 && session.Length > 0 {
 				lengthMin = 1
 			}
 			info.Type = TRADE_TYPE_EXPENSE
@@ -127,7 +127,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 
 			lengthMin := session.Length / 60
-			if lengthMin < 1 {
+			if lengthMin < 1 && session.Length > 0 {
 				lengthMin = 1
 			}
 			info.Type = TRADE_TYPE_INCOME
