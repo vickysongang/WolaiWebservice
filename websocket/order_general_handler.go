@@ -184,6 +184,8 @@ func GeneralOrderChanHandler(orderId int64) {
 	orderAssignCountdown := settings.OrderAssignCountdown()
 	orderSessionCountdown := settings.OrderSessionCountdown()
 	orderDispatchCountdown := settings.OrderDispatchCountdown()
+	orderHintCountdown := settings.OrderHintCountdown()
+	orderLifespan := settings.OrderLifespanGI()
 
 	assignTimer := time.NewTimer(time.Second * time.Duration(orderAssignCountdown))
 	assignTimer.Stop()
@@ -206,6 +208,8 @@ func GeneralOrderChanHandler(orderId int64) {
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
 					recoverMsg.Attribute["countdown"] = strconv.FormatInt(orderDispatchCountdown, 10)
 					recoverMsg.Attribute["countfrom"] = strconv.FormatInt(timestamp-OrderManager.orderMap[orderId].onlineTimestamp, 10)
+					recoverMsg.Attribute["hint_countdown"] = strconv.FormatInt(orderHintCountdown, 10)
+					recoverMsg.Attribute["order_lifespan"] = strconv.FormatInt(orderLifespan, 10)
 					userChan <- recoverMsg
 
 				case WS_ORDER2_RECOVER_DISPATCH:
