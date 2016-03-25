@@ -23,7 +23,7 @@ import (
  * @param body:内容，示例：Your Body
  * @param extra:附加字段
  * @param tradeType:交易类型，示例：charge
- * @param refId:引用的其他表主键ID，如couseId或qaPkgId,与tradeType结合使用
+ * @param refId:引用的其他表主键ID，如courseId或qaPkgId,与tradeType结合使用
  * @param payType:支付类型，balance代表全余额支付，third代表第三方支付，both代表两者结合
  */
 func HandleTradePay(orderNo string, userId int64, amount uint64,

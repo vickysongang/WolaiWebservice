@@ -17,6 +17,7 @@ type EvaluationApply struct {
 	UserId      int64     `json:"userId"`
 	SessionId   int64     `json:"sessionId"`
 	CourseId    int64     `json:"courseId"`
+	ChapterId   int64     `json:"chapterId"`
 	Status      string    `json:"status"`
 	Content     string    `json:"content" orm:"type(longtext)"`
 	CreateTime  time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`

@@ -5,6 +5,8 @@ import (
 	"WolaiWebservice/models"
 	"errors"
 	"time"
+
+	seelog "github.com/cihub/seelog"
 )
 
 type SessionStatus struct {
@@ -80,6 +82,7 @@ func (ssm *SessionStatusManager) SetSessionOnline(sessionId int64) error {
 		return nil
 	}
 	ssm.sessionMap[sessionId] = NewSessionStatus(sessionId)
+	seelog.Debug("SessionManager | set session online:", sessionId)
 	return nil
 }
 

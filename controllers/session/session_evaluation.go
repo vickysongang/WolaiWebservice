@@ -110,12 +110,13 @@ func CreateEvaluation(userId, targetId, sessionId int64, evaluationContent strin
 	session, _ := models.ReadSession(sessionId)
 	order, _ := models.ReadOrder(session.OrderId)
 	if order.CourseId != 0 && userId == session.Tutor {
-		apply, _ := evaluationService.GetEvaluationApply(userId, sessionId, order.CourseId)
+		apply, _ := evaluationService.GetEvaluationApply(userId, order.ChapterId)
 		if apply.Id == 0 {
 			evaluationApply := models.EvaluationApply{
 				UserId:    userId,
 				SessionId: sessionId,
 				CourseId:  order.CourseId,
+				ChapterId: order.ChapterId,
 				Status:    models.EVALUATION_APPLY_STATUS_CREATED,
 				Content:   evaluationContent,
 			}

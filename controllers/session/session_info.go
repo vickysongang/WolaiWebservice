@@ -142,7 +142,7 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 		} else {
 			isCompleted = false
 		}
-		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.UserId, sessionId, chapter.CourseId)
+		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.UserId, chapter.Id)
 		if evaluationApply.Id != 0 {
 			evaluationStatus = evaluationApply.Status
 		}

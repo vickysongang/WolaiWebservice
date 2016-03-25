@@ -9,7 +9,8 @@ import (
 
 type courseChapterStatus struct {
 	models.CourseChapter
-	Status string `json:"status"`
+	Status           string `json:"status"`
+	EvaluationStatus string `json:"evaluationStatus"`
 }
 
 const (
@@ -43,7 +44,6 @@ func queryCourseChapterStatus(courseId int64, current int64) ([]*courseChapterSt
 
 		statusList[i] = &status
 	}
-
 	return statusList, nil
 }
 
@@ -88,7 +88,6 @@ func queryCourseCustomChapterStatus(courseId int64, current int64, userId int64,
 
 		statusList[i] = &status
 	}
-
 	return statusList, nil
 }
 
