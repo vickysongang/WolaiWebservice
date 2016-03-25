@@ -123,6 +123,13 @@ func CreateEvaluation(userId, targetId, sessionId int64, evaluationContent strin
 		}
 		return nil, nil
 	} else {
+		if targetId == 1 {
+			if userId == session.Creator {
+				targetId = session.Tutor
+			} else {
+				targetId = session.Creator
+			}
+		}
 		evaluation := models.Evaluation{
 			UserId:    userId,
 			TargetId:  targetId,

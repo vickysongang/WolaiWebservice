@@ -39,7 +39,7 @@ var sessionRoutes = route.Routes{
 		true,
 	},
 
-	// 6.1.1
+	// 6.1.3
 	route.Route{
 		"GetCourseSessionInfo",
 		"POST",
