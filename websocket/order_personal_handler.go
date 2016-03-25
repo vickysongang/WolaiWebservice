@@ -89,6 +89,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						return
 					}
 					resp.Attribute["errCode"] = "0"
+					resp.Attribute["orderType"] = order.Type
 					userChan <- resp
 
 					resultMsg := NewWSMessage("", msg.UserId, WS_ORDER2_RESULT)
@@ -107,6 +108,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 						acceptMsg.Attribute["countdown"] = strconv.FormatInt(orderSessionCountdown, 10)
 						acceptMsg.Attribute["teacherInfo"] = string(teacherByte)
 						acceptMsg.Attribute["title"] = orderInfo.Title
+						acceptMsg.Attribute["orderType"] = order.Type
 
 						if UserManager.HasUserChan(order.Creator) {
 							creatorChan := UserManager.GetUserChan(order.Creator)
