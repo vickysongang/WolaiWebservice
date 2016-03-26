@@ -2,6 +2,7 @@ package course
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/astaxie/beego/orm"
 
@@ -32,13 +33,12 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 	if err != nil {
 		return 2, errors.New("用户信息异常")
 	}
-
 	switch payType {
 	case PAYMENT_TYPE_AUDITION:
 		if record.AuditionStatus != models.PURCHASE_RECORD_STATUS_WAITING {
 			return 2, errors.New("购买记录异常")
 		}
-
+		fmt.Println("ssssssss")
 		if user.Balance < PAYMENT_PRICE_AUDITION {
 			return 2, trade.ErrInsufficientFund
 		}

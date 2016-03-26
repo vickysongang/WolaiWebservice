@@ -82,11 +82,12 @@ func handleTradePayByBalance(userId, refId int64, tradeType, payType string) (st
 	switch tradeType {
 	case models.TRADE_COURSE_AUDITION:
 		courseId := refId
-		status, err = courseController.HandleCourseActionPayByBalance(userId, courseId, courseController.PAYMENT_COMMENT_AUDITION)
+
+		status, err = courseController.HandleCourseActionPayByBalance(userId, courseId, courseController.PAYMENT_TYPE_AUDITION)
 
 	case models.TRADE_COURSE_PURCHASE:
 		courseId := refId
-		status, err = courseController.HandleCourseActionPayByBalance(userId, courseId, courseController.PAYMENT_COMMENT_PURCHASE)
+		status, err = courseController.HandleCourseActionPayByBalance(userId, courseId, courseController.PAYMENT_TYPE_PURCHASE)
 
 	case models.TRADE_QA_PKG_PURCHASE:
 		qaPkgId := refId

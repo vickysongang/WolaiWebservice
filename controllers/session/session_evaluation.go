@@ -120,7 +120,19 @@ func CreateEvaluation(userId, targetId, sessionId int64, evaluationContent strin
 				Status:    models.EVALUATION_APPLY_STATUS_CREATED,
 				Content:   evaluationContent,
 			}
-			models.InsertEvaluationApply(&evaluationApply)
+			_, err := models.InsertEvaluationApply(&evaluationApply)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			if apply.Status == models.EVALUATION_APPLY_STATUS_IDLE {
+				eveluationInfo := map[string]interface{}{
+					"SessionId": sessionId,
+					"Status":    models.EVALUATION_APPLY_STATUS_CREATED,
+					"Content":   evaluationContent,
+				}
+				models.UpdateEvaluationApply(apply.Id, eveluationInfo)
+			}
 		}
 		return nil, nil
 	} else {
@@ -142,7 +154,7 @@ func CreateEvaluation(userId, targetId, sessionId int64, evaluationContent strin
 	return nil, nil
 }
 
-func QueryEvaluationInfo(userId, sessionId int64) ([]*evaluationInfo, error) {
+func QueryEvaluationInfo(userId, sessionId, targetId int64) ([]*evaluationInfo, error) {
 	session, _ := models.ReadSession(sessionId)
 	studentEvaluation, _ := models.QueryEvaluation(session.Creator, sessionId)
 	teacherEvaluation, _ := models.QueryEvaluation(session.Tutor, sessionId)
@@ -167,7 +179,18 @@ func QueryEvaluationInfo(userId, sessionId int64) ([]*evaluationInfo, error) {
 				otherEvaluation.Evalution = teacherEvaluation
 				evalutionInfos = append(evalutionInfos, &otherEvaluation)
 			}
+		} else if teacherEvaluation.Id == 0 && studentEvaluation.Id != 0 {
+			selfEvaluation.Type = "student"
+			selfEvaluation.Evalution = studentEvaluation
+			evalutionInfos = append(evalutionInfos, &selfEvaluation)
+		} else if teacherEvaluation.Id != 0 && studentEvaluation.Id == 0 {
+			if (teacherEvaluation.TargetId != 0 && targetId != 0) || (teacherEvaluation.TargetId == 0 && targetId == 0) {
+				otherEvaluation.Type = "teacher"
+				otherEvaluation.Evalution = teacherEvaluation
+				evalutionInfos = append(evalutionInfos, &otherEvaluation)
+			}
 		}
+
 	} else if userId == session.Tutor {
 		if teacherEvaluation.Id != 0 && studentEvaluation.Id != 0 {
 			if (teacherEvaluation.TargetId != 0 && studentEvaluation.TargetId == 0) || (teacherEvaluation.TargetId == 0 && studentEvaluation.TargetId != 0) {
@@ -182,6 +205,16 @@ func QueryEvaluationInfo(userId, sessionId int64) ([]*evaluationInfo, error) {
 				otherEvaluation.Type = "student"
 				otherEvaluation.Evalution = studentEvaluation
 				evalutionInfos = append(evalutionInfos, &otherEvaluation)
+			}
+		} else if teacherEvaluation.Id != 0 && studentEvaluation.Id == 0 {
+			selfEvaluation.Type = "teacher"
+			selfEvaluation.Evalution = teacherEvaluation
+			evalutionInfos = append(evalutionInfos, &selfEvaluation)
+		} else if teacherEvaluation.Id == 0 && studentEvaluation.Id != 0 {
+			if (targetId != 0 && studentEvaluation.TargetId != 0) || (targetId == 0 && studentEvaluation.TargetId == 0) {
+				selfEvaluation.Type = "teacher"
+				selfEvaluation.Evalution = teacherEvaluation
+				evalutionInfos = append(evalutionInfos, &selfEvaluation)
 			}
 		}
 	}

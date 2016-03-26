@@ -254,8 +254,13 @@ func SessionEvaluationLabelResult(w http.ResponseWriter, r *http.Request) {
 
 	sessionIdStr := vars["sessionId"][0]
 	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
+	var targetId int64
+	if len(vars["targetId"]) > 0 {
+		targetIdStr := vars["targetId"][0]
+		targetId, _ = strconv.ParseInt(targetIdStr, 10, 64)
+	}
 
-	content, err := sessionController.QueryEvaluationInfo(userId, sessionId)
+	content, err := sessionController.QueryEvaluationInfo(userId, sessionId, targetId)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {

@@ -169,6 +169,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 	resp := NewWSMessage(msg.MessageId, user.Id, msg.OperationCode+1)
 
 	sessionIdStr, ok := msg.Attribute["sessionId"]
+	resp.Attribute["sessionId"] = sessionIdStr
 	if !ok {
 		resp.Attribute["errCode"] = "2"
 		return resp, nil
@@ -437,6 +438,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 	resp := NewWSMessage(msg.MessageId, user.Id, msg.OperationCode+1)
 	orderIdStr, ok := msg.Attribute["orderId"]
+	resp.Attribute["orderId"] = orderIdStr
 	if !ok {
 		resp.Attribute["errCode"] = "2"
 		return resp, nil

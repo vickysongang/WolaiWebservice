@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	EVALUATION_APPLY_STATUS_IDLE     = "idle"
 	EVALUATION_APPLY_STATUS_CREATED  = "created"
 	EVALUATION_APPLY_STATUS_APPROVED = "approved"
 )
