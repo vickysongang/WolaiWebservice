@@ -663,9 +663,9 @@ func CheckCourseSessionEvaluation(userId int64, msg WSMessage) {
 				}
 			}
 		}
-		if orderId := TeacherManager.teacherMap[userId].currentAssign; orderId != -1 {
-			return
-		}
+		//		if orderId := TeacherManager.teacherMap[userId].currentAssign; orderId != -1 {
+		//			return
+		//		}
 		sessionId, courseId, chapterId, err := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
 		if err == nil {
 			resp := NewWSMessage("", msg.UserId, WS_SESSION_NOT_EVALUATION_TIP)
