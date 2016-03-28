@@ -11,6 +11,7 @@ import (
 	sessionController "WolaiWebservice/controllers/session"
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
+	evaluationService "WolaiWebservice/service/evaluation"
 	"WolaiWebservice/service/push"
 	qapkgService "WolaiWebservice/service/qapkg"
 	"WolaiWebservice/utils/leancloud/lcmessage"
@@ -644,6 +645,40 @@ func RecoverUserSession(userId int64, msg WSMessage) {
 				resp.Attribute["sessionInfo"] = string(teacherByte)
 			}
 			userChan <- resp
+		}
+	}
+}
+
+func CheckCourseSessionEvaluation(userId int64, msg WSMessage) {
+	if msg.OperationCode == WS_LOGIN {
+		if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
+			for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
+				session, _ := models.ReadSession(sessionId)
+				if session == nil {
+					return
+				}
+
+				if SessionManager.IsSessionOnline(sessionId) {
+					return
+				}
+			}
+		}
+		if orderId := TeacherManager.teacherMap[userId].currentAssign; orderId != -1 {
+			return
+		}
+		sessionId, courseId, chapterId, err := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
+		if err == nil {
+			resp := NewWSMessage("", msg.UserId, WS_SESSION_NOT_EVALUATION_TIP)
+			sessionIdStr := strconv.FormatInt(sessionId, 10)
+			courseIdStr := strconv.FormatInt(courseId, 10)
+			chapterIdStr := strconv.FormatInt(chapterId, 10)
+			resp.Attribute["sessionId"] = sessionIdStr
+			resp.Attribute["courseId"] = courseIdStr
+			resp.Attribute["chapterId"] = chapterIdStr
+			if UserManager.HasUserChan(msg.UserId) {
+				userChan := UserManager.GetUserChan(msg.UserId)
+				userChan <- resp
+			}
 		}
 	}
 }
