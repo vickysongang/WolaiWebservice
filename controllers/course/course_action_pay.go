@@ -2,7 +2,6 @@ package course
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/astaxie/beego/orm"
 
@@ -38,7 +37,6 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 		if record.AuditionStatus != models.PURCHASE_RECORD_STATUS_WAITING {
 			return 2, errors.New("购买记录异常")
 		}
-		fmt.Println("ssssssss")
 		if user.Balance < PAYMENT_PRICE_AUDITION {
 			return 2, trade.ErrInsufficientFund
 		}
@@ -109,7 +107,6 @@ func CheckCourseActionPayByThird(userId int64, courseId int64, tradeType string)
 	}
 	// 先查询该用户是否有购买（或试图购买）过这个课程
 	var currentRecord models.CoursePurchaseRecord
-	var record *models.CoursePurchaseRecord
 	err = o.QueryTable("course_purchase_record").Filter("course_id", courseId).Filter("user_id", userId).
 		One(&currentRecord)
 	if err != nil {
@@ -117,11 +114,11 @@ func CheckCourseActionPayByThird(userId int64, courseId int64, tradeType string)
 	}
 	switch tradeType {
 	case models.TRADE_COURSE_AUDITION:
-		if record.AuditionStatus != models.PURCHASE_RECORD_STATUS_WAITING {
+		if currentRecord.AuditionStatus != models.PURCHASE_RECORD_STATUS_WAITING {
 			return 2, errors.New("购买记录异常")
 		}
 	case models.TRADE_COURSE_PURCHASE:
-		if record.PurchaseStatus != models.PURCHASE_RECORD_STATUS_WAITING {
+		if currentRecord.PurchaseStatus != models.PURCHASE_RECORD_STATUS_WAITING {
 			return 2, errors.New("购买记录异常")
 		}
 	}
@@ -140,7 +137,7 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 	if err != nil {
 		return 2, errors.New("购买记录异常")
 	}
-	user, err := models.ReadUser(record.UserId)
+	user, err := models.ReadUser(currentRecord.UserId)
 	if err != nil {
 		return 2, errors.New("用户信息异常")
 	}

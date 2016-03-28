@@ -17,7 +17,7 @@ import (
 
 // 8.1.1
 func PingppPay(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	//	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())

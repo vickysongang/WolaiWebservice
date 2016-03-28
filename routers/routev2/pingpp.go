@@ -26,7 +26,7 @@ var pingppRoutes = route.Routes{
 		"/pay",
 		handlerv2.PingppPay,
 		true,
-		true,
+		false,
 	},
 
 	// 8.1.2
