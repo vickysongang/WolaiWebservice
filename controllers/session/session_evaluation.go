@@ -192,31 +192,36 @@ func QueryEvaluationInfo(userId, sessionId, targetId int64) ([]*evaluationInfo, 
 		}
 
 	} else if userId == session.Tutor {
-		if teacherEvaluation.Id != 0 && studentEvaluation.Id != 0 {
-			if (teacherEvaluation.TargetId != 0 && studentEvaluation.TargetId == 0) || (teacherEvaluation.TargetId == 0 && studentEvaluation.TargetId != 0) {
-				selfEvaluation.Type = "teacher"
-				selfEvaluation.Evalution = teacherEvaluation
-				evalutionInfos = append(evalutionInfos, &selfEvaluation)
-			} else {
-				selfEvaluation.Type = "teacher"
-				selfEvaluation.Evalution = teacherEvaluation
-				evalutionInfos = append(evalutionInfos, &selfEvaluation)
-
-				otherEvaluation.Type = "student"
-				otherEvaluation.Evalution = studentEvaluation
-				evalutionInfos = append(evalutionInfos, &otherEvaluation)
-			}
-		} else if teacherEvaluation.Id != 0 && studentEvaluation.Id == 0 {
+		if teacherEvaluation.Id != 0 {
 			selfEvaluation.Type = "teacher"
 			selfEvaluation.Evalution = teacherEvaluation
 			evalutionInfos = append(evalutionInfos, &selfEvaluation)
-		} else if teacherEvaluation.Id == 0 && studentEvaluation.Id != 0 {
-			if (targetId != 0 && studentEvaluation.TargetId != 0) || (targetId == 0 && studentEvaluation.TargetId == 0) {
-				selfEvaluation.Type = "teacher"
-				selfEvaluation.Evalution = teacherEvaluation
-				evalutionInfos = append(evalutionInfos, &selfEvaluation)
-			}
 		}
+		//		if teacherEvaluation.Id != 0 && studentEvaluation.Id != 0 {
+		//			if (teacherEvaluation.TargetId != 0 && studentEvaluation.TargetId == 0) || (teacherEvaluation.TargetId == 0 && studentEvaluation.TargetId != 0) {
+		//				selfEvaluation.Type = "teacher"
+		//				selfEvaluation.Evalution = teacherEvaluation
+		//				evalutionInfos = append(evalutionInfos, &selfEvaluation)
+		//			} else {
+		//				selfEvaluation.Type = "teacher"
+		//				selfEvaluation.Evalution = teacherEvaluation
+		//				evalutionInfos = append(evalutionInfos, &selfEvaluation)
+
+		//				otherEvaluation.Type = "student"
+		//				otherEvaluation.Evalution = studentEvaluation
+		//				evalutionInfos = append(evalutionInfos, &otherEvaluation)
+		//			}
+		//		} else if teacherEvaluation.Id != 0 && studentEvaluation.Id == 0 {
+		//			selfEvaluation.Type = "teacher"
+		//			selfEvaluation.Evalution = teacherEvaluation
+		//			evalutionInfos = append(evalutionInfos, &selfEvaluation)
+		//		} else if teacherEvaluation.Id == 0 && studentEvaluation.Id != 0 {
+		//			if (targetId != 0 && studentEvaluation.TargetId != 0) || (targetId == 0 && studentEvaluation.TargetId == 0) {
+		//				selfEvaluation.Type = "teacher"
+		//				selfEvaluation.Evalution = teacherEvaluation
+		//				evalutionInfos = append(evalutionInfos, &selfEvaluation)
+		//			}
+		//		}
 	}
 	return evalutionInfos, nil
 }
