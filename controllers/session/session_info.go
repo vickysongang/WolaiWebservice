@@ -43,9 +43,11 @@ type courseSessionInfo struct {
 }
 
 type courseChapterInfo struct {
-	Period int64  `json:"period"`
-	Title  string `json:"title"`
-	Brief  string `json:"brief"`
+	CourseId  int64  `json:"courseId"`
+	ChapterId int64  `json:"chapterId"`
+	Period    int64  `json:"period"`
+	Title     string `json:"title"`
+	Brief     string `json:"brief"`
 }
 
 type teacherInfo struct {
@@ -132,6 +134,8 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 		isCourse = true
 		chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
 		if err == nil {
+			chapterInfo.CourseId = chapter.CourseId
+			chapterInfo.ChapterId = chapter.Id
 			chapterInfo.Period = chapter.Period
 			chapterInfo.Brief = chapter.Abstract
 			chapterInfo.Title = chapter.Title
