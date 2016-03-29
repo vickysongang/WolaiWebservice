@@ -17,6 +17,7 @@ type sessionRecord struct {
 	Length       int64        `json:"length"`
 	Status       string       `json:"status"`
 	HasEvaluated bool         `json:"hasEvaluated"`
+	IsCourse     bool         `json:"isCourse"`
 }
 
 func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRecord) {
@@ -56,6 +57,10 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 		} else {
 			title = "实时课堂"
 		}
+		var isCourse bool
+		if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+			isCourse = true
+		}
 
 		record := sessionRecord{
 			SessionId:    session.Id,
@@ -66,6 +71,7 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 			Length:       session.Length,
 			Status:       session.Status,
 			HasEvaluated: HasOrderInSessionEvaluated(session.Id, userId),
+			IsCourse:     isCourse,
 		}
 
 		result = append(result, &record)
