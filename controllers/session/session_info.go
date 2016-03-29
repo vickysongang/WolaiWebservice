@@ -145,6 +145,8 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.UserId, chapter.Id)
 		if evaluationApply.Id != 0 {
 			evaluationStatus = evaluationApply.Status
+		} else {
+			evaluationStatus = models.EVALUATION_APPLY_STATUS_IDLE
 		}
 	}
 
