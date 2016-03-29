@@ -13,6 +13,7 @@ type Evaluation struct {
 	SessionId  int64     `json:"sessionId"`
 	Content    string    `json:"content" orm:"type(longtext)"`
 	CreateTime time.Time `json:"createTime" orm:"type(datetime);auto_now_add"`
+	ChapterId  int64     `json:"chapterId"`
 }
 
 func init() {
@@ -37,5 +38,12 @@ func QueryEvaluation(userId, sessionId int64) (*Evaluation, error) {
 	o := orm.NewOrm()
 	evalution := Evaluation{}
 	err := o.QueryTable("evaluation").Filter("user_id", userId).Filter("session_id", sessionId).One(&evalution)
+	return &evalution, err
+}
+
+func QueryEvaluationByChapter(userId, chapterId int64) (*Evaluation, error) {
+	o := orm.NewOrm()
+	evalution := Evaluation{}
+	err := o.QueryTable("evaluation").Filter("user_id", userId).Filter("chapter_id", chapterId).One(&evalution)
 	return &evalution, err
 }

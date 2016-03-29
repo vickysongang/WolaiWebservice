@@ -222,13 +222,17 @@ func SessionEvaluationLabelPost(w http.ResponseWriter, r *http.Request) {
 
 	sessionIdStr := vars["sessionId"][0]
 	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
-	var targetId int64
+	var targetId, chapterId int64
 	if len(vars["targetId"]) > 0 {
 		targetIdStr := vars["targetId"][0]
 		targetId, _ = strconv.ParseInt(targetIdStr, 10, 64)
 	}
+	if len(vars["chapterId"]) > 0 {
+		chapterIdStr := vars["chapterId"][0]
+		chapterId, _ = strconv.ParseInt(chapterIdStr, 10, 64)
+	}
 	evaluationContent := vars["content"][0]
-	content, err := sessionController.CreateEvaluation(userId, targetId, sessionId, evaluationContent)
+	content, err := sessionController.CreateEvaluation(userId, targetId, sessionId, chapterId, evaluationContent)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
@@ -254,13 +258,16 @@ func SessionEvaluationLabelResult(w http.ResponseWriter, r *http.Request) {
 
 	sessionIdStr := vars["sessionId"][0]
 	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
-	var targetId int64
+	var targetId, chapterId int64
 	if len(vars["targetId"]) > 0 {
 		targetIdStr := vars["targetId"][0]
 		targetId, _ = strconv.ParseInt(targetIdStr, 10, 64)
 	}
-
-	content, err := sessionController.QueryEvaluationInfo(userId, sessionId, targetId)
+	if len(vars["chapterId"]) > 0 {
+		chapterIdStr := vars["chapterId"][0]
+		chapterId, _ = strconv.ParseInt(chapterIdStr, 10, 64)
+	}
+	content, err := sessionController.QueryEvaluationInfo(userId, sessionId, targetId, chapterId)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
 	} else {
