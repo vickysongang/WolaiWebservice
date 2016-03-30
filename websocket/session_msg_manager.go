@@ -366,12 +366,12 @@ func SendQaPkgTimeEndMsgToStudent(studentId, sessionId int64) error {
 
 func SendAutoFinishTipMsgToStudent(studentId, sessionId, autoFinishLimit int64) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
-	qaPkgTimeEndMsg := NewWSMessage("", studentId, WS_SESSION_AUTO_FINISH_TIP)
-	qaPkgTimeEndMsg.Attribute["sessionId"] = sessionIdStr
-	qaPkgTimeEndMsg.Attribute["comment"] = fmt.Sprintf("%s%d%s", "哎呀！钱包里的钱都用完了", autoFinishLimit, "分钟后将自动下课哦")
+	autoFinishTipMsg := NewWSMessage("", studentId, WS_SESSION_AUTO_FINISH_TIP)
+	autoFinishTipMsg.Attribute["sessionId"] = sessionIdStr
+	autoFinishTipMsg.Attribute["comment"] = fmt.Sprintf("%s%d%s", "哎呀！钱包里的钱都用完了", autoFinishLimit, "分钟后将自动下课哦")
 	if UserManager.HasUserChan(studentId) {
 		userChan := UserManager.GetUserChan(studentId)
-		userChan <- qaPkgTimeEndMsg
+		userChan <- autoFinishTipMsg
 		return nil
 	}
 	return ErrUserChanClose
@@ -379,12 +379,12 @@ func SendAutoFinishTipMsgToStudent(studentId, sessionId, autoFinishLimit int64) 
 
 func SendAutoFinishTipMsgToTeacher(teacherId, sessionId, autoFinishLimit int64) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
-	qaPkgTimeEndMsg := NewWSMessage("", teacherId, WS_SESSION_AUTO_FINISH_TIP)
-	qaPkgTimeEndMsg.Attribute["sessionId"] = sessionIdStr
-	qaPkgTimeEndMsg.Attribute["comment"] = "学生余额不足"
+	autoFinishTipMsg := NewWSMessage("", teacherId, WS_SESSION_AUTO_FINISH_TIP)
+	autoFinishTipMsg.Attribute["sessionId"] = sessionIdStr
+	autoFinishTipMsg.Attribute["comment"] = "学生余额不足"
 	if UserManager.HasUserChan(teacherId) {
 		userChan := UserManager.GetUserChan(teacherId)
-		userChan <- qaPkgTimeEndMsg
+		userChan <- autoFinishTipMsg
 		return nil
 	}
 	return ErrUserChanClose
