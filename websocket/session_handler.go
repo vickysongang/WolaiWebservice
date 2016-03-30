@@ -652,14 +652,6 @@ func RecoverUserSession(userId int64, msg WSMessage) {
 
 func CheckCourseSessionEvaluation(userId int64, msg WSMessage) {
 	if msg.OperationCode == WS_LOGIN {
-		user, err := models.ReadUser(userId)
-		if err != nil {
-			return
-		}
-		if user.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
-			return
-		}
-
 		if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
 			for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
 				session, _ := models.ReadSession(sessionId)
@@ -672,23 +664,20 @@ func CheckCourseSessionEvaluation(userId int64, msg WSMessage) {
 				}
 			}
 		}
-		sessionId, courseId, chapterId, err := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
-		if err == nil {
-			session, err := models.ReadSession(sessionId)
-			if err != nil {
-				return
-			}
-			resp := NewWSMessage("", msg.UserId, WS_SESSION_NOT_EVALUATION_TIP)
+
+		sessionId, courseId, chapterId, studentId, err := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
+		if err == nil && sessionId != 0 {
+			resp := NewWSMessage("", userId, WS_SESSION_NOT_EVALUATION_TIP)
 			sessionIdStr := strconv.FormatInt(sessionId, 10)
 			courseIdStr := strconv.FormatInt(courseId, 10)
 			chapterIdStr := strconv.FormatInt(chapterId, 10)
-			studentIdStr := strconv.FormatInt(session.Creator, 10)
+			studentIdStr := strconv.FormatInt(studentId, 10)
 			resp.Attribute["sessionId"] = sessionIdStr
 			resp.Attribute["courseId"] = courseIdStr
 			resp.Attribute["chapterId"] = chapterIdStr
 			resp.Attribute["studentId"] = studentIdStr
-			if UserManager.HasUserChan(msg.UserId) {
-				userChan := UserManager.GetUserChan(msg.UserId)
+			if UserManager.HasUserChan(userId) {
+				userChan := UserManager.GetUserChan(userId)
 				userChan <- resp
 			}
 		}

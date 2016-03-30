@@ -12,6 +12,7 @@ type courseSessionInfo struct {
 	SessionId int64
 	CourseId  int64
 	ChapterId int64
+	StudentId int64
 }
 
 func CheckSessionEvaluated(sessionId int64) bool {
@@ -20,10 +21,10 @@ func CheckSessionEvaluated(sessionId int64) bool {
 	return exist
 }
 
-func GetLatestNotEvaluatedCourseSession(teacherId int64) (sessionId int64, courseId int64, chapterId int64, err error) {
+func GetLatestNotEvaluatedCourseSession(teacherId int64) (sessionId int64, courseId int64, chapterId int64, studentId int64, err error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
-	qb.Select("orders.course_id,orders.chapter_id,sessions.id").
+	qb.Select("orders.course_id,orders.chapter_id,sessions.id,order.creator").
 		From("orders").
 		InnerJoin("sessions").On("orders.id = sessions.order_id").
 		Where("sessions.tutor = ? and sessions.status = 'complete' and orders.chapter_id is not null and orders.chapter_id <> 0").
@@ -37,6 +38,7 @@ func GetLatestNotEvaluatedCourseSession(teacherId int64) (sessionId int64, cours
 				sessionId = info.SessionId
 				courseId = info.CourseId
 				chapterId = info.ChapterId
+				studentId = info.StudentId
 				return
 			}
 		}
