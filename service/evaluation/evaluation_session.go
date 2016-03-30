@@ -24,7 +24,7 @@ func CheckSessionEvaluated(sessionId int64) bool {
 func GetLatestNotEvaluatedCourseSession(teacherId int64) (sessionId int64, courseId int64, chapterId int64, studentId int64, err error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
-	qb.Select("orders.course_id,orders.chapter_id,sessions.id,orders.creator").
+	qb.Select("orders.course_id,orders.chapter_id,sessions.id as session_id,orders.creator as student_id").
 		From("orders").
 		InnerJoin("sessions").On("orders.id = sessions.order_id").
 		Where("sessions.tutor = ? and sessions.status = 'complete' and orders.chapter_id is not null and orders.chapter_id <> 0").
