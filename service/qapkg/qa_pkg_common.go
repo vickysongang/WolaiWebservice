@@ -50,7 +50,6 @@ func GetMonthlyQaPkgRecords(userId int64) ([]*models.QaPkgPurchaseRecord, error)
 	_, err := o.QueryTable(new(models.QaPkgPurchaseRecord).TableName()).
 		Filter("user_id", userId).
 		Filter("type", models.QA_PKG_TYPE_MONTHLY).
-		Filter("left_time__gt", 0).
 		OrderBy("time_to").All(&records)
 	return records, err
 }

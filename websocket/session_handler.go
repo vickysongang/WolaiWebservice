@@ -664,9 +664,10 @@ func CheckCourseSessionEvaluation(userId int64, msg WSMessage) {
 				}
 			}
 		}
-
-		sessionId, courseId, chapterId, studentId, err := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
-		if err == nil && sessionId != 0 {
+		seelog.Debug("CheckCourseSessionEvaluation:", userId)
+		sessionId, courseId, chapterId, studentId, _ := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
+		if sessionId != 0 {
+			seelog.Debug("sessionId:", sessionId, " courseId:", courseId, " chapterId:", chapterId, "  studentId:", studentId)
 			resp := NewWSMessage("", userId, WS_SESSION_NOT_EVALUATION_TIP)
 			sessionIdStr := strconv.FormatInt(sessionId, 10)
 			courseIdStr := strconv.FormatInt(courseId, 10)
