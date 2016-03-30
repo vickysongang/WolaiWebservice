@@ -7,7 +7,7 @@ import (
 
 func HandleUserQaPkgTime(userId int64, timeLength int64) error {
 	now := time.Now()
-	var balanceTime int64
+	balanceTime := timeLength
 	monthlyQaPkgRecords, _ := GetMonthlyQaPkgRecords(userId)
 	for _, monthlyQaPkgRecord := range monthlyQaPkgRecords {
 		if now.After(monthlyQaPkgRecord.TimeFrom) && monthlyQaPkgRecord.TimeTo.After(now) {

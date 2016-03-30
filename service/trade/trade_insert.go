@@ -57,6 +57,5 @@ func HandleUserBalance(userId int64, amount int64) error {
 	_, err := o.QueryTable("users").Filter("id", userId).Update(orm.Params{
 		"balance": orm.ColValue(orm.ColAdd, amount),
 	})
-
 	return err
 }

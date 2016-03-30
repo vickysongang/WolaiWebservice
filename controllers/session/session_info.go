@@ -84,7 +84,7 @@ func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
 			qaPkgUseTime = int64(math.Abs(float64(record.QapkgTimeLength)))
 			if qaPkgUseTime > 0 {
 				leftQaTimeLength := qapkgService.GetLeftQaTimeLength(session.Creator)
-				qaPkgLeftTime = leftQaTimeLength - qaPkgUseTime
+				qaPkgLeftTime = leftQaTimeLength
 			}
 		}
 	}

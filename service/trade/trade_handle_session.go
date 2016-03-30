@@ -6,6 +6,8 @@ import (
 
 	"WolaiWebservice/models"
 	qapkgService "WolaiWebservice/service/qapkg"
+
+	seelog "github.com/cihub/seelog"
 )
 
 func HandleTradeSession(sessionId int64) error {
@@ -70,13 +72,14 @@ func HandleTradeSession(sessionId int64) error {
 			}
 			balanceTime := lengthMinute - leftQaTimeLength
 			studentAmount := balanceTime * 60 * order.PriceHourly / 3600 / 10 * 10
+			seelog.Debug("studentAmount:", studentAmount, "  sesssionId:", sessionId)
 			err = HandleUserBalance(session.Creator, 0-studentAmount)
 			if err != nil {
 				return err
 			}
 			_, err = createTradeRecord(session.Creator, 0-studentAmount,
 				models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
-				session.Id, 0, 0, "", -lengthMinute)
+				session.Id, 0, 0, "", -leftQaTimeLength)
 			if err != nil {
 				return err
 			}
