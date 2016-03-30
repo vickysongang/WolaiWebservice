@@ -652,6 +652,14 @@ func RecoverUserSession(userId int64, msg WSMessage) {
 
 func CheckCourseSessionEvaluation(userId int64, msg WSMessage) {
 	if msg.OperationCode == WS_LOGIN {
+		user, err := models.ReadUser(userId)
+		if err != nil {
+			return
+		}
+		if user.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
+			return
+		}
+
 		if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
 			for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
 				session, _ := models.ReadSession(sessionId)
@@ -664,9 +672,6 @@ func CheckCourseSessionEvaluation(userId int64, msg WSMessage) {
 				}
 			}
 		}
-		//		if orderId := TeacherManager.teacherMap[userId].currentAssign; orderId != -1 {
-		//			return
-		//		}
 		sessionId, courseId, chapterId, err := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
 		if err == nil {
 			resp := NewWSMessage("", msg.UserId, WS_SESSION_NOT_EVALUATION_TIP)
