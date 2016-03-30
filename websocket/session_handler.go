@@ -39,7 +39,7 @@ func sessionHandler(sessionId int64) {
 
 	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(session.Creator)                //获取答疑的剩余时间
 	totalTimeLength := leftQaTimeLength + (student.Balance*60)/teacherTier.QAPriceHourly //获取可用的总上课时长
-	seelog.Debug("leftQaTimeLength:", leftQaTimeLength, " totalTimeLength:", totalTimeLength, "  autoFinishLimit:", autoFinishLimit)
+	seelog.Debug("leftQaTimeLength:", leftQaTimeLength, " totalTimeLength:", totalTimeLength, "  autoFinishLimit:", autoFinishLimit, " sessionId:", sessionId)
 
 	syncTicker := time.NewTicker(time.Second * 60) //时间同步计时器，每60s向客户端同步服务器端的时间来校准客户端的计时
 	syncTicker.Stop()                              //初始停止时间同步计时器，待正式上课的时候启动该计时器
@@ -170,8 +170,8 @@ func sessionHandler(sessionId int64) {
 				SendAutoFinishTipMsgToTeacher(session.Tutor, sessionId, autoFinishLimit)
 			}
 
-			//如果时间全部用户了，则自动下课
-			if length >= totalTimeLength && !autoFinishFlag {
+			//如果时间全部用完了，则自动下课
+			if length >= totalTimeLength*60 && !autoFinishFlag {
 				autoFinishFlag = true
 				autoFinishMsg := NewWSMessage("", session.Tutor, WS_SESSION_FINISH)
 				sessionChan <- autoFinishMsg

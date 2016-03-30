@@ -60,8 +60,10 @@ func SendPauseRespMsgToTeacherOnError(msgId string, teacherId int64) error {
 }
 
 func SendPauseRespMsgToTeacher(msgId string, teacherId, sessionId int64) error {
+	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	pauseResp := NewWSMessage(msgId, teacherId, WS_SESSION_PAUSE_RESP)
 	pauseResp.Attribute["errCode"] = "0"
+	pauseResp.Attribute["sessionId"] = sessionIdStr
 	if UserManager.HasUserChan(teacherId) {
 		userChan := UserManager.GetUserChan(teacherId)
 		userChan <- pauseResp
@@ -138,8 +140,10 @@ func SendFinishRespMsgToTeacherOnError(msgId string, userId int64) error {
 }
 
 func SendFinishRespMsgToTeacher(msgId string, userId, sessionId int64) error {
+	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	finishResp := NewWSMessage(msgId, userId, WS_SESSION_FINISH_RESP)
 	finishResp.Attribute["errCode"] = "0"
+	finishResp.Attribute["sessionId"] = sessionIdStr
 	if UserManager.HasUserChan(userId) {
 		userChan := UserManager.GetUserChan(userId)
 		userChan <- finishResp
@@ -249,8 +253,10 @@ func SendResumeRespMsgToTeacherOnError(msgId string, teacherId int64, errMsg str
 }
 
 func SendResumeRespMsgToTeacher(msgId string, teacherId, sessionId int64) error {
+	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	resumeResp := NewWSMessage(msgId, teacherId, WS_SESSION_RESUME_RESP)
 	resumeResp.Attribute["errCode"] = "0"
+	resumeResp.Attribute["sessionId"] = sessionIdStr
 	if UserManager.HasUserChan(teacherId) {
 		userChan := UserManager.GetUserChan(teacherId)
 		userChan <- resumeResp
@@ -288,8 +294,10 @@ func SendResumeCancelRespMsgToTeacherOnError(msgId string, teacherId int64) erro
 }
 
 func SendResumeCancelRespMsgToTeacher(msgId string, teacherId, sessionId int64) error {
+	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	resCancelResp := NewWSMessage(msgId, teacherId, WS_SESSION_RESUME_CANCEL_RESP)
 	resCancelResp.Attribute["errCode"] = "0"
+	resCancelResp.Attribute["sessionId"] = sessionIdStr
 	if UserManager.HasUserChan(teacherId) {
 		userChan := UserManager.GetUserChan(teacherId)
 		userChan <- resCancelResp
@@ -326,8 +334,10 @@ func SendResumeAcceptRespMsgToStudentOnError(msgId string, studentId int64, errM
 }
 
 func SendResumeAcceptRespMsgToStudent(msgId string, studentId, sessionId int64) error {
+	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	resAcceptResp := NewWSMessage(msgId, studentId, WS_SESSION_RESUME_ACCEPT_RESP)
 	resAcceptResp.Attribute["errCode"] = "0"
+	resAcceptResp.Attribute["sessionId"] = sessionIdStr
 	if UserManager.HasUserChan(studentId) {
 		userChan := UserManager.GetUserChan(studentId)
 		userChan <- resAcceptResp
