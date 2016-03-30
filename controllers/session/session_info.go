@@ -1,6 +1,7 @@
 package session
 
 import (
+	"fmt"
 	"math"
 	"time"
 
@@ -28,18 +29,20 @@ type sessionInfo struct {
 }
 
 type courseSessionInfo struct {
-	Id               int64              `json:"id"`
-	OrderId          int64              `json:"orderId"`
-	CreatorInfo      *models.User       `json:"creatorInfo"`
-	TutorInfo        *teacherInfo       `json:"tutorInfo"`
-	TimeFrom         time.Time          `json:"timeFrom"`
-	TimeTo           time.Time          `json:"timeTo"`
-	Length           int64              `json:"length"`
-	Status           string             `json:"status"`
-	IsCourse         bool               `json:"isCourse"`
-	ChapterInfo      *courseChapterInfo `json:"chapterInfo"`
-	IsCompleted      bool               `json:"isCompleted"`
-	EvaluationStatus string             `json:"evaluationStatus"`
+	Id                  int64              `json:"id"`
+	OrderId             int64              `json:"orderId"`
+	CreatorInfo         *models.User       `json:"creatorInfo"`
+	TutorInfo           *teacherInfo       `json:"tutorInfo"`
+	TimeFrom            time.Time          `json:"timeFrom"`
+	TimeTo              time.Time          `json:"timeTo"`
+	Length              int64              `json:"length"`
+	Status              string             `json:"status"`
+	IsCourse            bool               `json:"isCourse"`
+	ChapterInfo         *courseChapterInfo `json:"chapterInfo"`
+	IsCompleted         bool               `json:"isCompleted"`
+	EvaluationStatus    string             `json:"evaluationStatus"`
+	EvaluationComment   string             `json:"evaluationComment"`
+	EvaluationDetailUrl string             `json:"evaluationDetailUrl"`
 }
 
 type courseChapterInfo struct {
@@ -129,7 +132,7 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 
 	var isCourse, isCompleted bool
 	var chapterInfo courseChapterInfo
-	var evaluationStatus string
+	var evaluationStatus, evaluationComment, evaluationDetailUrl string
 	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
 		isCourse = true
 		chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
@@ -149,24 +152,30 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.TeacherId, chapter.Id)
 		if evaluationApply.Id != 0 {
 			evaluationStatus = evaluationApply.Status
+			if evaluationApply.Status == models.EVALUATION_APPLY_STATUS_CREATED {
+				evaluationComment = "课时总结已提交，等待助教审核中..."
+			}
+			evaluationDetailUrl = fmt.Sprintf("%s%d", evaluationService.GetEvaluationDetailUrlPrefix(), chapter.Id)
 		} else {
 			evaluationStatus = models.EVALUATION_APPLY_STATUS_IDLE
 		}
 	}
 
 	info := courseSessionInfo{
-		Id:               session.Id,
-		OrderId:          session.OrderId,
-		CreatorInfo:      creator,
-		TutorInfo:        &teacher,
-		TimeFrom:         session.TimeFrom,
-		TimeTo:           session.TimeTo,
-		Length:           session.Length,
-		Status:           session.Status,
-		IsCourse:         isCourse,
-		IsCompleted:      isCompleted,
-		ChapterInfo:      &chapterInfo,
-		EvaluationStatus: evaluationStatus,
+		Id:                  session.Id,
+		OrderId:             session.OrderId,
+		CreatorInfo:         creator,
+		TutorInfo:           &teacher,
+		TimeFrom:            session.TimeFrom,
+		TimeTo:              session.TimeTo,
+		Length:              session.Length,
+		Status:              session.Status,
+		IsCourse:            isCourse,
+		IsCompleted:         isCompleted,
+		ChapterInfo:         &chapterInfo,
+		EvaluationStatus:    evaluationStatus,
+		EvaluationComment:   evaluationComment,
+		EvaluationDetailUrl: evaluationDetailUrl,
 	}
 
 	return 0, &info

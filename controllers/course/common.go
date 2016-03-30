@@ -1,6 +1,8 @@
 package course
 
 import (
+	"fmt"
+
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/config"
@@ -11,10 +13,11 @@ import (
 
 type courseChapterStatus struct {
 	models.CourseChapter
-	Status            string `json:"status"`
-	EvaluationStatus  string `json:"evaluationStatus"`
-	EvaluationComment string `json:"evaluationComment"`
-	SessionId         int64  `json:"sessionId"`
+	Status              string `json:"status"`
+	EvaluationStatus    string `json:"evaluationStatus"`
+	EvaluationComment   string `json:"evaluationComment"`
+	EvaluationDetailUrl string `json:"evaluationDetailUrl"`
+	SessionId           int64  `json:"sessionId"`
 }
 
 const (
@@ -95,6 +98,7 @@ func queryCourseCustomChapterStatus(courseId int64, current int64, userId int64,
 			if evaluationApply.Status == models.EVALUATION_APPLY_STATUS_CREATED {
 				status.EvaluationComment = "课时总结已提交，等待助教审核中..."
 			}
+			status.EvaluationDetailUrl = fmt.Sprintf("%s%d", evaluationService.GetEvaluationDetailUrlPrefix(), chapter.Id)
 		} else {
 			status.EvaluationStatus = models.EVALUATION_APPLY_STATUS_IDLE
 		}
