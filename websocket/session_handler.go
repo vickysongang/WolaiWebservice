@@ -674,13 +674,19 @@ func CheckCourseSessionEvaluation(userId int64, msg WSMessage) {
 		}
 		sessionId, courseId, chapterId, err := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
 		if err == nil {
+			session, err := models.ReadSession(sessionId)
+			if err != nil {
+				return
+			}
 			resp := NewWSMessage("", msg.UserId, WS_SESSION_NOT_EVALUATION_TIP)
 			sessionIdStr := strconv.FormatInt(sessionId, 10)
 			courseIdStr := strconv.FormatInt(courseId, 10)
 			chapterIdStr := strconv.FormatInt(chapterId, 10)
+			studentIdStr := strconv.FormatInt(session.Creator, 10)
 			resp.Attribute["sessionId"] = sessionIdStr
 			resp.Attribute["courseId"] = courseIdStr
 			resp.Attribute["chapterId"] = chapterIdStr
+			resp.Attribute["studentId"] = studentIdStr
 			if UserManager.HasUserChan(msg.UserId) {
 				userChan := UserManager.GetUserChan(msg.UserId)
 				userChan <- resp
