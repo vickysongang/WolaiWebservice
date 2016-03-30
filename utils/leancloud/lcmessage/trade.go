@@ -244,7 +244,7 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("课程名称：%s", course.Name))
 		msg.body = append(msg.body,
-			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("账户收入：%s %.2f 元", signStr, amount))
 
 	default:
 		return

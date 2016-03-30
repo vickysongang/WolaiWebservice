@@ -4,10 +4,17 @@ import (
 	"math/rand"
 	"time"
 
+	evaluationService "WolaiWebservice/service/evaluation"
+
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
 )
+
+type evaluationInfo struct {
+	Type      string             `json:"type"`
+	Evalution *models.Evaluation `json:"evaluationInfo"`
+}
 
 func CheckRandNumInSlice(slice []int64, randNum int64) bool {
 	for _, v := range slice {
@@ -99,47 +106,118 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 	return labels, nil
 }
 
-type evaluationInfo struct {
-	Type      string             `json:"type"`
-	Evalution *models.Evaluation `json:"evaluationInfo"`
+func CreateEvaluation(userId, targetId, sessionId, chapterId int64, evaluationContent string) (*models.Evaluation, error) {
+	user, _ := models.ReadUser(userId)
+	if chapterId != 0 && user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+		apply, _ := evaluationService.GetEvaluationApply(userId, chapterId)
+		chapter, _ := models.ReadCourseCustomChapter(chapterId)
+		if apply.Id == 0 {
+			evaluationApply := models.EvaluationApply{
+				UserId:    userId,
+				SessionId: sessionId,
+				CourseId:  chapter.CourseId,
+				ChapterId: chapterId,
+				Status:    models.EVALUATION_APPLY_STATUS_CREATED,
+				Content:   evaluationContent,
+			}
+			_, err := models.InsertEvaluationApply(&evaluationApply)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			if apply.Status == models.EVALUATION_APPLY_STATUS_IDLE {
+				eveluationInfo := map[string]interface{}{
+					"SessionId": sessionId,
+					"Status":    models.EVALUATION_APPLY_STATUS_CREATED,
+					"Content":   evaluationContent,
+				}
+				models.UpdateEvaluationApply(apply.Id, eveluationInfo)
+			}
+		}
+		return nil, nil
+	} else {
+		session, _ := models.ReadSession(sessionId)
+		if targetId == 1 {
+			if userId == session.Creator {
+				targetId = session.Tutor
+			} else {
+				targetId = session.Creator
+			}
+		}
+		evaluation := models.Evaluation{
+			UserId:    userId,
+			TargetId:  targetId,
+			SessionId: sessionId,
+			ChapterId: chapterId,
+			Content:   evaluationContent}
+		content, err := models.InsertEvaluation(&evaluation)
+		return content, err
+	}
+	return nil, nil
 }
 
-func QueryEvaluationInfo(userId, sessionId int64) ([]*evaluationInfo, error) {
-	session, _ := models.ReadSession(sessionId)
-	self, err1 := models.QueryEvaluation4Self(userId, sessionId)
-	other, err2 := models.QueryEvaluation4Other(userId, sessionId)
-
+func QueryEvaluationInfo(userId, sessionId, targetId, chapterId int64) ([]*evaluationInfo, error) {
+	evalutionInfos := make([]*evaluationInfo, 0)
 	selfEvaluation := evaluationInfo{}
 	otherEvaluation := evaluationInfo{}
-
-	evalutionInfos := make([]*evaluationInfo, 0)
-	if userId == session.Tutor {
-		if err1 == nil {
-			selfEvaluation.Type = "teacher"
-			selfEvaluation.Evalution = self
-
-			evalutionInfos = append(evalutionInfos, &selfEvaluation)
+	var isStudent bool
+	var studentEvaluation, teacherEvaluation *models.Evaluation
+	if sessionId != 0 {
+		session, _ := models.ReadSession(sessionId)
+		studentEvaluation, _ = models.QueryEvaluation(session.Creator, sessionId)
+		teacherEvaluation, _ = models.QueryEvaluation(session.Tutor, sessionId)
+		if userId == session.Creator {
+			isStudent = true
+		} else if userId == session.Tutor {
+			isStudent = false
 		}
-		if err2 == nil {
-			otherEvaluation.Type = "student"
-			otherEvaluation.Evalution = other
-
-			evalutionInfos = append(evalutionInfos, &otherEvaluation)
-		}
-	} else if userId == session.Creator {
-		if err1 == nil {
-			selfEvaluation.Type = "student"
-			selfEvaluation.Evalution = self
-
-			evalutionInfos = append(evalutionInfos, &selfEvaluation)
-		}
-		if err2 == nil {
-			otherEvaluation.Type = "teacher"
-			otherEvaluation.Evalution = other
-
-			evalutionInfos = append(evalutionInfos, &otherEvaluation)
+	} else {
+		chapter, _ := models.ReadCourseCustomChapter(chapterId)
+		studentEvaluation, _ = models.QueryEvaluationByChapter(chapter.UserId, chapterId)
+		teacherEvaluation, _ = models.QueryEvaluationByChapter(chapter.TeacherId, chapterId)
+		if userId == chapter.UserId {
+			isStudent = true
+		} else if userId == chapter.TeacherId {
+			isStudent = false
 		}
 	}
+
+	//旧版评价表里targetId为0，新版不为0，故根据该字段来判断获取的是旧版评论还是新版评论
+	if isStudent {
+		if teacherEvaluation.Id != 0 && studentEvaluation.Id != 0 {
+			if (teacherEvaluation.TargetId != 0 && studentEvaluation.TargetId == 0) || (teacherEvaluation.TargetId == 0 && studentEvaluation.TargetId != 0) {
+				selfEvaluation.Type = "student"
+				selfEvaluation.Evalution = studentEvaluation
+				evalutionInfos = append(evalutionInfos, &selfEvaluation)
+			} else {
+				selfEvaluation.Type = "student"
+				selfEvaluation.Evalution = studentEvaluation
+				evalutionInfos = append(evalutionInfos, &selfEvaluation)
+
+				otherEvaluation.Type = "teacher"
+				otherEvaluation.Evalution = teacherEvaluation
+				evalutionInfos = append(evalutionInfos, &otherEvaluation)
+			}
+		} else if teacherEvaluation.Id == 0 && studentEvaluation.Id != 0 {
+			selfEvaluation.Type = "student"
+			selfEvaluation.Evalution = studentEvaluation
+			evalutionInfos = append(evalutionInfos, &selfEvaluation)
+		} else if teacherEvaluation.Id != 0 && studentEvaluation.Id == 0 {
+			if (teacherEvaluation.TargetId != 0 && targetId != 0) || (teacherEvaluation.TargetId == 0 && targetId == 0) {
+				otherEvaluation.Type = "teacher"
+				otherEvaluation.Evalution = teacherEvaluation
+				evalutionInfos = append(evalutionInfos, &otherEvaluation)
+			}
+		}
+
+	} else {
+		if teacherEvaluation.Id != 0 {
+			selfEvaluation.Type = "teacher"
+			selfEvaluation.Evalution = teacherEvaluation
+			evalutionInfos = append(evalutionInfos, &selfEvaluation)
+		}
+	}
+
 	return evalutionInfos, nil
 }
 

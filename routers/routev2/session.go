@@ -39,6 +39,16 @@ var sessionRoutes = route.Routes{
 		true,
 	},
 
+	// 6.1.3
+	route.Route{
+		"GetCourseSessionInfo",
+		"POST",
+		"/course/info",
+		handlerv2.CourseSessionInfo,
+		true,
+		false,
+	},
+
 	// 6.2.1
 	route.Route{
 		"SessionSeekHelp",

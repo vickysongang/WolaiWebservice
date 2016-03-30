@@ -7,30 +7,32 @@ import (
 
 	"github.com/astaxie/beego/orm"
 
+	courseController "WolaiWebservice/controllers/course"
+	qaPkgController "WolaiWebservice/controllers/qapkg"
 	"WolaiWebservice/models"
 	"WolaiWebservice/service/trade"
 
 	seelog "github.com/cihub/seelog"
 )
 
+var ErrChargeNotFound = errors.New("Charge is not found")
+
 type PingxxWebhookManager struct {
 	chargeMap map[string]int64
 	lock      sync.RWMutex
 }
 
-var ErrChargeNotFound = errors.New("Charge is not found")
-
 var WebhookManager *PingxxWebhookManager
+
+func init() {
+	WebhookManager = NewPingxxWebhookManager()
+}
 
 func NewPingxxWebhookManager() *PingxxWebhookManager {
 	manager := PingxxWebhookManager{
 		chargeMap: make(map[string]int64),
 	}
 	return &manager
-}
-
-func init() {
-	WebhookManager = NewPingxxWebhookManager()
 }
 
 func (pwm *PingxxWebhookManager) SetChargeOnline(chargeId string) int64 {
@@ -41,7 +43,6 @@ func (pwm *PingxxWebhookManager) SetChargeOnline(chargeId string) int64 {
 	pwm.lock.Lock()
 	defer pwm.lock.Unlock()
 	pwm.chargeMap[chargeId] = time.Now().Unix()
-	seelog.Debug("Pingxx webhook | SetChargeOnline:", chargeId)
 	return 0
 }
 
@@ -65,20 +66,32 @@ func (pwm *PingxxWebhookManager) ChargeSuccessEvent(chargeId string) {
 		"Result": "success",
 	}
 	models.UpdatePingppRecord(chargeId, recordInfo)
-	record, _ := models.QueryPingppRecordByChargeId(chargeId)
 
+	record, _ := models.QueryPingppRecordByChargeId(chargeId)
 	if record.Id == 0 {
 		return
 	}
 
-	if pwm.checkChargeSuccessExist(record) {
+	if pwm.checkChargeSuccessExist(record, record.Type) {
 		return
 	}
 
-	premium, _ := trade.GetChargePremuim(record.UserId, int64(record.Amount))
-	trade.HandleTradeChargePingpp(record.Id)
-	if premium > 0 {
-		trade.HandleTradeChargePremium(record.UserId, premium, "", record.Id, "")
+	switch record.Type {
+	case models.TRADE_CHARGE:
+		//		premium, _ := trade.GetChargePremuim(record.UserId, int64(record.Amount))
+
+		trade.HandleTradeChargePingpp(record.Id)
+		//		if premium > 0 {
+		//			trade.HandleTradeChargePremium(record.UserId, premium, "", record.Id, "")
+		//		}
+	case models.TRADE_COURSE_AUDITION:
+		courseController.HandleCourseActionPayByThird(record.UserId, record.RefId, record.Type, int64(record.Amount), record.Id)
+
+	case models.TRADE_COURSE_PURCHASE:
+		courseController.HandleCourseActionPayByThird(record.UserId, record.RefId, record.Type, int64(record.Amount), record.Id)
+
+	case models.TRADE_QA_PKG_PURCHASE:
+		qaPkgController.HandleQaPkgActionPayByThird(record.UserId, record.RefId, int64(record.Amount), record.Id)
 	}
 }
 
@@ -90,12 +103,12 @@ func (pwm *PingxxWebhookManager) RefundSuccessEvent(chargeId string, refundId st
 	models.UpdatePingppRecord(chargeId, recordInfo)
 }
 
-func (pwm *PingxxWebhookManager) checkChargeSuccessExist(record *models.PingppRecord) bool {
+func (pwm *PingxxWebhookManager) checkChargeSuccessExist(record *models.PingppRecord, tradeType string) bool {
 	o := orm.NewOrm()
 
 	exist := o.QueryTable(new(models.TradeRecord).TableName()).
 		Filter("user_id", record.UserId).
-		Filter("trade_type", models.TRADE_CHARGE).
+		Filter("trade_type", tradeType).
 		Filter("pingpp_id", record.Id).Exist()
 
 	return exist

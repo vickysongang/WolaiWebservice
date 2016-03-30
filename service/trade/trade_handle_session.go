@@ -2,8 +2,10 @@ package trade
 
 import (
 	"errors"
+	"math"
 
 	"WolaiWebservice/models"
+	qapkgService "WolaiWebservice/service/qapkg"
 )
 
 func HandleTradeSession(sessionId int64) error {
@@ -24,7 +26,6 @@ func HandleTradeSession(sessionId int64) error {
 	}
 
 	length := session.Length
-
 	if length <= 0 {
 		length = 0
 	}
@@ -32,19 +33,65 @@ func HandleTradeSession(sessionId int64) error {
 	if length > 0 && length < 60 {
 		length = 60
 	}
-	studentAmount := length * order.PriceHourly / 3600 / 10 * 10
-	teacherAmount := length * order.SalaryHourly / 3600 / 10 * 10
 
-	_, err = createTradeRecord(session.Creator, 0-studentAmount,
-		models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
-		session.Id, 0, 0, "")
+	//结算学生的支付金额
+	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(session.Creator)
+	if leftQaTimeLength == 0 {
+		studentAmount := length * order.PriceHourly / 3600 / 10 * 10
+		err = HandleUserBalance(session.Creator, 0-studentAmount)
+		if err != nil {
+			return err
+		}
+		_, err = createTradeRecord(session.Creator, 0-studentAmount,
+			models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
+			session.Id, 0, 0, "", 0)
+		if err != nil {
+			return err
+		}
+	} else {
+		lengthMinute := int64(math.Ceil(float64(length) / 60))
+		if lengthMinute <= leftQaTimeLength {
+
+			err := qapkgService.HandleUserQaPkgTime(session.Creator, lengthMinute)
+			if err != nil {
+				return err
+			}
+
+			_, err = createTradeRecord(session.Creator, 0,
+				models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
+				session.Id, 0, 0, "", -lengthMinute)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := qapkgService.HandleUserQaPkgTime(session.Creator, leftQaTimeLength)
+			if err != nil {
+				return err
+			}
+			balanceTime := lengthMinute - leftQaTimeLength
+			studentAmount := balanceTime * 60 * order.PriceHourly / 3600 / 10 * 10
+			err = HandleUserBalance(session.Creator, 0-studentAmount)
+			if err != nil {
+				return err
+			}
+			_, err = createTradeRecord(session.Creator, 0-studentAmount,
+				models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
+				session.Id, 0, 0, "", -leftQaTimeLength)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	//结算老师的工资
+	teacherAmount := length * order.SalaryHourly / 3600 / 10 * 10
+	err = HandleUserBalance(session.Tutor, teacherAmount)
 	if err != nil {
 		return err
 	}
-
 	_, err = createTradeRecord(session.Tutor, teacherAmount,
 		models.TRADE_RECEIVEMENT, models.TRADE_RESULT_SUCCESS, "",
-		sessionId, 0, 0, "")
+		sessionId, 0, 0, "", 0)
 	if err != nil {
 		return err
 	}

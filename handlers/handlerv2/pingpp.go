@@ -9,6 +9,7 @@ import (
 
 	"github.com/cihub/seelog"
 
+	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/pingxx"
@@ -16,7 +17,7 @@ import (
 
 // 8.1.1
 func PingppPay(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	//	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -84,12 +85,28 @@ func PingppPay(w http.ResponseWriter, r *http.Request) {
 			"product_id": "wolai_charge",
 		}
 	}
-
-	content, err := pingxx.PayByPingpp(orderNo, userId, amount, channel, currency, clientIp, subject, body, "", extraMap)
-	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
+	var tradeType string
+	if len(vars["tradeType"]) > 0 {
+		tradeType = vars["tradeType"][0]
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+		tradeType = models.TRADE_CHARGE
+	}
+	var refId int64
+	if len(vars["refId"]) > 0 {
+		refIdStr := vars["refId"][0]
+		refId, _ = strconv.ParseInt(refIdStr, 10, 64)
+	}
+	var payType string
+	if len(vars["payType"]) > 0 {
+		payType = vars["payType"][0]
+	} else {
+		payType = models.TRADE_PAY_TYPE_THIRD
+	}
+	status, content, err := trade.HandleTradePay(orderNo, userId, amount, channel, currency, clientIp, subject, body, "", extraMap, tradeType, refId, payType)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
 

@@ -11,7 +11,9 @@ import (
 	sessionController "WolaiWebservice/controllers/session"
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
+	evaluationService "WolaiWebservice/service/evaluation"
 	"WolaiWebservice/service/push"
+	qapkgService "WolaiWebservice/service/qapkg"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
@@ -27,26 +29,27 @@ func sessionHandler(sessionId int64) {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	sessionChan, _ := SessionManager.GetSessionChan(sessionId)
 	timestamp := time.Now().Unix()
-
-	//时间同步计时器，每60s向客户端同步服务器端的时间来校准客户端的计时
-	syncTicker := time.NewTicker(time.Second * 60)
-	//初始停止时间同步计时器，待正式上课的时候启动该计时器
-	syncTicker.Stop()
-
-	//超时计时器，课程中段在规定时间内如果没有重新恢复则规定时间过后课程自动超时结束
 	sessionExpireLimit := settings.SessionExpireLimit()
+	autoFinishLimit := settings.SessionAutoFinishLimit()
 
-	waitingTimer := time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
+	student, _ := models.ReadUser(session.Creator)
+	teacherProfile, _ := models.ReadTeacherProfile(session.Tutor)
 
-	//初始停止超时计时器
-	waitingTimer.Stop()
+	teacherTier, _ := models.ReadTeacherTierHourly(teacherProfile.TierId)
 
-	//激活课程，并将课程状态设置为服务中
-	SessionManager.SetSessionActived(sessionId, true)
+	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(session.Creator)                //获取答疑的剩余时间
+	totalTimeLength := leftQaTimeLength + (student.Balance*60)/teacherTier.QAPriceHourly //获取可用的总上课时长
+	seelog.Debug("leftQaTimeLength:", leftQaTimeLength, " totalTimeLength:", totalTimeLength, "  autoFinishLimit:", autoFinishLimit, " sessionId:", sessionId)
+
+	syncTicker := time.NewTicker(time.Second * 60) //时间同步计时器，每60s向客户端同步服务器端的时间来校准客户端的计时
+	syncTicker.Stop()                              //初始停止时间同步计时器，待正式上课的时候启动该计时器
+
+	waitingTimer := time.NewTimer(time.Second * time.Duration(sessionExpireLimit)) //超时计时器，课程中段在规定时间内如果没有重新恢复则规定时间过后课程自动超时结束
+	waitingTimer.Stop()                                                            //初始停止超时计时器
+
+	SessionManager.SetSessionActived(sessionId, true) //激活课程，并将课程状态设置为服务中
 	SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
-
-	//设置课程的开始时间并更改数据库的状态
-	SessionManager.SetSessionStatusServing(sessionId)
+	SessionManager.SetSessionStatusServing(sessionId) //设置课程的开始时间并更改数据库的状态
 
 	// don't check session break at session start for now
 	teacherOnline := true
@@ -54,41 +57,33 @@ func sessionHandler(sessionId int64) {
 	//	teacherOnline := UserManager.HasUserChan(session.Tutor)
 	//	studentOnline := UserManager.HasUserChan(session.Creator)
 
+	qaPkgTimeEndFlag := false
+	autoFinishTipFlag := false
+	autoFinishFlag := false
+
 	if !teacherOnline {
 		//如果老师不在线，学生在线，则向学生发送课程中断消息
 		if studentOnline {
-			breakMsg := NewWSMessage("", session.Creator, WS_SESSION_BREAK)
-			breakMsg.Attribute["sessionId"] = sessionIdStr
-			breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
-			breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-			length, _ := SessionManager.GetSessionLength(sessionId)
-			breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-			breakChan := UserManager.GetUserChan(breakMsg.UserId)
-			breakChan <- breakMsg
+			SendBreakMsgToStudent(session.Creator, session.Tutor, sessionId)
 		}
+
 		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
-		SessionManager.SetSessionBreaked(sessionId, true)
+		SessionManager.SetSessionBroken(sessionId, true)
 		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 
 	} else if !studentOnline {
 		//如果学生不在线老师在线，则向老师发送课程中断消息
 		if teacherOnline {
-			breakMsg := NewWSMessage("", session.Tutor, WS_SESSION_BREAK)
-			breakMsg.Attribute["sessionId"] = sessionIdStr
-			breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
-			breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-			length, _ := SessionManager.GetSessionLength(sessionId)
-			breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-			breakChan := UserManager.GetUserChan(breakMsg.UserId)
-			breakChan <- breakMsg
+			SendBreakMsgToTeacher(session.Creator, session.Tutor, sessionId)
 		}
+
 		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
-		SessionManager.SetSessionBreaked(sessionId, true)
+
+		SessionManager.SetSessionBroken(sessionId, true)
 		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 
 	} else {
-
 		// 如果是学生是3.0.3以下，继续计时
 		_, err := sessionController.SessionTutorPauseValidateTargetVersion(session.Creator)
 		if err != nil {
@@ -96,20 +91,11 @@ func sessionHandler(sessionId int64) {
 			// XXX TODO: Start counting and all the stuff
 			syncTicker = time.NewTicker(time.Second * 60)
 			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
-
 		} else {
-
 			sessionPauseAfterStartTimeDiff := settings.SessionPauseAfterStartTimeDiff()
 			time.Sleep(time.Second * time.Duration(sessionPauseAfterStartTimeDiff))
 
-			pauseResp := NewWSMessage("", session.Tutor, WS_SESSION_PAUSE_RESP)
-			pauseResp.Attribute["errCode"] = "0"
-			if UserManager.HasUserChan(session.Tutor) {
-				userChan := UserManager.GetUserChan(session.Tutor)
-				userChan <- pauseResp
-			} else {
-				seelog.Debugf("session pause when start sessionId: %d, tutor userChan closes userId: %d", sessionId, session.Tutor)
-			}
+			SendPauseRespMsgToTeacher("", session.Tutor, sessionId)
 
 			SessionManager.SetSessionPaused(sessionId, true)
 			SessionManager.SetSessionAccepted(sessionId, false)
@@ -119,50 +105,26 @@ func sessionHandler(sessionId int64) {
 			SessionManager.SetSessionLength(sessionId, length)
 			SessionManager.SetLastSync(sessionId, time.Now().Unix())
 
-			//向学生发送课程暂停的消息
-			pauseMsg := NewWSMessage("", session.Creator, WS_SESSION_PAUSE)
-			pauseMsg.Attribute["sessionId"] = sessionIdStr
-			pauseMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-			pauseMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-
-			if UserManager.HasUserChan(session.Creator) {
-				studentChan := UserManager.GetUserChan(session.Creator)
-				studentChan <- pauseMsg
-			} else {
-				seelog.Debugf("session pause when start sessionId: %d, student userChan closes userId: %d", sessionId, session.Creator)
-			}
+			SendPauseMsgToStudent(session.Creator, session.Tutor, sessionId, length) //向学生发送课程暂停的消息
 
 			seelog.Debug("WSSessionHandler: instant session start, now paused: " + sessionIdStr)
-
 		}
-
 	}
 
 	for {
 		select {
 		case <-waitingTimer.C:
 
-			expireMsg := NewWSMessage("", session.Creator, WS_SESSION_EXPIRE)
-			expireMsg.Attribute["sessionId"] = sessionIdStr
-			//如果学生在线，则给学生发送课程过时消息
-			if UserManager.HasUserChan(session.Creator) {
-				userChan := UserManager.GetUserChan(session.Creator)
-				userChan <- expireMsg
-			}
-			//如果老师在线，则给老师发送课程过时消息
-			if UserManager.HasUserChan(session.Tutor) {
-				userChan := UserManager.GetUserChan(session.Tutor)
-				expireMsg.UserId = session.Tutor
-				userChan <- expireMsg
-			}
+			SendExpireMsg(session.Creator, sessionId) //如果学生在线，则给学生发送课程过时消息
+
+			SendExpireMsg(session.Tutor, sessionId) //如果老师在线，则给老师发送课程过时消息
 
 			SessionManager.SetSessionActived(sessionId, false)
 			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_COMPLETE)
 			length, _ := SessionManager.GetSessionLength(sessionId)
 			SessionManager.SetSessionStatusCompleted(sessionId, length)
 
-			//修改老师的辅导时长
-			models.UpdateTeacherServiceTime(session.Tutor, length)
+			models.UpdateTeacherServiceTime(session.Tutor, length) //修改老师的辅导时长
 
 			//课后结算，产生交易记录
 			SendSessionReport(sessionId)
@@ -177,9 +139,7 @@ func sessionHandler(sessionId int64) {
 
 		case cur := <-syncTicker.C:
 			//如果课程不在进行中或者被暂停，则停止同步时间
-			if !SessionManager.IsSessionActived(sessionId) ||
-				SessionManager.IsSessionPaused(sessionId) ||
-				SessionManager.IsSessionBreaked(sessionId) {
+			if !SessionManager.IsSessionActived(sessionId) || SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBroken(sessionId) {
 				break
 			}
 			//计算课程时长，已计时长＋（本次同步时间－上次同步时间）
@@ -194,18 +154,27 @@ func sessionHandler(sessionId int64) {
 			SessionManager.SetLastSync(sessionId, lastSync)
 
 			//向老师和学生同步时间
-			syncMsg := NewWSMessage("", session.Tutor, WS_SESSION_SYNC)
-			syncMsg.Attribute["sessionId"] = sessionIdStr
-			syncMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+			SendSyncMsg(session.Tutor, sessionId, length)
+			SendSyncMsg(session.Creator, sessionId, length)
 
-			if UserManager.HasUserChan(session.Tutor) {
-				teacherChan := UserManager.GetUserChan(session.Tutor)
-				teacherChan <- syncMsg
+			//答疑时间用完了，给学生发送提示消息
+			if leftQaTimeLength > 0 && length >= leftQaTimeLength*60 && !qaPkgTimeEndFlag {
+				qaPkgTimeEndFlag = true
+				SendQaPkgTimeEndMsgToStudent(session.Creator, sessionId)
 			}
-			if UserManager.HasUserChan(session.Creator) {
-				syncMsg.UserId = session.Creator
-				stuChan := UserManager.GetUserChan(session.Creator)
-				stuChan <- syncMsg
+
+			//如果剩余时间小于等于autoFinishLimit，发送提醒给学生和老师
+			if length >= (totalTimeLength-autoFinishLimit)*60 && !autoFinishTipFlag {
+				autoFinishTipFlag = true
+				SendAutoFinishTipMsgToStudent(session.Creator, sessionId, autoFinishLimit)
+				SendAutoFinishTipMsgToTeacher(session.Tutor, sessionId, autoFinishLimit)
+			}
+
+			//如果时间全部用完了，则自动下课
+			if length >= totalTimeLength*60 && !autoFinishFlag {
+				autoFinishFlag = true
+				autoFinishMsg := NewWSMessage("", session.Tutor, WS_SESSION_FINISH)
+				sessionChan <- autoFinishMsg
 			}
 
 		case msg, ok := <-sessionChan:
@@ -214,57 +183,33 @@ func sessionHandler(sessionId int64) {
 				timestamp = time.Now().Unix()
 
 				session, _ = models.ReadSession(sessionId)
-				seelog.Debug("get session message :", sessionId, "operCode:", msg.OperationCode)
 				switch msg.OperationCode {
 
 				case WS_SESSION_FINISH: //老师下课
 					//向老师发送下课的响应消息
-					finishResp := NewWSMessage(msg.MessageId, msg.UserId, WS_SESSION_FINISH_RESP)
 					if msg.UserId != session.Tutor {
-						finishResp.Attribute["errCode"] = "2"
-						finishResp.Attribute["errMsg"] = "You are not the teacher of this session"
-						if UserManager.HasUserChan(msg.UserId) {
-							userChan := UserManager.GetUserChan(msg.UserId)
-							userChan <- finishResp
-						}
+						SendFinishRespMsgToTeacherOnError(msg.MessageId, msg.UserId)
 						break
 					}
-					finishResp.Attribute["errCode"] = "0"
-					if UserManager.HasUserChan(msg.UserId) {
-						userChan := UserManager.GetUserChan(msg.UserId)
-						userChan <- finishResp
-					} else {
-						seelog.Debug("session finish: userChan closes | sessionHandler:", sessionId)
-					}
-					//向学生发送下课消息
-					finishMsg := NewWSMessage("", session.Creator, WS_SESSION_FINISH)
-					finishMsg.Attribute["sessionId"] = sessionIdStr
-					if UserManager.HasUserChan(session.Creator) {
-						creatorChan := UserManager.GetUserChan(session.Creator)
-						creatorChan <- finishMsg
-					}
+
+					SendFinishRespMsgToTeacher(msg.MessageId, msg.UserId, sessionId)
+
+					SendFinishMsgToStudent(session.Creator, sessionId) //向学生发送下课消息
 
 					//如果课程没有被暂停且正在进行中，则累计计算时长
-					if !SessionManager.IsSessionPaused(sessionId) &&
-						!SessionManager.IsSessionBreaked(sessionId) &&
-						SessionManager.IsSessionActived(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) && SessionManager.IsSessionActived(sessionId) {
 						length, _ := SessionManager.GetSessionLength(sessionId)
 						lastSync, _ := SessionManager.GetLastSync(sessionId)
 						length = length + (timestamp - lastSync)
 						SessionManager.SetSessionLength(sessionId, length)
 					}
 
-					//将当前时间设置为课程结束时间，同时将课程状态更改为已完成，将时长设置为计算后的总时长
 					length, _ := SessionManager.GetSessionLength(sessionId)
-					SessionManager.SetSessionStatusCompleted(sessionId, length)
+					SessionManager.SetSessionStatusCompleted(sessionId, length) //将当前时间设置为课程结束时间，同时将课程状态更改为已完成，将时长设置为计算后的总时长
 
-					//修改老师的辅导时长
-					models.UpdateTeacherServiceTime(session.Tutor, length)
+					models.UpdateTeacherServiceTime(session.Tutor, length) //修改老师的辅导时长
 
-					//下课后结算，产生交易记录
-					session, _ = models.ReadSession(sessionId)
-
-					SendSessionReport(sessionId)
+					SendSessionReport(sessionId) //下课后结算，产生交易记录
 
 					seelog.Debug("POIWSSessionHandler: session end: " + sessionIdStr)
 
@@ -277,8 +222,7 @@ func sessionHandler(sessionId int64) {
 
 				case WS_SESSION_BREAK:
 					//如果课程已经中断，则退出
-					if SessionManager.IsSessionBreaked(sessionId) ||
-						!SessionManager.IsSessionActived(sessionId) {
+					if SessionManager.IsSessionBroken(sessionId) || !SessionManager.IsSessionActived(sessionId) {
 						break
 					}
 
@@ -295,10 +239,8 @@ func sessionHandler(sessionId int64) {
 					SessionManager.SetLastSync(sessionId, lastSync)
 
 					//课程暂停，从内存中移除课程正在进行当状态
-					SessionManager.SetSessionBreaked(sessionId, true)
-
+					SessionManager.SetSessionBroken(sessionId, true)
 					SessionManager.SetSessionAccepted(sessionId, false)
-
 					SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
@@ -307,27 +249,16 @@ func sessionHandler(sessionId int64) {
 					//停止时间同步计时器
 					syncTicker.Stop()
 
-					//如果学生掉线，则向老师发送课程中断消息，如果老师掉线，则向学生发送课程中断消息
-					breakMsg := NewWSMessage("", session.Creator, WS_SESSION_BREAK)
 					if msg.UserId == session.Creator {
-						breakMsg.UserId = session.Tutor
+						SendBreakMsgToTeacher(session.Creator, session.Tutor, sessionId)
+					} else {
+						SendBreakMsgToStudent(session.Creator, session.Tutor, sessionId)
 					}
-					breakMsg.Attribute["sessionId"] = sessionIdStr
-					breakMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
-					breakMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-					breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-					if UserManager.HasUserChan(breakMsg.UserId) {
-						breakChan := UserManager.GetUserChan(breakMsg.UserId)
-						breakChan <- breakMsg
-					}
-
 					go lcmessage.SendSessionBreakMsg(sessionId)
 
 				case WS_SESSION_RECOVER_TEACHER:
 					//如果老师所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
-					if !SessionManager.IsSessionPaused(sessionId) &&
-						!SessionManager.IsSessionBreaked(sessionId) &&
-						SessionManager.IsSessionActived(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) && SessionManager.IsSessionActived(sessionId) {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
 						length, _ := SessionManager.GetSessionLength(sessionId)
 						lastSync, _ := SessionManager.GetLastSync(sessionId)
@@ -339,58 +270,29 @@ func sessionHandler(sessionId int64) {
 						SessionManager.SetLastSync(sessionId, lastSync)
 					}
 
-					//向老师发送恢复课程信息
-					recoverTeacherMsg := NewWSMessage("", session.Tutor, WS_SESSION_RECOVER_TEACHER)
-					recoverTeacherMsg.Attribute["sessionId"] = sessionIdStr
-					recoverTeacherMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
 					length, _ := SessionManager.GetSessionLength(sessionId)
-					recoverTeacherMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-					if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
-						courseRelation, _ := courseService.GetCourseRelation(order.CourseId, order.Creator, order.TeacherId)
-						virturlCourseId := courseRelation.Id
 
-						//						recoverTeacherMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
-						recoverTeacherMsg.Attribute["courseId"] = strconv.FormatInt(virturlCourseId, 10)
-					}
-
-					if !UserManager.HasUserChan(session.Tutor) {
+					err := SendRecoverMsgToTeacher(session.Creator, session.Tutor, sessionId, length, order) //向老师发送恢复课程信息
+					if err != nil {
 						break
 					}
-					teacherChan := UserManager.GetUserChan(session.Tutor)
-					teacherChan <- recoverTeacherMsg
 
 					//如果老师所在的课程正在进行中，则通知老师该课正在进行中
-					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBreaked(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) {
 						seelog.Debug("send session:", sessionId, " live status message to teacher:", session.Tutor)
-						sessionStatusMsg := NewWSMessage("", session.Tutor, WS_SESSION_BREAK_RECONNECT_SUCCESS)
-						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
-						sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
-						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-						sessionStatusMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-						teacherChan <- sessionStatusMsg
+						SendBreakReconnetSuccessMsgToTeacher(session.Creator, session.Tutor, sessionId, length)
 					}
 
 					if SessionManager.IsSessionPaused(sessionId) {
-						syncMsg := NewWSMessage("", session.Tutor, WS_SESSION_STATUS_SYNC)
-						syncMsg.Attribute["errCode"] = "0"
-						sessionStatus, _ := SessionManager.GetSessionStatus(sessionId)
-						syncMsg.Attribute["sessionStatus"] = sessionStatus
-						_, tutorInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
-						tutorInfoByte, _ := json.Marshal(tutorInfo)
-						syncMsg.Attribute["sessionInfo"] = string(tutorInfoByte)
-
-						if !UserManager.HasUserChan(session.Tutor) {
+						err := SendStatusSyncMsg(session.Tutor, sessionId)
+						if err != nil {
 							break
 						}
-						tutorChan := UserManager.GetUserChan(session.Tutor)
-						tutorChan <- syncMsg
 					}
 
 				case WS_SESSION_RECOVER_STU:
 					//如果学生所在的课程正在进行中，继续计算时间，防止切网时掉网重连时间计算错误
-					if !SessionManager.IsSessionPaused(sessionId) &&
-						!SessionManager.IsSessionBreaked(sessionId) &&
-						SessionManager.IsSessionActived(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) && SessionManager.IsSessionActived(sessionId) {
 						//计算课程时长，已计时长＋（重连时间－上次同步时间）
 						length, _ := SessionManager.GetSessionLength(sessionId)
 						lastSync, _ := SessionManager.GetLastSync(sessionId)
@@ -403,142 +305,72 @@ func sessionHandler(sessionId int64) {
 					}
 
 					//向学生发送恢复课程信息
-					recoverStuMsg := NewWSMessage("", session.Creator, WS_SESSION_RECOVER_STU)
-					recoverStuMsg.Attribute["sessionId"] = sessionIdStr
-					recoverStuMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
 					length, _ := SessionManager.GetSessionLength(sessionId)
-					recoverStuMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-					if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
-						recoverStuMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
-					}
 
-					if !UserManager.HasUserChan(session.Creator) {
+					err := SendRecoverMsgToStudent(session.Creator, session.Tutor, sessionId, length, order)
+					if err != nil {
 						break
 					}
-					studentChan := UserManager.GetUserChan(session.Creator)
-					studentChan <- recoverStuMsg
 
 					//如果学生所在的课程正在进行中，则通知学生该课正在进行中
-					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBreaked(sessionId) {
+					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) {
 						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator)
-						sessionStatusMsg := NewWSMessage("", session.Creator, WS_SESSION_BREAK_RECONNECT_SUCCESS)
-						sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
-						sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
-						sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-						sessionStatusMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-						studentChan <- sessionStatusMsg
+						SendBreakReconnetSuccessMsgToStudent(session.Creator, session.Tutor, sessionId, length)
 					}
 
 					if SessionManager.IsSessionPaused(sessionId) {
-						syncMsg := NewWSMessage("", session.Creator, WS_SESSION_STATUS_SYNC)
-						syncMsg.Attribute["errCode"] = "0"
-						sessionStatus, _ := SessionManager.GetSessionStatus(sessionId)
-						syncMsg.Attribute["sessionStatus"] = sessionStatus
-						_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
-						studentByte, _ := json.Marshal(studentInfo)
-						syncMsg.Attribute["sessionInfo"] = string(studentByte)
-
-						if !UserManager.HasUserChan(session.Creator) {
+						err := SendStatusSyncMsg(session.Creator, sessionId)
+						if err != nil {
 							break
 						}
-						studentChan := UserManager.GetUserChan(session.Creator)
-						studentChan <- syncMsg
 					}
 
 				case WS_SESSION_PAUSE: //课程暂停
 					//向老师发送课程暂停的响应消息
-					pauseResp := NewWSMessage(msg.MessageId, msg.UserId, WS_SESSION_PAUSE_RESP)
-					if SessionManager.IsSessionPaused(sessionId) ||
-						SessionManager.IsSessionBreaked(sessionId) ||
-						!SessionManager.IsSessionActived(sessionId) {
-						pauseResp.Attribute["errCode"] = "2"
-						if UserManager.HasUserChan(msg.UserId) {
-							userChan := UserManager.GetUserChan(msg.UserId)
-							userChan <- pauseResp
-						}
+					if SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBroken(sessionId) || !SessionManager.IsSessionActived(sessionId) {
+						SendPauseRespMsgToTeacherOnError(msg.MessageId, session.Tutor)
 						break
 					}
-					pauseResp.Attribute["errCode"] = "0"
-					if UserManager.HasUserChan(msg.UserId) {
-						userChan := UserManager.GetUserChan(msg.UserId)
-						userChan <- pauseResp
-					} else {
-						seelog.Debug("session pause: userChan closes | sessionHandler:", sessionId)
-					}
+
+					SendPauseRespMsgToTeacher(msg.MessageId, msg.UserId, sessionId)
 
 					//计算课程时长，已计时长＋（暂停时间－上次同步时间）
 					length, _ := SessionManager.GetSessionLength(sessionId)
 					lastSync, _ := SessionManager.GetLastSync(sessionId)
 					length = length + (timestamp - lastSync)
 					SessionManager.SetSessionLength(sessionId, length)
-					//将暂停时间设置为最后同步时间，用于下次时间的计算
+
 					lastSync = timestamp
-					SessionManager.SetLastSync(sessionId, lastSync)
+					SessionManager.SetLastSync(sessionId, lastSync) //将暂停时间设置为最后同步时间，用于下次时间的计算
 
 					//课程暂停，从内存中移除课程正在进行当状态
 					SessionManager.SetSessionPaused(sessionId, true)
 					SessionManager.SetSessionAccepted(sessionId, false)
-
 					SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
 
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
 					//waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
-					//停止时间同步计时器
-					syncTicker.Stop()
+					syncTicker.Stop() //停止时间同步计时器
 
-					//向学生发送课程暂停的消息
-					pauseMsg := NewWSMessage("", session.Creator, WS_SESSION_PAUSE)
-					pauseMsg.Attribute["sessionId"] = sessionIdStr
-					pauseMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-					pauseMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-
-					if !UserManager.HasUserChan(session.Creator) {
+					err := SendPauseMsgToStudent(session.Creator, session.Tutor, sessionId, length) //向学生发送课程暂停的消息
+					if err != nil {
 						break
 					}
-					studentChan := UserManager.GetUserChan(session.Creator)
-					studentChan <- pauseMsg
 
 				case WS_SESSION_RESUME: //老师发起恢复上课的请求
-					//向老师发送恢复上课的响应消息
-					resumeResp := NewWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_RESP)
 					if !SessionManager.IsSessionActived(sessionId) {
-						resumeResp.Attribute["errCode"] = "2"
-						resumeResp.Attribute["errMsg"] = "session is not actived"
-						if UserManager.HasUserChan(msg.UserId) {
-							userChan := UserManager.GetUserChan(msg.UserId)
-							userChan <- resumeResp
-						}
+						SendResumeRespMsgToTeacherOnError(msg.MessageId, msg.UserId, "session is not actived")
 						break
 					}
-					if !SessionManager.IsSessionBreaked(sessionId) && !SessionManager.IsSessionPaused(sessionId) {
-						resumeResp.Attribute["errCode"] = "2"
-						resumeResp.Attribute["errMsg"] = "session is not paused or breaked"
-						if UserManager.HasUserChan(msg.UserId) {
-							userChan := UserManager.GetUserChan(msg.UserId)
-							userChan <- resumeResp
-						}
+					if !SessionManager.IsSessionBroken(sessionId) && !SessionManager.IsSessionPaused(sessionId) {
+						SendResumeRespMsgToTeacherOnError(msg.MessageId, msg.UserId, "session is not paused or breaked")
 						break
 					}
 
-					resumeResp.Attribute["errCode"] = "0"
-					if UserManager.HasUserChan(msg.UserId) {
-						userChan := UserManager.GetUserChan(msg.UserId)
-						userChan <- resumeResp
-					} else {
-						seelog.Debug("session resume: userChan closes | sessionHandler:", sessionId)
-					}
+					SendResumeRespMsgToTeacher(msg.MessageId, session.Tutor, sessionId) //向老师发送恢复上课的响应消息
 
-					//向学生发送恢复上课的消息
-					resumeMsg := NewWSMessage("", session.Creator, WS_SESSION_RESUME)
-					resumeMsg.Attribute["sessionId"] = sessionIdStr
-					resumeMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-					if UserManager.HasUserChan(session.Creator) {
-						studentChan := UserManager.GetUserChan(session.Creator)
-						studentChan <- resumeMsg
-					} else {
-						push.PushSessionResume(session.Creator, sessionId)
-					}
+					SendResumeMsgToStudent(session.Creator, session.Tutor, sessionId) //向学生发送恢复上课的消息
 
 					//设置上课状态为拨号中
 					SessionManager.SetSessionCalling(sessionId, true)
@@ -551,33 +383,18 @@ func sessionHandler(sessionId int64) {
 					}
 
 					//向老师发送取消恢复上课的响应消息
-					resCancelResp := NewWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_CANCEL_RESP)
 					if !SessionManager.IsSessionCalling(sessionId) {
-						resCancelResp.Attribute["errCode"] = "2"
-						resCancelResp.Attribute["errMsg"] = "nobody is calling"
-						if UserManager.HasUserChan(msg.UserId) {
-							userChan := UserManager.GetUserChan(msg.UserId)
-							userChan <- resCancelResp
-						}
+						SendResumeCancelRespMsgToTeacherOnError(msg.MessageId, msg.UserId)
 						break
-					}
-					resCancelResp.Attribute["errCode"] = "0"
-					if UserManager.HasUserChan(msg.UserId) {
-						userChan := UserManager.GetUserChan(msg.UserId)
-						userChan <- resCancelResp
-					} else {
-						seelog.Debug("session resume cancel: userChan closes | sessionHandler:", sessionId)
 					}
 
+					SendResumeCancelRespMsgToTeacher(msg.MessageId, msg.UserId, sessionId)
+
 					//向学生发送老师取消恢复上课的消息
-					resCancelMsg := NewWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
-					resCancelMsg.Attribute["sessionId"] = sessionIdStr
-					resCancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
-					if !UserManager.HasUserChan(session.Creator) {
+					err := SendResumeCancelRespMsgToStudent(session.Creator, session.Tutor, sessionId)
+					if err != nil {
 						break
 					}
-					studentChan := UserManager.GetUserChan(session.Creator)
-					studentChan <- resCancelMsg
 
 					//拨号停止
 					SessionManager.SetSessionCalling(sessionId, false)
@@ -585,59 +402,33 @@ func sessionHandler(sessionId int64) {
 					//设置上课请求未被接受
 					SessionManager.SetSessionAccepted(sessionId, false)
 
-					if SessionManager.IsSessionBreaked(sessionId) {
+					if SessionManager.IsSessionBroken(sessionId) {
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 					} else if SessionManager.IsSessionPaused(sessionId) {
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
 					}
 
 				case WS_SESSION_RESUME_ACCEPT: //学生响应老师的恢复上课请求
-					//向学生发送响应老师恢复上课请求的响应消息
-					resAcceptResp := NewWSMessage(msg.MessageId, msg.UserId, WS_SESSION_RESUME_ACCEPT_RESP)
-
 					//根据accpet参数来判断学生是接受还是拒绝，1代表接受，-1代表拒绝
 					acceptStr, ok := msg.Attribute["accept"]
 					if !ok {
-						resAcceptResp.Attribute["errCode"] = "2"
-						resAcceptResp.Attribute["errMsg"] = "Insufficient argument"
-						if UserManager.HasUserChan(msg.UserId) {
-							userChan := UserManager.GetUserChan(msg.UserId)
-							userChan <- resAcceptResp
-						}
+						SendResumeAcceptRespMsgToStudentOnError(msg.MessageId, msg.UserId, "Insufficient argument")
 						break
 					}
 					if !SessionManager.IsSessionCalling(sessionId) {
-						resAcceptResp.Attribute["errCode"] = "2"
-						resAcceptResp.Attribute["errMsg"] = "nobody is calling"
-						if UserManager.HasUserChan(msg.UserId) {
-							userChan := UserManager.GetUserChan(msg.UserId)
-							userChan <- resAcceptResp
-						}
+						SendResumeAcceptRespMsgToStudentOnError(msg.MessageId, msg.UserId, "nobody is calling")
 						break
 					}
-					resAcceptResp.Attribute["errCode"] = "0"
-					if UserManager.HasUserChan(msg.UserId) {
-						userChan := UserManager.GetUserChan(msg.UserId)
-						userChan <- resAcceptResp
-					} else {
-						seelog.Debug("session resume accept: userChan closes | sessionHandler:", sessionId)
-					}
 
-					//拨号停止
-					SessionManager.SetSessionCalling(sessionId, false)
+					SendResumeAcceptRespMsgToStudent(msg.MessageId, msg.UserId, sessionId)
 
-					//向老师发送响应恢复上课请求的消息
-					resAcceptMsg := NewWSMessage("", session.Tutor, WS_SESSION_RESUME_ACCEPT)
-					resAcceptMsg.Attribute["sessionId"] = sessionIdStr
-					resAcceptMsg.Attribute["accept"] = acceptStr
-					if UserManager.HasUserChan(session.Tutor) {
-						teacherChan := UserManager.GetUserChan(session.Tutor)
-						teacherChan <- resAcceptMsg
-					}
+					SessionManager.SetSessionCalling(sessionId, false) //拨号停止
+
+					SendResumeAcceptMsgToTeacher(session.Tutor, sessionId, acceptStr) //向老师发送响应恢复上课请求的消息
 
 					if acceptStr == "-1" {
 						//拒绝上课
-						if SessionManager.IsSessionBreaked(sessionId) {
+						if SessionManager.IsSessionBroken(sessionId) {
 							SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 						} else if SessionManager.IsSessionPaused(sessionId) {
 							SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
@@ -653,11 +444,8 @@ func sessionHandler(sessionId int64) {
 
 						//设置课程状态为正在服务中
 						SessionManager.SetSessionActived(sessionId, true)
-
 						SessionManager.SetSessionPaused(sessionId, false)
-
-						SessionManager.SetSessionBreaked(sessionId, false)
-
+						SessionManager.SetSessionBroken(sessionId, false)
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
 
 						//启动时间同步计时器
@@ -858,6 +646,39 @@ func RecoverUserSession(userId int64, msg WSMessage) {
 				resp.Attribute["sessionInfo"] = string(teacherByte)
 			}
 			userChan <- resp
+		}
+	}
+}
+
+func CheckCourseSessionEvaluation(userId int64, msg WSMessage) {
+	if msg.OperationCode == WS_LOGIN {
+		if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
+			for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
+				session, _ := models.ReadSession(sessionId)
+				if session == nil {
+					return
+				}
+
+				if SessionManager.IsSessionOnline(sessionId) {
+					return
+				}
+			}
+		}
+		sessionId, courseId, chapterId, studentId, _ := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
+		if sessionId != 0 {
+			resp := NewWSMessage("", userId, WS_SESSION_NOT_EVALUATION_TIP)
+			sessionIdStr := strconv.FormatInt(sessionId, 10)
+			courseIdStr := strconv.FormatInt(courseId, 10)
+			chapterIdStr := strconv.FormatInt(chapterId, 10)
+			studentIdStr := strconv.FormatInt(studentId, 10)
+			resp.Attribute["sessionId"] = sessionIdStr
+			resp.Attribute["courseId"] = courseIdStr
+			resp.Attribute["chapterId"] = chapterIdStr
+			resp.Attribute["studentId"] = studentIdStr
+			if UserManager.HasUserChan(userId) {
+				userChan := UserManager.GetUserChan(userId)
+				userChan <- resp
+			}
 		}
 	}
 }

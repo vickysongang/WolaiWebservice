@@ -7,6 +7,7 @@ import (
 
 	"github.com/cihub/seelog"
 
+	qapkgController "WolaiWebservice/controllers/qapkg"
 	tradeController "WolaiWebservice/controllers/trade"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
@@ -191,6 +192,55 @@ func TradeChargeCode(w http.ResponseWriter, r *http.Request) {
 		resp = response.NewResponse(status, err.Error(), response.NullObject)
 	} else {
 		resp = response.NewResponse(status, "", response.NullObject)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 7.3.1
+func TradeQaPkgList(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	content, err := qapkgController.GetQaPkgList()
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(2, err.Error(), response.NullSlice)
+	} else {
+		resp = response.NewResponse(0, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 7.3.2
+func TradeUserQaPkgDetail(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	content, err := qapkgController.GetQaPkgDetail(userId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(2, err.Error(), response.NullSlice)
+	} else {
+		resp = response.NewResponse(0, "", content)
 	}
 	json.NewEncoder(w).Encode(resp)
 }

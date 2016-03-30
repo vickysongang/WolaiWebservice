@@ -665,7 +665,6 @@ func InitOrderDispatch(msg WSMessage, timestamp int64) error {
 }
 
 func handleSessionCreation(orderId int64, teacherId int64) {
-	//	timestamp := time.Now().Unix()
 
 	order, _ := models.ReadOrder(orderId)
 	planTime := order.Date
@@ -679,17 +678,11 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 	}
 	session, _ := models.CreateSession(&sessionInfo)
 
-	// 发起上课请求或者设置计时器
-	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT ||
-		order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
-		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	SessionManager.SetSessionOnline(session.Id)
 
-		SessionManager.SetSessionOnline(session.Id)
+	UserManager.SetUserSession(session.Id, session.Tutor, session.Creator)
 
-		UserManager.SetUserSession(session.Id, session.Tutor, session.Creator)
+	time.Sleep(time.Second * time.Duration(orderSessionCountdown))
+	_ = InitSessionMonitor(session.Id)
 
-		time.Sleep(time.Second * time.Duration(orderSessionCountdown))
-		_ = InitSessionMonitor(session.Id)
-
-	}
 }

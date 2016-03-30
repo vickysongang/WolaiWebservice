@@ -7,7 +7,6 @@ import (
 	"github.com/pingplusplus/pingpp-go/pingpp/charge"
 
 	"WolaiWebservice/config"
-	"WolaiWebservice/models"
 )
 
 func init() {
@@ -23,8 +22,11 @@ func init() {
  * @param clientIp:客户端IP，示例：127.0.0.1
  * @param subject:主题，示例：Your Subject
  * @param body:内容，示例：Your Body
+ * @param extra:附加字段
  */
-func PayByPingpp(orderNo string, userId int64, amount uint64, channel, currency, clientIp, subject, body, phone string, extra map[string]interface{}) (*pingpp.Charge, error) {
+func PayByPingpp(orderNo string, amount uint64,
+	channel, currency, clientIp, subject, body string,
+	extra map[string]interface{}) (*pingpp.Charge, error) {
 	params := &pingpp.ChargeParams{
 		Order_no:  orderNo,
 		App:       pingpp.App{Id: config.Env.Pingpp.AppId},
@@ -36,20 +38,6 @@ func PayByPingpp(orderNo string, userId int64, amount uint64, channel, currency,
 		Body:      body,
 		Extra:     extra}
 	ch, err := charge.New(params)
-	if err == nil {
-		record := models.PingppRecord{
-			UserId:   userId,
-			Phone:    phone,
-			ChargeId: ch.ID,
-			OrderNo:  orderNo,
-			Amount:   amount,
-			Channel:  channel,
-			Currency: currency,
-			Subject:  subject,
-			Body:     body,
-		}
-		models.InsertPingppRecord(&record)
-	}
 	return ch, err
 }
 

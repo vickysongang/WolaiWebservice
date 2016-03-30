@@ -78,4 +78,24 @@ var tradeRoutes = route.Routes{
 		true,
 		true,
 	},
+
+	// 7.3.1
+	route.Route{
+		"TradeQaPkgList",
+		"POST",
+		"/qapkg/list",
+		handlerv2.TradeQaPkgList,
+		true,
+		true,
+	},
+
+	// 7.3.2
+	route.Route{
+		"TradeUserQaPkgDetail",
+		"POST",
+		"/qapkg/detail",
+		handlerv2.TradeUserQaPkgDetail,
+		true,
+		true,
+	},
 }

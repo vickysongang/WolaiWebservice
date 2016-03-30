@@ -5,6 +5,8 @@ import (
 	"WolaiWebservice/models"
 	"errors"
 	"time"
+
+	seelog "github.com/cihub/seelog"
 )
 
 type SessionStatus struct {
@@ -18,7 +20,7 @@ type SessionStatus struct {
 	isAccepted  bool //学生是否接受了老师的上课请求
 	isActived   bool //课程是否是激活的
 	isPaused    bool //课程是否被暂停
-	isBreaked   bool //课程是否被中断
+	isBroken    bool //课程是否被中断
 	status      string
 }
 
@@ -57,7 +59,7 @@ func NewSessionStatus(sessionId int64) *SessionStatus {
 		isAccepted:  false,
 		isPaused:    false,
 		isActived:   false,
-		isBreaked:   false,
+		isBroken:    false,
 		status:      SESSION_STATUS_CREATED,
 	}
 	return &sessionStatus
@@ -80,6 +82,7 @@ func (ssm *SessionStatusManager) SetSessionOnline(sessionId int64) error {
 		return nil
 	}
 	ssm.sessionMap[sessionId] = NewSessionStatus(sessionId)
+	seelog.Debug("SessionManager | set session online:", sessionId)
 	return nil
 }
 
@@ -202,20 +205,20 @@ func (ssm *SessionStatusManager) SetSessionPaused(sessionId int64, isPaused bool
 	return nil
 }
 
-func (ssm *SessionStatusManager) IsSessionBreaked(sessionId int64) bool {
+func (ssm *SessionStatusManager) IsSessionBroken(sessionId int64) bool {
 	sessionStatus, ok := ssm.sessionMap[sessionId]
 	if !ok {
 		return false
 	}
-	return sessionStatus.isBreaked
+	return sessionStatus.isBroken
 }
 
-func (ssm *SessionStatusManager) SetSessionBreaked(sessionId int64, isBreaked bool) error {
+func (ssm *SessionStatusManager) SetSessionBroken(sessionId int64, isBroken bool) error {
 	sessionStatus, ok := ssm.sessionMap[sessionId]
 	if !ok {
 		return ErrSessionNotFound
 	}
-	sessionStatus.isBreaked = isBreaked
+	sessionStatus.isBroken = isBroken
 	return nil
 }
 

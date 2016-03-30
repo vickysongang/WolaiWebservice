@@ -4,10 +4,12 @@ import (
 	"errors"
 
 	"WolaiWebservice/models"
+	qapkgService "WolaiWebservice/service/qapkg"
 )
 
 type priceInfo struct {
-	Price int64 `json:"price"`
+	Price            int64 `json:"price"`
+	LeftQaTimeLength int64 `json:"leftQaTimeLength"`
 }
 
 func CalculateOrderExpect(userId, teacherId, teacherTier, gradeId, subjectId int64) (int64, error, *priceInfo) {
@@ -41,9 +43,11 @@ func CalculateOrderExpect(userId, teacherId, teacherTier, gradeId, subjectId int
 	}
 
 	price = ((price / 10) / 60) * 10
+	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(userId)
 
 	info := priceInfo{
-		Price: price,
+		Price:            price,
+		LeftQaTimeLength: leftQaTimeLength,
 	}
 
 	return 0, nil, &info

@@ -301,7 +301,7 @@ func CourseActionPay(w http.ResponseWriter, r *http.Request) {
 	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
 	payType := vars["type"][0]
 
-	status, err := courseController.HandleCourseActionPay(userId, courseId, payType)
+	status, err := courseController.HandleCourseActionPayByBalance(userId, courseId, payType)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullObject)

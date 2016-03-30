@@ -30,7 +30,9 @@ func (t *TeacherTierHourly) TableName() string {
 
 func ReadTeacherTierHourly(tierId int64) (*TeacherTierHourly, error) {
 	o := orm.NewOrm()
-
+	if tierId == 0 {
+		tierId = LOWEST_TEACHER_TIER
+	}
 	tier := TeacherTierHourly{Id: tierId}
 	err := o.Read(&tier)
 	if err != nil {

@@ -23,6 +23,8 @@ type PingppRecord struct {
 	Comment    string    `json:"comment"`
 	RefundId   string    `json:"refundId"`
 	CreateTime time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+	Type       string    `json:"type"`
+	RefId      int64     `json:"refId"`
 }
 
 func (r *PingppRecord) TableName() string {

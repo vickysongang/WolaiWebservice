@@ -7,18 +7,19 @@ import (
 )
 
 type TradeRecord struct {
-	Id          int64     `json:"id" orm:"pk"`
-	UserId      int64     `json:"userId"`
-	TradeType   string    `json:"tradeType"`
-	TradeAmount int64     `json:"tradeAmount"`
-	CreateTime  time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
-	Result      string    `json:"result"`
-	Balance     int64     `json:"balance"`
-	Comment     string    `json:"comment"`
-	SessionId   int64     `json:"-"`
-	RecordId    int64     `json:"-"`
-	PingppId    int64     `json:"-"`
-	ChargeCode  string    `json:"-"`
+	Id              int64     `json:"id" orm:"pk"`
+	UserId          int64     `json:"userId"`
+	TradeType       string    `json:"tradeType"`
+	TradeAmount     int64     `json:"tradeAmount"`
+	QapkgTimeLength int64     `json:"qapkgTimeLength"`
+	CreateTime      time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+	Result          string    `json:"result"`
+	Balance         int64     `json:"balance"`
+	Comment         string    `json:"comment"`
+	SessionId       int64     `json:"-"`
+	RecordId        int64     `json:"-"`
+	PingppId        int64     `json:"-"`
+	ChargeCode      string    `json:"-"`
 }
 
 const (
@@ -36,9 +37,14 @@ const (
 	TRADE_COURSE_PURCHASE     = "course_purchase"     //课程购买
 	TRADE_COURSE_AUDITION     = "course_audition"     //课程试听
 	TRADE_COURSE_EARNING      = "course_earning"      //课程结算
+	TRADE_QA_PKG_PURCHASE     = "qa_pkg_purchase"     //答疑包购买
 
 	TRADE_RESULT_SUCCESS = "S"
 	TRADE_RESULT_FAIL    = "F"
+
+	TRADE_PAY_TYPE_BALANCE = "balance"
+	TRADE_PAY_TYPE_THIRD   = "third"
+	TRADE_PAY_TYPE_BOTH    = "both"
 )
 
 func init() {

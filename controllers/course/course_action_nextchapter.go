@@ -6,7 +6,6 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
-	"WolaiWebservice/service/trade"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
@@ -99,10 +98,10 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 		models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
 	}
 
-	err = trade.HandleCourseEarning(purchase.Id, chapter.Period)
-	if err != nil {
-		return 2, errors.New("支付信息异常")
-	}
+	//	err = trade.HandleCourseEarning(purchase.Id, chapter.Period)
+	//	if err != nil {
+	//		return 2, errors.New("支付信息异常")
+	//	}
 
 	return 0, nil
 }

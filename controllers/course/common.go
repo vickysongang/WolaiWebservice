@@ -1,15 +1,23 @@
 package course
 
 import (
+	"fmt"
+
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/config"
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
+	evaluationService "WolaiWebservice/service/evaluation"
 )
 
 type courseChapterStatus struct {
 	models.CourseChapter
-	Status string `json:"status"`
+	Status              string `json:"status"`
+	EvaluationStatus    string `json:"evaluationStatus"`
+	EvaluationComment   string `json:"evaluationComment"`
+	EvaluationDetailUrl string `json:"evaluationDetailUrl"`
+	SessionId           int64  `json:"sessionId"`
 }
 
 const (
@@ -43,7 +51,6 @@ func queryCourseChapterStatus(courseId int64, current int64) ([]*courseChapterSt
 
 		statusList[i] = &status
 	}
-
 	return statusList, nil
 }
 
@@ -85,10 +92,19 @@ func queryCourseCustomChapterStatus(courseId int64, current int64, userId int64,
 		} else {
 			status.Status = COURSE_CHAPTER_STATUS_IDLE
 		}
-
+		evaluationApply, _ := evaluationService.GetEvaluationApply(teacherId, chapter.Id)
+		if evaluationApply.Id != 0 {
+			status.EvaluationStatus = evaluationApply.Status
+			if evaluationApply.Status == models.EVALUATION_APPLY_STATUS_CREATED {
+				status.EvaluationComment = "课时总结已提交，等待助教审核中..."
+			}
+			status.EvaluationDetailUrl = fmt.Sprintf("%s%d", evaluationService.GetEvaluationDetailUrlPrefix(), chapter.Id)
+		} else {
+			status.EvaluationStatus = models.EVALUATION_APPLY_STATUS_IDLE
+		}
+		status.SessionId = courseService.GetSessionIdByChapter(chapter.Id)
 		statusList[i] = &status
 	}
-
 	return statusList, nil
 }
 
