@@ -35,15 +35,15 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignor
 	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(userId)
 	if leftQaTimeLength == 0 {
 		if user.Balance <= settings.OrderBalanceMin() {
-			return 5112, errors.New("你的钱包空空如也，没有办法发起提问啦，记得先去充值喔"), nil
+			return 5112, errors.New("你的账户空空如也，没有办法发起提问啦，记得先去充值喔"), nil
 		} else if user.Balance <= settings.OrderBalanceAlert() && ignoreFlagStr != IGNORE_FLAG_TRUE {
-			return 5111, errors.New("你的钱包余额已经不够20分钟答疑时间，不充值可能欠费哦"), nil
+			return 5111, errors.New("你的账户余额已经不够20分钟答疑时间，不充值可能欠费哦"), nil
 		}
 	} else {
 		if leftQaTimeLength <= settings.OrderQaPkgMin() && user.Balance > settings.OrderBalanceAlert() && ignoreFlagStr != IGNORE_FLAG_TRUE {
-			return 5113, errors.New("剩余答疑时间较少，上课过程中答疑时间用完后，将使用钱包余额支付"), nil
+			return 5113, errors.New("剩余答疑时间较少，上课过程中答疑时间用完后，将使用账户余额支付"), nil
 		} else if leftQaTimeLength <= settings.OrderQaPkgMin() && user.Balance <= settings.OrderBalanceAlert() && ignoreFlagStr != IGNORE_FLAG_TRUE {
-			return 5114, errors.New("剩余答疑时间和钱包余额均较少，若继续上课有可能会自动下课，建议先去充值噢"), nil
+			return 5114, errors.New("剩余答疑时间和账户余额均较少，若继续上课有可能会自动下课，建议先去充值噢"), nil
 		}
 	}
 
