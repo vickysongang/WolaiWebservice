@@ -1,6 +1,7 @@
 package trade
 
 import (
+	"math"
 	//"errors"
 	//"time"
 
@@ -53,6 +54,12 @@ func createTradeRecord(userId, amount int64, tradeType, result, comment string,
  * 操作用户的余额
  */
 func HandleUserBalance(userId int64, amount int64) error {
+	if amount < 0 {
+		user, _ := models.ReadUser(userId)
+		if int64(math.Abs(float64(amount))) > user.Balance {
+			amount = 0 - user.Balance
+		}
+	}
 	o := orm.NewOrm()
 	_, err := o.QueryTable("users").Filter("id", userId).Update(orm.Params{
 		"balance": orm.ColValue(orm.ColAdd, amount),
