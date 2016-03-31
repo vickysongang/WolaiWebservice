@@ -89,7 +89,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 				title = grade.Name + subject.Name
 			}
 
-			lengthMin := session.Length / 60
+			lengthMin := int64(math.Ceil(float64(session.Length) / 60))
 			if lengthMin < 1 && session.Length > 0 {
 				lengthMin = 1
 			}
@@ -126,7 +126,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 				title = grade.Name + subject.Name
 			}
 
-			lengthMin := session.Length / 60
+			lengthMin := int64(math.Ceil(float64(session.Length) / 60))
 			if lengthMin < 1 && session.Length > 0 {
 				lengthMin = 1
 			}
