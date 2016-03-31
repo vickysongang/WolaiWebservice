@@ -7,10 +7,10 @@ import (
 const (
 	AMOUNT_REWARD_REGISTRATION = 1500
 
-	COMMENT_CHARGE              = "钱包充值"
+	COMMENT_CHARGE              = "账户充值"
 	COMMENT_CHARGE_CODE         = "充值卡充值"
 	COMMENT_CHARGE_PREMIUM      = "充值奖励"
-	COMMENT_WITHDRAW            = "钱包提现"
+	COMMENT_WITHDRAW            = "账户提现"
 	COMMENT_PROMOTION           = "活动奖励"
 	COMMENT_VOUCHER             = "代金券"
 	COMMENT_DEDUCTION           = "服务扣费"

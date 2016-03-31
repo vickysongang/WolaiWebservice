@@ -365,7 +365,7 @@ func SendQaPkgTimeEndMsgToStudent(studentId, sessionId int64) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	qaPkgTimeEndMsg := NewWSMessage("", studentId, WS_SESSION_QAPKG_TIME_END)
 	qaPkgTimeEndMsg.Attribute["sessionId"] = sessionIdStr
-	qaPkgTimeEndMsg.Attribute["comment"] = "答疑时间用完啦，本次上课已经换到钱包余额支付"
+	qaPkgTimeEndMsg.Attribute["comment"] = "答疑时间用完啦，本次上课已经换到账户余额支付"
 	if UserManager.HasUserChan(studentId) {
 		userChan := UserManager.GetUserChan(studentId)
 		userChan <- qaPkgTimeEndMsg
@@ -378,7 +378,7 @@ func SendAutoFinishTipMsgToStudent(studentId, sessionId, autoFinishLimit int64) 
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	autoFinishTipMsg := NewWSMessage("", studentId, WS_SESSION_AUTO_FINISH_TIP)
 	autoFinishTipMsg.Attribute["sessionId"] = sessionIdStr
-	autoFinishTipMsg.Attribute["comment"] = fmt.Sprintf("%s%d%s", "哎呀！钱包里的钱都用完了", autoFinishLimit, "分钟后将自动下课哦")
+	autoFinishTipMsg.Attribute["comment"] = fmt.Sprintf("%s%d%s", "哎呀！账户里的钱都用完了", autoFinishLimit, "分钟后将自动下课哦")
 	if UserManager.HasUserChan(studentId) {
 		userChan := UserManager.GetUserChan(studentId)
 		userChan <- autoFinishTipMsg

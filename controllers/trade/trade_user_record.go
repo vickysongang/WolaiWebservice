@@ -135,7 +135,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Title = fmt.Sprintf("%s %d分钟", title, lengthMin)
 
 		case models.TRADE_CHARGE:
-			//学生钱包充值
+			//学生账户充值
 			info.Avartar = AVATAR_CHARGE
 			info.Title = trade.COMMENT_CHARGE
 
@@ -150,7 +150,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Title = trade.COMMENT_CHARGE_PREMIUM
 
 		case models.TRADE_WITHDRAW:
-			//老师钱包提现
+			//老师账户提现
 			info.Avartar = AVATAR_WITHDRAW
 			info.Title = trade.COMMENT_WITHDRAW
 
