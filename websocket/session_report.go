@@ -9,7 +9,7 @@ import (
 	userService "WolaiWebservice/service/user"
 )
 
-func SendSessionReport(sessionId int64) {
+func SendSessionReport(sessionId int64, autoFinishFlag bool) {
 	var err error
 
 	session, err := models.ReadSession(sessionId)
@@ -17,7 +17,7 @@ func SendSessionReport(sessionId int64) {
 		return
 	}
 
-	tradeService.HandleTradeSession(sessionId)
+	tradeService.HandleTradeSession(sessionId, autoFinishFlag)
 
 	_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
 	_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)

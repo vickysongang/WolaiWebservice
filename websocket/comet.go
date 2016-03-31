@@ -307,7 +307,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		//下课后结算，产生交易记录
 		session, _ = models.ReadSession(sessionId)
 
-		SendSessionReport(sessionId)
+		SendSessionReport(sessionId, false)
 
 		if TeacherManager.IsTeacherAssignOpen(session.Tutor) {
 			assignOffMsg := NewWSMessage("", session.Tutor, WS_ORDER2_TEACHER_ASSIGNOFF_RESP)

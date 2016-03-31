@@ -127,7 +127,7 @@ func sessionHandler(sessionId int64) {
 			models.UpdateTeacherServiceTime(session.Tutor, length) //修改老师的辅导时长
 
 			//课后结算，产生交易记录
-			SendSessionReport(sessionId)
+			SendSessionReport(sessionId, false)
 			go lcmessage.SendSessionExpireMsg(sessionId)
 
 			UserManager.RemoveUserSession(sessionId, session.Tutor, session.Creator)
@@ -209,7 +209,7 @@ func sessionHandler(sessionId int64) {
 
 					models.UpdateTeacherServiceTime(session.Tutor, length) //修改老师的辅导时长
 
-					SendSessionReport(sessionId) //下课后结算，产生交易记录
+					SendSessionReport(sessionId, autoFinishFlag) //下课后结算，产生交易记录
 
 					seelog.Debug("POIWSSessionHandler: session end: " + sessionIdStr)
 

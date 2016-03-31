@@ -46,7 +46,7 @@ var sessionRoutes = route.Routes{
 		"/course/info",
 		handlerv2.CourseSessionInfo,
 		true,
-		false,
+		true,
 	},
 
 	// 6.2.1
