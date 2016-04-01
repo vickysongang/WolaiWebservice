@@ -263,7 +263,7 @@ func SendTradeNotification(recordId int64) {
 				fmt.Sprintf("答疑时间：%d分钟", qaPkg.TimeLength))
 		} else if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
 			msg.body = append(msg.body,
-				fmt.Sprintf("答疑时间：%d分钟－%d个月", qaPkg.TimeLength, qaPkg.Month))
+				fmt.Sprintf("答疑时间：%d分钟/%d个月", qaPkg.TimeLength, qaPkg.Month))
 		}
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
