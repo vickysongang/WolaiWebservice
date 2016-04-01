@@ -246,6 +246,27 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户收入：%s %.2f 元", signStr, amount))
 
+	case models.TRADE_QA_PKG_PURCHASE:
+		qaPkg, err := models.ReadQaPkg(record.RecordId)
+		if err != nil {
+			return
+		}
+		qaPkgModule, err := models.ReadQaPkgModule(qaPkg.ModuleId)
+		if err != nil {
+			return
+		}
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已经完成答疑时间包的购买。", user.Nickname, suffix)
+		msg.body = append(msg.body,
+			fmt.Sprintf("产品名称：%s", qaPkgModule.Name))
+		if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
+			msg.body = append(msg.body,
+				fmt.Sprintf("答疑时间：%d分钟", qaPkg.TimeLength))
+		} else if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
+			msg.body = append(msg.body,
+				fmt.Sprintf("答疑时间：%d分钟－%d个月", qaPkg.TimeLength, qaPkg.Month))
+		}
+		msg.body = append(msg.body,
+			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
 	default:
 		return
 	}
