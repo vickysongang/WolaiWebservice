@@ -11,7 +11,6 @@ import (
 	tradeController "WolaiWebservice/controllers/trade"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
-	tradeService "WolaiWebservice/service/trade"
 )
 
 // 7.1.1
@@ -150,7 +149,7 @@ func TradeChargePremium(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userIdStr := r.Header.Get("X-Wolai-ID")
-	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
@@ -158,12 +157,12 @@ func TradeChargePremium(w http.ResponseWriter, r *http.Request) {
 	vars := r.Form
 
 	chargeValueStr := vars["value"][0]
-	chargeValue, err := strconv.ParseInt(chargeValueStr, 10, 64)
+	_, err = strconv.ParseInt(chargeValueStr, 10, 64)
 
-	premium, _ := tradeService.GetChargePremuim(userId, chargeValue)
+	//premium, _ := tradeService.GetChargePremuim(userId, chargeValue)
 
 	content := map[string]int64{
-		"premium": premium,
+		"premium": 0,
 	}
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 }
