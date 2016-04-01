@@ -42,7 +42,7 @@ func HandleTradeSession(sessionId int64, autoFinishFlag bool) error {
 			student, _ := models.ReadUser(session.Creator)
 			studentAmount = student.Balance
 		} else {
-			studentAmount = length * order.PriceHourly / 3600 / 10 * 10
+			studentAmount = length * order.PriceHourly / 3600
 		}
 		err = HandleUserBalance(session.Creator, 0-studentAmount)
 		if err != nil {
@@ -80,7 +80,7 @@ func HandleTradeSession(sessionId int64, autoFinishFlag bool) error {
 				student, _ := models.ReadUser(session.Creator)
 				studentAmount = student.Balance
 			} else {
-				studentAmount = balanceTime * 60 * order.PriceHourly / 3600 / 10 * 10
+				studentAmount = balanceTime * 60 * order.PriceHourly / 3600
 			}
 			err = HandleUserBalance(session.Creator, 0-studentAmount)
 			if err != nil {
@@ -96,7 +96,7 @@ func HandleTradeSession(sessionId int64, autoFinishFlag bool) error {
 	}
 
 	//结算老师的工资
-	teacherAmount := length * order.SalaryHourly / 3600 / 10 * 10
+	teacherAmount := length * order.SalaryHourly / 3600
 	err = HandleUserBalance(session.Tutor, teacherAmount)
 	if err != nil {
 		return err
