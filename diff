@@ -48,3 +48,26 @@ index 1749a40..1d1bba5 100644
  				case WS_SESSION_PAUSE: //课程暂停
  					//向老师发送课程暂停的响应消息
  					pauseResp := NewWSMessage(msg.MessageId, msg.UserId, WS_SESSION_PAUSE_RESP)
+diff --git a/websocket/session_handler.go b/websocket/session_handler.go
+index ed8c84b..7f092ae 100644
+--- a/websocket/session_handler.go
++++ b/websocket/session_handler.go
+@@ -128,6 +128,18 @@ func sessionHandler(sessionId int64) {
+ 
+ 			//课后结算，产生交易记录
+ 			SendSessionReport(sessionId, false)
++
++			if TeacherManager.IsTeacherAssignOpen(session.Tutor) {
++				assignOffMsg := NewWSMessage("", session.Tutor, WS_ORDER2_TEACHER_ASSIGNOFF_RESP)
++				if err := TeacherManager.SetAssignOff(session.Tutor); err == nil {
++					assignOffMsg.Attribute["errCode"] = "0"
++					if UserManager.HasUserChan(session.Tutor) {
++						tutorChan := UserManager.GetUserChan(session.Tutor)
++						tutorChan <- assignOffMsg
++					}
++				}
++			}
++
+ 			go lcmessage.SendSessionExpireMsg(sessionId)
+ 
+ 			UserManager.RemoveUserSession(sessionId, session.Tutor, session.Creator)
