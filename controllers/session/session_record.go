@@ -59,7 +59,7 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 		if isCourse {
 			chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
 			if err == nil {
-				title = fmt.Sprintf("第％d课时 %s", chapter.Period, chapter.Title)
+				title = fmt.Sprintf("第%d课时 %s", chapter.Period, chapter.Title)
 			}
 		} else {
 			grade, err1 := models.ReadGrade(order.GradeId)
