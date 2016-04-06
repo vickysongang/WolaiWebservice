@@ -310,13 +310,8 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		SendSessionReport(sessionId, false)
 
 		if TeacherManager.IsTeacherAssignOpen(session.Tutor) {
-			assignOffMsg := NewWSMessage("", session.Tutor, WS_ORDER2_TEACHER_ASSIGNOFF_RESP)
 			if err := TeacherManager.SetAssignOff(session.Tutor); err == nil {
-				assignOffMsg.Attribute["errCode"] = "0"
-				if UserManager.HasUserChan(session.Tutor) {
-					tutorChan := UserManager.GetUserChan(session.Tutor)
-					tutorChan <- assignOffMsg
-				}
+				SendAssignOffMsgToTeacher(session.Tutor)
 			}
 		}
 

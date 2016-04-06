@@ -399,3 +399,14 @@ func SendAutoFinishTipMsgToTeacher(teacherId, sessionId, autoFinishLimit int64) 
 	}
 	return ErrUserChanClose
 }
+
+func SendAssignOffMsgToTeacher(teacherId int64) error {
+	assignOffMsg := NewWSMessage("", teacherId, WS_ORDER2_TEACHER_ASSIGNOFF_RESP)
+	assignOffMsg.Attribute["errCode"] = "0"
+	if UserManager.HasUserChan(teacherId) {
+		tutorChan := UserManager.GetUserChan(teacherId)
+		tutorChan <- assignOffMsg
+		return nil
+	}
+	return ErrUserChanClose
+}
