@@ -34,11 +34,14 @@ func HandleTradeSession(sessionId int64) error {
 		length = 60
 	}
 
+	lengthMinute := int64(math.Ceil(float64(length) / 60))
+
 	//结算学生的支付金额
 	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(session.Creator)
 	if leftQaTimeLength == 0 {
 		student, _ := models.ReadUser(session.Creator)
-		studentAmount := length * order.PriceHourly / 3600
+
+		studentAmount := lengthMinute * order.PriceHourly / 60
 		if studentAmount > student.Balance {
 			studentAmount = student.Balance
 		}
@@ -53,7 +56,7 @@ func HandleTradeSession(sessionId int64) error {
 			return err
 		}
 	} else {
-		lengthMinute := int64(math.Ceil(float64(length) / 60))
+
 		if lengthMinute <= leftQaTimeLength {
 
 			err := qapkgService.HandleUserQaPkgTime(session.Creator, lengthMinute)
@@ -75,7 +78,7 @@ func HandleTradeSession(sessionId int64) error {
 			balanceTime := lengthMinute - leftQaTimeLength
 
 			student, _ := models.ReadUser(session.Creator)
-			studentAmount := balanceTime * 60 * order.PriceHourly / 3600
+			studentAmount := balanceTime * order.PriceHourly / 60
 			if studentAmount > student.Balance {
 				studentAmount = student.Balance
 			}
@@ -93,7 +96,7 @@ func HandleTradeSession(sessionId int64) error {
 	}
 
 	//结算老师的工资
-	teacherAmount := length * order.SalaryHourly / 3600
+	teacherAmount := lengthMinute * order.SalaryHourly / 60
 	err = HandleUserBalance(session.Tutor, teacherAmount)
 	if err != nil {
 		return err
