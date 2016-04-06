@@ -57,17 +57,17 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 			isCourse = true
 		}
 		if isCourse {
+			chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
+			if err == nil {
+				title = fmt.Sprintf("第％d课时 %s", chapter.Period, chapter.Title)
+			}
+		} else {
 			grade, err1 := models.ReadGrade(order.GradeId)
 			subject, err2 := models.ReadSubject(order.SubjectId)
 			if err1 == nil && err2 == nil {
 				title = grade.Name + subject.Name
 			} else {
 				title = "实时课堂"
-			}
-		} else {
-			chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
-			if err == nil {
-				title = fmt.Sprintf("第％d课时 %s", chapter.Period, chapter.Title)
 			}
 		}
 
