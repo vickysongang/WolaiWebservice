@@ -12,7 +12,7 @@ import (
 )
 
 func createTradeRecord(userId, amount int64, tradeType, result, comment string,
-	sessionId, recordId, pingppId int64, chargeCode string, qapkgTimeLength int64) (*models.TradeRecord, error) {
+	sessionId, recordId, pingppId int64, chargeCode string, qapkgTimeLength int64, chapterId int64) (*models.TradeRecord, error) {
 	var err error
 
 	//	err = HandleUserBalance(userId, amount)
@@ -37,6 +37,7 @@ func createTradeRecord(userId, amount int64, tradeType, result, comment string,
 		PingppId:        pingppId,
 		ChargeCode:      chargeCode,
 		QapkgTimeLength: qapkgTimeLength,
+		ChapterId:       chapterId,
 	}
 
 	tradeRecord, err := models.InsertTradeRecord(&record)

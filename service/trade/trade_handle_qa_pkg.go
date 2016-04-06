@@ -8,7 +8,7 @@ func HandleQaPkgPurchaseTradeRecord(userId int64, amount int64, qaPkgId, pingppI
 
 	_, err = createTradeRecord(userId, 0-amount,
 		models.TRADE_QA_PKG_PURCHASE, models.TRADE_RESULT_SUCCESS, "",
-		0, qaPkgId, pingppId, "", 0)
+		0, qaPkgId, pingppId, "", 0, 0)
 	if err != nil {
 		return err
 	}

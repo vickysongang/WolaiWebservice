@@ -50,7 +50,7 @@ func HandleTradeSession(sessionId int64, autoFinishFlag bool) error {
 		}
 		_, err = createTradeRecord(session.Creator, 0-studentAmount,
 			models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
-			session.Id, 0, 0, "", 0)
+			session.Id, 0, 0, "", 0, 0)
 		if err != nil {
 			return err
 		}
@@ -65,7 +65,7 @@ func HandleTradeSession(sessionId int64, autoFinishFlag bool) error {
 
 			_, err = createTradeRecord(session.Creator, 0,
 				models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
-				session.Id, 0, 0, "", -lengthMinute)
+				session.Id, 0, 0, "", -lengthMinute, 0)
 			if err != nil {
 				return err
 			}
@@ -88,7 +88,7 @@ func HandleTradeSession(sessionId int64, autoFinishFlag bool) error {
 			}
 			_, err = createTradeRecord(session.Creator, 0-studentAmount,
 				models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
-				session.Id, 0, 0, "", -leftQaTimeLength)
+				session.Id, 0, 0, "", -leftQaTimeLength, 0)
 			if err != nil {
 				return err
 			}
@@ -103,7 +103,7 @@ func HandleTradeSession(sessionId int64, autoFinishFlag bool) error {
 	}
 	_, err = createTradeRecord(session.Tutor, teacherAmount,
 		models.TRADE_RECEIVEMENT, models.TRADE_RESULT_SUCCESS, "",
-		sessionId, 0, 0, "", 0)
+		sessionId, 0, 0, "", 0, 0)
 	if err != nil {
 		return err
 	}
