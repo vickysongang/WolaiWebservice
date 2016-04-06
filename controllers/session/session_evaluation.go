@@ -221,14 +221,44 @@ func QueryEvaluationInfo(userId, sessionId, targetId, chapterId int64) ([]*evalu
 	return evalutionInfos, nil
 }
 
-func HasOrderInSessionEvaluated(sessionId int64, userId int64) bool {
+func HasStudentSessionRecordEvaluated(sessionId int64, studentId int64) bool {
 	o := orm.NewOrm()
-	count, err := o.QueryTable("evaluation").Filter("session_id", sessionId).Filter("user_id", userId).Count()
+	count, err := o.QueryTable("evaluation").Filter("session_id", sessionId).Filter("user_id", studentId).Count()
 	if err != nil {
 		return false
 	}
 	if count > 0 {
 		return true
+	}
+	return false
+}
+
+func HasTeacherSessionRecordEvaluated(sessionId int64, teacherId int64) bool {
+	o := orm.NewOrm()
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
+		return false
+	}
+	order, err := models.ReadOrder(session.OrderId)
+	if err != nil {
+		return false
+	}
+	if order.ChapterId != 0 {
+		count, err := o.QueryTable("evaluation").Filter("chapter_id", order.ChapterId).Filter("user_id", teacherId).Count()
+		if err != nil {
+			return false
+		}
+		if count > 0 {
+			return true
+		}
+	} else {
+		count, err := o.QueryTable("evaluation").Filter("session_id", sessionId).Filter("user_id", teacherId).Count()
+		if err != nil {
+			return false
+		}
+		if count > 0 {
+			return true
+		}
 	}
 	return false
 }
