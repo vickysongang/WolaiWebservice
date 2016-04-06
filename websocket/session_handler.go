@@ -131,13 +131,8 @@ func sessionHandler(sessionId int64) {
 			SendSessionReport(sessionId, false)
 
 			if TeacherManager.IsTeacherAssignOpen(session.Tutor) {
-				assignOffMsg := NewWSMessage("", session.Tutor, WS_ORDER2_TEACHER_ASSIGNOFF_RESP)
 				if err := TeacherManager.SetAssignOff(session.Tutor); err == nil {
-					assignOffMsg.Attribute["errCode"] = "0"
-					if UserManager.HasUserChan(session.Tutor) {
-						tutorChan := UserManager.GetUserChan(session.Tutor)
-						tutorChan <- assignOffMsg
-					}
+					SendAssignOffMsgToTeacher(session.Tutor)
 				}
 			}
 
@@ -223,6 +218,12 @@ func sessionHandler(sessionId int64) {
 					models.UpdateTeacherServiceTime(session.Tutor, length) //修改老师的辅导时长
 
 					SendSessionReport(sessionId, autoFinishFlag) //下课后结算，产生交易记录
+
+					if TeacherManager.IsTeacherAssignOpen(session.Tutor) {
+						if err := TeacherManager.SetAssignOff(session.Tutor); err == nil {
+							SendAssignOffMsgToTeacher(session.Tutor)
+						}
+					}
 
 					seelog.Debug("POIWSSessionHandler: session end: " + sessionIdStr)
 
