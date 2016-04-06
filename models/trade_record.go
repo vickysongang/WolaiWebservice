@@ -20,6 +20,7 @@ type TradeRecord struct {
 	RecordId        int64     `json:"-"`
 	PingppId        int64     `json:"-"`
 	ChargeCode      string    `json:"-"`
+	ChapterId       int64     `json:"-"`
 }
 
 const (

@@ -128,7 +128,7 @@ func sessionHandler(sessionId int64) {
 			models.UpdateTeacherServiceTime(session.Tutor, length) //修改老师的辅导时长
 
 			//课后结算，产生交易记录
-			SendSessionReport(sessionId, false)
+			SendSessionReport(sessionId)
 
 			if TeacherManager.IsTeacherAssignOpen(session.Tutor) {
 				if err := TeacherManager.SetAssignOff(session.Tutor); err == nil {
@@ -217,7 +217,7 @@ func sessionHandler(sessionId int64) {
 
 					models.UpdateTeacherServiceTime(session.Tutor, length) //修改老师的辅导时长
 
-					SendSessionReport(sessionId, autoFinishFlag) //下课后结算，产生交易记录
+					SendSessionReport(sessionId) //下课后结算，产生交易记录
 
 					if TeacherManager.IsTeacherAssignOpen(session.Tutor) {
 						if err := TeacherManager.SetAssignOff(session.Tutor); err == nil {

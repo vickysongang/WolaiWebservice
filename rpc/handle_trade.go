@@ -134,7 +134,7 @@ func (watcher *RpcWatcher) HandleCourseEarning(request *RpcRequest, resp *RpcRes
 	}
 	go lcmessage.SendCourseChapterCompleteMsg(recordId, chapterId)
 
-	err = trade.HandleCourseEarning(recordId, period)
+	err = trade.HandleCourseEarning(recordId, period, chapterId)
 	if err != nil {
 		*resp = NewRpcResponse(2, "交易失败", response.NullObject)
 		return err
