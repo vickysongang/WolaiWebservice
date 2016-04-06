@@ -51,64 +51,65 @@ func sessionHandler(sessionId int64) {
 	SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
 	SessionManager.SetSessionStatusServing(sessionId) //设置课程的开始时间并更改数据库的状态
 
-	// don't check session break at session start for now
-	teacherOnline := true
-	studentOnline := true
-	//	teacherOnline := UserManager.HasUserChan(session.Tutor)
-	//	studentOnline := UserManager.HasUserChan(session.Creator)
+	teacherOnline := UserManager.HasUserChan(session.Tutor)
+	studentOnline := UserManager.HasUserChan(session.Creator)
 
 	qaPkgTimeEndFlag := false
 	autoFinishTipFlag := false
 	autoFinishFlag := false
 
-	if !teacherOnline {
-		//如果老师不在线，学生在线，则向学生发送课程中断消息
-		if studentOnline {
-			SendBreakMsgToStudent(session.Creator, session.Tutor, sessionId)
-		}
+	// 如果是学生是3.0.3以下，继续计时
+	_, err := sessionController.SessionTutorPauseValidateTargetVersion(session.Creator)
+	if err != nil {
+		seelog.Debug("WSSessionHandler: instant session started, lower version" + sessionIdStr)
+		if !teacherOnline {
+			//如果老师不在线，学生在线，则向学生发送课程中断消息
+			if studentOnline {
+				SendBreakMsgToStudent(session.Creator, session.Tutor, sessionId)
+			}
 
-		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
+			waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
-		SessionManager.SetSessionBroken(sessionId, true)
-		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
+			SessionManager.SetSessionBroken(sessionId, true)
+			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
+		} else if !studentOnline {
+			//如果学生不在线老师在线，则向老师发送课程中断消息
+			if teacherOnline {
+				SendBreakMsgToTeacher(session.Creator, session.Tutor, sessionId)
+			}
 
-	} else if !studentOnline {
-		//如果学生不在线老师在线，则向老师发送课程中断消息
-		if teacherOnline {
-			SendBreakMsgToTeacher(session.Creator, session.Tutor, sessionId)
-		}
+			waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
-		waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
-
-		SessionManager.SetSessionBroken(sessionId, true)
-		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
-
-	} else {
-		// 如果是学生是3.0.3以下，继续计时
-		_, err := sessionController.SessionTutorPauseValidateTargetVersion(session.Creator)
-		if err != nil {
-			seelog.Debug("WSSessionHandler: instant session started, lower version" + sessionIdStr)
-			// XXX TODO: Start counting and all the stuff
+			SessionManager.SetSessionBroken(sessionId, true)
+			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
+		} else {
 			syncTicker = time.NewTicker(time.Second * 60)
 			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
-		} else {
-			sessionPauseAfterStartTimeDiff := settings.SessionPauseAfterStartTimeDiff()
-			time.Sleep(time.Second * time.Duration(sessionPauseAfterStartTimeDiff))
-
-			SendPauseRespMsgToTeacher("", session.Tutor, sessionId)
-
-			SessionManager.SetSessionPaused(sessionId, true)
-			SessionManager.SetSessionAccepted(sessionId, false)
-			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
-
-			length := int64(0)
-			SessionManager.SetSessionLength(sessionId, length)
-			SessionManager.SetLastSync(sessionId, time.Now().Unix())
-
-			SendPauseMsgToStudent(session.Creator, session.Tutor, sessionId, length) //向学生发送课程暂停的消息
-
-			seelog.Debug("WSSessionHandler: instant session start, now paused: " + sessionIdStr)
 		}
+	} else {
+		if !teacherOnline {
+			seelog.Debug("WSSessionHandler: instant session start, teacher offline, sessionId: " + sessionIdStr)
+			go CheckSessionBreak(session.Tutor)
+		} else if !studentOnline {
+			seelog.Debug("WSSessionHandler: instant session start, student offline, sessionId: " + sessionIdStr)
+			go CheckSessionBreak(session.Creator)
+		}
+		sessionPauseAfterStartTimeDiff := settings.SessionPauseAfterStartTimeDiff()
+		time.Sleep(time.Second * time.Duration(sessionPauseAfterStartTimeDiff))
+
+		SendPauseRespMsgToTeacher("", session.Tutor, sessionId)
+
+		SessionManager.SetSessionPaused(sessionId, true)
+		SessionManager.SetSessionAccepted(sessionId, false)
+		SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
+
+		length := int64(0)
+		SessionManager.SetSessionLength(sessionId, length)
+		SessionManager.SetLastSync(sessionId, time.Now().Unix())
+
+		SendPauseMsgToStudent(session.Creator, session.Tutor, sessionId, length) //向学生发送课程暂停的消息
+
+		seelog.Debug("WSSessionHandler: instant session start, now paused: " + sessionIdStr)
 	}
 
 	for {
