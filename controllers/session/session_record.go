@@ -39,12 +39,15 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 	}
 
 	result := make([]*sessionRecord, 0)
+	var hasEvaluated bool
 	for _, session := range sessions {
 		var info *models.User
 		if userId == session.Creator {
 			info, _ = models.ReadUser(session.Tutor)
+			hasEvaluated = HasStudentSessionRecordEvaluated(session.Id, userId)
 		} else {
 			info, _ = models.ReadUser(session.Creator)
+			hasEvaluated = HasTeacherSessionRecordEvaluated(session.Id, userId)
 		}
 
 		order, _ := models.ReadOrder(session.OrderId)
@@ -70,7 +73,7 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 			StartTime:    session.TimeFrom.Format(time.RFC3339),
 			Length:       session.Length,
 			Status:       session.Status,
-			HasEvaluated: HasOrderInSessionEvaluated(session.Id, userId),
+			HasEvaluated: hasEvaluated,
 			IsCourse:     isCourse,
 		}
 
