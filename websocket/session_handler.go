@@ -164,14 +164,14 @@ func sessionHandler(sessionId int64) {
 			}
 
 			//如果剩余时间小于等于autoFinishLimit，发送提醒给学生和老师
-			if length >= (totalTimeLength-autoFinishLimit)*60 && !autoFinishTipFlag {
+			if length >= totalTimeLength*60 && !autoFinishTipFlag {
 				autoFinishTipFlag = true
 				SendAutoFinishTipMsgToStudent(session.Creator, sessionId, autoFinishLimit)
 				SendAutoFinishTipMsgToTeacher(session.Tutor, sessionId, autoFinishLimit)
 			}
 
 			//如果时间全部用完了，则自动下课
-			if length >= totalTimeLength*60 && !autoFinishFlag {
+			if length >= (totalTimeLength+autoFinishLimit)*60 && !autoFinishFlag {
 				autoFinishFlag = true
 				autoFinishMsg := NewWSMessage("", session.Tutor, WS_SESSION_FINISH)
 				sessionChan <- autoFinishMsg
