@@ -85,7 +85,7 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("科目：%s", subjectStr))
 		msg.body = append(msg.body,
-			fmt.Sprintf("上课时间：%2d月%2d日 %2d:%2d %2d分钟",
+			fmt.Sprintf("上课时间：%2d月%2d日 %02d:%02d %d分钟",
 				month, day, session.TimeFrom.Hour(), session.TimeFrom.Minute(), lengthMin))
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
@@ -124,7 +124,7 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("科目：%s", subjectStr))
 		msg.body = append(msg.body,
-			fmt.Sprintf("上课时间：%2d月%2d日 %2d:%2d %d分钟",
+			fmt.Sprintf("上课时间：%2d月%2d日 %02d:%02d %d分钟",
 				month, day, session.TimeFrom.Hour(), session.TimeFrom.Minute(), lengthMin))
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户收入：%s %.2f 元", signStr, amount))

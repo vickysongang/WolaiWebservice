@@ -232,7 +232,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 				if err == nil {
 					qaPkgModule, _ := models.ReadQaPkgModule(qaPkg.ModuleId)
 					if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
-						info.Comment = fmt.Sprintf("%s－%d个月", qaPkgModule.Name, qaPkg.Month)
+						info.Comment = fmt.Sprintf("%s-%d个月", qaPkgModule.Name, qaPkg.Month)
 					} else if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
 						info.Comment = fmt.Sprintf("%s-%d分钟", qaPkgModule.Name, qaPkg.TimeLength)
 					}
