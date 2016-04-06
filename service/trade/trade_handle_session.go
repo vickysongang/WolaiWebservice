@@ -8,7 +8,7 @@ import (
 	qapkgService "WolaiWebservice/service/qapkg"
 )
 
-func HandleTradeSession(sessionId int64, autoFinishFlag bool) error {
+func HandleTradeSession(sessionId int64) error {
 	var err error
 
 	session, err := models.ReadSession(sessionId)
@@ -37,12 +37,10 @@ func HandleTradeSession(sessionId int64, autoFinishFlag bool) error {
 	//结算学生的支付金额
 	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(session.Creator)
 	if leftQaTimeLength == 0 {
-		var studentAmount int64
-		if autoFinishFlag {
-			student, _ := models.ReadUser(session.Creator)
+		student, _ := models.ReadUser(session.Creator)
+		studentAmount := length * order.PriceHourly / 3600
+		if studentAmount > student.Balance {
 			studentAmount = student.Balance
-		} else {
-			studentAmount = length * order.PriceHourly / 3600
 		}
 		err = HandleUserBalance(session.Creator, 0-studentAmount)
 		if err != nil {
@@ -75,12 +73,11 @@ func HandleTradeSession(sessionId int64, autoFinishFlag bool) error {
 				return err
 			}
 			balanceTime := lengthMinute - leftQaTimeLength
-			var studentAmount int64
-			if autoFinishFlag {
-				student, _ := models.ReadUser(session.Creator)
+
+			student, _ := models.ReadUser(session.Creator)
+			studentAmount := balanceTime * 60 * order.PriceHourly / 3600
+			if studentAmount > student.Balance {
 				studentAmount = student.Balance
-			} else {
-				studentAmount = balanceTime * 60 * order.PriceHourly / 3600
 			}
 			err = HandleUserBalance(session.Creator, 0-studentAmount)
 			if err != nil {
