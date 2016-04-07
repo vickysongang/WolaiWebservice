@@ -477,7 +477,16 @@ func sessionHandler(sessionId int64) {
 					lastSync := timestamp
 					SessionManager.SetLastSync(sessionId, lastSync)
 
-					syncTicker = time.NewTicker(time.Second * 60)
+					length, _ := SessionManager.GetSessionLength(sessionId)
+
+					leftTime := length - totalTimeLength*60
+
+					if leftTime >= 0 && leftTime < 60 {
+						syncTicker = time.NewTicker(time.Second * time.Duration(leftTime))
+					} else {
+						syncTicker = time.NewTicker(time.Second * 60)
+					}
+
 					waitingTimer.Stop()
 					seelog.Trace("POIWSSessionHandler: session continued: ", sessionIdStr)
 
