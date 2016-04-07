@@ -531,24 +531,27 @@ func dispatchOrderToTeachers(orderId int64, orderInfo string) {
 }
 
 func dispatchOrderToTeacher(order *models.Order, teacherId int64, orderInfo string) {
-	profile, err := models.ReadTeacherProfile(teacherId)
-	if err != nil {
-		return
-	}
+	//profile, err := models.ReadTeacherProfile(teacherId)
+	//if err != nil {
+	//	return
+	//}
 
-	if order.TierId != 0 && order.TierId != profile.TierId {
-		return
-	}
+	//if order.TierId != 0 && order.TierId != profile.TierId {
+	//	return
+	//}
 
 	if TeacherManager.IsTeacherDispatchLocked(teacherId) {
+		seelog.Debug("orderHandler|orderDispatch fail teacher dispatch locked, orderId: ", order.Id, " to teacher: ", teacherId)
 		return
 	}
 
 	if order.Creator == teacherId {
+		seelog.Debug("orderHandler|orderDispatch fail creator is the same with the teacher, orderId: ", order.Id, " to teacher: ", teacherId)
 		return
 	}
 
 	if UserManager.IsUserBusyInSession(teacherId) {
+		seelog.Debug("orderHandler|orderDispatch fail teacher is busy in session, orderId: ", order.Id, " to teacher: ", teacherId)
 		return
 	}
 
