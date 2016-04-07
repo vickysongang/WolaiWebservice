@@ -75,14 +75,14 @@ func GetQaPkgList() ([]QaPkgModuleInfo, error) {
 			showInfo := QaPkgShowInfo{}
 			showInfo.QaPkg = qaPkg
 			if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
-				showInfo.Name = fmt.Sprintf("%s-%d%s", module.Name, qaPkg.TimeLength, "分钟")
+				showInfo.Name = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
 				showInfo.Content = fmt.Sprintf("%d分钟", qaPkg.TimeLength)
-				showInfo.Price = fmt.Sprintf("%d元（原价%d元）", qaPkg.DiscountPrice/100, qaPkg.OriginalPrice/100)
+				showInfo.Price = fmt.Sprintf("%.2f元（原价%.2f元）", float64(qaPkg.DiscountPrice)/100, float64(qaPkg.OriginalPrice)/100)
 				showInfo.Comment = "购买该优惠包后可以任意使用快速提问功能"
 			} else if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
 				showInfo.Name = fmt.Sprintf("%s-%d%s", module.Name, qaPkg.Month, "个月")
 				showInfo.Content = fmt.Sprintf("%d分钟/月", qaPkg.TimeLength)
-				showInfo.Price = fmt.Sprintf("%d元（原价%d元）", qaPkg.DiscountPrice/100, qaPkg.OriginalPrice/100)
+				showInfo.Price = fmt.Sprintf("%.2f元（原价%.2f元）", float64(qaPkg.DiscountPrice)/100, float64(qaPkg.OriginalPrice)/100)
 				showInfo.Comment = "购买该优惠包后可以任意使用快速提问功能"
 			}
 			moduleInfo.QaPkgs = append(moduleInfo.QaPkgs, &showInfo)
@@ -137,8 +137,7 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 		userPermanentQaPkg.RecordId = permanentQaPkgRecord.Id
 		userPermanentQaPkg.QaPkgId = permanentQaPkgRecord.QaPkgId
 		qaPkg, _ := models.ReadQaPkg(permanentQaPkgRecord.QaPkgId)
-		qaModule, _ := models.ReadQaPkgModule(qaPkg.ModuleId)
-		userPermanentQaPkg.Title = qaModule.Name
+		userPermanentQaPkg.Title = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
 		userPermanentQaPkg.TotalTime = qaPkg.TimeLength
 		userPermanentQaPkg.LeftTime = permanentQaPkgRecord.LeftTime
 		userPermanentQaPkgs = append(userPermanentQaPkgs, &userPermanentQaPkg)
