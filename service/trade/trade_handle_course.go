@@ -54,7 +54,7 @@ func HandleCourseEarning(recordId int64, period int64, chapterId int64) error {
 
 	record, err := models.ReadCoursePurchaseRecord(recordId)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	comment := fmt.Sprintf("第%d课时", period)
