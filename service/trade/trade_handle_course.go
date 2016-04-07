@@ -54,7 +54,7 @@ func HandleCourseEarning(recordId int64, period int64, chapterId int64) error {
 
 	record, err := models.ReadCoursePurchaseRecord(recordId)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	comment := fmt.Sprintf("第%d课时", period)
@@ -64,7 +64,7 @@ func HandleCourseEarning(recordId int64, period int64, chapterId int64) error {
 		amount = record.SalaryHourly / 2
 	}
 
-	err = HandleUserBalance(record.UserId, amount)
+	err = HandleUserBalance(record.TeacherId, amount)
 	if err != nil {
 		return err
 	}

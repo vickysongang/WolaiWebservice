@@ -42,7 +42,7 @@ func CalculateOrderExpect(userId, teacherId, teacherTier, gradeId, subjectId int
 		price = tier.QAPriceHourly
 	}
 
-	price = ((price / 10) / 60) * 10
+	price = price / 60
 	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(userId)
 
 	info := priceInfo{
