@@ -9,8 +9,6 @@ import (
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/leancloud/lcmessage"
-
-	seelog "github.com/cihub/seelog"
 )
 
 func createTradeRecord(userId, amount int64, tradeType, result, comment string,
@@ -67,6 +65,5 @@ func HandleUserBalance(userId int64, amount int64) error {
 	_, err := o.QueryTable("users").Filter("id", userId).Update(orm.Params{
 		"balance": orm.ColValue(orm.ColAdd, amount),
 	})
-	seelog.Debug("HandleUserBalance | userId:", userId, " amount:", amount)
 	return err
 }
