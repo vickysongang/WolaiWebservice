@@ -14,6 +14,7 @@ const (
 
 type QaPkg struct {
 	Id            int64     `json:"id" orm:"pk"`
+	Title         string    `json:"title"`
 	TimeLength    int64     `json:"timeLength"`
 	OriginalPrice int64     `json:"originalPrice"`
 	DiscountPrice int64     `json:"discountPrice"`
