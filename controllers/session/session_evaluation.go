@@ -4,11 +4,10 @@ import (
 	"math/rand"
 	"time"
 
-	evaluationService "WolaiWebservice/service/evaluation"
-
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	evaluationService "WolaiWebservice/service/evaluation"
 )
 
 type evaluationInfo struct {
@@ -108,30 +107,41 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 
 func CreateEvaluation(userId, targetId, sessionId, chapterId int64, evaluationContent string) (*models.Evaluation, error) {
 	user, _ := models.ReadUser(userId)
-	if chapterId != 0 && user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-		apply, _ := evaluationService.GetEvaluationApply(userId, chapterId)
-		chapter, _ := models.ReadCourseCustomChapter(chapterId)
-		if apply.Id == 0 {
-			evaluationApply := models.EvaluationApply{
-				UserId:    userId,
-				SessionId: sessionId,
-				CourseId:  chapter.CourseId,
-				ChapterId: chapterId,
-				Status:    models.EVALUATION_APPLY_STATUS_CREATED,
-				Content:   evaluationContent,
-			}
-			_, err := models.InsertEvaluationApply(&evaluationApply)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			if apply.Status == models.EVALUATION_APPLY_STATUS_IDLE {
-				eveluationInfo := map[string]interface{}{
-					"SessionId": sessionId,
-					"Status":    models.EVALUATION_APPLY_STATUS_CREATED,
-					"Content":   evaluationContent,
+	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+		if chapterId == 0 {
+			session, err := models.ReadSession(sessionId)
+			if err == nil {
+				order, err := models.ReadOrder(session.OrderId)
+				if err == nil {
+					chapterId = order.ChapterId
 				}
-				models.UpdateEvaluationApply(apply.Id, eveluationInfo)
+			}
+		}
+		if chapterId != 0 {
+			apply, _ := evaluationService.GetEvaluationApply(userId, chapterId)
+			chapter, _ := models.ReadCourseCustomChapter(chapterId)
+			if apply.Id == 0 {
+				evaluationApply := models.EvaluationApply{
+					UserId:    userId,
+					SessionId: sessionId,
+					CourseId:  chapter.CourseId,
+					ChapterId: chapterId,
+					Status:    models.EVALUATION_APPLY_STATUS_CREATED,
+					Content:   evaluationContent,
+				}
+				_, err := models.InsertEvaluationApply(&evaluationApply)
+				if err != nil {
+					return nil, err
+				}
+			} else {
+				if apply.Status == models.EVALUATION_APPLY_STATUS_IDLE {
+					eveluationInfo := map[string]interface{}{
+						"SessionId": sessionId,
+						"Status":    models.EVALUATION_APPLY_STATUS_CREATED,
+						"Content":   evaluationContent,
+					}
+					models.UpdateEvaluationApply(apply.Id, eveluationInfo)
+				}
 			}
 		}
 		return nil, nil
