@@ -143,27 +143,35 @@ func CreateEvaluation(userId, targetId, sessionId, chapterId int64, evaluationCo
 					models.UpdateEvaluationApply(apply.Id, eveluationInfo)
 				}
 			}
+			return nil, nil
+		} else {
+			content, err := EvaluateSession(sessionId, userId, targetId, chapterId, evaluationContent)
+			return content, err
 		}
-		return nil, nil
 	} else {
-		session, _ := models.ReadSession(sessionId)
-		if targetId == 1 {
-			if userId == session.Creator {
-				targetId = session.Tutor
-			} else {
-				targetId = session.Creator
-			}
-		}
-		evaluation := models.Evaluation{
-			UserId:    userId,
-			TargetId:  targetId,
-			SessionId: sessionId,
-			ChapterId: chapterId,
-			Content:   evaluationContent}
-		content, err := models.InsertEvaluation(&evaluation)
+		content, err := EvaluateSession(sessionId, userId, targetId, chapterId, evaluationContent)
 		return content, err
 	}
 	return nil, nil
+}
+
+func EvaluateSession(sessionId, userId, targetId, chapterId int64, evaluationContent string) (*models.Evaluation, error) {
+	session, _ := models.ReadSession(sessionId)
+	if targetId == 1 {
+		if userId == session.Creator {
+			targetId = session.Tutor
+		} else {
+			targetId = session.Creator
+		}
+	}
+	evaluation := models.Evaluation{
+		UserId:    userId,
+		TargetId:  targetId,
+		SessionId: sessionId,
+		ChapterId: chapterId,
+		Content:   evaluationContent}
+	content, err := models.InsertEvaluation(&evaluation)
+	return content, err
 }
 
 func QueryEvaluationInfo(userId, sessionId, targetId, chapterId int64) ([]*evaluationInfo, error) {
