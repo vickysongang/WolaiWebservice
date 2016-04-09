@@ -24,6 +24,18 @@ func (e *Evaluation) TableName() string {
 	return "evaluation"
 }
 
+func ReadEvaluation(evaluationId int64) (*Evaluation, error) {
+	o := orm.NewOrm()
+
+	evaluation := Evaluation{Id: evaluationId}
+	err := o.Read(&evaluation)
+	if err != nil {
+		return nil, err
+	}
+
+	return &evaluation, nil
+}
+
 func InsertEvaluation(evalution *Evaluation) (*Evaluation, error) {
 	o := orm.NewOrm()
 	id, err := o.Insert(evalution)
@@ -32,6 +44,18 @@ func InsertEvaluation(evalution *Evaluation) (*Evaluation, error) {
 	}
 	evalution.Id = id
 	return evalution, nil
+}
+
+func UpdateEvaluation(id int64, evaluationInfo map[string]interface{}) error {
+	o := orm.NewOrm()
+
+	var params orm.Params = make(orm.Params)
+	for k, v := range evaluationInfo {
+		params[k] = v
+	}
+
+	_, err := o.QueryTable("evaluation").Filter("id", id).Update(params)
+	return err
 }
 
 func QueryEvaluation(userId, sessionId int64) (*Evaluation, error) {
