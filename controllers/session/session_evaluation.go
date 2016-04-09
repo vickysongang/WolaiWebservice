@@ -165,14 +165,33 @@ func EvaluateSession(sessionId, userId, targetId, chapterId int64, evaluationCon
 			targetId = session.Creator
 		}
 	}
-	evaluation := models.Evaluation{
-		UserId:    userId,
-		TargetId:  targetId,
-		SessionId: sessionId,
-		ChapterId: chapterId,
-		Content:   evaluationContent}
-	content, err := models.InsertEvaluation(&evaluation)
-	return content, err
+	oldEvaluation, _ := models.QueryEvaluation(userId, sessionId)
+	if oldEvaluation.Id == 0 {
+		evaluation := models.Evaluation{
+			UserId:    userId,
+			TargetId:  targetId,
+			SessionId: sessionId,
+			ChapterId: chapterId,
+			Content:   evaluationContent}
+		content, err := models.InsertEvaluation(&evaluation)
+		return content, err
+	} else {
+		evaluationInfo := map[string]interface{}{
+			"UserId":    userId,
+			"TargetId":  targetId,
+			"SessionId": sessionId,
+			"ChapterId": chapterId,
+			"Content":   evaluationContent,
+		}
+		err := models.UpdateEvaluation(oldEvaluation.Id, evaluationInfo)
+		if err != nil {
+			return nil, err
+		} else {
+			content, err := models.ReadEvaluation(oldEvaluation.Id)
+			return content, err
+		}
+	}
+	return nil, nil
 }
 
 //这是版本兼容导致的一坨屎，请绕行
