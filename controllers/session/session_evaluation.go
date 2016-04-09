@@ -2,6 +2,7 @@ package session
 
 import (
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/astaxie/beego/orm"
@@ -202,40 +203,60 @@ func QueryEvaluationInfo(userId, sessionId, targetId, chapterId int64) ([]*evalu
 
 	//旧版评价表里targetId为0，新版不为0，故根据该字段来判断获取的是旧版评论还是新版评论
 	if isStudent {
+		//导师和学生都有评论
 		if teacherEvaluation.Id != 0 && studentEvaluation.Id != 0 {
+			//导师是新版学生是旧版或导师是旧版学生是新版，考虑到兼容性的问题，学生看到的评论内容忽略掉导师的评论
 			if (teacherEvaluation.TargetId != 0 && studentEvaluation.TargetId == 0) || (teacherEvaluation.TargetId == 0 && studentEvaluation.TargetId != 0) {
+				if targetId != 0 { //如果学生版本是新版，查看旧版内容考虑兼容性忽略旧版评论
+					if strings.HasPrefix(studentEvaluation.Content, "[") && strings.HasSuffix(studentEvaluation.Content, "]") {
+						return evalutionInfos, nil
+					}
+				}
 				selfEvaluation.Type = "student"
 				selfEvaluation.Evalution = studentEvaluation
 				evalutionInfos = append(evalutionInfos, &selfEvaluation)
 			} else {
-				selfEvaluation.Type = "student"
-				selfEvaluation.Evalution = studentEvaluation
-				evalutionInfos = append(evalutionInfos, &selfEvaluation)
-
 				otherEvaluation.Type = "teacher"
 				otherEvaluation.Evalution = teacherEvaluation
 				evalutionInfos = append(evalutionInfos, &otherEvaluation)
+
+				if targetId != 0 { //如果学生版本是新版，查看旧版内容考虑兼容性忽略旧版评论
+					if strings.HasPrefix(studentEvaluation.Content, "[") && strings.HasSuffix(studentEvaluation.Content, "]") {
+						return evalutionInfos, nil
+					}
+				}
+				selfEvaluation.Type = "student"
+				selfEvaluation.Evalution = studentEvaluation
+				evalutionInfos = append(evalutionInfos, &selfEvaluation)
 			}
-		} else if teacherEvaluation.Id == 0 && studentEvaluation.Id != 0 {
+		} else if teacherEvaluation.Id == 0 && studentEvaluation.Id != 0 { //导师未评论，学生有评论
+			if targetId != 0 { //如果学生版本是新版，查看旧版内容考虑兼容性忽略旧版评论
+				if strings.HasPrefix(studentEvaluation.Content, "[") && strings.HasSuffix(studentEvaluation.Content, "]") {
+					return evalutionInfos, nil
+				}
+			}
 			selfEvaluation.Type = "student"
 			selfEvaluation.Evalution = studentEvaluation
 			evalutionInfos = append(evalutionInfos, &selfEvaluation)
-		} else if teacherEvaluation.Id != 0 && studentEvaluation.Id == 0 {
+		} else if teacherEvaluation.Id != 0 && studentEvaluation.Id == 0 { //导师有评论，学生未评论
 			if (teacherEvaluation.TargetId != 0 && targetId != 0) || (teacherEvaluation.TargetId == 0 && targetId == 0) {
 				otherEvaluation.Type = "teacher"
 				otherEvaluation.Evalution = teacherEvaluation
 				evalutionInfos = append(evalutionInfos, &otherEvaluation)
 			}
 		}
-
 	} else {
-		if teacherEvaluation.Id != 0 {
+		if teacherEvaluation.Id != 0 { //导师只能看到自己的评论，不能看到学生的评论
+			if targetId != 0 { //如果导师当前版本是新版，查看旧版评价内容时由于兼容性的问题忽略旧评论
+				if strings.HasPrefix(teacherEvaluation.Content, "[") && strings.HasSuffix(teacherEvaluation.Content, "]") {
+					return evalutionInfos, nil
+				}
+			}
 			selfEvaluation.Type = "teacher"
 			selfEvaluation.Evalution = teacherEvaluation
 			evalutionInfos = append(evalutionInfos, &selfEvaluation)
 		}
 	}
-
 	return evalutionInfos, nil
 }
 
