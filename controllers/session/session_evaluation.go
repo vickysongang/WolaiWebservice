@@ -206,11 +206,7 @@ func QueryEvaluationInfo(userId, sessionId, targetId, chapterId int64) ([]*evalu
 		//导师和学生都有评论
 		if teacherEvaluation.Id != 0 && studentEvaluation.Id != 0 {
 			//导师是新版学生是旧版或导师是旧版学生是新版，考虑到兼容性的问题，学生看到的评论内容忽略掉导师的评论
-			if teacherEvaluation.TargetId != 0 && studentEvaluation.TargetId == 0 {
-				selfEvaluation.Type = "student"
-				selfEvaluation.Evalution = studentEvaluation
-				evalutionInfos = append(evalutionInfos, &selfEvaluation)
-			} else if teacherEvaluation.TargetId == 0 && studentEvaluation.TargetId != 0 {
+			if (teacherEvaluation.TargetId != 0 && studentEvaluation.TargetId == 0) || (teacherEvaluation.TargetId == 0 && studentEvaluation.TargetId != 0) {
 				if targetId != 0 { //如果学生版本是新版，查看旧版内容考虑兼容性忽略旧版评论
 					if strings.HasPrefix(studentEvaluation.Content, "[") && strings.HasSuffix(studentEvaluation.Content, "]") {
 						return evalutionInfos, nil
@@ -219,24 +215,26 @@ func QueryEvaluationInfo(userId, sessionId, targetId, chapterId int64) ([]*evalu
 				selfEvaluation.Type = "student"
 				selfEvaluation.Evalution = studentEvaluation
 				evalutionInfos = append(evalutionInfos, &selfEvaluation)
-			} else if teacherEvaluation.TargetId == 0 && studentEvaluation.TargetId == 0 {
-				selfEvaluation.Type = "student"
-				selfEvaluation.Evalution = studentEvaluation
-				evalutionInfos = append(evalutionInfos, &selfEvaluation)
-
-				otherEvaluation.Type = "teacher"
-				otherEvaluation.Evalution = teacherEvaluation
-				evalutionInfos = append(evalutionInfos, &otherEvaluation)
-			} else if teacherEvaluation.TargetId != 0 && studentEvaluation.TargetId != 0 {
-				if !(strings.HasPrefix(studentEvaluation.Content, "[") && strings.HasSuffix(studentEvaluation.Content, "]")) {
+			} else {
+				if targetId == 0 {
 					selfEvaluation.Type = "student"
 					selfEvaluation.Evalution = studentEvaluation
 					evalutionInfos = append(evalutionInfos, &selfEvaluation)
-				}
-				if !(strings.HasPrefix(teacherEvaluation.Content, "[") && strings.HasSuffix(teacherEvaluation.Content, "]")) {
+
 					otherEvaluation.Type = "teacher"
 					otherEvaluation.Evalution = teacherEvaluation
 					evalutionInfos = append(evalutionInfos, &otherEvaluation)
+				} else {
+					if !(strings.HasPrefix(studentEvaluation.Content, "[") && strings.HasSuffix(studentEvaluation.Content, "]")) {
+						selfEvaluation.Type = "student"
+						selfEvaluation.Evalution = studentEvaluation
+						evalutionInfos = append(evalutionInfos, &selfEvaluation)
+					}
+					if !(strings.HasPrefix(teacherEvaluation.Content, "[") && strings.HasSuffix(teacherEvaluation.Content, "]")) {
+						otherEvaluation.Type = "teacher"
+						otherEvaluation.Evalution = teacherEvaluation
+						evalutionInfos = append(evalutionInfos, &otherEvaluation)
+					}
 				}
 			}
 		} else if teacherEvaluation.Id == 0 && studentEvaluation.Id != 0 { //导师未评论，学生有评论
