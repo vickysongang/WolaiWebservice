@@ -32,14 +32,22 @@ func sessionHandler(sessionId int64) {
 	sessionExpireLimit := settings.SessionExpireLimit()
 	autoFinishLimit := settings.SessionAutoFinishLimit()
 
+	var isCourse bool
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		isCourse = true
+	}
+
 	student, _ := models.ReadUser(session.Creator)
 	teacherProfile, _ := models.ReadTeacherProfile(session.Tutor)
 
 	teacherTier, _ := models.ReadTeacherTierHourly(teacherProfile.TierId)
 
-	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(session.Creator)                //获取答疑的剩余时间
-	totalTimeLength := leftQaTimeLength + (student.Balance*60)/teacherTier.QAPriceHourly //获取可用的总上课时长
-	seelog.Debug("leftQaTimeLength:", leftQaTimeLength, " totalTimeLength:", totalTimeLength, "  autoFinishLimit:", autoFinishLimit, " sessionId:", sessionId)
+	var leftQaTimeLength, totalTimeLength int64
+	if !isCourse {
+		leftQaTimeLength = qapkgService.GetLeftQaTimeLength(session.Creator)                //获取答疑的剩余时间
+		totalTimeLength = leftQaTimeLength + (student.Balance*60)/teacherTier.QAPriceHourly //获取可用的总上课时长
+		seelog.Debug("leftQaTimeLength:", leftQaTimeLength, " totalTimeLength:", totalTimeLength, "  autoFinishLimit:", autoFinishLimit, " sessionId:", sessionId)
+	}
 
 	syncTicker := time.NewTicker(time.Second * 60) //时间同步计时器，每60s向客户端同步服务器端的时间来校准客户端的计时
 	syncTicker.Stop()                              //初始停止时间同步计时器，待正式上课的时候启动该计时器
@@ -165,24 +173,26 @@ func sessionHandler(sessionId int64) {
 			SendSyncMsg(session.Tutor, sessionId, length)
 			SendSyncMsg(session.Creator, sessionId, length)
 
-			//答疑时间用完了，给学生发送提示消息
-			if leftQaTimeLength > 0 && length >= leftQaTimeLength*60 && !qaPkgTimeEndFlag {
-				qaPkgTimeEndFlag = true
-				SendQaPkgTimeEndMsgToStudent(session.Creator, sessionId)
-			}
+			if !isCourse {
+				//答疑时间用完了，给学生发送提示消息
+				if leftQaTimeLength > 0 && length >= leftQaTimeLength*60 && !qaPkgTimeEndFlag {
+					qaPkgTimeEndFlag = true
+					SendQaPkgTimeEndMsgToStudent(session.Creator, sessionId)
+				}
 
-			//如果剩余时间小于等于autoFinishLimit，发送提醒给学生和老师
-			if length >= totalTimeLength*60 && !autoFinishTipFlag {
-				autoFinishTipFlag = true
-				SendAutoFinishTipMsgToStudent(session.Creator, sessionId, autoFinishLimit)
-				SendAutoFinishTipMsgToTeacher(session.Tutor, sessionId, autoFinishLimit)
-			}
+				//如果剩余时间小于等于autoFinishLimit，发送提醒给学生和老师
+				if length >= totalTimeLength*60 && !autoFinishTipFlag {
+					autoFinishTipFlag = true
+					SendAutoFinishTipMsgToStudent(session.Creator, sessionId, autoFinishLimit)
+					SendAutoFinishTipMsgToTeacher(session.Tutor, sessionId, autoFinishLimit)
+				}
 
-			//如果时间全部用完了，则自动下课
-			if length >= (totalTimeLength+autoFinishLimit)*60 && !autoFinishFlag {
-				autoFinishFlag = true
-				autoFinishMsg := NewWSMessage("", session.Tutor, WS_SESSION_FINISH)
-				sessionChan <- autoFinishMsg
+				//如果时间全部用完了，则自动下课
+				if length >= (totalTimeLength+autoFinishLimit)*60 && !autoFinishFlag {
+					autoFinishFlag = true
+					autoFinishMsg := NewWSMessage("", session.Tutor, WS_SESSION_FINISH)
+					sessionChan <- autoFinishMsg
+				}
 			}
 
 		case msg, ok := <-sessionChan:
@@ -463,7 +473,18 @@ func sessionHandler(sessionId int64) {
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
 
 						//启动时间同步计时器
-						syncTicker = time.NewTicker(time.Second * 60)
+						if !isCourse {
+							length, _ := SessionManager.GetSessionLength(sessionId)
+							leftTime := length - totalTimeLength*60
+							if leftTime >= 0 && leftTime < 60 {
+								syncTicker = time.NewTicker(time.Second * time.Duration(leftTime))
+							} else {
+								syncTicker = time.NewTicker(time.Second * 60)
+							}
+						} else {
+							syncTicker = time.NewTicker(time.Second * 60)
+						}
+
 						//停止超时计时器
 						waitingTimer.Stop()
 
@@ -477,12 +498,14 @@ func sessionHandler(sessionId int64) {
 					lastSync := timestamp
 					SessionManager.SetLastSync(sessionId, lastSync)
 
-					length, _ := SessionManager.GetSessionLength(sessionId)
-
-					leftTime := length - totalTimeLength*60
-
-					if leftTime >= 0 && leftTime < 60 {
-						syncTicker = time.NewTicker(time.Second * time.Duration(leftTime))
+					if !isCourse {
+						length, _ := SessionManager.GetSessionLength(sessionId)
+						leftTime := length - totalTimeLength*60
+						if leftTime >= 0 && leftTime < 60 {
+							syncTicker = time.NewTicker(time.Second * time.Duration(leftTime))
+						} else {
+							syncTicker = time.NewTicker(time.Second * 60)
+						}
 					} else {
 						syncTicker = time.NewTicker(time.Second * 60)
 					}
