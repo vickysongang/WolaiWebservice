@@ -35,8 +35,8 @@ func (c *Course) TableName() string {
 }
 
 const (
-	COURSE_TYPE_DELUXE = "deluxe" //精品课程
-	COURSE_TYPE_CUSTOM = "custom" //自定义课程
+	COURSE_TYPE_DELUXE   = "deluxe"   //精品课程
+	COURSE_TYPE_AUDITION = "audition" //自定义课程
 )
 
 func ReadCourse(courseId int64) (*Course, error) {
