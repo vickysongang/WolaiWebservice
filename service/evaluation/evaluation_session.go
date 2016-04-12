@@ -27,11 +27,11 @@ func GetLatestNotEvaluatedCourseSession(teacherId int64) (sessionId int64, cours
 	qb.Select("orders.course_id,orders.chapter_id,sessions.id as session_id,orders.creator as student_id").
 		From("orders").
 		InnerJoin("sessions").On("orders.id = sessions.order_id").
-		Where("sessions.tutor = ? and sessions.status = 'complete' and orders.chapter_id is not null and orders.chapter_id <> 0").
+		Where("sessions.tutor = ? and sessions.status = 'complete' and orders.chapter_id is not null and orders.chapter_id <> 0 and sessions.create_time > ?").
 		OrderBy("sessions.create_time").Desc()
 	sql := qb.String()
 	var infos []courseSessionInfo
-	_, err = o.Raw(sql, teacherId).QueryRows(&infos)
+	_, err = o.Raw(sql, teacherId, "2016-04-07").QueryRows(&infos)
 	if err == nil {
 		for _, info := range infos {
 			if !CheckSessionEvaluated(info.SessionId) {
