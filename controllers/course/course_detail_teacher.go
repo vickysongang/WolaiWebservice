@@ -40,9 +40,8 @@ func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeac
 	detail.CharacteristicList = characteristicList
 
 	detail.StudentCount = courseService.GetCourseStudentCount(courseId)
-	chapterCount := courseService.GetCourseChapterCount(courseId)
 
-	detail.ChapterCount = chapterCount - 1
+	detail.ChapterCount = purchaseRecord.ChapterCount
 
 	detail.ChapterCompletedPeriod, err = courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
 	if err != nil {

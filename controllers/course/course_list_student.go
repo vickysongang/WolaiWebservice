@@ -35,14 +35,14 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 		}
 
 		studentCount := courseService.GetCourseStudentCount(record.CourseId)
-		chapterCount := courseService.GetCourseChapterCount(record.CourseId)
+		chapterCount := record.ChapterCount
 
 		chapterCompletePeriod, _ := courseService.QueryLatestCourseChapterPeriod(record.CourseId, userId)
 
 		item := courseStudentListItem{
 			Course:                 *course,
 			StudentCount:           studentCount,
-			ChapterCount:           chapterCount - 1,
+			ChapterCount:           chapterCount,
 			AuditionStatus:         record.AuditionStatus,
 			PurchaseStatus:         record.PurchaseStatus,
 			ChapterCompletedPeriod: chapterCompletePeriod,

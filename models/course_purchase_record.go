@@ -19,6 +19,7 @@ type CoursePurchaseRecord struct {
 	AuditionStatus string    `json:"auditionStatus"`
 	PurchaseStatus string    `json:"purchaseStatus"`
 	DefaultFlag    string    `json:"defaultFlag"`
+	ChapterCount   int64     `json:"chapterCount"`
 }
 
 func init() {

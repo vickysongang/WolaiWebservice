@@ -63,12 +63,10 @@ func GetDeluxeCourseDetail(userId int64, course *models.Course) (int64, *courseD
 	o := orm.NewOrm()
 	courseId := course.Id
 	studentCount := courseService.GetCourseStudentCount(courseId)
-	chapterCount := courseService.GetCourseChapterCount(courseId)
 
 	detail := courseDetailStudent{
 		Course:       *course,
 		StudentCount: studentCount,
-		ChapterCount: chapterCount - 1,
 	}
 
 	characteristicList, _ := courseService.QueryCourseContentIntros(courseId)
@@ -87,11 +85,13 @@ func GetDeluxeCourseDetail(userId int64, course *models.Course) (int64, *courseD
 		detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.TeacherList, _ = queryCourseTeacherList(courseId)
 		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0)
+		chapterCount := courseService.GetCourseChapterCount(courseId)
+		detail.ChapterCount = chapterCount - 1
 	} else {
 		detail.AuditionStatus = purchaseRecord.AuditionStatus
 		detail.PurchaseStatus = purchaseRecord.PurchaseStatus
 		detail.TeacherList, _ = queryCourseCurrentTeacher(purchaseRecord.TeacherId)
-
+		detail.ChapterCount = purchaseRecord.ChapterCount
 		if purchaseRecord.TeacherId == 0 {
 			detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0)
 		} else {

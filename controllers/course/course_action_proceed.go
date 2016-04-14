@@ -48,8 +48,8 @@ const (
 func HandleCourseActionProceed(userId int64, courseId int64, sourceCourseId int64) (int64, *actionProceedResponse) {
 	var course *models.Course
 	var err error
-	if sourceCourseId == 0 { //代表试听课不是从课程进入的
-		course := courseService.QueryAuditionCourse()
+	if courseId == 0 { //代表试听课不是从课程进入的
+		course = courseService.QueryAuditionCourse()
 		if course == nil {
 			return 2, nil
 		}

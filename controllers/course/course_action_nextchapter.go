@@ -80,7 +80,8 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 
 	go lcmessage.SendCourseChapterCompleteMsg(purchase.Id, chapter.Id)
 
-	chapterCount := courseService.GetCourseChapterCount(courseId)
+	//chapterCount := courseService.GetCourseChapterCount(courseId)
+	chapterCount := purchase.ChapterCount
 
 	recordInfo := map[string]interface{}{
 		"audition_status": purchase.AuditionStatus,
