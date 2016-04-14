@@ -31,6 +31,7 @@ type courseDetailStudent struct {
 	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
 	ChapterList            []*courseChapterStatus      `json:"chapterList"`
 	TeacherList            []*teacherItem              `json:"teacherList"`
+	AuditionCourseId       int64                       `json:"auditionCourseId,omitempty"`
 }
 
 func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailStudent) {
@@ -102,7 +103,10 @@ func GetDeluxeCourseDetail(userId int64, course *models.Course) (int64, *courseD
 			}
 		}
 	}
-
+	auditionCourse := courseService.QueryAuditionCourse()
+	if auditionCourse != nil {
+		detail.AuditionCourseId = auditionCourse.Id
+	}
 	return 0, &detail
 }
 

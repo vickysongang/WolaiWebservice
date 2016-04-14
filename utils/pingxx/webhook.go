@@ -92,6 +92,9 @@ func (pwm *PingxxWebhookManager) ChargeSuccessEvent(chargeId string) {
 
 	case models.TRADE_QA_PKG_PURCHASE:
 		qaPkgController.HandleQaPkgActionPayByThird(record.UserId, record.RefId, int64(record.Amount), record.Id)
+
+	case models.TRADE_COURSE_RENEW:
+
 	}
 }
 

@@ -92,6 +92,8 @@ func handleTradePayByBalance(userId, refId int64, tradeType, payType string) (st
 	case models.TRADE_QA_PKG_PURCHASE:
 		qaPkgId := refId
 		status, err = qapkgController.HandleQaPkgActionPayByBalance(userId, qaPkgId, payType)
+	case models.TRADE_COURSE_RENEW:
+
 	}
 	return
 }
