@@ -13,6 +13,7 @@ type CourseAuditionRecord struct {
 	SourceCourseId int64     `json:"sourceCourseId"`
 	UserId         int64     `json:"userId"`
 	TeacherId      int64     `json:"teacherId"`
+	PriceHourly    int64     `json:"priceHourly"`
 	SalaryHourly   int64     `json:"salaryHourly"`
 	CreateTime     time.Time `json:"-" orm:"type(datetime);auto_now_add"`
 	LastUpdateTime time.Time `json:"-" orm:"type(datetime);auto_now"`

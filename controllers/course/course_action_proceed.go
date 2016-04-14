@@ -276,7 +276,7 @@ func HandleDeluxeCourseActionProceed(userId int64, course *models.Course) (int64
 		// 学生的课程已经完成，无法继续操作
 		response = actionProceedResponse{
 			Action:  ACTION_PROCEED_NULL,
-			Message: "您的课程已经完成，欢迎继续选购其他课程",
+			Message: "课时已经全部上完啦！可以根据导师的课程计划续课喔",
 			Extra:   nullObject{},
 		}
 
@@ -324,6 +324,14 @@ func HandleAuditionCourseActionProceed(userId int64, course *models.Course, sour
 	}
 	var response actionProceedResponse
 	if currentRecord.Status == models.AUDITION_RECORD_STATUS_PAID {
+		if currentRecord.TeacherId == 0 {
+			response = actionProceedResponse{
+				Action:  ACTION_PROCEED_NULL,
+				Message: "别着急...助教正在定制你的课程并为你匹配合适的导师哦",
+				Extra:   nullObject{},
+			}
+			return 0, &response
+		}
 		// 学生已经支付了试听押金，开始上课！
 		session := sessionInfo{
 			TeacherId: currentRecord.TeacherId,

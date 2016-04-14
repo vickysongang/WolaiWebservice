@@ -47,15 +47,27 @@ func CreateOrder(creatorId, gradeId, subjectId, teacherId, tierId, recordId, cha
 	}
 
 	var courseId int64
-	if recordId != 0 {
-		record, err := models.ReadCoursePurchaseRecord(recordId)
-		if err != nil {
-			return nil, err
-		}
+	if orderType == models.ORDER_TYPE_COURSE_INSTANT {
+		if recordId != 0 {
+			record, err := models.ReadCoursePurchaseRecord(recordId)
+			if err != nil {
+				return nil, err
+			}
 
-		courseId = record.CourseId
-		priceHourly = record.PriceHourly
-		salaryHourly = record.SalaryHourly
+			courseId = record.CourseId
+			priceHourly = record.PriceHourly
+			salaryHourly = record.SalaryHourly
+		}
+	} else if orderType == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+		if recordId != 0 {
+			record, err := models.ReadCourseAuditionRecord(recordId)
+			if err != nil {
+				return nil, err
+			}
+			courseId = record.CourseId
+			priceHourly = record.PriceHourly
+			salaryHourly = record.SalaryHourly
+		}
 	}
 
 	if chapterId != 0 {

@@ -50,6 +50,5 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 
 		items = append(items, &item)
 	}
-
 	return 0, items
 }
