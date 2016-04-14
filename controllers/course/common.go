@@ -5,7 +5,6 @@ import (
 
 	"github.com/astaxie/beego/orm"
 
-	"WolaiWebservice/config"
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 	evaluationService "WolaiWebservice/service/evaluation"
@@ -106,51 +105,4 @@ func queryCourseCustomChapterStatus(courseId int64, current int64, userId int64,
 		statusList[i] = &status
 	}
 	return statusList, nil
-}
-
-//查询课程在学的学生数,此处的判断逻辑为只要学生购买了该课程，就认为学生在学该课程
-func queryCourseStudentCount(courseId int64) int64 {
-	o := orm.NewOrm()
-	count, _ := o.QueryTable("course_purchase_record").Filter("course_id", courseId).Count()
-	return count
-}
-
-func queryCourseChapterCount(courseId int64) int64 {
-	o := orm.NewOrm()
-	count, _ := o.QueryTable("course_chapter").Filter("course_id", courseId).Count()
-	return count
-}
-
-//查询课程的章节
-func queryCourseChapters(courseId int64) ([]models.CourseChapter, error) {
-	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
-	qb.Select("id,course_id,title,abstract,period,create_time").
-		From("course_chapter").
-		Where("course_id = ?").
-		OrderBy("period").Asc()
-	sql := qb.String()
-	courseChapters := make([]models.CourseChapter, 0)
-	_, err := o.Raw(sql, courseId).QueryRows(&courseChapters)
-	return courseChapters, err
-}
-
-//查询最近完成的课时号
-func queryLatestCourseChapterPeriod(courseId, userId int64) (int64, error) {
-	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
-	qb.Select("period").From("course_chapter_to_user").Where("course_id = ? and user_id = ?").OrderBy("period").Desc().Limit(1)
-	sql := qb.String()
-
-	var period int64
-	err := o.Raw(sql, courseId, userId).QueryRow(&period)
-
-	return period, err
-}
-
-func queryCourseContentIntros(courseId int64) ([]models.CourseContentIntro, error) {
-	o := orm.NewOrm()
-	intros := make([]models.CourseContentIntro, 0)
-	_, err := o.QueryTable(new(models.CourseContentIntro).TableName()).Filter("course_id", courseId).OrderBy("rank").All(&intros)
-	return intros, err
 }

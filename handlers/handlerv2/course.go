@@ -185,10 +185,13 @@ func CourseDetailStudent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	vars := r.Form
-
-	courseIdStr := vars["courseId"][0]
-	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
-
+	var courseId int64
+	if len(vars["courseId"]) > 0 {
+		courseIdStr := vars["courseId"][0]
+		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
+	} else {
+		courseId = 0 //如果没有传courseId,代表是试听课
+	}
 	status, content := courseController.GetCourseDetailStudent(userId, courseId)
 	if content == nil {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
@@ -246,7 +249,13 @@ func CourseActionProceed(w http.ResponseWriter, r *http.Request) {
 	courseIdStr := vars["courseId"][0]
 	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
 
-	status, content := courseController.HandleCourseActionProceed(userId, courseId)
+	var sourceCourseId int64
+	if len(vars["sourceCourseId"]) > 0 {
+		sourceCourseIdStr := vars["sourceCourseId"][0]
+		sourceCourseId, _ = strconv.ParseInt(sourceCourseIdStr, 10, 64)
+	}
+
+	status, content := courseController.HandleCourseActionProceed(userId, courseId, sourceCourseId)
 	if content == nil {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
 	} else {

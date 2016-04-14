@@ -59,7 +59,6 @@ func CreateOrder(creatorId, gradeId, subjectId, teacherId, tierId, recordId, cha
 	}
 
 	if chapterId != 0 {
-		//		chapter, err := models.ReadCourseChapter(chapterId)
 		chapter, err := models.ReadCourseCustomChapter(chapterId)
 		if err != nil {
 			return nil, err

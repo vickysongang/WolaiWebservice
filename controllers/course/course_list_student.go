@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 )
 
 type courseStudentListItem struct {
@@ -33,10 +34,10 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 			continue
 		}
 
-		studentCount := queryCourseStudentCount(record.CourseId)
-		chapterCount := queryCourseChapterCount(record.CourseId)
+		studentCount := courseService.GetCourseStudentCount(record.CourseId)
+		chapterCount := courseService.GetCourseChapterCount(record.CourseId)
 
-		chapterCompletePeriod, _ := queryLatestCourseChapterPeriod(record.CourseId, userId)
+		chapterCompletePeriod, _ := courseService.QueryLatestCourseChapterPeriod(record.CourseId, userId)
 
 		item := courseStudentListItem{
 			Course:                 *course,

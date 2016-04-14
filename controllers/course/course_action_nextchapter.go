@@ -6,6 +6,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
@@ -44,7 +45,7 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 		return 2, errors.New("课程信息异常")
 	}
 
-	latestPeriod, err := queryLatestCourseChapterPeriod(courseId, studentId)
+	latestPeriod, err := courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
 	if err == nil {
 		if chapter.Period != latestPeriod+1 {
 			return 2, errors.New("课程信息异常")
@@ -79,7 +80,7 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 
 	go lcmessage.SendCourseChapterCompleteMsg(purchase.Id, chapter.Id)
 
-	chapterCount := queryCourseChapterCount(courseId)
+	chapterCount := courseService.GetCourseChapterCount(courseId)
 
 	recordInfo := map[string]interface{}{
 		"audition_status": purchase.AuditionStatus,

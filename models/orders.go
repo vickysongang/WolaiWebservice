@@ -40,6 +40,8 @@ const (
 	//ORDER_TYPE_PERSONAL_APPOINTEMENT = "personal_appointment"
 	//ORDER_TYPE_REALTIME_SESSION = "realtime_session"
 	ORDER_TYPE_COURSE_INSTANT = "course_instant"
+
+	ORDER_TYPE_AUDITION_COURSE_INSTANT = "audition_course_instant"
 	//ORDER_TYPE_COURSE_APPOINTMENT = "course_appointment"
 )
 

@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/websocket"
 )
 
@@ -44,15 +45,35 @@ const (
 	PAYMENT_PRICE_AUDITION = 100
 )
 
-func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProceedResponse) {
+func HandleCourseActionProceed(userId int64, courseId int64, sourceCourseId int64) (int64, *actionProceedResponse) {
+	var course *models.Course
 	var err error
-
-	o := orm.NewOrm()
-
-	course, err := models.ReadCourse(courseId)
-	if err != nil {
-		return 2, nil
+	if sourceCourseId == 0 { //代表试听课不是从课程进入的
+		course := courseService.QueryAuditionCourse()
+		if course == nil {
+			return 2, nil
+		}
+	} else {
+		course, err = models.ReadCourse(courseId)
+		if err != nil {
+			return 2, nil
+		}
 	}
+	if course.Type == models.COURSE_TYPE_DELUXE {
+		status, response := HandleDeluxeCourseActionProceed(userId, course)
+		return status, response
+	} else if course.Type == models.COURSE_TYPE_AUDITION {
+		status, response := HandleAuditionCourseActionProceed(userId, course, sourceCourseId)
+		return status, response
+	}
+	return 0, nil
+}
+
+//处理旧版本的试听
+func HandleDeluxeCourseActionProceed(userId int64, course *models.Course) (int64, *actionProceedResponse) {
+	var err error
+	courseId := course.Id
+	o := orm.NewOrm()
 
 	// 先查询该用户是否有购买（或试图购买）过这个课程
 	var currentRecord models.CoursePurchaseRecord
@@ -166,7 +187,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 				Message: "",
 				Extra:   session,
 			}
-			createCourseOrder(record.Id)
+			createDeluxeCourseOrder(record.Id)
 		}
 
 	case record.AuditionStatus == models.PURCHASE_RECORD_STATUS_COMPLETE &&
@@ -247,8 +268,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 				Message: "",
 				Extra:   session,
 			}
-
-			createCourseOrder(record.Id)
+			createDeluxeCourseOrder(record.Id)
 		}
 
 	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:
@@ -268,5 +288,61 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 		}
 	}
 
+	return 0, &response
+}
+
+//处理新版本的试听
+func HandleAuditionCourseActionProceed(userId int64, course *models.Course, sourceCourseId int64) (int64, *actionProceedResponse) {
+	var err error
+	courseId := course.Id
+	o := orm.NewOrm()
+
+	// 先查询该用户是否有未完成的试听
+	var currentRecord models.CourseAuditionRecord
+	err = o.QueryTable(new(models.CourseAuditionRecord).TableName()).
+		Filter("course_id", courseId).Filter("user_id", userId).
+		Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
+		One(&currentRecord)
+
+	if err == orm.ErrNoRows {
+		// 如果用户没有购买过，创建试听课购买记录
+		newRecord := models.CourseAuditionRecord{
+			CourseId:       courseId,
+			UserId:         userId,
+			Status:         models.AUDITION_RECORD_STATUS_APPLY,
+			SourceCourseId: sourceCourseId,
+		}
+
+		_, err = models.CreateCourseAuditionRecord(&newRecord)
+		if err != nil {
+			return 2, nil
+		}
+		return 0, nil
+	} else if err != nil {
+		// 如果到了这里说明数据库报错了...
+		return 2, nil
+	}
+	var response actionProceedResponse
+	if currentRecord.Status == models.AUDITION_RECORD_STATUS_PAID {
+		// 学生已经支付了试听押金，开始上课！
+		session := sessionInfo{
+			TeacherId: currentRecord.TeacherId,
+		}
+
+		if websocket.OrderManager.HasOrderOnline(userId, currentRecord.TeacherId) {
+			response = actionProceedResponse{
+				Action:  ACTION_PROCEED_SERVE,
+				Message: "你已经向该导师发过一条上课请求了，请耐心等待回复哦",
+				Extra:   nullObject{},
+			}
+		} else {
+			response = actionProceedResponse{
+				Action:  ACTION_PROCEED_SERVE,
+				Message: "",
+				Extra:   session,
+			}
+			createAuditionCourseOrder(currentRecord.Id)
+		}
+	}
 	return 0, &response
 }
