@@ -323,7 +323,24 @@ func HandleAuditionCourseActionProceed(userId int64, course *models.Course, sour
 		return 2, nil
 	}
 	var response actionProceedResponse
-	if currentRecord.Status == models.AUDITION_RECORD_STATUS_PAID {
+	switch currentRecord.Status {
+	case models.AUDITION_RECORD_STATUS_APPLY,
+		models.AUDITION_RECORD_STATUS_WAITING:
+
+		payment := paymentInfo{
+			Title:   PAYMENT_TITLE_PREFIX_AUDITION + course.Name,
+			Price:   PAYMENT_PRICE_AUDITION,
+			Comment: PAYMENT_COMMENT_AUDITION,
+			Type:    PAYMENT_TYPE_AUDITION,
+		}
+
+		response = actionProceedResponse{
+			Action:  ACTION_PROCEED_PAY,
+			Message: "",
+			Extra:   payment,
+		}
+
+	case models.AUDITION_RECORD_STATUS_PAID:
 		if currentRecord.TeacherId == 0 {
 			response = actionProceedResponse{
 				Action:  ACTION_PROCEED_NULL,
@@ -351,6 +368,13 @@ func HandleAuditionCourseActionProceed(userId int64, course *models.Course, sour
 			}
 			createAuditionCourseOrder(currentRecord.Id)
 		}
+
 	}
+	return 0, &response
+}
+
+func HandleCourseActionAuditionCheck(userId, courseId int64) (int64, *actionProceedResponse) {
+	var response actionProceedResponse
+
 	return 0, &response
 }

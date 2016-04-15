@@ -97,7 +97,7 @@ var courseRoutes = route.Routes{
 		"/action/proceed",
 		handlerv2.CourseActionProceed,
 		true,
-		true,
+		false,
 	},
 
 	// 9.4.2
@@ -126,6 +126,16 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/action/nextchapter",
 		handlerv2.CourseActionNextChapter,
+		true,
+		true,
+	},
+
+	// 9.4.5
+	route.Route{
+		"CourseActionAuditionCheck",
+		"POST",
+		"/action/audition/check",
+		handlerv2.CourseActionAuditionCheck,
 		true,
 		true,
 	},
