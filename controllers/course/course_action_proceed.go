@@ -296,14 +296,14 @@ func HandleAuditionCourseActionProceed(userId int64, course *models.Course, sour
 	var err error
 	courseId := course.Id
 	o := orm.NewOrm()
-
+	var auditionRecordStatus string
 	// 先查询该用户是否有未完成的试听
 	var currentRecord models.CourseAuditionRecord
 	err = o.QueryTable(new(models.CourseAuditionRecord).TableName()).
 		Filter("course_id", courseId).Filter("user_id", userId).
 		Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
 		One(&currentRecord)
-
+	auditionRecordStatus = currentRecord.Status
 	if err == orm.ErrNoRows {
 		// 如果用户没有购买过，创建试听课购买记录
 		newRecord := models.CourseAuditionRecord{
@@ -317,12 +317,13 @@ func HandleAuditionCourseActionProceed(userId int64, course *models.Course, sour
 		if err != nil {
 			return 2, nil
 		}
+		auditionRecordStatus = newRecord.Status
 	} else if err != nil {
 		// 如果到了这里说明数据库报错了...
 		return 2, nil
 	}
 	var response actionProceedResponse
-	switch currentRecord.Status {
+	switch auditionRecordStatus {
 	case models.AUDITION_RECORD_STATUS_APPLY,
 		models.AUDITION_RECORD_STATUS_WAITING:
 
