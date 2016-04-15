@@ -49,6 +49,24 @@ func HandleCourseAuditionTradeRecord(recordId int64, amount int64, pingppId int6
 	return nil
 }
 
+func HandleCourseRenewTradeRecord(recordId int64, amount int64, pingppId int64) error {
+	var err error
+
+	record, err := models.ReadCourseRenewRecord(recordId)
+	if err != nil {
+		return nil
+	}
+
+	_, err = createTradeRecord(record.UserId, 0-amount,
+		models.TRADE_COURSE_RENEW, models.TRADE_RESULT_SUCCESS, "",
+		0, record.Id, pingppId, "", 0, 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func HandleCourseEarning(recordId int64, period int64, chapterId int64) error {
 	var err error
 

@@ -31,7 +31,7 @@ func HandleTradePay(orderNo string, userId int64, amount uint64,
 	extra map[string]interface{}, tradeType string, refId int64, payType string) (int64, *pingpp.Charge, error) {
 	switch payType {
 	case models.TRADE_PAY_TYPE_BALANCE:
-		status, err := handleTradePayByBalance(userId, refId, tradeType)
+		status, err := handleTradePayByBalance(userId, refId, amount, tradeType)
 		if err != nil {
 			return status, nil, err
 		}
@@ -46,7 +46,7 @@ func HandleTradePay(orderNo string, userId int64, amount uint64,
 		}
 		ch, err := pingxx.PayByPingpp(orderNo, amount, channel, currency, clientIp, subject, body, extra)
 		if err == nil {
-			createPingppRecord(orderNo, userId, amount, channel, currency, clientIp, subject, body, phone, tradeType, refId, ch)
+			createPingppRecord(orderNo, userId, amount, channel, currency, clientIp, subject, body, phone, tradeType, refId, amount, ch)
 		}
 		return 0, ch, err
 
@@ -62,7 +62,7 @@ func HandleTradePay(orderNo string, userId int64, amount uint64,
 			return 2, nil, errors.New("用户信息错误")
 		}
 		if int64(amount) <= user.Balance {
-			status, err := handleTradePayByBalance(userId, refId, tradeType)
+			status, err := handleTradePayByBalance(userId, refId, amount, tradeType)
 			if err != nil {
 				return status, nil, err
 			}
@@ -71,14 +71,14 @@ func HandleTradePay(orderNo string, userId int64, amount uint64,
 		pingppAmount := amount - uint64(user.Balance)
 		ch, err := pingxx.PayByPingpp(orderNo, pingppAmount, channel, currency, clientIp, subject, body, extra)
 		if err == nil {
-			createPingppRecord(orderNo, userId, pingppAmount, channel, currency, clientIp, subject, body, phone, tradeType, refId, ch)
+			createPingppRecord(orderNo, userId, pingppAmount, channel, currency, clientIp, subject, body, phone, tradeType, refId, amount, ch)
 		}
 		return 0, ch, err
 	}
 	return 0, nil, nil
 }
 
-func handleTradePayByBalance(userId, refId int64, tradeType string) (status int64, err error) {
+func handleTradePayByBalance(userId, refId int64, amount uint64, tradeType string) (status int64, err error) {
 	switch tradeType {
 	case models.TRADE_COURSE_AUDITION:
 		courseId := refId
@@ -94,26 +94,28 @@ func handleTradePayByBalance(userId, refId int64, tradeType string) (status int6
 		status, err = qapkgController.HandleQaPkgActionPayByBalance(userId, qaPkgId)
 
 	case models.TRADE_COURSE_RENEW:
-
+		courseId := refId
+		status, err = courseController.HandleCourseRenewPayByBalance(userId, courseId, int64(amount))
 	}
 	return
 }
 
 func createPingppRecord(orderNo string, userId int64, amount uint64,
 	channel, currency, clientIp, subject, body, phone string,
-	tradeType string, refId int64, ch *pingpp.Charge) {
+	tradeType string, refId int64, totalAmount uint64, ch *pingpp.Charge) {
 	record := models.PingppRecord{
-		UserId:   userId,
-		Phone:    phone,
-		ChargeId: ch.ID,
-		OrderNo:  orderNo,
-		Amount:   amount,
-		Channel:  channel,
-		Currency: currency,
-		Subject:  subject,
-		Body:     body,
-		Type:     tradeType,
-		RefId:    refId,
+		UserId:      userId,
+		Phone:       phone,
+		ChargeId:    ch.ID,
+		OrderNo:     orderNo,
+		Amount:      amount,
+		Channel:     channel,
+		Currency:    currency,
+		Subject:     subject,
+		Body:        body,
+		Type:        tradeType,
+		RefId:       refId,
+		TotalAmount: totalAmount,
 	}
 	models.InsertPingppRecord(&record)
 }

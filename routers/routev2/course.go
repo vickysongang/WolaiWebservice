@@ -175,7 +175,7 @@ var courseRoutes = route.Routes{
 		"CourseRenewWaitingRecordDetail",
 		"POST",
 		"/renew/waiting/detail",
-		handlerv2.CourseListStudentOfConversation,
+		handlerv2.CourseRenewWaitingRecordDetail,
 		true,
 		true,
 	},

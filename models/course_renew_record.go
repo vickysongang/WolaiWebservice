@@ -44,3 +44,15 @@ func ReadCourseRenewRecord(recordId int64) (*CourseRenewRecord, error) {
 	err := o.Read(&record)
 	return &record, err
 }
+
+func UpdateCourseRenewRecord(recordId int64, recordInfo map[string]interface{}) error {
+	o := orm.NewOrm()
+
+	var params orm.Params = make(orm.Params)
+	for k, v := range recordInfo {
+		params[k] = v
+	}
+
+	_, err := o.QueryTable("course_renew_record").Filter("id", recordId).Update(params)
+	return err
+}
