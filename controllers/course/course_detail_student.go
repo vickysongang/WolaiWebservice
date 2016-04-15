@@ -141,9 +141,14 @@ func GetAuditionCourseDetail(userId int64, course *models.Course) (int64, *cours
 		detail.PurchaseStatus = auditionRecord.Status
 		detail.TeacherList, _ = queryCourseCurrentTeacher(auditionRecord.TeacherId)
 		if auditionRecord.TeacherId == 0 {
-			detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, 0, userId, auditionRecord.TeacherId)
+			detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0)
 		} else {
-			detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, 1, userId, auditionRecord.TeacherId)
+			detail.ChapterCompletedPeriod, err = courseService.QueryLatestCourseChapterPeriod(courseId, userId)
+			if err != nil {
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, 0, userId, auditionRecord.TeacherId)
+			} else {
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, 1, userId, auditionRecord.TeacherId)
+			}
 		}
 	}
 	return 0, &detail

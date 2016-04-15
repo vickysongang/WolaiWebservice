@@ -9,6 +9,7 @@ import (
 
 	courseController "WolaiWebservice/controllers/course"
 	"WolaiWebservice/handlers/response"
+	courseService "WolaiWebservice/service/course"
 )
 
 // 9.1.1
@@ -467,5 +468,31 @@ func CourseListStudentOfConversation(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullSlice))
 	} else {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 9.7.1
+func CourseRenewWaitingRecordDetail(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+	courseIdStr := vars["courseId"][0]
+	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
+
+	record := courseService.GetCourseRenewWaitingRecord(userId, courseId)
+	if record == nil {
+		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", record))
 	}
 }

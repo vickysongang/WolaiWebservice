@@ -31,7 +31,7 @@ func HandleTradePay(orderNo string, userId int64, amount uint64,
 	extra map[string]interface{}, tradeType string, refId int64, payType string) (int64, *pingpp.Charge, error) {
 	switch payType {
 	case models.TRADE_PAY_TYPE_BALANCE:
-		status, err := handleTradePayByBalance(userId, refId, tradeType, payType)
+		status, err := handleTradePayByBalance(userId, refId, tradeType)
 		if err != nil {
 			return status, nil, err
 		}
@@ -62,7 +62,7 @@ func HandleTradePay(orderNo string, userId int64, amount uint64,
 			return 2, nil, errors.New("用户信息错误")
 		}
 		if int64(amount) <= user.Balance {
-			status, err := handleTradePayByBalance(userId, refId, tradeType, payType)
+			status, err := handleTradePayByBalance(userId, refId, tradeType)
 			if err != nil {
 				return status, nil, err
 			}
@@ -78,7 +78,7 @@ func HandleTradePay(orderNo string, userId int64, amount uint64,
 	return 0, nil, nil
 }
 
-func handleTradePayByBalance(userId, refId int64, tradeType, payType string) (status int64, err error) {
+func handleTradePayByBalance(userId, refId int64, tradeType string) (status int64, err error) {
 	switch tradeType {
 	case models.TRADE_COURSE_AUDITION:
 		courseId := refId
@@ -91,7 +91,8 @@ func handleTradePayByBalance(userId, refId int64, tradeType, payType string) (st
 
 	case models.TRADE_QA_PKG_PURCHASE:
 		qaPkgId := refId
-		status, err = qapkgController.HandleQaPkgActionPayByBalance(userId, qaPkgId, payType)
+		status, err = qapkgController.HandleQaPkgActionPayByBalance(userId, qaPkgId)
+
 	case models.TRADE_COURSE_RENEW:
 
 	}

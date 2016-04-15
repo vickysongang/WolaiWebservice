@@ -169,4 +169,14 @@ var courseRoutes = route.Routes{
 		true,
 		true,
 	},
+
+	// 9.7.1
+	route.Route{
+		"CourseRenewWaitingRecordDetail",
+		"POST",
+		"/renew/waiting/detail",
+		handlerv2.CourseListStudentOfConversation,
+		true,
+		true,
+	},
 }

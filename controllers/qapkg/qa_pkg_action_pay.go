@@ -10,7 +10,7 @@ import (
 
 var ErrInsufficientFund = errors.New("用户余额不足")
 
-func HandleQaPkgActionPayByBalance(userId, qaPkgId int64, payType string) (int64, error) {
+func HandleQaPkgActionPayByBalance(userId, qaPkgId int64) (int64, error) {
 	qaPkg, err := models.ReadQaPkg(qaPkgId)
 	if err != nil {
 		return 2, errors.New("答疑包资料异常")
