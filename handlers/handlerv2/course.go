@@ -512,7 +512,7 @@ func CourseRenewWaitingRecordDetail(w http.ResponseWriter, r *http.Request) {
 
 	record := courseService.GetCourseRenewWaitingRecord(userId, courseId)
 	if record == nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullSlice))
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 	} else {
 		json.NewEncoder(w).Encode(response.NewResponse(0, "", record))
 	}
