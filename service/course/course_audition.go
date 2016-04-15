@@ -22,3 +22,14 @@ func QueryAuditionCourse() *models.Course {
 	}
 	return &course
 }
+
+func GetUncompletedAuditionRecord(userId int64) *models.CourseAuditionRecord {
+	o := orm.NewOrm()
+	var record models.CourseAuditionRecord
+	o.QueryTable(new(models.CourseAuditionRecord).TableName()).
+		Filter("user_id", userId).Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).One(&record)
+	if record.Id == 0 {
+		return nil
+	}
+	return &record
+}

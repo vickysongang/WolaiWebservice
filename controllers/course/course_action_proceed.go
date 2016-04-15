@@ -373,8 +373,18 @@ func HandleAuditionCourseActionProceed(userId int64, course *models.Course, sour
 	return 0, &response
 }
 
-func HandleCourseActionAuditionCheck(userId, courseId int64) (int64, *actionProceedResponse) {
+func HandleCourseActionAuditionCheck(userId int64) (int64, *actionProceedResponse) {
 	var response actionProceedResponse
-
+	auditionRecord := courseService.GetUncompletedAuditionRecord(userId)
+	if auditionRecord != nil {
+		auditionInfo := map[string]interface{}{
+			"auditionCourseId": auditionRecord.CourseId,
+		}
+		response = actionProceedResponse{
+			Action:  ACTION_PROCEED_NULL,
+			Message: "你已经申请了一节试听课，建议先上完课哦！你也可以联系助教修改试听内容",
+			Extra:   auditionInfo,
+		}
+	}
 	return 0, &response
 }
