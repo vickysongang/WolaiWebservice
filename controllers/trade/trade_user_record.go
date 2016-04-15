@@ -209,6 +209,18 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Avartar = user.Avatar
 			info.Title = trade.COMMENT_COURSE_AUDITION
 
+		case models.TRADE_AUDITION_COURSE_PURCHASE:
+			auditionRecord, err := models.ReadCourseAuditionRecord(record.RecordId)
+			if err != nil {
+				continue
+			}
+			user, err := models.ReadUser(auditionRecord.TeacherId)
+			if err != nil {
+				continue
+			}
+			info.Avartar = user.Avatar
+			info.Type = trade.COMMENT_COURSE_AUDITION
+
 		case models.TRADE_COURSE_EARNING:
 			//老师课程收入
 			purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)

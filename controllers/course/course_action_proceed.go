@@ -142,7 +142,7 @@ func HandleDeluxeCourseActionProceed(userId int64, course *models.Course) (int64
 		// 学生已经申请过试听，但是客服还没有为其指派老师
 		response = actionProceedResponse{
 			Action:  ACTION_PROCEED_NULL,
-			Message: "稍等一下，助教正在为你匹配最优秀的导师哦",
+			Message: "别着急...助教正在定制你的课程并为你匹配合适的导师",
 			Extra:   nullObject{},
 		}
 

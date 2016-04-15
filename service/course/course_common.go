@@ -19,12 +19,6 @@ func GetCourseStudentCount(courseId int64) int64 {
 	return studentCount
 }
 
-func GetAuditionCourseStudentCount(courseId int64) int64 {
-	o := orm.NewOrm()
-	auditionCount, _ := o.QueryTable(new(models.CourseAuditionRecord).TableName()).Count()
-	return auditionCount
-}
-
 func GetCourseChapterCount(courseId int64) int64 {
 	o := orm.NewOrm()
 	chapterCount, err := o.QueryTable(new(models.CourseChapter).TableName()).
@@ -99,14 +93,4 @@ func QueryCourseContentIntros(courseId int64) ([]models.CourseContentIntro, erro
 	intros := make([]models.CourseContentIntro, 0)
 	_, err := o.QueryTable(new(models.CourseContentIntro).TableName()).Filter("course_id", courseId).OrderBy("rank").All(&intros)
 	return intros, err
-}
-
-func QueryAuditionCourse() *models.Course {
-	o := orm.NewOrm()
-	var course models.Course
-	o.QueryTable(new(models.Course).TableName()).Filter("type", models.COURSE_TYPE_AUDITION).One(&course)
-	if course.Id == 0 {
-		return nil
-	}
-	return &course
 }
