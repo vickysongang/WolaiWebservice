@@ -102,7 +102,7 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 		if currentRecord.Id == 0 {
 			return 2, errors.New("试听记录异常")
 		} else {
-			if currentRecord.Status != models.AUDITION_RECORD_STATUS_APPLY || currentRecord.Status != models.AUDITION_RECORD_STATUS_WAITING {
+			if currentRecord.Status != models.AUDITION_RECORD_STATUS_APPLY && currentRecord.Status != models.AUDITION_RECORD_STATUS_WAITING {
 				return 2, errors.New("试听记录异常")
 			}
 			if user.Balance < PAYMENT_PRICE_AUDITION {
@@ -165,7 +165,7 @@ func CheckCourseActionPayByThird(userId int64, courseId int64, tradeType string)
 		if currentRecord.Id == 0 {
 			return 2, errors.New("试听记录异常")
 		} else {
-			if currentRecord.Status != models.AUDITION_RECORD_STATUS_APPLY || currentRecord.Status != models.AUDITION_RECORD_STATUS_WAITING {
+			if currentRecord.Status != models.AUDITION_RECORD_STATUS_APPLY && currentRecord.Status != models.AUDITION_RECORD_STATUS_WAITING {
 				return 2, errors.New("试听记录异常")
 			}
 		}

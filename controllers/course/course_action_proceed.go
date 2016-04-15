@@ -317,7 +317,6 @@ func HandleAuditionCourseActionProceed(userId int64, course *models.Course, sour
 		if err != nil {
 			return 2, nil
 		}
-		return 0, nil
 	} else if err != nil {
 		// 如果到了这里说明数据库报错了...
 		return 2, nil
