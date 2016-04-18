@@ -9,7 +9,6 @@ import (
 
 	courseController "WolaiWebservice/controllers/course"
 	"WolaiWebservice/handlers/response"
-	courseService "WolaiWebservice/service/course"
 )
 
 // 9.1.1
@@ -510,10 +509,10 @@ func CourseRenewWaitingRecordDetail(w http.ResponseWriter, r *http.Request) {
 	courseIdStr := vars["courseId"][0]
 	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
 
-	record := courseService.GetCourseRenewWaitingRecord(userId, courseId)
-	if record == nil {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
+	status, content, err := courseController.GetCourseRenewDetail(courseId, userId)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullObject))
 	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", record))
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
