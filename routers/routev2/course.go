@@ -187,6 +187,6 @@ var courseRoutes = route.Routes{
 		"/renew/waiting/detail",
 		handlerv2.CourseRenewWaitingRecordDetail,
 		true,
-		false,
+		true,
 	},
 }

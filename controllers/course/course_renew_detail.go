@@ -44,7 +44,6 @@ func GetCourseRenewDetail(courseId, userId int64) (int64, *CourseRenewDetail, er
 		if purchaseRecord.Id != 0 {
 			detail.TeacherId = purchaseRecord.TeacherId
 			detail.PriceHourly = purchaseRecord.PriceHourly
-			detail.PriceTotal = purchaseRecord.PriceTotal
 			detail.Type = COURSE_RENEW_TYPE_MANUAL
 		} else {
 			return 2, nil, errors.New("购买记录异常")
