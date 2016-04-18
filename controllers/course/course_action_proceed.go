@@ -380,10 +380,20 @@ func HandleCourseActionAuditionCheck(userId int64) (int64, *actionProceedRespons
 		auditionInfo := map[string]interface{}{
 			"auditionCourseId": auditionRecord.CourseId,
 			"sourceCourseId":   auditionRecord.SourceCourseId,
+			"exist":            true,
 		}
 		response = actionProceedResponse{
 			Action:  ACTION_PROCEED_NULL,
 			Message: "你已经申请了一节试听课，建议先上完课哦！你也可以联系助教修改试听内容",
+			Extra:   auditionInfo,
+		}
+	} else {
+		auditionInfo := map[string]interface{}{
+			"exist": false,
+		}
+		response = actionProceedResponse{
+			Action:  ACTION_PROCEED_NULL,
+			Message: "",
 			Extra:   auditionInfo,
 		}
 	}
