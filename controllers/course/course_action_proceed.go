@@ -379,6 +379,7 @@ func HandleCourseActionAuditionCheck(userId int64) (int64, *actionProceedRespons
 	if auditionRecord != nil {
 		auditionInfo := map[string]interface{}{
 			"auditionCourseId": auditionRecord.CourseId,
+			"sourceCourseId":   auditionRecord.SourceCourseId,
 		}
 		response = actionProceedResponse{
 			Action:  ACTION_PROCEED_NULL,
