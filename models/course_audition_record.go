@@ -36,6 +36,10 @@ const (
 	AUDITION_RECORD_STATUS_WAITING  = "waiting"
 	AUDITION_RECORD_STATUS_PAID     = "paid"
 	AUDITION_RECORD_STATUS_COMPLETE = "complete"
+
+	AUDITION_RECORD_TRACE_STATUS_IDLE     = "idle"
+	AUDITION_RECORD_TRACE_STATUS_SERVING  = "serving"
+	AUDITION_RECORD_TRACE_STATUS_COMPLETE = "complete"
 )
 
 func CreateCourseAuditionRecord(record *CourseAuditionRecord) (*CourseAuditionRecord, error) {

@@ -311,6 +311,7 @@ func HandleAuditionCourseActionProceed(userId int64, course *models.Course, sour
 			UserId:         userId,
 			Status:         models.AUDITION_RECORD_STATUS_APPLY,
 			SourceCourseId: sourceCourseId,
+			TraceStatus:    models.AUDITION_RECORD_TRACE_STATUS_IDLE,
 		}
 
 		_, err = models.CreateCourseAuditionRecord(&newRecord)
