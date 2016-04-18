@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	"WolaiWebservice/websocket"
 )
 
 func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionProceedResponse) {
@@ -130,8 +131,29 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 			Extra:   payment,
 		}
 
-	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_PAID,
-		record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:
+	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_PAID:
+		// 学生已经完成试听，并且支付课程包费用，开始上课
+		session := sessionInfo{
+			TeacherId: record.TeacherId,
+		}
+
+		if websocket.OrderManager.HasOrderOnline(userId, record.TeacherId) {
+			response = actionProceedResponse{
+				Action:  ACTION_PROCEED_SERVE,
+				Message: "你已经向该导师发过一条上课请求了，请耐心等待回复哦",
+				Extra:   nullObject{},
+			}
+
+		} else {
+			response = actionProceedResponse{
+				Action:  ACTION_PROCEED_SERVE,
+				Message: "",
+				Extra:   session,
+			}
+			createDeluxeCourseOrder(record.Id)
+		}
+
+	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:
 
 		// 付过款以后这里的按钮就不可以点了，如果APP没处理好让他点了的话也什么都不会发生
 		response = actionProceedResponse{
