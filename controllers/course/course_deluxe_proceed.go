@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/websocket"
 )
 
@@ -32,7 +33,7 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 			salaryHourly = auditionRecord.SalaryHourly
 			priceTotal = priceHourly * currentRecord.ChapterCount
 		}
-
+		chaperCount := courseService.GetCourseChapterCount(currentRecord.CourseId)
 		// 如果用户没有购买过，创建购买记录
 		newRecord := models.CoursePurchaseRecord{
 			CourseId:       courseId,
@@ -44,6 +45,7 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 			AuditionStatus: models.PURCHASE_RECORD_STATUS_IDLE,
 			PurchaseStatus: models.PURCHASE_RECORD_STATUS_APPLY,
 			TraceStatus:    models.PURCHASE_RECORD_TRACE_STATUS_IDLE,
+			ChapterCount:   chaperCount - 1,
 		}
 
 		_, err = models.CreateCoursePurchaseRecord(&newRecord)
