@@ -32,6 +32,7 @@ const (
 	ACTION_PROCEED_REFRESH = "refresh"
 	ACTION_PROCEED_PAY     = "pay"
 	ACTION_PROCEED_SERVE   = "serve"
+	ACTION_PROCEED_RENEW   = "renew"
 
 	PAYMENT_TITLE_PREFIX_AUDITION = "课程试听-"
 	PAYMENT_TITLE_PREFIX_PURCHASE = "课程购买-"
@@ -89,6 +90,7 @@ func HandleDeluxeCourseActionProceed(userId int64, course *models.Course) (int64
 			UserId:         userId,
 			AuditionStatus: models.PURCHASE_RECORD_STATUS_APPLY,
 			PurchaseStatus: models.PURCHASE_RECORD_STATUS_IDLE,
+			TraceStatus:    models.PURCHASE_RECORD_TRACE_STATUS_IDLE,
 		}
 
 		_, err = models.CreateCoursePurchaseRecord(&newRecord)
@@ -276,7 +278,7 @@ func HandleDeluxeCourseActionProceed(userId int64, course *models.Course) (int64
 		// 学生的课程已经完成，无法继续操作
 		response = actionProceedResponse{
 			Action:  ACTION_PROCEED_NULL,
-			Message: "课时已经全部上完啦！可以根据导师的课程计划续课喔",
+			Message: "课时已经全部上完啦！",
 			Extra:   nullObject{},
 		}
 

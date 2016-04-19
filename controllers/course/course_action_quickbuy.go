@@ -43,6 +43,7 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 			PriceTotal:     priceTotal,
 			AuditionStatus: models.PURCHASE_RECORD_STATUS_IDLE,
 			PurchaseStatus: models.PURCHASE_RECORD_STATUS_APPLY,
+			TraceStatus:    models.PURCHASE_RECORD_TRACE_STATUS_IDLE,
 		}
 
 		_, err = models.CreateCoursePurchaseRecord(&newRecord)
@@ -168,11 +169,9 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 		}
 
 	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:
-
-		// 付过款以后这里的按钮就不可以点了，如果APP没处理好让他点了的话也什么都不会发生
 		response = actionProceedResponse{
-			Action:  ACTION_PROCEED_NULL,
-			Message: "",
+			Action:  ACTION_PROCEED_RENEW,
+			Message: "课时已经全部上完啦！可以根据导师的课程计划续课喔",
 			Extra:   nullObject{},
 		}
 
