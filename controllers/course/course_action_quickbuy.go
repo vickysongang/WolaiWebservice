@@ -22,11 +22,25 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 		One(&currentRecord)
 
 	if err == orm.ErrNoRows {
+		var auditionRecord models.CourseAuditionRecord
+		o.QueryTable(new(models.CourseAuditionRecord).TableName()).Filter("source_course_id", courseId).Filter("user_id", userId).
+			One(&auditionRecord)
+		var teacherId, priceHourly, salaryHourly, priceTotal int64
+		if auditionRecord.Id != 0 && auditionRecord.TeacherId != 0 {
+			teacherId = auditionRecord.TeacherId
+			priceHourly = auditionRecord.PriceHourly
+			salaryHourly = auditionRecord.SalaryHourly
+			priceTotal = priceHourly * currentRecord.ChapterCount
+		}
 
 		// 如果用户没有购买过，创建购买记录
 		newRecord := models.CoursePurchaseRecord{
 			CourseId:       courseId,
 			UserId:         userId,
+			TeacherId:      teacherId,
+			PriceHourly:    priceHourly,
+			SalaryHourly:   salaryHourly,
+			PriceTotal:     priceTotal,
 			AuditionStatus: models.PURCHASE_RECORD_STATUS_IDLE,
 			PurchaseStatus: models.PURCHASE_RECORD_STATUS_APPLY,
 		}
