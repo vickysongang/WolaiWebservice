@@ -19,10 +19,46 @@ type courseChapterStatus struct {
 	SessionId           int64  `json:"sessionId"`
 }
 
+type nullObject struct{}
+
+type paymentInfo struct {
+	Title   string `json:"title"`
+	Price   int64  `json:"price"`
+	Comment string `json:"comment"`
+	Type    string `json:"type"`
+}
+
+type sessionInfo struct {
+	TeacherId int64 `json:"teacherId"`
+}
+
+type actionProceedResponse struct {
+	Action  string      `json:"action"`
+	Message string      `json:"message"`
+	Extra   interface{} `json:"extra,omitempty"`
+}
+
 const (
 	COURSE_CHAPTER_STATUS_IDLE     = "idle"     //章节普通状态
 	COURSE_CHAPTER_STATUS_CURRENT  = "current"  //章节可以上课
 	COURSE_CHAPTER_STATUS_COMPLETE = "complete" //章节已经结束
+
+	ACTION_PROCEED_NULL    = "null"
+	ACTION_PROCEED_REFRESH = "refresh"
+	ACTION_PROCEED_PAY     = "pay"
+	ACTION_PROCEED_SERVE   = "serve"
+	ACTION_PROCEED_RENEW   = "renew"
+
+	PAYMENT_TITLE_PREFIX_AUDITION = "课程试听-"
+	PAYMENT_TITLE_PREFIX_PURCHASE = "课程购买-"
+
+	PAYMENT_TYPE_AUDITION = "audition"
+	PAYMENT_TYPE_PURCHASE = "purchase"
+
+	PAYMENT_COMMENT_AUDITION = "试听支付"
+	PAYMENT_COMMENT_PURCHASE = "无"
+
+	PAYMENT_PRICE_AUDITION = 100
 )
 
 func queryCourseChapterStatus(courseId int64, current int64) ([]*courseChapterStatus, error) {

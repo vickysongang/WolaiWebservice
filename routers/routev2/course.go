@@ -140,6 +140,26 @@ var courseRoutes = route.Routes{
 		true,
 	},
 
+	// 9.4.6
+	route.Route{
+		"CourseAuditionActionProceed",
+		"POST",
+		"/action/audition/proceed",
+		handlerv2.CourseAuditionActionProceed,
+		true,
+		false,
+	},
+
+	// 9.4.7
+	route.Route{
+		"CourseDeluxeActionProceed",
+		"POST",
+		"/action/deluxe/proceed",
+		handlerv2.CourseDeluxeActionProceed,
+		true,
+		true,
+	},
+
 	// 9.5.1
 	route.Route{
 		"CourseAttachs",
