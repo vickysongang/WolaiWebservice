@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 )
 
 type courseDetailTeacher struct {
@@ -35,15 +36,14 @@ func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeac
 		Course: *course,
 	}
 
-	characteristicList, _ := queryCourseContentIntros(courseId)
+	characteristicList, _ := courseService.QueryCourseContentIntros(courseId)
 	detail.CharacteristicList = characteristicList
 
-	detail.StudentCount = queryCourseStudentCount(courseId)
-	chapterCount := queryCourseChapterCount(courseId)
+	detail.StudentCount = courseService.GetCourseStudentCount(courseId)
 
-	detail.ChapterCount = chapterCount - 1
+	detail.ChapterCount = purchaseRecord.ChapterCount
 
-	detail.ChapterCompletedPeriod, err = queryLatestCourseChapterPeriod(courseId, studentId)
+	detail.ChapterCompletedPeriod, err = courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
 	if err != nil {
 		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, studentId, purchaseRecord.TeacherId)
 	} else {

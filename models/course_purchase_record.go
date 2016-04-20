@@ -19,6 +19,9 @@ type CoursePurchaseRecord struct {
 	AuditionStatus string    `json:"auditionStatus"`
 	PurchaseStatus string    `json:"purchaseStatus"`
 	DefaultFlag    string    `json:"defaultFlag"`
+	ChapterCount   int64     `json:"chapterCount"`
+	TraceStatus    string    `json:"traceStatus"`
+	Comment        string    `json:"comment"`
 }
 
 func init() {
@@ -35,6 +38,10 @@ const (
 	PURCHASE_RECORD_STATUS_WAITING  = "waiting"
 	PURCHASE_RECORD_STATUS_PAID     = "paid"
 	PURCHASE_RECORD_STATUS_COMPLETE = "complete"
+
+	PURCHASE_RECORD_TRACE_STATUS_IDLE     = "idle"
+	PURCHASE_RECORD_TRACE_STATUS_SERVING  = "serving"
+	PURCHASE_RECORD_TRACE_STATUS_COMPLETE = "complete"
 )
 
 func CreateCoursePurchaseRecord(record *CoursePurchaseRecord) (*CoursePurchaseRecord, error) {

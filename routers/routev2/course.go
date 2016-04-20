@@ -97,7 +97,7 @@ var courseRoutes = route.Routes{
 		"/action/proceed",
 		handlerv2.CourseActionProceed,
 		true,
-		true,
+		false,
 	},
 
 	// 9.4.2
@@ -126,6 +126,36 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/action/nextchapter",
 		handlerv2.CourseActionNextChapter,
+		true,
+		true,
+	},
+
+	// 9.4.5
+	route.Route{
+		"CourseActionAuditionCheck",
+		"POST",
+		"/action/audition/check",
+		handlerv2.CourseActionAuditionCheck,
+		true,
+		true,
+	},
+
+	// 9.4.6
+	route.Route{
+		"CourseAuditionActionProceed",
+		"POST",
+		"/action/audition/proceed",
+		handlerv2.CourseAuditionActionProceed,
+		true,
+		false,
+	},
+
+	// 9.4.7
+	route.Route{
+		"CourseDeluxeActionProceed",
+		"POST",
+		"/action/deluxe/proceed",
+		handlerv2.CourseDeluxeActionProceed,
 		true,
 		true,
 	},
@@ -166,6 +196,16 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/conversation/user/list",
 		handlerv2.CourseListStudentOfConversation,
+		true,
+		true,
+	},
+
+	// 9.7.1
+	route.Route{
+		"CourseRenewWaitingRecordDetail",
+		"POST",
+		"/renew/waiting/detail",
+		handlerv2.CourseRenewWaitingRecordDetail,
 		true,
 		true,
 	},

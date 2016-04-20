@@ -1,39 +1,42 @@
 package course
 
 import (
+	"WolaiWebBackend/config"
+
 	"github.com/astaxie/beego/orm"
-	//"github.com/cihub/seelog"
 
 	"WolaiWebservice/models"
 )
 
 func GetCourseStudentCount(courseId int64) int64 {
-	var err error
-
 	o := orm.NewOrm()
-
 	studentCount, err := o.QueryTable(new(models.CoursePurchaseRecord).TableName()).
 		Filter("course_id", courseId).
 		Count()
 	if err != nil {
 		return 0
 	}
-
 	return studentCount
 }
 
 func GetCourseChapterCount(courseId int64) int64 {
-	var err error
-
 	o := orm.NewOrm()
-
 	chapterCount, err := o.QueryTable(new(models.CourseChapter).TableName()).
 		Filter("course_id", courseId).
 		Count()
 	if err != nil {
 		return 0
 	}
+	return chapterCount
+}
 
+func GetCourseCustomChapterCount(courseId, userId, teacherId int64) int64 {
+	o := orm.NewOrm()
+	chapterCount, _ := o.QueryTable(new(models.CourseCustomChapter).TableName()).
+		Filter("course_id", courseId).
+		Filter("user_id", userId).
+		Filter("teacher_id", teacherId).
+		Count()
 	return chapterCount
 }
 
@@ -64,4 +67,30 @@ func GetSessionIdByChapter(chapterId int64) int64 {
 		}
 	}
 	return sessionId
+}
+
+//查询课程的章节
+func QueryCourseChapters(courseId int64) ([]models.CourseChapter, error) {
+	o := orm.NewOrm()
+	courseChapters := make([]models.CourseChapter, 0)
+	_, err := o.QueryTable(new(models.CourseChapter).TableName()).Filter("course_id", courseId).OrderBy("period").All(&courseChapters)
+	return courseChapters, err
+}
+
+//查询最近完成的课时号
+func QueryLatestCourseChapterPeriod(courseId, userId int64) (int64, error) {
+	o := orm.NewOrm()
+	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
+	qb.Select("period").From("course_chapter_to_user").Where("course_id = ? and user_id = ?").OrderBy("period").Desc().Limit(1)
+	sql := qb.String()
+	var period int64
+	err := o.Raw(sql, courseId, userId).QueryRow(&period)
+	return period, err
+}
+
+func QueryCourseContentIntros(courseId int64) ([]models.CourseContentIntro, error) {
+	o := orm.NewOrm()
+	intros := make([]models.CourseContentIntro, 0)
+	_, err := o.QueryTable(new(models.CourseContentIntro).TableName()).Filter("course_id", courseId).OrderBy("rank").All(&intros)
+	return intros, err
 }

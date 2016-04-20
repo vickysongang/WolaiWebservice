@@ -9,7 +9,7 @@ import (
 type Course struct {
 	Id             int64     `json:"id" orm:"pk"`
 	Name           string    `json:"name"`
-	Type           string    `json:"-"`
+	Type           string    `json:"type"`
 	GradeId        int64     `json:"-"`
 	SubjectId      int64     `json:"-"`
 	TimeFrom       time.Time `json:"-"`

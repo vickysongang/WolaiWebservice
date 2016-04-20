@@ -5,9 +5,10 @@ import (
 
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
+	"WolaiWebservice/websocket"
 )
 
-func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionProceedResponse) {
+func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionProceedResponse) {
 	o := orm.NewOrm()
 
 	course, err := models.ReadCourse(courseId)
@@ -22,15 +23,29 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 		One(&currentRecord)
 
 	if err == orm.ErrNoRows {
+		var auditionRecord models.CourseAuditionRecord
+		o.QueryTable(new(models.CourseAuditionRecord).TableName()).Filter("source_course_id", courseId).Filter("user_id", userId).
+			One(&auditionRecord)
+		var teacherId, priceHourly, salaryHourly, priceTotal int64
+		if auditionRecord.Id != 0 && auditionRecord.TeacherId != 0 {
+			teacherId = auditionRecord.TeacherId
+			priceHourly = auditionRecord.PriceHourly
+			salaryHourly = auditionRecord.SalaryHourly
+			priceTotal = priceHourly * currentRecord.ChapterCount
+		}
 		chaperCount := courseService.GetCourseChapterCount(currentRecord.CourseId)
 		// 如果用户没有购买过，创建购买记录
 		newRecord := models.CoursePurchaseRecord{
 			CourseId:       courseId,
 			UserId:         userId,
+			TeacherId:      teacherId,
+			PriceHourly:    priceHourly,
+			SalaryHourly:   salaryHourly,
+			PriceTotal:     priceTotal,
 			AuditionStatus: models.PURCHASE_RECORD_STATUS_IDLE,
 			PurchaseStatus: models.PURCHASE_RECORD_STATUS_APPLY,
 			TraceStatus:    models.PURCHASE_RECORD_TRACE_STATUS_IDLE,
-			ChapterCount:   chaperCount,
+			ChapterCount:   chaperCount - 1,
 		}
 
 		_, err = models.CreateCoursePurchaseRecord(&newRecord)
@@ -133,13 +148,32 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 			Extra:   payment,
 		}
 
-	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_PAID,
-		record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:
+	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_PAID:
+		// 学生已经完成试听，并且支付课程包费用，开始上课
+		session := sessionInfo{
+			TeacherId: record.TeacherId,
+		}
 
-		// 付过款以后这里的按钮就不可以点了，如果APP没处理好让他点了的话也什么都不会发生
+		if websocket.OrderManager.HasOrderOnline(userId, record.TeacherId) {
+			response = actionProceedResponse{
+				Action:  ACTION_PROCEED_SERVE,
+				Message: "你已经向该导师发过一条上课请求了，请耐心等待回复哦",
+				Extra:   nullObject{},
+			}
+
+		} else {
+			response = actionProceedResponse{
+				Action:  ACTION_PROCEED_SERVE,
+				Message: "",
+				Extra:   session,
+			}
+			createDeluxeCourseOrder(record.Id)
+		}
+
+	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:
 		response = actionProceedResponse{
-			Action:  ACTION_PROCEED_NULL,
-			Message: "",
+			Action:  ACTION_PROCEED_RENEW,
+			Message: "课时已经全部上完啦！可以根据导师的课程计划续课喔",
 			Extra:   nullObject{},
 		}
 

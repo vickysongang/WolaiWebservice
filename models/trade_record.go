@@ -24,21 +24,23 @@ type TradeRecord struct {
 }
 
 const (
-	TRADE_PAYMENT             = "payment"             //学生支付
-	TRADE_RECEIVEMENT         = "receivement"         //老师收款
-	TRADE_CHARGE              = "charge"              //充值
-	TRADE_CHARGE_CODE         = "charge_code"         //充值卡充值
-	TRADE_CHARGE_PREMIUM      = "charge_premium"      //充值奖励
-	TRADE_WITHDRAW            = "withdraw"            //提现
-	TRADE_PROMOTION           = "promotion"           //活动
-	TRADE_VOUCHER             = "voucher"             //代金券
-	TRADE_DEDUCTION           = "deduction"           //服务扣费
-	TRADE_REWARD_REGISTRATION = "reward_registration" //新用户注册
-	TRADE_REWARD_INVITATION   = "reward_invitation"   //邀请注册
-	TRADE_COURSE_PURCHASE     = "course_purchase"     //课程购买
-	TRADE_COURSE_AUDITION     = "course_audition"     //课程试听
-	TRADE_COURSE_EARNING      = "course_earning"      //课程结算
-	TRADE_QA_PKG_PURCHASE     = "qa_pkg_purchase"     //答疑包购买
+	TRADE_PAYMENT                  = "payment"                  //学生支付
+	TRADE_RECEIVEMENT              = "receivement"              //老师收款
+	TRADE_CHARGE                   = "charge"                   //充值
+	TRADE_CHARGE_CODE              = "charge_code"              //充值卡充值
+	TRADE_CHARGE_PREMIUM           = "charge_premium"           //充值奖励
+	TRADE_WITHDRAW                 = "withdraw"                 //提现
+	TRADE_PROMOTION                = "promotion"                //活动
+	TRADE_VOUCHER                  = "voucher"                  //代金券
+	TRADE_DEDUCTION                = "deduction"                //服务扣费
+	TRADE_REWARD_REGISTRATION      = "reward_registration"      //新用户注册
+	TRADE_REWARD_INVITATION        = "reward_invitation"        //邀请注册
+	TRADE_COURSE_PURCHASE          = "course_purchase"          //课程购买
+	TRADE_COURSE_AUDITION          = "course_audition"          //课程试听
+	TRADE_AUDITION_COURSE_PURCHASE = "audition_course_purchase" //购买试听课
+	TRADE_COURSE_EARNING           = "course_earning"           //课程结算
+	TRADE_QA_PKG_PURCHASE          = "qa_pkg_purchase"          //答疑包购买
+	TRADE_COURSE_RENEW             = "course_renew"             //课程续课
 
 	TRADE_RESULT_SUCCESS = "S"
 	TRADE_RESULT_FAIL    = "F"
