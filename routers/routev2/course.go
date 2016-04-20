@@ -97,7 +97,7 @@ var courseRoutes = route.Routes{
 		"/action/proceed",
 		handlerv2.CourseActionProceed,
 		true,
-		false,
+		true,
 	},
 
 	// 9.4.2

@@ -23,7 +23,7 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 
 	var auditionUncompleteRecords []*models.CourseAuditionRecord
 
-	_, err := o.QueryTable("course_renew_record").Filter("user_id", userId).
+	_, err := o.QueryTable("course_audition_record").Filter("user_id", userId).
 		Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
 		OrderBy("-last_update_time").All(&auditionUncompleteRecords)
 
@@ -63,7 +63,7 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 	}
 	if int64(len(records)) < count {
 		var auditionCompleteRecords []*models.CourseAuditionRecord
-		o.QueryTable("course_renew_record").Filter("user_id", userId).
+		o.QueryTable("course_audition_record").Filter("user_id", userId).
 			Filter("status", models.AUDITION_RECORD_STATUS_COMPLETE).
 			OrderBy("-last_update_time").All(&auditionCompleteRecords)
 
