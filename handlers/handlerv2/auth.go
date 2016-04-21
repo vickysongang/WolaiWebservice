@@ -240,8 +240,14 @@ func AuthPhoneRandCodeLogin(w http.ResponseWriter, r *http.Request) {
 
 	phone := vars["phone"][0]
 	randCode := vars["randCode"][0]
+	var upgrade bool
+	if len(vars["upgrade"]) > 0 {
+		upgrade = true
+	} else {
+		upgrade = false
+	}
 
-	status, err, content := authController.AuthPhoneRandCodeLogin(phone, randCode)
+	status, err, content := authController.AuthPhoneRandCodeLogin(phone, randCode, upgrade)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullObject)

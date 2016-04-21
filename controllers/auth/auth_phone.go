@@ -75,7 +75,7 @@ func AuthPhonePasswordLogin(phone, password string) (int64, error, *authService.
 	return 0, nil, info
 }
 
-func AuthPhoneRandCodeLogin(phone, code string) (int64, error, *authService.AuthInfo) {
+func AuthPhoneRandCodeLogin(phone, code string, upgrade bool) (int64, error, *authService.AuthInfo) {
 	var err error
 
 	err = authService.VerifySMSCode(phone, code, redis.SC_LOGIN_RAND_CODE)
@@ -85,6 +85,10 @@ func AuthPhoneRandCodeLogin(phone, code string) (int64, error, *authService.Auth
 
 	user, err := userService.QueryUserByPhone(phone)
 	if user == nil {
+		if upgrade {
+			return 2, errors.New("该号码未注册"), nil
+		}
+
 		user, err = userService.RegisterUserByPhone(phone, "")
 		if err != nil {
 			return 2, err, nil
