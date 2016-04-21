@@ -9,6 +9,7 @@ import (
 
 	authController "WolaiWebservice/controllers/auth"
 	"WolaiWebservice/handlers/response"
+	"WolaiWebservice/redis"
 	"WolaiWebservice/routers/token"
 	authService "WolaiWebservice/service/auth"
 )
@@ -84,7 +85,17 @@ func AuthPhoneSMSCode(w http.ResponseWriter, r *http.Request) {
 
 	phone := vars["phone"][0]
 
-	err = authService.SendSMSCode(phone)
+	randCodeType := redis.SC_LOGIN_RAND_CODE
+	if len(vars["operType"]) > 0 {
+		operType := vars["operType"][0]
+		switch operType {
+		case "register":
+			randCodeType = redis.SC_REGISTER_RAND_CODE
+		case "login":
+			randCodeType = redis.SC_LOGIN_RAND_CODE
+		}
+	}
+	err = authService.SendSMSCode(phone, randCodeType)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(2, err.Error(), response.NullObject)
@@ -107,7 +118,18 @@ func AuthPhoneSMSVerify(w http.ResponseWriter, r *http.Request) {
 	phone := vars["phone"][0]
 	randCode := vars["randCode"][0]
 
-	err = authService.VerifySMSCode(phone, randCode)
+	randCodeType := redis.SC_LOGIN_RAND_CODE
+	if len(vars["operType"]) > 0 {
+		operType := vars["operType"][0]
+		switch operType {
+		case "register":
+			randCodeType = redis.SC_REGISTER_RAND_CODE
+		case "login":
+			randCodeType = redis.SC_LOGIN_RAND_CODE
+		}
+	}
+
+	err = authService.VerifySMSCode(phone, randCode, randCodeType)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(2, err.Error(), response.NullObject)

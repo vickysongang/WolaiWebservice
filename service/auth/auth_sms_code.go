@@ -21,10 +21,10 @@ func init() {
 	ErrInvalidSMSCode = errors.New("无效的验证码")
 }
 
-func SendSMSCode(phone string) error {
+func SendSMSCode(phone, randCodeType string) error {
 	var err error
 
-	err = sendcloud.SendMessage(phone)
+	err = sendcloud.SendMessage(phone, randCodeType)
 	if err != nil {
 		return err
 	}
@@ -32,12 +32,12 @@ func SendSMSCode(phone string) error {
 	return nil
 }
 
-func VerifySMSCode(phone, code string) error {
+func VerifySMSCode(phone, code, randCodeType string) error {
 	if config.Env.Server.Live != 1 && code == DEV_SMS_CODE {
 		return nil
 	}
 
-	rc, timestamp := redis.GetSendcloudRandCode(phone)
+	rc, timestamp := redis.GetSendcloudRandCode(phone, randCodeType)
 
 	if code != rc {
 		return ErrInvalidSMSCode

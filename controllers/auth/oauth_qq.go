@@ -2,6 +2,7 @@ package auth
 
 import (
 	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 	authService "WolaiWebservice/service/auth"
 	tradeService "WolaiWebservice/service/trade"
 	userService "WolaiWebservice/service/user"
@@ -45,7 +46,7 @@ func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
 func OauthRegister(phone, code, openId, nickname, avatar string, gender int64) (int64, error, *authService.AuthInfo) {
 	var err error
 
-	err = authService.VerifySMSCode(phone, code)
+	err = authService.VerifySMSCode(phone, code, redis.SC_LOGIN_RAND_CODE)
 	if err != nil {
 		return 2, err, nil
 	}

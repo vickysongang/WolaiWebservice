@@ -5,13 +5,14 @@ import (
 	tradeService "WolaiWebservice/service/trade"
 	userService "WolaiWebservice/service/user"
 
+	"WolaiWebservice/redis"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
 func AuthPhoneLogin(phone, code string) (int64, error, *authService.AuthInfo) {
 	var err error
 
-	err = authService.VerifySMSCode(phone, code)
+	err = authService.VerifySMSCode(phone, code, redis.SC_LOGIN_RAND_CODE)
 	if err != nil {
 		return 2, err, nil
 	}

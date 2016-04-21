@@ -61,7 +61,9 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 
 		items = append(items, &item)
 	}
-	if int64(len(records)) < count {
+
+	recordsLen := int64(len(records))
+	if recordsLen < count && recordsLen > 0 {
 		var auditionCompleteRecords []*models.CourseAuditionRecord
 		o.QueryTable("course_audition_record").Filter("user_id", userId).
 			Filter("status", models.AUDITION_RECORD_STATUS_COMPLETE).
