@@ -25,7 +25,7 @@ var authRoutes = route.Routes{
 		"Register",
 		"POST",
 		"/register",
-		handlerv2.Dummy,
+		handlerv2.AuthPhoneRegister,
 		false,
 		false,
 	},
@@ -35,7 +35,7 @@ var authRoutes = route.Routes{
 		"Login",
 		"POST",
 		"/login",
-		handlerv2.Dummy,
+		handlerv2.AuthPhonePasswordLogin,
 		false,
 		false,
 	},
@@ -45,7 +45,7 @@ var authRoutes = route.Routes{
 		"ForgotPassword",
 		"POST",
 		"/forgot_password",
-		handlerv2.Dummy,
+		handlerv2.ForgotPassword,
 		false,
 		false,
 	},
@@ -55,9 +55,9 @@ var authRoutes = route.Routes{
 		"SetPassword",
 		"POST",
 		"/set_password",
-		handlerv2.Dummy,
-		false,
-		false,
+		handlerv2.SetPassword,
+		true,
+		true,
 	},
 
 	// 1.1.5
@@ -102,10 +102,10 @@ var authRoutes = route.Routes{
 
 	// 1.2.3
 	route.Route{
-		"PhoneNumLogin",
+		"PhoneNumRandCodeLogin",
 		"POST",
 		"/phone/login",
-		handlerv2.AuthPhoneLogin,
+		handlerv2.AuthPhoneRandCodeLogin,
 		true,
 		false,
 	},

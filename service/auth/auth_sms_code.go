@@ -28,8 +28,8 @@ func GetRandCodeType(operType string) string {
 		randCodeType = redis.SC_REGISTER_RAND_CODE
 	case "login":
 		randCodeType = redis.SC_LOGIN_RAND_CODE
-	case "qqbind":
-		randCodeType = redis.SC_QQBIND_RAND_CODE
+	case "forgotpassword":
+		randCodeType = redis.SC_FORGOTPASSWORD_RAND_CODE
 	}
 	return randCodeType
 }

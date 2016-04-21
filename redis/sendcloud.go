@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	SC_LOGIN_RAND_CODE    = "sendcloud:login_rand_code:"
-	SC_REGISTER_RAND_CODE = "sendcloud:register_rand_code:"
-	SC_QQBIND_RAND_CODE   = "sendcloud:qqbind_rand_code:"
+	SC_LOGIN_RAND_CODE          = "sendcloud:login_rand_code:"
+	SC_REGISTER_RAND_CODE       = "sendcloud:register_rand_code:"
+	SC_FORGOTPASSWORD_RAND_CODE = "sendcloud:forgotpassword_rand_code:"
 )
 
 func SetSendcloudRandCode(phone string, randCode, randCodeType string) {
