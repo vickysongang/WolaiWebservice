@@ -21,6 +21,19 @@ func init() {
 	ErrInvalidSMSCode = errors.New("无效的验证码")
 }
 
+func GetRandCodeType(operType string) string {
+	var randCodeType string
+	switch operType {
+	case "register":
+		randCodeType = redis.SC_REGISTER_RAND_CODE
+	case "login":
+		randCodeType = redis.SC_LOGIN_RAND_CODE
+	case "qqbind":
+		randCodeType = redis.SC_QQBIND_RAND_CODE
+	}
+	return randCodeType
+}
+
 func SendSMSCode(phone, randCodeType string) error {
 	var err error
 

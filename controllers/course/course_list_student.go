@@ -18,18 +18,20 @@ type courseStudentListItem struct {
 
 func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentListItem) {
 	o := orm.NewOrm()
+	var err error
 
 	items := make([]*courseStudentListItem, 0)
+	if page == 0 {
+		var auditionUncompleteRecords []*models.CourseAuditionRecord
 
-	var auditionUncompleteRecords []*models.CourseAuditionRecord
+		_, err = o.QueryTable("course_audition_record").Filter("user_id", userId).
+			Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
+			OrderBy("-last_update_time").All(&auditionUncompleteRecords)
 
-	_, err := o.QueryTable("course_audition_record").Filter("user_id", userId).
-		Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
-		OrderBy("-last_update_time").All(&auditionUncompleteRecords)
-
-	for _, auditionRecord := range auditionUncompleteRecords {
-		item := assignAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status)
-		items = append(items, item)
+		for _, auditionRecord := range auditionUncompleteRecords {
+			item := assignAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status)
+			items = append(items, item)
+		}
 	}
 
 	var records []*models.CoursePurchaseRecord
@@ -63,7 +65,7 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 	}
 
 	recordsLen := int64(len(records))
-	if recordsLen < count && recordsLen > 0 {
+	if recordsLen < count {
 		var auditionCompleteRecords []*models.CourseAuditionRecord
 		o.QueryTable("course_audition_record").Filter("user_id", userId).
 			Filter("status", models.AUDITION_RECORD_STATUS_COMPLETE).
