@@ -46,7 +46,7 @@ func AuthPhonePasswordLogin(phone, password string) (int64, error, *authService.
 
 	user, err := userService.QueryUserByPhone(phone)
 	if user == nil {
-		return 1001, errors.New("该号码未注册"), nil
+		return 1001, errors.New("帐号不存在"), nil
 	}
 	encryptPassword := encrypt.EncryptPassword(password, *user.Salt)
 
@@ -86,7 +86,7 @@ func AuthPhoneRandCodeLogin(phone, code string, upgrade bool) (int64, error, *au
 	user, err := userService.QueryUserByPhone(phone)
 	if user == nil {
 		if upgrade {
-			return 2, errors.New("该号码未注册"), nil
+			return 2, errors.New("帐号不存在或密码错误"), nil
 		}
 
 		user, err = userService.RegisterUserByPhone(phone, "")
