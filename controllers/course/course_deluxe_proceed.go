@@ -167,7 +167,15 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 				Message: "",
 				Extra:   session,
 			}
-			createDeluxeCourseOrder(record.Id)
+			err = createDeluxeCourseOrder(record.Id)
+
+			if err != nil {
+				response = actionProceedResponse{
+					Action:  ACTION_PROCEED_NULL,
+					Message: "导师还没准备好下一节课时，请耐心等待哦",
+					Extra:   nullObject{},
+				}
+			}
 		}
 
 	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:
