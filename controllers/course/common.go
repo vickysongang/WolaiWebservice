@@ -38,6 +38,42 @@ type actionProceedResponse struct {
 	Extra   interface{} `json:"extra,omitempty"`
 }
 
+type teacherItem struct {
+	Id           int64    `json:"id"`
+	Nickname     string   `json:"nickname"`
+	Avatar       string   `json:"avatar"`
+	Gender       int64    `json:"gender"`
+	AccessRight  int64    `json:"accessRight"`
+	School       string   `json:"school"`
+	Major        string   `json:"major"`
+	Intro        string   `json:"intro"`
+	SubjectList  []string `json:"subjectList,omitempty"`
+	OnlineStatus string   `json:"onlineStatus,omitempty"`
+}
+
+type courseDetailStudent struct {
+	models.Course
+	StudentCount           int64                       `json:"studentCount"`
+	ChapterCount           int64                       `json:"chapterCount"`
+	AuditionStatus         string                      `json:"auditionStatus"`
+	PurchaseStatus         string                      `json:"purchaseStatus"`
+	ChapterCompletedPeriod int64                       `json:"chapterCompletePeriod"`
+	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
+	ChapterList            []*courseChapterStatus      `json:"chapterList"`
+	TeacherList            []*teacherItem              `json:"teacherList"`
+	AuditionCourseId       int64                       `json:"auditionCourseId,omitempty"`
+}
+
+type courseDetailTeacher struct {
+	models.Course
+	StudentCount           int64                       `json:"studentCount"`
+	ChapterCount           int64                       `json:"chapterCount"`
+	ChapterCompletedPeriod int64                       `json:"chapterCompletePeriod"`
+	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
+	ChapterList            []*courseChapterStatus      `json:"chapterList"`
+	StudentList            []*models.User              `json:"studentList"`
+}
+
 const (
 	COURSE_CHAPTER_STATUS_IDLE     = "idle"     //章节普通状态
 	COURSE_CHAPTER_STATUS_CURRENT  = "current"  //章节可以上课
@@ -61,11 +97,17 @@ const (
 	PAYMENT_PRICE_AUDITION = 100
 )
 
-func queryCourseChapterStatus(courseId int64, current int64) ([]*courseChapterStatus, error) {
+func queryCourseChapterStatus(courseId int64, current int64, upgradeFlag bool) ([]*courseChapterStatus, error) {
 	o := orm.NewOrm()
 
 	var courseChapters []*models.CourseChapter
-	count, err := o.QueryTable("course_chapter").Filter("course_id", courseId).OrderBy("period").All(&courseChapters)
+	cond := orm.NewCondition()
+	cond = cond.And("course_id", courseId)
+	if upgradeFlag {
+		cond = cond.AndNot("period", 0)
+	}
+	count, err := o.QueryTable("course_chapter").SetCond(cond).
+		OrderBy("period").All(&courseChapters)
 	if err != nil {
 		return make([]*courseChapterStatus, 0), err
 	}
@@ -89,14 +131,18 @@ func queryCourseChapterStatus(courseId int64, current int64) ([]*courseChapterSt
 	return statusList, nil
 }
 
-func queryCourseCustomChapterStatus(courseId int64, current int64, userId int64, teacherId int64) ([]*courseChapterStatus, error) {
+func queryCourseCustomChapterStatus(courseId int64, current int64, userId int64, teacherId int64, upgradeFlag bool) ([]*courseChapterStatus, error) {
 	o := orm.NewOrm()
 
 	var courseCustomChapters []*models.CourseCustomChapter
-	count, err := o.QueryTable("course_custom_chapter").
-		Filter("course_id", courseId).
-		Filter("user_id", userId).
-		Filter("teacher_id", teacherId).
+	cond := orm.NewCondition()
+	cond = cond.And("course_id", courseId)
+	cond = cond.And("user_id", userId)
+	cond = cond.And("teacher_id", teacherId)
+	if upgradeFlag {
+		cond = cond.AndNot("period", 0)
+	}
+	count, err := o.QueryTable("course_custom_chapter").SetCond(cond).
 		OrderBy("period").All(&courseCustomChapters)
 	if err != nil {
 		return make([]*courseChapterStatus, 0), err

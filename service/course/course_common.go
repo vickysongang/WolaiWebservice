@@ -23,6 +23,7 @@ func GetCourseChapterCount(courseId int64) int64 {
 	o := orm.NewOrm()
 	chapterCount, err := o.QueryTable(new(models.CourseChapter).TableName()).
 		Filter("course_id", courseId).
+		Exclude("period", 0).
 		Count()
 	if err != nil {
 		return 0
@@ -36,6 +37,7 @@ func GetCourseCustomChapterCount(courseId, userId, teacherId int64) int64 {
 		Filter("course_id", courseId).
 		Filter("user_id", userId).
 		Filter("teacher_id", teacherId).
+		Exclude("period", 0).
 		Count()
 	return chapterCount
 }
