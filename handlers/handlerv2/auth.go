@@ -25,7 +25,7 @@ func AuthPhoneRegister(w http.ResponseWriter, r *http.Request) {
 	vars := r.Form
 
 	phone := vars["phone"][0]
-	randCode := vars["randCode"][0]
+	randCode := vars["code"][0]
 	password := vars["password"][0]
 
 	status, err, content := authController.AuthPhoneRegister(phone, randCode, password)
