@@ -104,7 +104,7 @@ func AuthPhoneRandCodeLogin(phone, code string, upgrade bool) (int64, error, *au
 
 		return 1231, nil, info
 	} else {
-		if len(*user.Password) == 0 {
+		if user.Password == nil {
 			salt := encrypt.GenerateSalt()
 			phoneSuffix := (phone)[len(phone)-6 : len(phone)]
 			encryptPassword := encrypt.EncryptPassword(phoneSuffix, salt)
