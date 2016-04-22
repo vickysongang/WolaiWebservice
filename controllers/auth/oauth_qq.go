@@ -6,6 +6,7 @@ import (
 	authService "WolaiWebservice/service/auth"
 	tradeService "WolaiWebservice/service/trade"
 	userService "WolaiWebservice/service/user"
+	"WolaiWebservice/utils/encrypt"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
@@ -20,6 +21,16 @@ func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
 	user, err := models.ReadUser(userOauth.UserId)
 	if err != nil {
 		return 2, err, nil
+	} else {
+		if len(*user.Password) == 0 {
+			phone := *user.Phone
+			salt := encrypt.GenerateSalt()
+			phoneSuffix := (phone)[len(phone)-6 : len(phone)]
+			encryptPassword := encrypt.EncryptPassword(phoneSuffix, salt)
+			user.Salt = &salt
+			user.Password = &encryptPassword
+			models.UpdateUser(user)
+		}
 	}
 
 	flag, err := userService.IsTeacherFirstLogin(user)
