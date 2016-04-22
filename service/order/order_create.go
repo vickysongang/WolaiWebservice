@@ -16,14 +16,18 @@ func CreateOrder(creatorId, gradeId, subjectId, teacherId, tierId, recordId, cha
 		return nil, err
 	}
 
-	_, err = models.ReadGrade(gradeId)
-	if err != nil {
-		return nil, err
+	if gradeId != 0 {
+		_, err = models.ReadGrade(gradeId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	_, err = models.ReadSubject(subjectId)
-	if err != nil {
-		return nil, err
+	if subjectId != 0 {
+		_, err = models.ReadSubject(subjectId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if teacherId != 0 {
