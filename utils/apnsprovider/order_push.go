@@ -19,7 +19,7 @@ func PushNewOrderDispatch(deviceToken, deviceProfile string, orderId int64) erro
 	}
 
 	payload := apns.NewPayload()
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		payload.Alert = "你收到了一条上课请求"
 	} else {
 		payload.Alert = "你收到了一条新的提问"
@@ -95,7 +95,7 @@ func PushOrderPersonalAccept(deviceToken, deviceProfile string, orderId, teacher
 
 	payload := apns.NewPayload()
 
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		payload.Alert = "导师接受了上课请求，准备上课吧"
 	} else {
 		payload.Alert = "导师接受了你的提问，快来上课吧"

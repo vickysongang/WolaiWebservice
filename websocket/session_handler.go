@@ -33,7 +33,7 @@ func sessionHandler(sessionId int64) {
 	autoFinishLimit := settings.SessionAutoFinishLimit()
 
 	var isCourse bool
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		isCourse = true
 	}
 
@@ -548,7 +548,8 @@ func InitSessionMonitor(sessionId int64) bool {
 
 	if order.Type != models.ORDER_TYPE_GENERAL_INSTANT &&
 		order.Type != models.ORDER_TYPE_PERSONAL_INSTANT &&
-		order.Type != models.ORDER_TYPE_COURSE_INSTANT {
+		order.Type != models.ORDER_TYPE_COURSE_INSTANT &&
+		order.Type != models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		return false
 	}
 
@@ -564,7 +565,7 @@ func InitSessionMonitor(sessionId int64) bool {
 		startMsg.Attribute["sessionStatus"] = SESSION_STATUS_PAUSED
 	}
 
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		courseRelation, _ := courseService.GetCourseRelation(order.CourseId, order.Creator, order.TeacherId)
 		virturlCourseId := courseRelation.Id
 		//startMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)

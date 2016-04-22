@@ -93,7 +93,7 @@ func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
 	}
 
 	var isCourse bool
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		isCourse = true
 	}
 
@@ -133,7 +133,7 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 	var isCourse, isCompleted bool
 	var chapterInfo courseChapterInfo
 	var evaluationStatus, evaluationComment, evaluationDetailUrl string
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		isCourse = true
 		chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
 		if err == nil {

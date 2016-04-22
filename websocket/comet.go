@@ -467,7 +467,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 	switch msg.OperationCode {
 	case WS_ORDER2_CANCEL:
-		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT || order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT || order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 			resp.OperationCode = WS_ORDER2_CANCEL_RESP
 			resp.Attribute["errCode"] = "0"
 
@@ -689,7 +689,8 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		resp.Attribute["orderType"] = order.Type
 
 		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
-			order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+			order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+			order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 			teacher, _ := models.ReadUser(msg.UserId)
 			teacherByte, _ := json.Marshal(teacher)
 

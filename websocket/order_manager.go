@@ -103,7 +103,8 @@ func (osm *OrderStatusManager) SetOnline(orderId int64) error {
 	osm.orderMap[orderId] = NewOrderStatus(orderId)
 
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
-		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+		order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		if _, ok := osm.personalOrderMap[order.Creator]; !ok {
 			osm.personalOrderMap[order.Creator] = make(map[int64]int64)
 		}
@@ -126,7 +127,8 @@ func (osm *OrderStatusManager) SetOffline(orderId int64) error {
 	delete(osm.orderMap, orderId)
 
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
-		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+		order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		if _, ok := osm.personalOrderMap[order.Creator]; ok {
 			delete(osm.personalOrderMap[order.Creator], order.TeacherId)
 		}

@@ -27,7 +27,7 @@ func GetOrderInfo(orderId int64) *orderInfo {
 		} else {
 			title = "实时课堂"
 		}
-	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		course, _ := models.ReadCourse(order.CourseId)
 
 		title = course.Name

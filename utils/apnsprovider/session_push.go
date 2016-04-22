@@ -32,7 +32,7 @@ func PushSessionInstantStart(deviceToken, deviceProfile string, sessionId int64)
 	pn.Set("sessionId", session.Id)
 	pn.Set("studentId", session.Creator)
 	pn.Set("teacherId", session.Tutor)
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		pn.Set("courseId", order.CourseId)
 	}
 
