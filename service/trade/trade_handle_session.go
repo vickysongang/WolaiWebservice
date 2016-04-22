@@ -21,7 +21,7 @@ func HandleTradeSession(sessionId int64) error {
 		return err
 	}
 
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		return errors.New("课程课堂不产生交易记录")
 	}
 

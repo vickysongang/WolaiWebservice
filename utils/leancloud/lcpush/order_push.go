@@ -18,7 +18,7 @@ func PushNewOrderDispatch(objectId string, orderId int64) error {
 	}
 
 	var alert string
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		alert = "你收到了一条上课请求"
 	} else {
 		alert = "你收到了一条新的提问"
@@ -88,7 +88,7 @@ func PushOrderAccept(objectId string, orderId, teacherId int64) error {
 	}
 
 	var alert string
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		alert = "导师接受了上课请求，准备上课吧"
 	} else {
 		alert = "导师接受了你的提问，准备上课吧"

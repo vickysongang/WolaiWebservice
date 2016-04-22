@@ -84,7 +84,6 @@ func CreateOrder(creatorId, gradeId, subjectId, teacherId, tierId, recordId, cha
 			return nil, errors.New("课程信息不匹配")
 		}
 	}
-
 	date := time.Now().Format(time.RFC3339)
 
 	order := models.Order{

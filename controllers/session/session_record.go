@@ -53,7 +53,7 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 		order, _ := models.ReadOrder(session.OrderId)
 		var title string
 		var isCourse bool
-		if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 			isCourse = true
 		}
 		if isCourse {
