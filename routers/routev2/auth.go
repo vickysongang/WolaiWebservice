@@ -26,7 +26,7 @@ var authRoutes = route.Routes{
 		"POST",
 		"/register",
 		handlerv2.AuthPhoneRegister,
-		false,
+		true,
 		false,
 	},
 
@@ -36,7 +36,7 @@ var authRoutes = route.Routes{
 		"POST",
 		"/login",
 		handlerv2.AuthPhonePasswordLogin,
-		false,
+		true,
 		false,
 	},
 
@@ -46,7 +46,7 @@ var authRoutes = route.Routes{
 		"POST",
 		"/forgot_password",
 		handlerv2.ForgotPassword,
-		false,
+		true,
 		false,
 	},
 
