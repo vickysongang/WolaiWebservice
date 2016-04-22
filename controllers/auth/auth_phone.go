@@ -30,6 +30,11 @@ func AuthPhoneRegister(phone, code, password string) (int64, error, *authService
 		return 2, err, nil
 	}
 
+	err = userService.UpdateUserLastLoginTime(user)
+	if err != nil {
+		return 2, err, nil
+	}
+
 	info, err := authService.GenerateAuthInfo(user.Id)
 	if err != nil {
 		return 2, err, nil

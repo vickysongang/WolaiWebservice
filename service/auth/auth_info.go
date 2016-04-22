@@ -6,13 +6,13 @@ import (
 )
 
 type AuthInfo struct {
-	Id          int64  `json:"id"`
-	Nickname    string `json:"nickname"`
-	Avatar      string `json:"avatar"`
-	Gender      int64  `json:"gender"`
-	Phone       string `json:"phone"`
-	AccessRight int64  `json:"accessRight"`
-	Token       string `json:"token"`
+	Id          int64   `json:"id"`
+	Nickname    string  `json:"nickname"`
+	Avatar      string  `json:"avatar"`
+	Gender      int64   `json:"gender"`
+	Phone       *string `json:"phone"`
+	AccessRight int64   `json:"accessRight"`
+	Token       string  `json:"token"`
 }
 
 func GenerateAuthInfo(userId int64) (*AuthInfo, error) {
@@ -34,7 +34,7 @@ func GenerateAuthInfo(userId int64) (*AuthInfo, error) {
 		Nickname:    user.Nickname,
 		Avatar:      user.Avatar,
 		Gender:      user.Gender,
-		Phone:       *user.Phone,
+		Phone:       user.Phone,
 		AccessRight: user.AccessRight,
 		Token:       tokenString,
 	}
