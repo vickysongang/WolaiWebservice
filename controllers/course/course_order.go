@@ -71,7 +71,6 @@ func createAuditionCourseOrder(recordId int64) error {
 		Filter("course_id", record.CourseId).
 		Filter("user_id", record.UserId).
 		Filter("teacher_id", record.TeacherId).
-		Filter("period", 0).
 		One(&chapter)
 	if err != nil {
 		return errors.New("查找当前章节失败")
