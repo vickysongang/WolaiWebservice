@@ -185,13 +185,8 @@ func CourseDetailStudent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	vars := r.Form
-	var courseId int64
-	if len(vars["courseId"]) > 0 {
-		courseIdStr := vars["courseId"][0]
-		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
-	} else {
-		courseId = 0 //如果没有传courseId,代表是试听课
-	}
+	courseIdStr := vars["courseId"][0]
+	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
 	status, content := courseController.GetCourseDetailStudent(userId, courseId)
 	if content == nil {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
@@ -223,6 +218,66 @@ func CourseDetailTeacher(w http.ResponseWriter, r *http.Request) {
 	studentId, _ := strconv.ParseInt(studentIdStr, 10, 64)
 
 	status, content := courseController.GetCourseDetailTeacher(courseId, studentId)
+	if content == nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 9.3.3
+func CourseDetailStudentUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+	var courseId int64
+	if len(vars["courseId"]) > 0 {
+		courseIdStr := vars["courseId"][0]
+		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
+	} else {
+		courseId = 0 //如果没有传courseId,代表是试听课
+	}
+	status, content := courseController.GetCourseDetailStudentUpgrade(userId, courseId)
+	if content == nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 9.3.4
+func CourseDetailTeacherUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	courseIdStr := vars["courseId"][0]
+	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
+
+	studentIdStr := vars["studentId"][0]
+	studentId, _ := strconv.ParseInt(studentIdStr, 10, 64)
+
+	status, content := courseController.GetCourseDetailTeacherUpgrade(courseId, studentId)
 	if content == nil {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
 	} else {

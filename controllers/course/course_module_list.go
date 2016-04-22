@@ -41,7 +41,7 @@ func GetCourseModuleList(moduleType, page, count int64) (int64, []*courseItem) {
 		}
 
 		chapterCount := courseService.GetCourseChapterCount(courseModule.CourseId)
-		item.ChapterCount = chapterCount - 1
+		item.ChapterCount = chapterCount
 		item.StudentCount = courseService.GetCourseStudentCount(course.Id)
 
 		courses = append(courses, &item)

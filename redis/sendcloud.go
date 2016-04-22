@@ -8,20 +8,22 @@ import (
 )
 
 const (
-	SC_RAND_CODE = "sendcloud:rand_code:"
+	SC_LOGIN_RAND_CODE          = "sendcloud:login_rand_code:"
+	SC_REGISTER_RAND_CODE       = "sendcloud:register_rand_code:"
+	SC_FORGOTPASSWORD_RAND_CODE = "sendcloud:forgotpassword_rand_code:"
 )
 
-func SetSendcloudRandCode(phone string, randCode string) {
-	_ = redisClient.HSet(SC_RAND_CODE+phone, "randCode", randCode)
-	_ = redisClient.HSet(SC_RAND_CODE+phone, "timestamp", strconv.Itoa(int(time.Now().Unix())))
+func SetSendcloudRandCode(phone string, randCode, randCodeType string) {
+	_ = redisClient.HSet(randCodeType+phone, "randCode", randCode)
+	_ = redisClient.HSet(randCodeType+phone, "timestamp", strconv.Itoa(int(time.Now().Unix())))
 }
 
-func GetSendcloudRandCode(phone string) (randCode string, timestamp int64) {
-	randCode, err1 := redisClient.HGet(SC_RAND_CODE+phone, "randCode").Result()
+func GetSendcloudRandCode(phone, randCodeType string) (randCode string, timestamp int64) {
+	randCode, err1 := redisClient.HGet(randCodeType+phone, "randCode").Result()
 	if err1 == redis.Nil {
 		randCode = ""
 	}
-	timestampStr, err2 := redisClient.HGet(SC_RAND_CODE+phone, "timestamp").Result()
+	timestampStr, err2 := redisClient.HGet(randCodeType+phone, "timestamp").Result()
 	if err2 == nil {
 		timestampTmp, _ := strconv.Atoi(timestampStr)
 		timestamp = int64(timestampTmp)
@@ -29,7 +31,7 @@ func GetSendcloudRandCode(phone string) (randCode string, timestamp int64) {
 	return
 }
 
-func RemoveSendcloudRandCode(phone string) {
-	redisClient.HDel(SC_RAND_CODE+phone, "randCode")
-	redisClient.HDel(SC_RAND_CODE+phone, "timestamp")
+func RemoveSendcloudRandCode(phone, randCodeType string) {
+	redisClient.HDel(randCodeType+phone, "randCode")
+	redisClient.HDel(randCodeType+phone, "timestamp")
 }

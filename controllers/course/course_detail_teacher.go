@@ -7,16 +7,6 @@ import (
 	courseService "WolaiWebservice/service/course"
 )
 
-type courseDetailTeacher struct {
-	models.Course
-	StudentCount           int64                       `json:"studentCount"`
-	ChapterCount           int64                       `json:"chapterCount"`
-	ChapterCompletedPeriod int64                       `json:"chapterCompletePeriod"`
-	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
-	ChapterList            []*courseChapterStatus      `json:"chapterList"`
-	StudentList            []*models.User              `json:"studentList"`
-}
-
 func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeacher) {
 	o := orm.NewOrm()
 
@@ -45,9 +35,9 @@ func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeac
 
 	detail.ChapterCompletedPeriod, err = courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
 	if err != nil {
-		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, studentId, purchaseRecord.TeacherId)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, studentId, purchaseRecord.TeacherId, false)
 	} else {
-		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, studentId, purchaseRecord.TeacherId)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, studentId, purchaseRecord.TeacherId, false)
 	}
 
 	studentList := make([]*models.User, 0)
