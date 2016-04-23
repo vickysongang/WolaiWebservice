@@ -32,7 +32,9 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 			priceHourly = auditionRecord.PriceHourly
 			salaryHourly = auditionRecord.SalaryHourly
 			priceTotal = priceHourly * currentRecord.ChapterCount
+			migerateCourseChapter(userId, auditionRecord.TeacherId, courseId)
 		}
+
 		chapterCount := courseService.GetCourseChapterCount(courseId)
 		// 如果用户没有购买过，创建购买记录
 		newRecord := models.CoursePurchaseRecord{
@@ -194,4 +196,54 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 	}
 
 	return 0, &response
+}
+
+func migerateCourseChapter(userId, teacherId, courseId int64) {
+	courseChapters, err := courseService.QueryCourseChapters(courseId)
+	if err != nil {
+		return
+	}
+	var relId int64
+	oldCourseRelation, _ := courseService.QueryCourseRelation(courseId, userId, teacherId)
+	if oldCourseRelation.Id == 0 {
+		courseRelation := models.CourseRelation{
+			CourseId:  courseId,
+			UserId:    userId,
+			TeacherId: teacherId,
+		}
+		relId, err = models.InsertCourseRelation(&courseRelation)
+	} else {
+		relId = oldCourseRelation.Id
+	}
+
+	if err != nil {
+		return
+	}
+
+	for _, courseChapter := range courseChapters {
+		oldCustomChapter, _ := courseService.QueryCourseCustomChapter(courseId, courseChapter.Period, userId)
+		if oldCustomChapter.Id == 0 {
+			customChapter := models.CourseCustomChapter{
+				CourseId:  courseChapter.CourseId,
+				Title:     courseChapter.Title,
+				Abstract:  courseChapter.Abstract,
+				Period:    courseChapter.Period,
+				UserId:    userId,
+				TeacherId: teacherId,
+				AttachId:  courseChapter.AttachId,
+				RelId:     relId,
+			}
+			models.InsertCourseCustomChapter(&customChapter)
+		} else {
+			customChapterInfo := map[string]interface{}{
+				"Title":     courseChapter.Title,
+				"Abstract":  courseChapter.Abstract,
+				"Period":    courseChapter.Period,
+				"TeacherId": teacherId,
+				"AttachId":  courseChapter.AttachId,
+				"RelId":     relId,
+			}
+			models.UpdateCourseCustomChapter(oldCustomChapter.Id, customChapterInfo)
+		}
+	}
 }
