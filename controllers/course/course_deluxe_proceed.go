@@ -27,12 +27,16 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 		o.QueryTable(new(models.CourseAuditionRecord).TableName()).Filter("source_course_id", courseId).Filter("user_id", userId).
 			One(&auditionRecord)
 		var teacherId, priceHourly, salaryHourly, priceTotal int64
+		var status string
 		if auditionRecord.Id != 0 && auditionRecord.TeacherId != 0 {
 			teacherId = auditionRecord.TeacherId
 			priceHourly = auditionRecord.PriceHourly
 			salaryHourly = auditionRecord.SalaryHourly
 			priceTotal = priceHourly * currentRecord.ChapterCount
+			status = models.PURCHASE_RECORD_STATUS_WAITING
 			migerateCourseChapter(userId, auditionRecord.TeacherId, courseId)
+		} else {
+			status = models.PURCHASE_RECORD_STATUS_APPLY
 		}
 
 		chapterCount := courseService.GetCourseChapterCount(courseId)
@@ -45,7 +49,7 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 			SalaryHourly:   salaryHourly,
 			PriceTotal:     priceTotal,
 			AuditionStatus: models.PURCHASE_RECORD_STATUS_IDLE,
-			PurchaseStatus: models.PURCHASE_RECORD_STATUS_APPLY,
+			PurchaseStatus: status,
 			TraceStatus:    models.PURCHASE_RECORD_TRACE_STATUS_IDLE,
 			ChapterCount:   chapterCount,
 		}
