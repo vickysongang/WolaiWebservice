@@ -7,9 +7,16 @@ import (
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/leancloud"
+
+	seelog "github.com/cihub/seelog"
 )
 
 func SendTradeNotification(recordId int64) {
+	defer func() {
+		if x := recover(); x != nil {
+			seelog.Error(x)
+		}
+	}()
 	var err error
 
 	record, err := models.ReadTradeRecord(recordId)
@@ -192,12 +199,10 @@ func SendTradeNotification(recordId int64) {
 	case models.TRADE_AUDITION_COURSE_PURCHASE:
 		audition, err := models.ReadCourseAuditionRecord(record.RecordId)
 		if err != nil {
-			fmt.Println("aaaaaaaaaaaaa:", err.Error())
 			return
 		}
 
 		course, err := models.ReadCourse(audition.CourseId)
-		fmt.Println("bbbbbbbbbbbbb:", err.Error())
 		if err != nil {
 			return
 		}
@@ -207,7 +212,6 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("课程名称：%s", course.Name))
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
-		fmt.Println("ssssssssssssssss:", msg)
 
 	case models.TRADE_COURSE_PURCHASE:
 		purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)
