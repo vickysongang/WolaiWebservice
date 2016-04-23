@@ -29,7 +29,7 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 			OrderBy("-last_update_time").All(&auditionUncompleteRecords)
 
 		for _, auditionRecord := range auditionUncompleteRecords {
-			item := assignAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status)
+			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status)
 			items = append(items, item)
 		}
 	}
@@ -72,7 +72,7 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 			OrderBy("-last_update_time").All(&auditionCompleteRecords)
 
 		for _, auditionRecord := range auditionCompleteRecords {
-			item := assignAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status)
+			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status)
 			items = append(items, item)
 		}
 	}
@@ -80,13 +80,13 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 	return 0, items
 }
 
-func assignAuditionCourseInfo(courseId, userId int64, status string) *courseStudentListItem {
+func assignStudentAuditionCourseInfo(courseId, userId int64, status string) *courseStudentListItem {
 	course, err := models.ReadCourse(courseId)
 	if err != nil {
 		return nil
 	}
 
-	studentCount := courseService.GetCourseStudentCount(courseId)
+	studentCount := courseService.GetAuditionCourseStudentCount(courseId)
 	chapterCount := int64(1)
 
 	chapterCompletePeriod, _ := courseService.QueryLatestCourseChapterPeriod(courseId, userId)
