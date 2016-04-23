@@ -22,3 +22,9 @@ func (relation *CourseRelation) TableName() string {
 func init() {
 	orm.RegisterModel(new(CourseRelation))
 }
+
+func InsertCourseRelation(relation *CourseRelation) (int64, error) {
+	o := orm.NewOrm()
+	id, err := o.Insert(relation)
+	return id, err
+}

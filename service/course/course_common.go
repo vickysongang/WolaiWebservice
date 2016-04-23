@@ -96,3 +96,24 @@ func QueryCourseContentIntros(courseId int64) ([]models.CourseContentIntro, erro
 	_, err := o.QueryTable(new(models.CourseContentIntro).TableName()).Filter("course_id", courseId).OrderBy("rank").All(&intros)
 	return intros, err
 }
+
+func QueryCourseRelation(courseId, userId, teacherId int64) (*models.CourseRelation, error) {
+	o := orm.NewOrm()
+	var courseRelation models.CourseRelation
+	err := o.QueryTable("course_relation").
+		Filter("course_id", courseId).
+		Filter("user_id", userId).
+		Filter("teacher_id", teacherId).One(&courseRelation)
+	return &courseRelation, err
+}
+
+func QueryCourseCustomChapter(courseId, period, userId int64) (*models.CourseCustomChapter, error) {
+	o := orm.NewOrm()
+	var customChapter models.CourseCustomChapter
+	err := o.QueryTable("course_custom_chapter").
+		Filter("course_id", courseId).
+		Filter("period", period).
+		Filter("user_id", userId).
+		One(&customChapter)
+	return &customChapter, err
+}
