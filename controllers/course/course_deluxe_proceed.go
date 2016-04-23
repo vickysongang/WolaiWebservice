@@ -167,7 +167,7 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 				Message: "",
 				Extra:   session,
 			}
-			err = createDeluxeCourseOrder(record.Id)
+			err = createDeluxeCourseOrder(record.Id, true)
 
 			if err != nil {
 				response = actionProceedResponse{

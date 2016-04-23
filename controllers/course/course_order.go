@@ -11,7 +11,7 @@ import (
 	"WolaiWebservice/websocket"
 )
 
-func createDeluxeCourseOrder(recordId int64) error {
+func createDeluxeCourseOrder(recordId int64, upgrade bool) error {
 	var err error
 
 	o := orm.NewOrm()
@@ -31,7 +31,11 @@ func createDeluxeCourseOrder(recordId int64) error {
 	if err == nil {
 		currentPeriod = lastPeriod + 1
 	} else {
-		currentPeriod = 0
+		if upgrade {
+			currentPeriod = 1
+		} else {
+			currentPeriod = 0
+		}
 	}
 
 	var chapter models.CourseCustomChapter

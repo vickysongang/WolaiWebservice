@@ -132,7 +132,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 				Message: "",
 				Extra:   session,
 			}
-			createDeluxeCourseOrder(record.Id)
+			createDeluxeCourseOrder(record.Id, false)
 		}
 
 	case record.AuditionStatus == models.PURCHASE_RECORD_STATUS_COMPLETE &&
@@ -214,7 +214,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 				Extra:   session,
 			}
 
-			createDeluxeCourseOrder(record.Id)
+			createDeluxeCourseOrder(record.Id, false)
 		}
 
 	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:
