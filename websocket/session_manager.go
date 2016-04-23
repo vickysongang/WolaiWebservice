@@ -4,6 +4,7 @@ package websocket
 import (
 	"WolaiWebservice/models"
 	"errors"
+	"sync"
 	"time"
 
 	seelog "github.com/cihub/seelog"
@@ -22,6 +23,7 @@ type SessionStatus struct {
 	isPaused    bool //课程是否被暂停
 	isBroken    bool //课程是否被中断
 	status      string
+	lock        sync.Mutex
 }
 
 const (

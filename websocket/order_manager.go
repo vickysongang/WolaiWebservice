@@ -19,7 +19,7 @@ type OrderStatus struct {
 	dispatchMap     map[int64]int64 //teacherId to timestamp
 	assignMap       map[int64]int64 //teacherId to timestamp
 	isLocked        bool            //用来控制是否被抢
-	lock            sync.RWMutex
+	lock            sync.Mutex
 }
 
 type OrderStatusManager struct {
@@ -302,8 +302,8 @@ func (osm *OrderStatusManager) IsOrderLocked(orderId int64) bool {
 	if !ok {
 		return false
 	}
-	status.lock.RLock()
-	defer status.lock.RUnlock()
+	status.lock.Lock()
+	defer status.lock.Unlock()
 	return status.isLocked
 }
 
