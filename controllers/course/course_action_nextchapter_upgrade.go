@@ -69,8 +69,9 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId
 		if chapter.Period != latestPeriod+1 {
 			return 2, errors.New("课程信息异常")
 		}
-
-		if purchase.PurchaseStatus != models.PURCHASE_RECORD_STATUS_PAID {
+		if purchase.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE {
+			return 2, errors.New("学生还未购买该课时")
+		} else if purchase.PurchaseStatus != models.PURCHASE_RECORD_STATUS_PAID {
 			return 2, errors.New("学生尚未完成课程支付")
 		}
 
