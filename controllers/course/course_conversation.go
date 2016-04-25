@@ -18,6 +18,15 @@ func QueryCourseCountOfConversation(studentId, teacherId int64) int64 {
 	return count
 }
 
+func QueryAuditonCourseCountOfConversation(studentId, teacherId int64) int64 {
+	o := orm.NewOrm()
+	count, _ := o.QueryTable("course_audition_record").
+		Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
+		Filter("user_id", studentId).
+		Filter("teacher_id", teacherId).Count()
+	return count
+}
+
 func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (int64, []*courseStudentListItem, error) {
 	o := orm.NewOrm()
 
@@ -32,8 +41,21 @@ func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (i
 	}
 
 	courseCount := QueryCourseCountOfConversation(userId, teacherId)
-	if courseCount == 0 {
+	auditionCourseCount := QueryAuditonCourseCountOfConversation(userId, teacherId)
+	if courseCount == 0 && auditionCourseCount == 0 {
 		return 2, items, errors.New("还没有选择该导师的课程，可以先去导师的个人主页看看哦")
+	}
+
+	if page == 0 {
+		var auditionUncompleteRecords []*models.CourseAuditionRecord
+		_, err = o.QueryTable("course_audition_record").Filter("teacher_id", teacherId).
+			Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
+			OrderBy("-last_update_time").All(&auditionUncompleteRecords)
+
+		for _, auditionRecord := range auditionUncompleteRecords {
+			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, auditionRecord.UserId, auditionRecord.Status)
+			items = append(items, item)
+		}
 	}
 
 	var records []*models.CoursePurchaseRecord
@@ -59,7 +81,7 @@ func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (i
 		item := courseStudentListItem{
 			Course:                 *course,
 			StudentCount:           studentCount,
-			ChapterCount:           chapterCount - 1,
+			ChapterCount:           chapterCount,
 			AuditionStatus:         record.AuditionStatus,
 			PurchaseStatus:         record.PurchaseStatus,
 			ChapterCompletedPeriod: chapterCompletePeriod,
