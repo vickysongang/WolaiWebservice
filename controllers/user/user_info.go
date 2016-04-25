@@ -74,3 +74,11 @@ func UserNotification(userId int64) (int64, error, []*models.Broadcast) {
 
 	return 0, nil, broadcasts
 }
+
+func CheckUserExist(phone string) bool {
+	user, _ := userService.QueryUserByPhone(phone)
+	if user != nil {
+		return true
+	}
+	return false
+}

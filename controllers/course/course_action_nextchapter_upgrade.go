@@ -69,18 +69,15 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId
 		if chapter.Period != latestPeriod+1 {
 			return 2, errors.New("课程信息异常")
 		}
-
-		if purchase.PurchaseStatus != models.PURCHASE_RECORD_STATUS_PAID {
+		if purchase.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE {
+			return 2, errors.New("学生还未购买该课时")
+		} else if purchase.PurchaseStatus != models.PURCHASE_RECORD_STATUS_PAID {
 			return 2, errors.New("学生尚未完成课程支付")
 		}
 
 	} else {
 		if latestPeriod != 0 {
 			return 2, errors.New("课程信息异常")
-		}
-
-		if purchase.AuditionStatus != models.PURCHASE_RECORD_STATUS_PAID {
-			return 2, errors.New("学生尚未完成试听支付")
 		}
 	}
 
@@ -99,20 +96,9 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId
 
 	go lcmessage.SendCourseChapterCompleteMsg(purchase.Id, chapter.Id)
 
-	chapterCount := purchase.ChapterCount
-
-	recordInfo := map[string]interface{}{
-		"audition_status": purchase.AuditionStatus,
-	}
-	models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
-
-	if chapter.Period == 0 {
+	if chapter.Period == purchase.ChapterCount {
 		recordInfo := map[string]interface{}{
 			"audition_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
-		}
-		models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
-	} else if chapter.Period == chapterCount-1 {
-		recordInfo := map[string]interface{}{
 			"purchase_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
 		}
 		models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
@@ -121,7 +107,7 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId
 	return 0, nil
 }
 
-func HandleAuditionCourseNextChapterUpgrade(userId, studentId, courseId, chapterId int64) (int64, error) {
+func HandleAuditionCourseNextChapterUpgrade(teacherId, studentId, courseId, chapterId int64) (int64, error) {
 	var err error
 	o := orm.NewOrm()
 
@@ -132,11 +118,14 @@ func HandleAuditionCourseNextChapterUpgrade(userId, studentId, courseId, chapter
 
 	var auditionRecord models.CourseAuditionRecord
 	err = o.QueryTable("course_audition_record").
-		Filter("course_id", courseId).Filter("user_id", studentId).One(&auditionRecord)
+		Filter("course_id", courseId).
+		Filter("user_id", studentId).
+		Filter("teacher_id", teacherId).
+		One(&auditionRecord)
 	if err != nil {
 		return 2, errors.New("课程信息异常")
 	}
-	if auditionRecord.TeacherId != userId {
+	if auditionRecord.TeacherId != teacherId {
 		return 2, errors.New("课程信息异常")
 	}
 
@@ -160,7 +149,7 @@ func HandleAuditionCourseNextChapterUpgrade(userId, studentId, courseId, chapter
 		CourseId:  courseId,
 		ChapterId: chapterId,
 		UserId:    studentId,
-		TeacherId: userId,
+		TeacherId: teacherId,
 		Period:    chapter.Period,
 	}
 
@@ -174,6 +163,9 @@ func HandleAuditionCourseNextChapterUpgrade(userId, studentId, courseId, chapter
 	recordInfo := map[string]interface{}{
 		"Status": models.AUDITION_RECORD_STATUS_COMPLETE,
 	}
-	models.UpdateCourseAuditionRecord(auditionRecord.Id, recordInfo)
+	_, err = models.UpdateCourseAuditionRecord(auditionRecord.Id, recordInfo)
+	if err != nil {
+		return 2, errors.New("服务器操作异常")
+	}
 	return 0, nil
 }
