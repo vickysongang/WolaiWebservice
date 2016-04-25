@@ -121,7 +121,7 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId
 	return 0, nil
 }
 
-func HandleAuditionCourseNextChapterUpgrade(userId, studentId, courseId, chapterId int64) (int64, error) {
+func HandleAuditionCourseNextChapterUpgrade(teacherId, studentId, courseId, chapterId int64) (int64, error) {
 	var err error
 	o := orm.NewOrm()
 
@@ -132,11 +132,14 @@ func HandleAuditionCourseNextChapterUpgrade(userId, studentId, courseId, chapter
 
 	var auditionRecord models.CourseAuditionRecord
 	err = o.QueryTable("course_audition_record").
-		Filter("course_id", courseId).Filter("user_id", studentId).One(&auditionRecord)
+		Filter("course_id", courseId).
+		Filter("user_id", studentId).
+		Filter("teacher_id", teacherId).
+		One(&auditionRecord)
 	if err != nil {
 		return 2, errors.New("课程信息异常")
 	}
-	if auditionRecord.TeacherId != userId {
+	if auditionRecord.TeacherId != teacherId {
 		return 2, errors.New("课程信息异常")
 	}
 
@@ -160,7 +163,7 @@ func HandleAuditionCourseNextChapterUpgrade(userId, studentId, courseId, chapter
 		CourseId:  courseId,
 		ChapterId: chapterId,
 		UserId:    studentId,
-		TeacherId: userId,
+		TeacherId: teacherId,
 		Period:    chapter.Period,
 	}
 
@@ -174,6 +177,9 @@ func HandleAuditionCourseNextChapterUpgrade(userId, studentId, courseId, chapter
 	recordInfo := map[string]interface{}{
 		"Status": models.AUDITION_RECORD_STATUS_COMPLETE,
 	}
-	models.UpdateCourseAuditionRecord(auditionRecord.Id, recordInfo)
+	_, err = models.UpdateCourseAuditionRecord(auditionRecord.Id, recordInfo)
+	if err != nil {
+		return 2, errors.New("服务器操作异常")
+	}
 	return 0, nil
 }
