@@ -78,10 +78,6 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId
 		if latestPeriod != 0 {
 			return 2, errors.New("课程信息异常")
 		}
-
-		if purchase.AuditionStatus != models.PURCHASE_RECORD_STATUS_PAID {
-			return 2, errors.New("学生尚未完成试听支付")
-		}
 	}
 
 	record := models.CourseChapterToUser{
@@ -99,20 +95,9 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId
 
 	go lcmessage.SendCourseChapterCompleteMsg(purchase.Id, chapter.Id)
 
-	chapterCount := purchase.ChapterCount
-
-	recordInfo := map[string]interface{}{
-		"audition_status": purchase.AuditionStatus,
-	}
-	models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
-
-	if chapter.Period == 0 {
+	if chapter.Period == purchase.ChapterCount {
 		recordInfo := map[string]interface{}{
 			"audition_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
-		}
-		models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
-	} else if chapter.Period == chapterCount-1 {
-		recordInfo := map[string]interface{}{
 			"purchase_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
 		}
 		models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)

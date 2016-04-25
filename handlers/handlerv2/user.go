@@ -182,6 +182,26 @@ func UserPromotionOnLogin(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
 
+// 2.1.7
+func CheckUserExist(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+	phone := vars["phone"][0]
+	exist := userController.CheckUserExist(phone)
+	json.NewEncoder(w).Encode(response.NewResponse(0, "", exist))
+}
+
 // 2.2.2
 func UserTeacherProfile(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
