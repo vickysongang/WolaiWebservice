@@ -55,7 +55,7 @@ func GetDeluxeCourseDetailTeacher(studentId int64, course *models.Course) (int64
 
 	detail.ChapterCompletedPeriod, err = courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
 	if err != nil {
-		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, studentId, purchaseRecord.TeacherId, true)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, 1, studentId, purchaseRecord.TeacherId, true)
 	} else {
 		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, studentId, purchaseRecord.TeacherId, true)
 	}
@@ -92,7 +92,7 @@ func GetAuditionCourseDetailTeacher(studentId int64, course *models.Course) (int
 
 	detail.ChapterCompletedPeriod, err = courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
 	if err != nil {
-		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, studentId, auditionoRecord.TeacherId, true)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, 1, studentId, auditionoRecord.TeacherId, true)
 	} else {
 		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, studentId, auditionoRecord.TeacherId, true)
 	}
