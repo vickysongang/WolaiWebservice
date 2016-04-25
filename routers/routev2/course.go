@@ -180,6 +180,16 @@ var courseRoutes = route.Routes{
 		true,
 	},
 
+	// 9.4.8
+	route.Route{
+		"CourseActionNextChapterUpgrade",
+		"POST",
+		"/upgrade/action/nextchapter",
+		handlerv2.CourseActionNextChapterUpgrade,
+		true,
+		true,
+	},
+
 	// 9.5.1
 	route.Route{
 		"CourseAttachs",

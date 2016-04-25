@@ -483,6 +483,39 @@ func CourseDeluxeActionProceed(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// 9.4.8 新版标记完成
+func CourseActionNextChapterUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	courseIdStr := vars["courseId"][0]
+	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
+	chapterIdStr := vars["chapterId"][0]
+	chapterId, _ := strconv.ParseInt(chapterIdStr, 10, 64)
+	studentIdStr := vars["studentId"][0]
+	studentId, _ := strconv.ParseInt(studentIdStr, 10, 64)
+
+	status, err := courseController.HandleCourseActionNextChapterUpgrade(userId, studentId, courseId, chapterId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", response.NullObject)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
 // 9.5.1
 func CourseAttachs(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)

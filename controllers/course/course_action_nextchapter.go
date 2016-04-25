@@ -29,7 +29,6 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 		return 2, errors.New("课程信息异常")
 	}
 
-	//	chapter, err := models.ReadCourseChapter(chapterId)
 	chapter, err := models.ReadCourseCustomChapter(chapterId)
 	if err != nil {
 		return 2, errors.New("课程信息异常")
