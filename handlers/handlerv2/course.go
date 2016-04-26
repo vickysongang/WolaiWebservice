@@ -247,7 +247,12 @@ func CourseDetailStudentUpgrade(w http.ResponseWriter, r *http.Request) {
 	} else {
 		courseId = 0 //如果没有传courseId,代表是试听课
 	}
-	status, content := courseController.GetCourseDetailStudentUpgrade(userId, courseId)
+	var auditionNum int64
+	if len(vars["auditionNum"]) > 0 {
+		auditionNumStr := vars["auditionNum"][0]
+		auditionNum, _ = strconv.ParseInt(auditionNumStr, 10, 64)
+	}
+	status, content := courseController.GetCourseDetailStudentUpgrade(userId, courseId, auditionNum)
 	if content == nil {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
 	} else {
@@ -264,7 +269,7 @@ func CourseDetailTeacherUpgrade(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userIdStr := r.Header.Get("X-Wolai-ID")
-	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
@@ -277,7 +282,10 @@ func CourseDetailTeacherUpgrade(w http.ResponseWriter, r *http.Request) {
 	studentIdStr := vars["studentId"][0]
 	studentId, _ := strconv.ParseInt(studentIdStr, 10, 64)
 
-	status, content := courseController.GetCourseDetailTeacherUpgrade(courseId, studentId)
+	auditionNumStr := vars["auditionNum"][0]
+	auditionNum, _ := strconv.ParseInt(auditionNumStr, 10, 64)
+
+	status, content := courseController.GetCourseDetailTeacherUpgrade(courseId, studentId, userId, auditionNum)
 	if content == nil {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
 	} else {

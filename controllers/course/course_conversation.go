@@ -53,7 +53,7 @@ func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (i
 			OrderBy("-last_update_time").All(&auditionUncompleteRecords)
 
 		for _, auditionRecord := range auditionUncompleteRecords {
-			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, auditionRecord.UserId, auditionRecord.Status)
+			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, auditionRecord.UserId, auditionRecord.Status, auditionRecord.AuditionNum)
 			items = append(items, item)
 		}
 	}

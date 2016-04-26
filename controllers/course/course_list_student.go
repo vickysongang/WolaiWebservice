@@ -14,6 +14,7 @@ type courseStudentListItem struct {
 	AuditionStatus         string `json:"auditionStatus"`
 	PurchaseStatus         string `json:"purchaseStatus"`
 	ChapterCompletedPeriod int64  `json:"chapterCompletePeriod"`
+	AuditionNum            int64  `json:"auditionNum"`
 }
 
 func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentListItem) {
@@ -29,7 +30,7 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 			OrderBy("-last_update_time").All(&auditionUncompleteRecords)
 
 		for _, auditionRecord := range auditionUncompleteRecords {
-			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status)
+			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status, auditionRecord.AuditionNum)
 			items = append(items, item)
 		}
 	}
@@ -72,7 +73,7 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 			OrderBy("-last_update_time").All(&auditionCompleteRecords)
 
 		for _, auditionRecord := range auditionCompleteRecords {
-			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status)
+			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status, auditionRecord.AuditionNum)
 			items = append(items, item)
 		}
 	}
@@ -80,7 +81,7 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 	return 0, items
 }
 
-func assignStudentAuditionCourseInfo(courseId, userId int64, status string) *courseStudentListItem {
+func assignStudentAuditionCourseInfo(courseId, userId int64, status string, auditionNum int64) *courseStudentListItem {
 	course, err := models.ReadCourse(courseId)
 	if err != nil {
 		return nil
@@ -98,6 +99,7 @@ func assignStudentAuditionCourseInfo(courseId, userId int64, status string) *cou
 		AuditionStatus:         status,
 		PurchaseStatus:         status,
 		ChapterCompletedPeriod: chapterCompletePeriod,
+		AuditionNum:            auditionNum,
 	}
 	return &item
 }
