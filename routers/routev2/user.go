@@ -87,7 +87,7 @@ var userRoutes = route.Routes{
 		"/exist/check",
 		handlerv2.UserPromotionOnLogin,
 		true,
-		true,
+		false,
 	},
 
 	// 2.2.1
