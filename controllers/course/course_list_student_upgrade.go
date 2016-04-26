@@ -49,6 +49,7 @@ func GetCourseListStudentUpgrade(userId, page, count int64) (int64, []*courseStu
 			ChapterCount:           chapterCount,
 			PurchaseStatus:         record.PurchaseStatus,
 			ChapterCompletedPeriod: chapterCompletePeriod,
+			AuditionNum:            0,
 			TeacherId:              record.TeacherId,
 		}
 

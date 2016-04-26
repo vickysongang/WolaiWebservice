@@ -61,6 +61,7 @@ func GetCourseListTeacherUpgrade(teacherId, page, count int64) (int64, []*course
 			ChapterCompletedPeriod: chapterCompletePeriod,
 			LastUpdateTime:         record.LastUpdateTime.Format(time.RFC3339),
 			StudentInfo:            student,
+			AuditionNum:            0,
 		}
 
 		items = append(items, &item)
