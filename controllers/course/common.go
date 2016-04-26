@@ -82,6 +82,7 @@ type courseStudentListItem struct {
 	PurchaseStatus         string `json:"purchaseStatus"`
 	ChapterCompletedPeriod int64  `json:"chapterCompletePeriod"`
 	AuditionNum            int64  `json:"auditionNum,omitempty"`
+	TeacherId              int64  `json:"teacherId,omitempty"`
 }
 
 type courseTeacherListItem struct {

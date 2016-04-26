@@ -20,7 +20,7 @@ func GetCourseListStudentUpgrade(userId, page, count int64) (int64, []*courseStu
 			OrderBy("-last_update_time").All(&auditionUncompleteRecords)
 
 		for _, auditionRecord := range auditionUncompleteRecords {
-			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status, auditionRecord.AuditionNum)
+			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status, auditionRecord.AuditionNum, auditionRecord.TeacherId)
 			items = append(items, item)
 		}
 	}
@@ -49,6 +49,7 @@ func GetCourseListStudentUpgrade(userId, page, count int64) (int64, []*courseStu
 			ChapterCount:           chapterCount,
 			PurchaseStatus:         record.PurchaseStatus,
 			ChapterCompletedPeriod: chapterCompletePeriod,
+			TeacherId:              record.TeacherId,
 		}
 
 		items = append(items, &item)
@@ -62,7 +63,7 @@ func GetCourseListStudentUpgrade(userId, page, count int64) (int64, []*courseStu
 			OrderBy("-last_update_time").All(&auditionCompleteRecords)
 
 		for _, auditionRecord := range auditionCompleteRecords {
-			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status, auditionRecord.AuditionNum)
+			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status, auditionRecord.AuditionNum, auditionRecord.TeacherId)
 			items = append(items, item)
 		}
 	}
@@ -70,7 +71,7 @@ func GetCourseListStudentUpgrade(userId, page, count int64) (int64, []*courseStu
 	return 0, items
 }
 
-func assignStudentAuditionCourseInfo(courseId, userId int64, status string, auditionNum int64) *courseStudentListItem {
+func assignStudentAuditionCourseInfo(courseId, userId int64, status string, auditionNum, teacherId int64) *courseStudentListItem {
 	course, err := models.ReadCourse(courseId)
 	if err != nil {
 		return nil
@@ -88,6 +89,7 @@ func assignStudentAuditionCourseInfo(courseId, userId int64, status string, audi
 		PurchaseStatus:         status,
 		ChapterCompletedPeriod: chapterCompletePeriod,
 		AuditionNum:            auditionNum,
+		TeacherId:              teacherId,
 	}
 	return &item
 }
