@@ -54,14 +54,12 @@ func GetDeluxeCourseDetail(userId int64, course *models.Course) (int64, *courseD
 
 	purchaseFlag := (err != orm.ErrNoRows) //判断是否购买或者试听
 	if !purchaseFlag {
-		detail.AuditionStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.TeacherList, _ = queryCourseTeacherList(courseId)
 		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 1, true)
 		chapterCount := courseService.GetCourseChapterCount(courseId)
 		detail.ChapterCount = chapterCount
 	} else {
-		detail.AuditionStatus = purchaseRecord.AuditionStatus
 		detail.PurchaseStatus = purchaseRecord.PurchaseStatus
 		detail.TeacherList, _ = queryCourseCurrentTeacher(purchaseRecord.TeacherId)
 		detail.ChapterCount = purchaseRecord.ChapterCount
@@ -96,7 +94,6 @@ func GetAuditionCourseDetail(userId int64, course *models.Course, auditionNum in
 	detail.CharacteristicList = characteristicList
 
 	if auditionNum == 0 {
-		detail.AuditionStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.TeacherList = make([]*teacherItem, 0)
 		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 1, true)
@@ -108,7 +105,6 @@ func GetAuditionCourseDetail(userId int64, course *models.Course, auditionNum in
 		if err != nil && err != orm.ErrNoRows {
 			return 2, nil
 		}
-		detail.AuditionStatus = auditionRecord.Status
 		detail.PurchaseStatus = auditionRecord.Status
 		detail.TeacherList, _ = queryCourseCurrentTeacher(auditionRecord.TeacherId)
 		if auditionRecord.TeacherId == 0 {

@@ -55,7 +55,7 @@ type courseDetailStudent struct {
 	models.Course
 	StudentCount           int64                       `json:"studentCount"`
 	ChapterCount           int64                       `json:"chapterCount"`
-	AuditionStatus         string                      `json:"auditionStatus"`
+	AuditionStatus         string                      `json:"auditionStatus,omitempty"`
 	PurchaseStatus         string                      `json:"purchaseStatus"`
 	ChapterCompletedPeriod int64                       `json:"chapterCompletePeriod"`
 	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
@@ -72,6 +72,28 @@ type courseDetailTeacher struct {
 	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
 	ChapterList            []*courseChapterStatus      `json:"chapterList"`
 	StudentList            []*models.User              `json:"studentList"`
+}
+
+type courseStudentListItem struct {
+	models.Course
+	StudentCount           int64  `json:"studentCount"`
+	ChapterCount           int64  `json:"chapterCount"`
+	AuditionStatus         string `json:"auditionStatus,omitempty"`
+	PurchaseStatus         string `json:"purchaseStatus"`
+	ChapterCompletedPeriod int64  `json:"chapterCompletePeriod"`
+	AuditionNum            int64  `json:"auditionNum,omitempty"`
+}
+
+type courseTeacherListItem struct {
+	models.Course
+	StudentCount           int64        `json:"studentCount"`
+	ChapterCount           int64        `json:"chapterCount"`
+	AuditionStatus         string       `json:"auditionStatus,omitempty"`
+	PurchaseStatus         string       `json:"purchaseStatus"`
+	ChapterCompletedPeriod int64        `json:"chapterCompletePeriod"`
+	LastUpdateTime         string       `json:"lastUpdateTime"`
+	StudentInfo            *models.User `json:"studentInfo"`
+	AuditionNum            int64        `json:"auditionNum,omitempty"`
 }
 
 const (

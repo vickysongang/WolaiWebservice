@@ -170,6 +170,80 @@ func CourseListTeacher(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// 9.2.3  新版学生课程列表
+func CourseListStudentUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, content := courseController.GetCourseListStudentUpgrade(userId, page, count)
+	if content == nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 9.2.4 新版导师课程列表
+func CourseListTeacherUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, content := courseController.GetCourseListTeacherUpgrade(userId, page, count)
+	if content == nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
 // 9.3.1
 func CourseDetailStudent(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
