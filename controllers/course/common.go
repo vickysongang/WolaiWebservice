@@ -81,8 +81,8 @@ type courseStudentListItem struct {
 	AuditionStatus         string `json:"auditionStatus,omitempty"`
 	PurchaseStatus         string `json:"purchaseStatus"`
 	ChapterCompletedPeriod int64  `json:"chapterCompletePeriod"`
-	AuditionNum            int64  `json:"auditionNum,omitempty"`
-	TeacherId              int64  `json:"teacherId,omitempty"`
+	AuditionNum            int64  `json:"auditionNum"`
+	TeacherId              int64  `json:"teacherId"`
 }
 
 type courseTeacherListItem struct {
@@ -94,7 +94,7 @@ type courseTeacherListItem struct {
 	ChapterCompletedPeriod int64        `json:"chapterCompletePeriod"`
 	LastUpdateTime         string       `json:"lastUpdateTime"`
 	StudentInfo            *models.User `json:"studentInfo"`
-	AuditionNum            int64        `json:"auditionNum,omitempty"`
+	AuditionNum            int64        `json:"auditionNum"`
 }
 
 const (
