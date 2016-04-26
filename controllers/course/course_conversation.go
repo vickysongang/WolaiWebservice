@@ -48,7 +48,7 @@ func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (i
 
 	if page == 0 {
 		var auditionUncompleteRecords []*models.CourseAuditionRecord
-		_, err = o.QueryTable("course_audition_record").Filter("teacher_id", teacherId).
+		_, err = o.QueryTable("course_audition_record").Filter("user_id", userId).Filter("teacher_id", teacherId).
 			Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
 			OrderBy("-last_update_time").All(&auditionUncompleteRecords)
 
