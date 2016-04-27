@@ -3,43 +3,19 @@ package course
 import (
 	"time"
 
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
+
+	"github.com/astaxie/beego/orm"
 )
 
-type courseTeacherListItem struct {
-	models.Course
-	StudentCount           int64        `json:"studentCount"`
-	ChapterCount           int64        `json:"chapterCount"`
-	AuditionStatus         string       `json:"auditionStatus"`
-	PurchaseStatus         string       `json:"purchaseStatus"`
-	ChapterCompletedPeriod int64        `json:"chapterCompletePeriod"`
-	LastUpdateTime         string       `json:"lastUpdateTime"`
-	StudentInfo            *models.User `json:"studentInfo"`
-}
-
-func GetCourseListTeacher(teacherId, page, count int64) (int64, []*courseTeacherListItem) {
-	var err error
+func GetCourseListTeacher(userId, page, count int64) (int64, []*courseTeacherListItem) {
 	o := orm.NewOrm()
 
 	items := make([]*courseTeacherListItem, 0)
 
-	if page == 0 {
-		var auditionUncompleteRecords []*models.CourseAuditionRecord
-		_, err = o.QueryTable("course_audition_record").Filter("teacher_id", teacherId).
-			Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
-			OrderBy("-last_update_time").All(&auditionUncompleteRecords)
-
-		for _, auditionRecord := range auditionUncompleteRecords {
-			item := assignTeacherAuditionCourseInfo(auditionRecord.CourseId, auditionRecord.UserId, auditionRecord.Status, auditionRecord.LastUpdateTime)
-			items = append(items, item)
-		}
-	}
-
 	var records []*models.CoursePurchaseRecord
-	_, err = o.QueryTable("course_purchase_record").Filter("teacher_id", teacherId).
+	_, err := o.QueryTable("course_purchase_record").Filter("teacher_id", userId).
 		OrderBy("-last_update_time").Offset(page * count).Limit(count).All(&records)
 	if err != nil {
 		return 0, items
@@ -52,7 +28,7 @@ func GetCourseListTeacher(teacherId, page, count int64) (int64, []*courseTeacher
 		}
 
 		studentCount := courseService.GetCourseStudentCount(record.CourseId)
-		chapterCount := record.ChapterCount
+		chapterCount := courseService.GetCourseChapterCount(record.CourseId)
 
 		chapterCompletePeriod, _ := courseService.QueryLatestCourseChapterPeriod(record.CourseId, record.UserId)
 		student, err := models.ReadUser(record.UserId)
@@ -63,7 +39,7 @@ func GetCourseListTeacher(teacherId, page, count int64) (int64, []*courseTeacher
 		item := courseTeacherListItem{
 			Course:                 *course,
 			StudentCount:           studentCount,
-			ChapterCount:           chapterCount,
+			ChapterCount:           chapterCount - 1,
 			AuditionStatus:         record.AuditionStatus,
 			PurchaseStatus:         record.PurchaseStatus,
 			ChapterCompletedPeriod: chapterCompletePeriod,
@@ -74,47 +50,5 @@ func GetCourseListTeacher(teacherId, page, count int64) (int64, []*courseTeacher
 		items = append(items, &item)
 	}
 
-	recordsLen := int64(len(records))
-	if recordsLen < count {
-		var auditionCompleteRecords []*models.CourseAuditionRecord
-		o.QueryTable("course_audition_record").Filter("teacher_id", teacherId).
-			Filter("status", models.AUDITION_RECORD_STATUS_COMPLETE).
-			OrderBy("-last_update_time").All(&auditionCompleteRecords)
-
-		for _, auditionRecord := range auditionCompleteRecords {
-			item := assignTeacherAuditionCourseInfo(auditionRecord.CourseId, auditionRecord.UserId, auditionRecord.Status, auditionRecord.LastUpdateTime)
-			items = append(items, item)
-		}
-	}
-
 	return 0, items
-}
-
-func assignTeacherAuditionCourseInfo(courseId, userId int64, status string, lastUpdateTime time.Time) *courseTeacherListItem {
-	course, err := models.ReadCourse(courseId)
-	if err != nil {
-		return nil
-	}
-
-	studentCount := courseService.GetAuditionCourseStudentCount(courseId)
-	chapterCount := int64(1)
-
-	chapterCompletePeriod, _ := courseService.QueryLatestCourseChapterPeriod(courseId, userId)
-
-	student, err := models.ReadUser(userId)
-	if err != nil {
-		return nil
-	}
-
-	item := courseTeacherListItem{
-		Course:                 *course,
-		StudentCount:           studentCount,
-		ChapterCount:           chapterCount,
-		AuditionStatus:         status,
-		PurchaseStatus:         status,
-		ChapterCompletedPeriod: chapterCompletePeriod,
-		LastUpdateTime:         lastUpdateTime.Format(time.RFC3339),
-		StudentInfo:            student,
-	}
-	return &item
 }

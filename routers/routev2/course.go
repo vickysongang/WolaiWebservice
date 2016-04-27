@@ -70,6 +70,26 @@ var courseRoutes = route.Routes{
 		true,
 	},
 
+	// 9.2.3
+	route.Route{
+		"CourseListStudentUpgrade",
+		"POST",
+		"/upgrade/user/list/student",
+		handlerv2.CourseListStudentUpgrade,
+		true,
+		true,
+	},
+
+	// 9.2.4
+	route.Route{
+		"CourseListTeacherUpgrade",
+		"POST",
+		"/upgrade/user/list/teacher",
+		handlerv2.CourseListTeacherUpgrade,
+		true,
+		true,
+	},
+
 	// 9.3.1
 	route.Route{
 		"CourseDetailStudent",

@@ -85,9 +85,9 @@ var userRoutes = route.Routes{
 		"CheckUserExist",
 		"POST",
 		"/exist/check",
-		handlerv2.UserPromotionOnLogin,
+		handlerv2.CheckUserExist,
 		true,
-		true,
+		false,
 	},
 
 	// 2.2.1

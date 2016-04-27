@@ -18,7 +18,7 @@ const (
 var ErrInvalidSMSCode error
 
 func init() {
-	ErrInvalidSMSCode = errors.New("无效的验证码")
+	ErrInvalidSMSCode = errors.New("请输入正确的验证码")
 }
 
 func GetRandCodeType(operType string) string {

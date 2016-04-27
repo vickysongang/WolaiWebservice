@@ -7,7 +7,7 @@ import (
 	courseService "WolaiWebservice/service/course"
 )
 
-func GetCourseDetailStudentUpgrade(userId int64, courseId int64) (int64, *courseDetailStudent) {
+func GetCourseDetailStudentUpgrade(userId int64, courseId int64, auditionNum int64) (int64, *courseDetailStudent) {
 	var err error
 	var course *models.Course
 	if courseId == 0 { //代表试听课，从H5页面跳转过来的
@@ -25,7 +25,7 @@ func GetCourseDetailStudentUpgrade(userId int64, courseId int64) (int64, *course
 		status, course := GetDeluxeCourseDetail(userId, course)
 		return status, course
 	} else if course.Type == models.COURSE_TYPE_AUDITION {
-		status, course := GetAuditionCourseDetail(userId, course)
+		status, course := GetAuditionCourseDetail(userId, course, auditionNum)
 		return status, course
 	}
 	return 0, nil
@@ -54,14 +54,12 @@ func GetDeluxeCourseDetail(userId int64, course *models.Course) (int64, *courseD
 
 	purchaseFlag := (err != orm.ErrNoRows) //判断是否购买或者试听
 	if !purchaseFlag {
-		detail.AuditionStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.TeacherList, _ = queryCourseTeacherList(courseId)
 		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 1, true)
 		chapterCount := courseService.GetCourseChapterCount(courseId)
 		detail.ChapterCount = chapterCount
 	} else {
-		detail.AuditionStatus = purchaseRecord.AuditionStatus
 		detail.PurchaseStatus = purchaseRecord.PurchaseStatus
 		detail.TeacherList, _ = queryCourseCurrentTeacher(purchaseRecord.TeacherId)
 		detail.ChapterCount = purchaseRecord.ChapterCount
@@ -83,7 +81,7 @@ func GetDeluxeCourseDetail(userId int64, course *models.Course) (int64, *courseD
 	return 0, &detail
 }
 
-func GetAuditionCourseDetail(userId int64, course *models.Course) (int64, *courseDetailStudent) {
+func GetAuditionCourseDetail(userId int64, course *models.Course, auditionNum int64) (int64, *courseDetailStudent) {
 	o := orm.NewOrm()
 	courseId := course.Id
 	studentCount := courseService.GetAuditionCourseStudentCount(courseId)
@@ -95,22 +93,18 @@ func GetAuditionCourseDetail(userId int64, course *models.Course) (int64, *cours
 	characteristicList, _ := courseService.QueryCourseContentIntros(courseId)
 	detail.CharacteristicList = characteristicList
 
-	var auditionRecord models.CourseAuditionRecord
-	err := o.QueryTable(new(models.CourseAuditionRecord).TableName()).
-		Filter("course_id", courseId).Filter("user_id", userId).
-		Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
-		One(&auditionRecord)
-	if err != nil && err != orm.ErrNoRows {
-		return 2, nil
-	}
-	purchaseFlag := (err != orm.ErrNoRows)
-	if !purchaseFlag {
-		detail.AuditionStatus = models.PURCHASE_RECORD_STATUS_IDLE
+	if auditionNum == 0 {
 		detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.TeacherList = make([]*teacherItem, 0)
 		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 1, true)
 	} else {
-		detail.AuditionStatus = auditionRecord.Status
+		var auditionRecord models.CourseAuditionRecord
+		err := o.QueryTable(new(models.CourseAuditionRecord).TableName()).
+			Filter("course_id", courseId).Filter("user_id", userId).Filter("audition_num", auditionNum).
+			One(&auditionRecord)
+		if err != nil && err != orm.ErrNoRows {
+			return 2, nil
+		}
 		detail.PurchaseStatus = auditionRecord.Status
 		detail.TeacherList, _ = queryCourseCurrentTeacher(auditionRecord.TeacherId)
 		if auditionRecord.TeacherId == 0 {
