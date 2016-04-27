@@ -36,8 +36,11 @@ func GetUncompletedAuditionRecord(userId int64) *models.CourseAuditionRecord {
 
 func GetMaxAuditionNum(userId int64) int64 {
 	o := orm.NewOrm()
-	var maxAuditionNum int64
+	var auditionRecord models.CourseAuditionRecord
 	o.QueryTable(new(models.CourseAuditionRecord).TableName()).
-		Filter("user_id", userId).OrderBy("-audition_num").Limit(1).One(&maxAuditionNum, "AuditionNum")
-	return maxAuditionNum
+		Filter("user_id", userId).OrderBy("-audition_num").Limit(1).One(&auditionRecord)
+	if auditionRecord.Id != 0 {
+		return auditionRecord.AuditionNum
+	}
+	return 0
 }

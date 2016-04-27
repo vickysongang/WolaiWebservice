@@ -77,7 +77,7 @@ var courseRoutes = route.Routes{
 		"/upgrade/user/list/student",
 		handlerv2.CourseListStudentUpgrade,
 		true,
-		false,
+		true,
 	},
 
 	// 9.2.4
