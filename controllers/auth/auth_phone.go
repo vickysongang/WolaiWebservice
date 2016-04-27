@@ -207,3 +207,11 @@ func SetPassword(userId int64, oldPassword, newPassword string) (int64, error) {
 	}
 	return 0, nil
 }
+
+func CheckUserExist(phone string) bool {
+	user, _ := userService.QueryUserByPhone(phone)
+	if user != nil {
+		return true
+	}
+	return false
+}

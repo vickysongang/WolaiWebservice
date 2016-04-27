@@ -80,6 +80,16 @@ var authRoutes = route.Routes{
 		true,
 	},
 
+	// 1.1.7
+	route.Route{
+		"CheckUserExist",
+		"POST",
+		"/exist/check",
+		handlerv2.CheckUserExist,
+		true,
+		false,
+	},
+
 	// 1.2.1
 	route.Route{
 		"SendSMSCode",
