@@ -94,7 +94,16 @@ func GetAuditionCourseDetail(userId int64, course *models.Course, auditionNum in
 	detail.CharacteristicList = characteristicList
 
 	if auditionNum == 0 {
-		detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
+		var auditionRecord models.CourseAuditionRecord
+		o.QueryTable(new(models.CourseAuditionRecord).TableName()).
+			Filter("course_id", courseId).Filter("user_id", userId).
+			Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
+			One(&auditionRecord)
+		if auditionRecord.Id != 0 {
+			detail.PurchaseStatus = auditionRecord.Status
+		} else {
+			detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
+		}
 		detail.TeacherList = make([]*teacherItem, 0)
 		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 1, true)
 	} else {
