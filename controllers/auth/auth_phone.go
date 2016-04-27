@@ -51,7 +51,7 @@ func AuthPhonePasswordLogin(phone, password string) (int64, error, *authService.
 
 	user, err := userService.QueryUserByPhone(phone)
 	if user == nil {
-		return 1001, errors.New("帐号不存在"), nil
+		return 1001, errors.New("帐号不存在或密码错误"), nil
 	}
 	encryptPassword := encrypt.EncryptPassword(password, *user.Salt)
 
@@ -194,7 +194,7 @@ func SetPassword(userId int64, oldPassword, newPassword string) (int64, error) {
 	oldEncryptPassword := encrypt.EncryptPassword(oldPassword, *user.Salt)
 
 	if *user.Password != oldEncryptPassword {
-		return 1001, errors.New("原密码不正确")
+		return 1001, errors.New("原密码错误")
 	}
 
 	salt := encrypt.GenerateSalt()

@@ -134,6 +134,7 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 	var isCourse, isCompleted bool
 	var chapterInfo courseChapterInfo
 	var evaluationStatus, evaluationComment, evaluationDetailUrl string
+	var recordId int64
 	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		isCourse = true
 		chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
@@ -150,7 +151,14 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 		} else {
 			isCompleted = false
 		}
-		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.TeacherId, chapter.Id)
+
+		o := orm.NewOrm()
+		var purchaseRecord *models.CoursePurchaseRecord
+		o.QueryTable("course_purchase_record").Filter("course_id", chapter.CourseId).Filter("user_id", chapter.UserId).
+			One(&purchaseRecord)
+		recordId = purchaseRecord.Id
+
+		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.TeacherId, chapter.Id, 0)
 		if evaluationApply.Id != 0 {
 			evaluationStatus = evaluationApply.Status
 			if evaluationApply.Status == models.EVALUATION_APPLY_STATUS_CREATED {
@@ -177,6 +185,7 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 		EvaluationStatus:    evaluationStatus,
 		EvaluationComment:   evaluationComment,
 		EvaluationDetailUrl: evaluationDetailUrl,
+		RecordId:            recordId,
 	}
 
 	return 0, &info

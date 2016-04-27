@@ -1,127 +1,18 @@
+// session_evaluation_upgrade
 package session
 
 import (
-	"math/rand"
-	"strings"
-	"time"
-
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
 	evaluationService "WolaiWebservice/service/evaluation"
+	"strings"
 )
 
-type evaluationInfo struct {
-	Type      string             `json:"type"`
-	Evalution *models.Evaluation `json:"evaluationInfo"`
-}
-
-func CheckRandNumInSlice(slice []int64, randNum int64) bool {
-	for _, v := range slice {
-		if v == randNum {
-			return true
-		}
-	}
-	return false
-}
-
-func GetRandNumSlice(sliceSize int64, length int64) []int64 {
-	var result []int64
-	if sliceSize <= 0 || length <= 0 {
-		return result
-	}
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for {
-		randNum := r.Int63n(length)
-		if !CheckRandNumInSlice(result, randNum) {
-			result = append(result, randNum)
-		}
-		if sliceSize > length {
-			if int64(len(result)) == length {
-				break
-			}
-		} else {
-			if int64(len(result)) == sliceSize {
-				break
-			}
-		}
-	}
-	return result
-}
-
-func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.EvaluationLabel, error) {
-	labels := []*models.EvaluationLabel{}
-	session, _ := models.ReadSession(sessionId)
-
-	//如果当前用户是学生，则要返回老师的标签信息，如果当前用户是老师，则要返回学生的标签信息
-	//学生
-	if userId == session.Creator {
-		teacher, _ := models.ReadUser(session.Tutor)
-		//个人标签
-		teacherPersonalLabels, err := models.QueryEvaluationLabels(teacher.Gender, models.PERSONAL_EVALUATION_LABEL, models.TEACHER_EVALUATION_LABEL)
-		if err != nil {
-			return nil, err
-		}
-		personalCount := (count - 2) / 2
-		for _, v := range GetRandNumSlice(personalCount, int64(len(teacherPersonalLabels))) {
-			labels = append(labels, teacherPersonalLabels[v])
-		}
-		//讲课风格
-		teacherStyleLabels, err := models.QueryEvaluationLabels(teacher.Gender, models.STYLE_EVALUATION_LABEL, models.TEACHER_EVALUATION_LABEL)
-		if err != nil {
-			return nil, err
-		}
-		for _, v := range GetRandNumSlice(count-personalCount-2, int64(len(teacherStyleLabels))) {
-			labels = append(labels, teacherStyleLabels[v])
-		}
-		//科目标签
-		order, _ := models.ReadOrder(session.OrderId)
-		teacherSubjectLabels, err := models.QueryEvaluationLabelsBySubject(order.SubjectId)
-		if err != nil {
-			return nil, err
-		}
-		for _, v := range GetRandNumSlice(2, int64(len(teacherSubjectLabels))) {
-			labels = append(labels, teacherSubjectLabels[v])
-		}
-	} else if userId == session.Tutor { //老师
-		student, _ := models.ReadUser(session.Creator)
-		//个人标签
-		studentPersonalLabels, err := models.QueryEvaluationLabels(student.Gender, models.PERSONAL_EVALUATION_LABEL, models.STUDENT_EVALUATION_LABEL)
-		if err != nil {
-			return nil, err
-		}
-		personalCount := count / 2
-		for _, v := range GetRandNumSlice(personalCount, int64(len(studentPersonalLabels))) {
-			labels = append(labels, studentPersonalLabels[v])
-		}
-		//能力程度
-		studentAbilityLabels, err := models.QueryEvaluationLabels(student.Gender, models.ABILITY_EVALUATION_LABEL, models.STUDENT_EVALUATION_LABEL)
-		if err != nil {
-			return nil, err
-		}
-		for _, v := range GetRandNumSlice(count-personalCount, int64(len(studentAbilityLabels))) {
-			labels = append(labels, studentAbilityLabels[v])
-		}
-	}
-	return labels, nil
-}
-
-func CreateEvaluation(userId, targetId, sessionId, chapterId int64, evaluationContent string) (*models.Evaluation, error) {
+func CreateEvaluationUpgrade(userId, sessionId, chapterId, recordId int64, evaluationType, evaluationContent string) (*models.Evaluation, error) {
 	user, _ := models.ReadUser(userId)
 	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER { //导师插入评价
-
-		if chapterId == 0 { //兼容旧版，旧版未传该字段
-			session, err := models.ReadSession(sessionId)
-			if err == nil {
-				order, err := models.ReadOrder(session.OrderId)
-				if err == nil {
-					chapterId = order.ChapterId
-				}
-			}
-		}
-
-		if chapterId != 0 { // 课程插入评价申请
-			apply, _ := evaluationService.GetEvaluationApply(userId, chapterId, 0)
+		switch evaluationType {
+		case "course":
+			apply, _ := evaluationService.GetEvaluationApply(userId, chapterId, recordId)
 			chapter, _ := models.ReadCourseCustomChapter(chapterId)
 			if apply.Id == 0 {
 				evaluationApply := models.EvaluationApply{
@@ -131,6 +22,7 @@ func CreateEvaluation(userId, targetId, sessionId, chapterId int64, evaluationCo
 					ChapterId: chapterId,
 					Status:    models.EVALUATION_APPLY_STATUS_CREATED,
 					Content:   evaluationContent,
+					RecordId:  recordId,
 				}
 				_, err := models.InsertEvaluationApply(&evaluationApply)
 				if err != nil {
@@ -146,26 +38,24 @@ func CreateEvaluation(userId, targetId, sessionId, chapterId int64, evaluationCo
 					models.UpdateEvaluationApply(apply.Id, eveluationInfo)
 				}
 			}
-			return nil, nil
-		} else { //答疑插入评价
-			content, err := evaluateSession(sessionId, userId, targetId, chapterId, evaluationContent)
+		case "qa":
+			content, err := evaluateSessionUpgrade(sessionId, userId, chapterId, recordId, evaluationContent)
 			return content, err
 		}
-	} else { //学生插入评价
-		content, err := evaluateSession(sessionId, userId, targetId, chapterId, evaluationContent)
+	} else if user.AccessRight == models.USER_ACCESSRIGHT_STUDENT { //学生插入评价
+		content, err := evaluateSessionUpgrade(sessionId, userId, chapterId, recordId, evaluationContent)
 		return content, err
 	}
 	return nil, nil
 }
 
-func evaluateSession(sessionId, userId, targetId, chapterId int64, evaluationContent string) (*models.Evaluation, error) {
+func evaluateSessionUpgrade(sessionId, userId, chapterId, recordId int64, evaluationContent string) (*models.Evaluation, error) {
 	session, _ := models.ReadSession(sessionId)
-	if targetId == 1 {
-		if userId == session.Creator {
-			targetId = session.Tutor
-		} else {
-			targetId = session.Creator
-		}
+	var targetId int64
+	if userId == session.Creator {
+		targetId = session.Tutor
+	} else {
+		targetId = session.Creator
 	}
 	oldEvaluation, _ := models.QueryEvaluation(userId, sessionId)
 	if oldEvaluation.Id == 0 {
@@ -174,7 +64,8 @@ func evaluateSession(sessionId, userId, targetId, chapterId int64, evaluationCon
 			TargetId:  targetId,
 			SessionId: sessionId,
 			ChapterId: chapterId,
-			Content:   evaluationContent}
+			Content:   evaluationContent,
+			RecordId:  recordId}
 		content, err := models.InsertEvaluation(&evaluation)
 		return content, err
 	} else {
@@ -184,6 +75,7 @@ func evaluateSession(sessionId, userId, targetId, chapterId int64, evaluationCon
 			"SessionId": sessionId,
 			"ChapterId": chapterId,
 			"Content":   evaluationContent,
+			"RecordId":  recordId,
 		}
 		err := models.UpdateEvaluation(oldEvaluation.Id, evaluationInfo)
 		if err != nil {
@@ -197,7 +89,7 @@ func evaluateSession(sessionId, userId, targetId, chapterId int64, evaluationCon
 }
 
 //这是版本兼容导致的一坨屎，请绕行
-func QueryEvaluationInfo(userId, sessionId, targetId, chapterId int64) ([]*evaluationInfo, error) {
+func QueryEvaluationInfoUpgrade(userId, sessionId, targetId, chapterId int64) ([]*evaluationInfo, error) {
 	evalutionInfos := make([]*evaluationInfo, 0)
 	selfEvaluation := evaluationInfo{}
 	otherEvaluation := evaluationInfo{}
@@ -306,46 +198,4 @@ func QueryEvaluationInfo(userId, sessionId, targetId, chapterId int64) ([]*evalu
 		}
 	}
 	return evalutionInfos, nil
-}
-
-func HasStudentSessionRecordEvaluated(sessionId int64, studentId int64) bool {
-	o := orm.NewOrm()
-	count, err := o.QueryTable("evaluation").Filter("session_id", sessionId).Filter("user_id", studentId).Count()
-	if err != nil {
-		return false
-	}
-	if count > 0 {
-		return true
-	}
-	return false
-}
-
-func HasTeacherSessionRecordEvaluated(sessionId int64, teacherId int64) bool {
-	o := orm.NewOrm()
-	session, err := models.ReadSession(sessionId)
-	if err != nil {
-		return false
-	}
-	order, err := models.ReadOrder(session.OrderId)
-	if err != nil {
-		return false
-	}
-	if order.ChapterId != 0 {
-		count, err := o.QueryTable("evaluation").Filter("chapter_id", order.ChapterId).Filter("user_id", teacherId).Count()
-		if err != nil {
-			return false
-		}
-		if count > 0 {
-			return true
-		}
-	} else {
-		count, err := o.QueryTable("evaluation").Filter("session_id", sessionId).Filter("user_id", teacherId).Count()
-		if err != nil {
-			return false
-		}
-		if count > 0 {
-			return true
-		}
-	}
-	return false
 }

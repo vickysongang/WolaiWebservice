@@ -14,6 +14,7 @@ type Evaluation struct {
 	Content    string    `json:"content" orm:"type(longtext)"`
 	CreateTime time.Time `json:"createTime" orm:"type(datetime);auto_now_add"`
 	ChapterId  int64     `json:"chapterId"`
+	RecordId   int64     `json:"recordId"`
 }
 
 func init() {

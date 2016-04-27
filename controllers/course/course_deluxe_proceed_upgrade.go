@@ -27,17 +27,6 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 		o.QueryTable(new(models.CourseAuditionRecord).TableName()).Filter("source_course_id", courseId).Filter("user_id", userId).
 			One(&auditionRecord)
 		var teacherId, priceHourly, salaryHourly, priceTotal int64
-		var status string
-		if auditionRecord.Id != 0 && auditionRecord.TeacherId != 0 {
-			teacherId = auditionRecord.TeacherId
-			priceHourly = auditionRecord.PriceHourly
-			salaryHourly = auditionRecord.SalaryHourly
-			priceTotal = priceHourly * currentRecord.ChapterCount
-			status = models.PURCHASE_RECORD_STATUS_WAITING
-			migerateCourseChapter(userId, auditionRecord.TeacherId, courseId)
-		} else {
-			status = models.PURCHASE_RECORD_STATUS_APPLY
-		}
 
 		chapterCount := courseService.GetCourseChapterCount(courseId)
 		// 如果用户没有购买过，创建购买记录
@@ -49,7 +38,7 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 			SalaryHourly:   salaryHourly,
 			PriceTotal:     priceTotal,
 			AuditionStatus: models.PURCHASE_RECORD_STATUS_IDLE,
-			PurchaseStatus: status,
+			PurchaseStatus: models.PURCHASE_RECORD_STATUS_APPLY,
 			TraceStatus:    models.PURCHASE_RECORD_TRACE_STATUS_IDLE,
 			ChapterCount:   chapterCount,
 		}
@@ -166,54 +155,4 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 	}
 
 	return 0, &response
-}
-
-func migerateCourseChapter(userId, teacherId, courseId int64) {
-	courseChapters, err := courseService.QueryCourseChapters(courseId)
-	if err != nil {
-		return
-	}
-	var relId int64
-	oldCourseRelation, _ := courseService.QueryCourseRelation(courseId, userId, teacherId)
-	if oldCourseRelation.Id == 0 {
-		courseRelation := models.CourseRelation{
-			CourseId:  courseId,
-			UserId:    userId,
-			TeacherId: teacherId,
-		}
-		relId, err = models.InsertCourseRelation(&courseRelation)
-	} else {
-		relId = oldCourseRelation.Id
-	}
-
-	if err != nil {
-		return
-	}
-
-	for _, courseChapter := range courseChapters {
-		oldCustomChapter, _ := courseService.QueryCourseCustomChapter(courseId, courseChapter.Period, userId)
-		if oldCustomChapter.Id == 0 {
-			customChapter := models.CourseCustomChapter{
-				CourseId:  courseChapter.CourseId,
-				Title:     courseChapter.Title,
-				Abstract:  courseChapter.Abstract,
-				Period:    courseChapter.Period,
-				UserId:    userId,
-				TeacherId: teacherId,
-				AttachId:  courseChapter.AttachId,
-				RelId:     relId,
-			}
-			models.InsertCourseCustomChapter(&customChapter)
-		} else {
-			customChapterInfo := map[string]interface{}{
-				"Title":     courseChapter.Title,
-				"Abstract":  courseChapter.Abstract,
-				"Period":    courseChapter.Period,
-				"TeacherId": teacherId,
-				"AttachId":  courseChapter.AttachId,
-				"RelId":     relId,
-			}
-			models.UpdateCourseCustomChapter(oldCustomChapter.Id, customChapterInfo)
-		}
-	}
 }

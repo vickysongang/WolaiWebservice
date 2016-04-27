@@ -25,6 +25,7 @@ type EvaluationApply struct {
 	ApproveTime time.Time `json:"approveTime" orm:"type(datetime)"`
 	Approver    string    `json:"approver"`
 	Comment     string    `json:"comment"`
+	RecordId    int64     `json:"recordId"`
 }
 
 func (apply *EvaluationApply) TableName() string {

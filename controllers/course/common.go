@@ -62,6 +62,7 @@ type courseDetailStudent struct {
 	ChapterList            []*courseChapterStatus      `json:"chapterList"`
 	TeacherList            []*teacherItem              `json:"teacherList"`
 	AuditionCourseId       int64                       `json:"auditionCourseId,omitempty"`
+	RecordId               int64                       `json:"recordId"`
 }
 
 type courseDetailTeacher struct {
@@ -72,6 +73,7 @@ type courseDetailTeacher struct {
 	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
 	ChapterList            []*courseChapterStatus      `json:"chapterList"`
 	StudentList            []*models.User              `json:"studentList"`
+	RecordId               int64                       `json:"recordId"`
 }
 
 type courseStudentListItem struct {
@@ -196,7 +198,7 @@ func queryCourseCustomChapterStatus(courseId int64, current int64, userId int64,
 		} else {
 			status.Status = COURSE_CHAPTER_STATUS_IDLE
 		}
-		evaluationApply, _ := evaluationService.GetEvaluationApply(teacherId, chapter.Id)
+		evaluationApply, _ := evaluationService.GetEvaluationApply(teacherId, chapter.Id, 0)
 		if evaluationApply.Id != 0 {
 			status.EvaluationStatus = evaluationApply.Status
 			if evaluationApply.Status == models.EVALUATION_APPLY_STATUS_CREATED {

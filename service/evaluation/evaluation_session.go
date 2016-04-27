@@ -35,7 +35,7 @@ func GetLatestNotEvaluatedCourseSession(teacherId int64) (sessionId int64, cours
 	if err == nil {
 		for _, info := range infos {
 			if !CheckSessionEvaluated(info.SessionId) {
-				evaluationApply, _ := GetEvaluationApply(teacherId, info.ChapterId)
+				evaluationApply, _ := GetEvaluationApply(teacherId, info.ChapterId, 0)
 				if evaluationApply.Id != 0 && evaluationApply.Status != models.EVALUATION_APPLY_STATUS_IDLE {
 					continue
 				}
