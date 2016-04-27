@@ -51,7 +51,7 @@ func GetDeluxeCourseDetail(userId int64, course *models.Course) (int64, *courseD
 	if err != nil && err != orm.ErrNoRows {
 		return 2, nil
 	}
-
+	detail.RecordId = purchaseRecord.Id
 	purchaseFlag := (err != orm.ErrNoRows) //判断是否购买或者试听
 	if !purchaseFlag {
 		detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
@@ -101,6 +101,7 @@ func GetAuditionCourseDetail(userId int64, course *models.Course, auditionNum in
 			One(&auditionRecord)
 		if auditionRecord.Id != 0 {
 			detail.PurchaseStatus = auditionRecord.Status
+			detail.RecordId = auditionRecord.Id
 		} else {
 			detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		}
@@ -114,6 +115,7 @@ func GetAuditionCourseDetail(userId int64, course *models.Course, auditionNum in
 		if err != nil && err != orm.ErrNoRows {
 			return 2, nil
 		}
+		detail.RecordId = auditionRecord.Id
 		detail.PurchaseStatus = auditionRecord.Status
 		detail.TeacherList, _ = queryCourseCurrentTeacher(auditionRecord.TeacherId)
 		if auditionRecord.TeacherId == 0 {

@@ -44,7 +44,8 @@ func GetDeluxeCourseDetailTeacher(studentId, teacherId int64, course *models.Cou
 	}
 
 	detail := courseDetailTeacher{
-		Course: *course,
+		Course:   *course,
+		RecordId: purchaseRecord.Id,
 	}
 
 	characteristicList, _ := courseService.QueryCourseContentIntros(courseId)

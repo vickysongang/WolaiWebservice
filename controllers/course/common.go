@@ -62,6 +62,7 @@ type courseDetailStudent struct {
 	ChapterList            []*courseChapterStatus      `json:"chapterList"`
 	TeacherList            []*teacherItem              `json:"teacherList"`
 	AuditionCourseId       int64                       `json:"auditionCourseId,omitempty"`
+	RecordId               int64                       `json:"recordId"`
 }
 
 type courseDetailTeacher struct {
@@ -72,6 +73,7 @@ type courseDetailTeacher struct {
 	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
 	ChapterList            []*courseChapterStatus      `json:"chapterList"`
 	StudentList            []*models.User              `json:"studentList"`
+	RecordId               int64                       `json:"recordId"`
 }
 
 type courseStudentListItem struct {
