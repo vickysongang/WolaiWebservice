@@ -121,7 +121,7 @@ func CreateEvaluation(userId, targetId, sessionId, chapterId int64, evaluationCo
 		}
 
 		if chapterId != 0 { // 课程插入评价申请
-			apply, _ := evaluationService.GetEvaluationApply(userId, chapterId)
+			apply, _ := evaluationService.GetEvaluationApply(userId, chapterId, 0)
 			chapter, _ := models.ReadCourseCustomChapter(chapterId)
 			if apply.Id == 0 {
 				evaluationApply := models.EvaluationApply{

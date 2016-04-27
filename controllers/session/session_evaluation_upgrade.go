@@ -10,19 +10,9 @@ import (
 func CreateEvaluationUpgrade(userId, sessionId, chapterId, recordId int64, evaluationType, evaluationContent string) (*models.Evaluation, error) {
 	user, _ := models.ReadUser(userId)
 	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER { //导师插入评价
-
-		if chapterId == 0 { //兼容旧版，旧版未传该字段
-			session, err := models.ReadSession(sessionId)
-			if err == nil {
-				order, err := models.ReadOrder(session.OrderId)
-				if err == nil {
-					chapterId = order.ChapterId
-				}
-			}
-		}
-
-		if chapterId != 0 { // 课程插入评价申请
-			apply, _ := evaluationService.GetEvaluationApply(userId, chapterId)
+		switch evaluationType {
+		case "course":
+			apply, _ := evaluationService.GetEvaluationApply(userId, chapterId, recordId)
 			chapter, _ := models.ReadCourseCustomChapter(chapterId)
 			if apply.Id == 0 {
 				evaluationApply := models.EvaluationApply{
@@ -32,6 +22,7 @@ func CreateEvaluationUpgrade(userId, sessionId, chapterId, recordId int64, evalu
 					ChapterId: chapterId,
 					Status:    models.EVALUATION_APPLY_STATUS_CREATED,
 					Content:   evaluationContent,
+					RecordId:  recordId,
 				}
 				_, err := models.InsertEvaluationApply(&evaluationApply)
 				if err != nil {
@@ -47,8 +38,7 @@ func CreateEvaluationUpgrade(userId, sessionId, chapterId, recordId int64, evalu
 					models.UpdateEvaluationApply(apply.Id, eveluationInfo)
 				}
 			}
-			return nil, nil
-		} else { //答疑插入评价
+		case "qa":
 			content, err := evaluateSessionUpgrade(sessionId, userId, chapterId, recordId, evaluationContent)
 			return content, err
 		}

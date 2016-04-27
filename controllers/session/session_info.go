@@ -158,7 +158,7 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 			One(&purchaseRecord)
 		recordId = purchaseRecord.Id
 
-		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.TeacherId, chapter.Id)
+		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.TeacherId, chapter.Id, 0)
 		if evaluationApply.Id != 0 {
 			evaluationStatus = evaluationApply.Status
 			if evaluationApply.Status == models.EVALUATION_APPLY_STATUS_CREATED {

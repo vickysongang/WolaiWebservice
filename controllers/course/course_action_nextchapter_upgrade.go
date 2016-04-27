@@ -64,21 +64,15 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId
 		return 2, errors.New("课程信息异常")
 	}
 
-	latestPeriod, err := courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
-	if err == nil {
-		if chapter.Period != latestPeriod+1 {
-			return 2, errors.New("课程信息异常")
-		}
-		if purchase.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE {
-			return 2, errors.New("学生还未购买该课时")
-		} else if purchase.PurchaseStatus != models.PURCHASE_RECORD_STATUS_PAID {
-			return 2, errors.New("学生尚未完成课程支付")
-		}
+	latestPeriod, _ := courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
 
-	} else {
-		if latestPeriod != 0 {
-			return 2, errors.New("课程信息异常")
-		}
+	if chapter.Period != latestPeriod+1 {
+		return 2, errors.New("课程课时信息异常")
+	}
+	if purchase.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE {
+		return 2, errors.New("学生还未购买该课时")
+	} else if purchase.PurchaseStatus != models.PURCHASE_RECORD_STATUS_PAID {
+		return 2, errors.New("学生尚未完成课程支付")
 	}
 
 	record := models.CourseChapterToUser{
