@@ -80,16 +80,6 @@ var userRoutes = route.Routes{
 		true,
 	},
 
-	// 2.1.7
-	route.Route{
-		"CheckUserExist",
-		"POST",
-		"/exist/check",
-		handlerv2.CheckUserExist,
-		true,
-		false,
-	},
-
 	// 2.2.1
 	route.Route{
 		"UserProfile",

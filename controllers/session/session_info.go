@@ -43,6 +43,7 @@ type courseSessionInfo struct {
 	EvaluationStatus    string             `json:"evaluationStatus"`
 	EvaluationComment   string             `json:"evaluationComment"`
 	EvaluationDetailUrl string             `json:"evaluationDetailUrl"`
+	RecordId            int64              `json:"recordId"`
 }
 
 type courseChapterInfo struct {
