@@ -32,7 +32,6 @@ func HandleAuditionCourseProceed(userId int64, courseId int64, sourceCourseId in
 		One(&currentRecord)
 	auditionRecordStatus = currentRecord.Status
 	if err == orm.ErrNoRows {
-		maxAuditionNum := courseService.GetMaxAuditionNum(userId)
 		// 如果用户没有购买过，创建试听课购买记录
 		newRecord := models.CourseAuditionRecord{
 			CourseId:       courseId,
@@ -40,7 +39,6 @@ func HandleAuditionCourseProceed(userId int64, courseId int64, sourceCourseId in
 			Status:         models.AUDITION_RECORD_STATUS_APPLY,
 			SourceCourseId: sourceCourseId,
 			TraceStatus:    models.AUDITION_RECORD_TRACE_STATUS_IDLE,
-			AuditionNum:    maxAuditionNum + 1,
 		}
 
 		_, err = models.CreateCourseAuditionRecord(&newRecord)

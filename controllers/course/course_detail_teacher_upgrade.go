@@ -2,14 +2,13 @@ package course
 
 import (
 	"WolaiWebservice/models"
-	"fmt"
 
 	courseService "WolaiWebservice/service/course"
 
 	"github.com/astaxie/beego/orm"
 )
 
-func GetCourseDetailTeacherUpgrade(courseId, studentId, teacherId, auditionNum int64) (int64, *courseDetailTeacher) {
+func GetCourseDetailTeacherUpgrade(courseId, studentId, teacherId, recordId int64) (int64, *courseDetailTeacher) {
 	var err error
 	var course *models.Course
 	if courseId == 0 { //代表试听课，从H5页面跳转过来的
@@ -27,7 +26,7 @@ func GetCourseDetailTeacherUpgrade(courseId, studentId, teacherId, auditionNum i
 		status, course := GetDeluxeCourseDetailTeacher(studentId, teacherId, course)
 		return status, course
 	} else if course.Type == models.COURSE_TYPE_AUDITION {
-		status, course := GetAuditionCourseDetailTeacher(studentId, teacherId, course, auditionNum)
+		status, course := GetAuditionCourseDetailTeacher(studentId, teacherId, course, recordId)
 		return status, course
 	}
 	return 0, nil
@@ -71,18 +70,10 @@ func GetDeluxeCourseDetailTeacher(studentId, teacherId int64, course *models.Cou
 	return 0, &detail
 }
 
-func GetAuditionCourseDetailTeacher(studentId, teacherId int64, course *models.Course, auditionNum int64) (int64, *courseDetailTeacher) {
-	o := orm.NewOrm()
+func GetAuditionCourseDetailTeacher(studentId, teacherId int64, course *models.Course, recordId int64) (int64, *courseDetailTeacher) {
 	courseId := course.Id
-	var auditionoRecord models.CourseAuditionRecord
-	err := o.QueryTable("course_audition_record").
-		Filter("user_id", studentId).
-		Filter("course_id", courseId).
-		Filter("teacher_id", teacherId).
-		Filter("audition_num", auditionNum).
-		One(&auditionoRecord)
+	auditionoRecord, err := models.ReadCourseAuditionRecord(recordId)
 	if err != nil {
-		fmt.Println("ss", err.Error())
 		return 2, nil
 	}
 

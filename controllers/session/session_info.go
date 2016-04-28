@@ -26,6 +26,7 @@ type sessionInfo struct {
 	IsCourse      bool         `json:"isCourse"`
 	QaPkgUseTime  int64        `json:"qaPkgUseTime"`
 	QaPkgLeftTime int64        `json:"qaPkgLeftTime"`
+	RecordId      int64        `json:"recordId"`
 }
 
 type courseSessionInfo struct {
@@ -111,6 +112,7 @@ func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
 		IsCourse:      isCourse,
 		QaPkgUseTime:  qaPkgUseTime,
 		QaPkgLeftTime: qaPkgLeftTime,
+		RecordId:      order.RecordId,
 	}
 
 	return 0, &info

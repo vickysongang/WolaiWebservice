@@ -13,6 +13,7 @@ type courseSessionInfo struct {
 	CourseId  int64
 	ChapterId int64
 	StudentId int64
+	RecordId  int64
 }
 
 func CheckSessionEvaluated(sessionId int64) bool {
@@ -21,10 +22,10 @@ func CheckSessionEvaluated(sessionId int64) bool {
 	return exist
 }
 
-func GetLatestNotEvaluatedCourseSession(teacherId int64) (sessionId int64, courseId int64, chapterId int64, studentId int64, err error) {
+func GetLatestNotEvaluatedCourseSession(teacherId int64) (sessionId, courseId, chapterId, studentId, recordId int64, err error) {
 	o := orm.NewOrm()
 	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
-	qb.Select("orders.course_id,orders.chapter_id,sessions.id as session_id,orders.creator as student_id").
+	qb.Select("orders.course_id,orders.chapter_id,sessions.id as session_id,orders.creator as student_id,orders.record_id").
 		From("orders").
 		InnerJoin("sessions").On("orders.id = sessions.order_id").
 		Where("sessions.tutor = ? and sessions.status = 'complete' and orders.chapter_id is not null and orders.chapter_id <> 0 and sessions.create_time > ?").
@@ -32,19 +33,21 @@ func GetLatestNotEvaluatedCourseSession(teacherId int64) (sessionId int64, cours
 	sql := qb.String()
 	var infos []courseSessionInfo
 	_, err = o.Raw(sql, teacherId, "2016-04-07").QueryRows(&infos)
-	if err == nil {
-		for _, info := range infos {
-			if !CheckSessionEvaluated(info.SessionId) {
-				evaluationApply, _ := GetEvaluationApply(teacherId, info.ChapterId, 0)
-				if evaluationApply.Id != 0 && evaluationApply.Status != models.EVALUATION_APPLY_STATUS_IDLE {
-					continue
-				}
-				sessionId = info.SessionId
-				courseId = info.CourseId
-				chapterId = info.ChapterId
-				studentId = info.StudentId
-				return
+	if err != nil {
+		return
+	}
+	for _, info := range infos {
+		if !CheckSessionEvaluated(info.SessionId) {
+			evaluationApply, _ := GetEvaluationApply(teacherId, info.ChapterId, info.RecordId)
+			if evaluationApply.Id != 0 && evaluationApply.Status != models.EVALUATION_APPLY_STATUS_IDLE {
+				continue
 			}
+			sessionId = info.SessionId
+			courseId = info.CourseId
+			chapterId = info.ChapterId
+			studentId = info.StudentId
+			recordId = info.RecordId
+			return
 		}
 	}
 	return

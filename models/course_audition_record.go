@@ -20,7 +20,6 @@ type CourseAuditionRecord struct {
 	Status         string    `json:"status"`
 	TraceStatus    string    `json:"-"`
 	Comment        string    `json:"-"`
-	AuditionNum    int64     `json:"auditionNum"`
 }
 
 func init() {
