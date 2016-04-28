@@ -88,8 +88,7 @@ func evaluateSessionUpgrade(sessionId, userId, chapterId, recordId int64, evalua
 	return nil, nil
 }
 
-//这是版本兼容导致的一坨屎，请绕行
-func QueryEvaluationInfoUpgrade(userId, sessionId, targetId, chapterId int64) ([]*evaluationInfo, error) {
+func QueryEvaluationInfoUpgrade(userId, sessionId, chapterId, recordId int64) ([]*evaluationInfo, error) {
 	evalutionInfos := make([]*evaluationInfo, 0)
 	selfEvaluation := evaluationInfo{}
 	otherEvaluation := evaluationInfo{}
@@ -106,8 +105,8 @@ func QueryEvaluationInfoUpgrade(userId, sessionId, targetId, chapterId int64) ([
 		}
 	} else {
 		chapter, _ := models.ReadCourseCustomChapter(chapterId)
-		studentEvaluation, _ = models.QueryEvaluationByChapter(chapter.UserId, chapterId)
-		teacherEvaluation, _ = models.QueryEvaluationByChapter(chapter.TeacherId, chapterId)
+		studentEvaluation, _ = models.QueryEvaluationByChapter(chapter.UserId, chapterId, recordId)
+		teacherEvaluation, _ = models.QueryEvaluationByChapter(chapter.TeacherId, chapterId, recordId)
 		if userId == chapter.UserId {
 			isStudent = true
 		} else if userId == chapter.TeacherId {
@@ -119,62 +118,32 @@ func QueryEvaluationInfoUpgrade(userId, sessionId, targetId, chapterId int64) ([
 	if isStudent {
 		//导师和学生都有评论
 		if teacherEvaluation.Id != 0 && studentEvaluation.Id != 0 {
-			//导师是新版学生是旧版或导师是旧版学生是新版，考虑到兼容性的问题，学生看到的评论内容忽略掉导师的评论
 			if (teacherEvaluation.TargetId != 0 && studentEvaluation.TargetId == 0) || (teacherEvaluation.TargetId == 0 && studentEvaluation.TargetId != 0) {
-				if targetId != 0 { //如果学生版本是新版，查看旧版内容考虑兼容性忽略旧版评论
-					if !(strings.HasPrefix(studentEvaluation.Content, "[") && strings.HasSuffix(studentEvaluation.Content, "]")) {
-						selfEvaluation.Type = "student"
-						selfEvaluation.Evalution = studentEvaluation
-						evalutionInfos = append(evalutionInfos, &selfEvaluation)
-					}
-				} else {
-					if !(strings.HasPrefix(studentEvaluation.Content, "{") && strings.HasSuffix(studentEvaluation.Content, "}")) {
-						selfEvaluation.Type = "student"
-						selfEvaluation.Evalution = studentEvaluation
-						evalutionInfos = append(evalutionInfos, &selfEvaluation)
-					}
-				}
-			} else {
-				if targetId == 0 {
-					if !(strings.HasPrefix(studentEvaluation.Content, "{") && strings.HasSuffix(studentEvaluation.Content, "}")) {
-						selfEvaluation.Type = "student"
-						selfEvaluation.Evalution = studentEvaluation
-						evalutionInfos = append(evalutionInfos, &selfEvaluation)
-					}
-					if !(strings.HasPrefix(teacherEvaluation.Content, "{") && strings.HasSuffix(teacherEvaluation.Content, "}")) {
-						otherEvaluation.Type = "teacher"
-						otherEvaluation.Evalution = teacherEvaluation
-						evalutionInfos = append(evalutionInfos, &otherEvaluation)
-					}
-				} else {
-					if !(strings.HasPrefix(studentEvaluation.Content, "[") && strings.HasSuffix(studentEvaluation.Content, "]")) {
-						selfEvaluation.Type = "student"
-						selfEvaluation.Evalution = studentEvaluation
-						evalutionInfos = append(evalutionInfos, &selfEvaluation)
-					}
-					if !(strings.HasPrefix(teacherEvaluation.Content, "[") && strings.HasSuffix(teacherEvaluation.Content, "]")) {
-						otherEvaluation.Type = "teacher"
-						otherEvaluation.Evalution = teacherEvaluation
-						evalutionInfos = append(evalutionInfos, &otherEvaluation)
-					}
-				}
-			}
-		} else if teacherEvaluation.Id == 0 && studentEvaluation.Id != 0 { //导师未评论，学生有评论
-			if targetId != 0 { //如果学生版本是新版，查看旧版内容考虑兼容性忽略旧版评论
 				if !(strings.HasPrefix(studentEvaluation.Content, "[") && strings.HasSuffix(studentEvaluation.Content, "]")) {
 					selfEvaluation.Type = "student"
 					selfEvaluation.Evalution = studentEvaluation
 					evalutionInfos = append(evalutionInfos, &selfEvaluation)
 				}
 			} else {
-				if !(strings.HasPrefix(studentEvaluation.Content, "{") && strings.HasSuffix(studentEvaluation.Content, "}")) {
+				if !(strings.HasPrefix(studentEvaluation.Content, "[") && strings.HasSuffix(studentEvaluation.Content, "]")) {
 					selfEvaluation.Type = "student"
 					selfEvaluation.Evalution = studentEvaluation
 					evalutionInfos = append(evalutionInfos, &selfEvaluation)
 				}
+				if !(strings.HasPrefix(teacherEvaluation.Content, "[") && strings.HasSuffix(teacherEvaluation.Content, "]")) {
+					otherEvaluation.Type = "teacher"
+					otherEvaluation.Evalution = teacherEvaluation
+					evalutionInfos = append(evalutionInfos, &otherEvaluation)
+				}
+			}
+		} else if teacherEvaluation.Id == 0 && studentEvaluation.Id != 0 { //导师未评论，学生有评论
+			if !(strings.HasPrefix(studentEvaluation.Content, "[") && strings.HasSuffix(studentEvaluation.Content, "]")) {
+				selfEvaluation.Type = "student"
+				selfEvaluation.Evalution = studentEvaluation
+				evalutionInfos = append(evalutionInfos, &selfEvaluation)
 			}
 		} else if teacherEvaluation.Id != 0 && studentEvaluation.Id == 0 { //导师有评论，学生未评论
-			if (teacherEvaluation.TargetId != 0 && targetId != 0) || (teacherEvaluation.TargetId == 0 && targetId == 0) {
+			if teacherEvaluation.TargetId != 0 {
 				otherEvaluation.Type = "teacher"
 				otherEvaluation.Evalution = teacherEvaluation
 				evalutionInfos = append(evalutionInfos, &otherEvaluation)
@@ -182,18 +151,10 @@ func QueryEvaluationInfoUpgrade(userId, sessionId, targetId, chapterId int64) ([
 		}
 	} else {
 		if teacherEvaluation.Id != 0 { //导师只能看到自己的评论，不能看到学生的评论
-			if targetId != 0 { //如果导师当前版本是新版，查看旧版评价内容时由于兼容性的问题忽略旧评论
-				if !(strings.HasPrefix(teacherEvaluation.Content, "[") && strings.HasSuffix(teacherEvaluation.Content, "]")) {
-					selfEvaluation.Type = "teacher"
-					selfEvaluation.Evalution = teacherEvaluation
-					evalutionInfos = append(evalutionInfos, &selfEvaluation)
-				}
-			} else {
-				if !(strings.HasPrefix(teacherEvaluation.Content, "{") && strings.HasSuffix(teacherEvaluation.Content, "}")) {
-					selfEvaluation.Type = "teacher"
-					selfEvaluation.Evalution = teacherEvaluation
-					evalutionInfos = append(evalutionInfos, &selfEvaluation)
-				}
+			if !(strings.HasPrefix(teacherEvaluation.Content, "[") && strings.HasSuffix(teacherEvaluation.Content, "]")) {
+				selfEvaluation.Type = "teacher"
+				selfEvaluation.Evalution = teacherEvaluation
+				evalutionInfos = append(evalutionInfos, &selfEvaluation)
 			}
 		}
 	}

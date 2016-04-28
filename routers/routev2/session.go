@@ -109,6 +109,26 @@ var sessionRoutes = route.Routes{
 		true,
 	},
 
+	// 6.3.4
+	route.Route{
+		"SessionEvaluationCreateUpgrade",
+		"POST",
+		"/evaluation/upgrade/post",
+		handlerv2.SessionEvaluationCreateUpgrade,
+		true,
+		true,
+	},
+
+	// 6.3.5
+	route.Route{
+		"SessionEvaluationResultUpgrade",
+		"POST",
+		"/evaluation/upgrade/result",
+		handlerv2.SessionEvaluationResultUpgrade,
+		true,
+		true,
+	},
+
 	// 6.4.1
 	route.Route{
 		"SessionComplain",

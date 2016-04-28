@@ -275,6 +275,77 @@ func SessionEvaluationLabelResult(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// 6.3.4
+func SessionEvaluationCreateUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	sessionIdStr := vars["sessionId"][0]
+	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
+	var chapterId, recordId int64
+	if len(vars["chapterId"]) > 0 {
+		chapterIdStr := vars["chapterId"][0]
+		chapterId, _ = strconv.ParseInt(chapterIdStr, 10, 64)
+	}
+	if len(vars["recordId"]) > 0 {
+		recordIdStr := vars["recordId"][0]
+		recordId, _ = strconv.ParseInt(recordIdStr, 10, 64)
+	}
+	evaluationContent := vars["content"][0]
+	content, err := sessionController.CreateEvaluation(userId, sessionId, chapterId, recordId, evaluationContent)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	}
+}
+
+// 6.3.5
+func SessionEvaluationResultUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	sessionIdStr := vars["sessionId"][0]
+	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
+	var chapterId, recordId int64
+	if len(vars["chapterId"]) > 0 {
+		chapterIdStr := vars["chapterId"][0]
+		chapterId, _ = strconv.ParseInt(chapterIdStr, 10, 64)
+	}
+	if len(vars["recordId"]) > 0 {
+		recordIdStr := vars["recordId"][0]
+		recordId, _ = strconv.ParseInt(recordIdStr, 10, 64)
+	}
+	content, err := sessionController.QueryEvaluationInfoUpgrade(userId, sessionId, chapterId, recordId)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	}
+}
+
 // 6.4.1
 func SessionComplainPost(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
