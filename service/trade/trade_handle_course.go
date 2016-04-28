@@ -114,3 +114,33 @@ func HandleCourseEarning(recordId int64, period int64, chapterId int64) error {
 
 	return nil
 }
+
+func HandleAuditionCourseEarning(recordId int64, period int64, chapterId int64) error {
+	var err error
+
+	record, err := models.ReadCourseAuditionRecord(recordId)
+	if err != nil {
+		return err
+	}
+
+	comment := fmt.Sprintf("第%d课时", period)
+
+	amount := record.SalaryHourly
+	if period == 0 {
+		amount = record.SalaryHourly / 2
+	}
+
+	err = HandleUserBalance(record.TeacherId, amount)
+	if err != nil {
+		return err
+	}
+
+	_, err = createTradeRecord(record.TeacherId, amount,
+		models.TRADE_AUDITION_COURSE_EARNING, models.TRADE_RESULT_SUCCESS, comment,
+		0, record.Id, 0, "", 0, chapterId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
