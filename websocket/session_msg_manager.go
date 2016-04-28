@@ -160,10 +160,13 @@ func SendRecoverMsgToTeacher(studentId, teacherId, sessionId, length int64, orde
 	recoverTeacherMsg.Attribute["sessionId"] = sessionIdStr
 	recoverTeacherMsg.Attribute["studentId"] = strconv.FormatInt(studentId, 10)
 	recoverTeacherMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
-		courseRelation, _ := courseService.GetCourseRelation(order.CourseId, order.Creator, order.TeacherId)
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_DELUXE)
 		virturlCourseId := courseRelation.Id
-		//						recoverTeacherMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+		recoverTeacherMsg.Attribute["courseId"] = strconv.FormatInt(virturlCourseId, 10)
+	} else if order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_AUDITION)
+		virturlCourseId := courseRelation.Id
 		recoverTeacherMsg.Attribute["courseId"] = strconv.FormatInt(virturlCourseId, 10)
 	}
 

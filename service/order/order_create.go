@@ -99,6 +99,7 @@ func CreateOrder(creatorId, gradeId, subjectId, teacherId, tierId, recordId, cha
 		SalaryHourly: salaryHourly,
 		CourseId:     courseId,
 		ChapterId:    chapterId,
+		RecordId:     recordId,
 	}
 
 	orderPtr, err := models.CreateOrder(&order)

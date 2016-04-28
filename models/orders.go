@@ -25,7 +25,8 @@ type Order struct {
 	PriceHourly    int64     `json:"-" orm:"column(price_hourly)"`
 	SalaryHourly   int64     `json:"-" orm:"column(salary_hourly)"`
 	CourseId       int64     `json:"courseId" orm:"column(course_id)"`
-	ChapterId      int64     `json:"chapterId" orm:"column(chapter_id"`
+	ChapterId      int64     `json:"chapterId" orm:"column(chapter_id)"`
+	RecordId       int64     `json:"recordId"`
 }
 
 const (

@@ -303,7 +303,8 @@ func SessionEvaluationCreateUpgrade(w http.ResponseWriter, r *http.Request) {
 		recordId, _ = strconv.ParseInt(recordIdStr, 10, 64)
 	}
 	evaluationContent := vars["content"][0]
-	content, err := sessionController.CreateEvaluation(userId, sessionId, chapterId, recordId, evaluationContent)
+	evaluationType := vars["type"][0]
+	content, err := sessionController.CreateEvaluationUpgrade(userId, sessionId, chapterId, recordId, evaluationType, evaluationContent)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {

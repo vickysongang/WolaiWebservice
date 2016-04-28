@@ -565,10 +565,13 @@ func InitSessionMonitor(sessionId int64) bool {
 		startMsg.Attribute["sessionStatus"] = SESSION_STATUS_PAUSED
 	}
 
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
-		courseRelation, _ := courseService.GetCourseRelation(order.CourseId, order.Creator, order.TeacherId)
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_DELUXE)
 		virturlCourseId := courseRelation.Id
-		//startMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+		startMsg.Attribute["courseId"] = strconv.FormatInt(virturlCourseId, 10)
+	} else if order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_DELUXE)
+		virturlCourseId := courseRelation.Id
 		startMsg.Attribute["courseId"] = strconv.FormatInt(virturlCourseId, 10)
 	}
 
@@ -711,17 +714,19 @@ func CheckCourseSessionEvaluation(userId int64, msg WSMessage) {
 				}
 			}
 		}
-		sessionId, courseId, chapterId, studentId, _ := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
+		sessionId, courseId, chapterId, studentId, recordId, _ := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
 		if sessionId != 0 {
 			resp := NewWSMessage("", userId, WS_SESSION_NOT_EVALUATION_TIP)
 			sessionIdStr := strconv.FormatInt(sessionId, 10)
 			courseIdStr := strconv.FormatInt(courseId, 10)
 			chapterIdStr := strconv.FormatInt(chapterId, 10)
 			studentIdStr := strconv.FormatInt(studentId, 10)
+			recordIdStr := strconv.FormatInt(recordId, 10)
 			resp.Attribute["sessionId"] = sessionIdStr
 			resp.Attribute["courseId"] = courseIdStr
 			resp.Attribute["chapterId"] = chapterIdStr
 			resp.Attribute["studentId"] = studentIdStr
+			resp.Attribute["recordId"] = recordIdStr
 			if UserManager.HasUserChan(userId) {
 				userChan := UserManager.GetUserChan(userId)
 				userChan <- resp

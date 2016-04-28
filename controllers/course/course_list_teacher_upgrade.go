@@ -26,13 +26,14 @@ func GetCourseListTeacherUpgrade(teacherId, page, count int64) (int64, []*course
 				auditionRecord.UserId,
 				auditionRecord.Status,
 				auditionRecord.LastUpdateTime,
-				auditionRecord.AuditionNum)
+				auditionRecord.Id)
 			items = append(items, item)
 		}
 	}
 
 	var records []*models.CoursePurchaseRecord
 	_, err = o.QueryTable("course_purchase_record").Filter("teacher_id", teacherId).
+		Exclude("purchase_status", models.PURCHASE_RECORD_STATUS_IDLE).
 		OrderBy("-last_update_time").Offset(page * count).Limit(count).All(&records)
 	if err != nil {
 		return 0, items
@@ -61,7 +62,7 @@ func GetCourseListTeacherUpgrade(teacherId, page, count int64) (int64, []*course
 			ChapterCompletedPeriod: chapterCompletePeriod,
 			LastUpdateTime:         record.LastUpdateTime.Format(time.RFC3339),
 			StudentInfo:            student,
-			AuditionNum:            0,
+			RecordId:               record.Id,
 		}
 
 		items = append(items, &item)
@@ -79,14 +80,14 @@ func GetCourseListTeacherUpgrade(teacherId, page, count int64) (int64, []*course
 				auditionRecord.UserId,
 				auditionRecord.Status,
 				auditionRecord.LastUpdateTime,
-				auditionRecord.AuditionNum)
+				auditionRecord.Id)
 			items = append(items, item)
 		}
 	}
 	return 0, items
 }
 
-func assignTeacherAuditionCourseInfo(courseId, userId int64, status string, lastUpdateTime time.Time, auditionNum int64) *courseTeacherListItem {
+func assignTeacherAuditionCourseInfo(courseId, userId int64, status string, lastUpdateTime time.Time, recordId int64) *courseTeacherListItem {
 	course, err := models.ReadCourse(courseId)
 	if err != nil {
 		return nil
@@ -110,7 +111,7 @@ func assignTeacherAuditionCourseInfo(courseId, userId int64, status string, last
 		ChapterCompletedPeriod: chapterCompletePeriod,
 		LastUpdateTime:         lastUpdateTime.Format(time.RFC3339),
 		StudentInfo:            student,
-		AuditionNum:            auditionNum,
+		RecordId:               recordId,
 	}
 	return &item
 }

@@ -7,12 +7,12 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-func GetCourseRelation(courseId, studentId, teacherId int64) (*models.CourseRelation, error) {
+func GetCourseRelation(recordId int64, recordType string) (*models.CourseRelation, error) {
 	var courseRelation models.CourseRelation
 	o := orm.NewOrm()
 	err := o.QueryTable("course_relation").
-		Filter("course_id", courseId).
-		Filter("teacher_id", teacherId).
-		Filter("user_id", studentId).One(&courseRelation)
+		Filter("record_id", recordId).
+		Filter("type", recordType).
+		One(&courseRelation)
 	return &courseRelation, err
 }

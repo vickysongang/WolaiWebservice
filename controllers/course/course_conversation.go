@@ -56,7 +56,7 @@ func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (i
 			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId,
 				auditionRecord.UserId,
 				auditionRecord.Status,
-				auditionRecord.AuditionNum,
+				auditionRecord.Id,
 				auditionRecord.TeacherId)
 			items = append(items, item)
 		}
