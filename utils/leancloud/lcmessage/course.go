@@ -20,7 +20,7 @@ func SendCourseChapterCompleteMsg(purchaseId, chapterId int64) {
 		return
 	}
 
-	chapter, err := models.ReadCourseChapter(chapterId)
+	chapter, err := models.ReadCourseCustomChapter(chapterId)
 	if err != nil {
 		return
 	}
@@ -58,7 +58,7 @@ func SendAuditionCourseChapterCompleteMsg(auditionRecordId, chapterId int64) {
 		return
 	}
 
-	chapter, err := models.ReadCourseChapter(chapterId)
+	chapter, err := models.ReadCourseCustomChapter(chapterId)
 	if err != nil {
 		return
 	}

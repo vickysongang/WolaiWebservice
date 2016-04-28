@@ -270,6 +270,29 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户收入：%s %.2f 元", signStr, amount))
 
+	case models.TRADE_AUDITION_COURSE_EARNING:
+		audition, err := models.ReadCourseAuditionRecord(record.RecordId)
+		if err != nil {
+			return
+		}
+
+		course, err := models.ReadCourse(audition.CourseId)
+		if err != nil {
+			return
+		}
+
+		student, err := models.ReadUser(audition.UserId)
+		if err != nil {
+			return
+		}
+
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已成功授完%s同学的课程。",
+			user.Nickname, suffix, student.Nickname)
+		msg.body = append(msg.body,
+			fmt.Sprintf("课程名称：%s", course.Name))
+		msg.body = append(msg.body,
+			fmt.Sprintf("账户收入：%s %.2f 元", signStr, amount))
+
 	case models.TRADE_QA_PKG_PURCHASE:
 		qaPkg, err := models.ReadQaPkg(record.RecordId)
 		if err != nil {

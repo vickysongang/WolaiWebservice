@@ -66,9 +66,19 @@ func QueryEvaluation(userId, sessionId int64) (*Evaluation, error) {
 	return &evalution, err
 }
 
-func QueryEvaluationByChapter(userId, chapterId int64) (*Evaluation, error) {
+func QueryEvaluationByChapter(userId, chapterId, recordId int64) (*Evaluation, error) {
 	o := orm.NewOrm()
 	evalution := Evaluation{}
-	err := o.QueryTable("evaluation").Filter("user_id", userId).Filter("chapter_id", chapterId).One(&evalution)
+	cond := orm.NewCondition()
+	if userId != 0 {
+		cond = cond.And("user_id", userId)
+	}
+	if chapterId != 0 {
+		cond = cond.And("chapter_id", chapterId)
+	}
+	if recordId != 0 {
+		cond = cond.And("record_id", recordId)
+	}
+	err := o.QueryTable("evaluation").SetCond(cond).One(&evalution)
 	return &evalution, err
 }

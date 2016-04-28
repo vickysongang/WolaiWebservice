@@ -214,8 +214,8 @@ func QueryEvaluationInfo(userId, sessionId, targetId, chapterId int64) ([]*evalu
 		}
 	} else {
 		chapter, _ := models.ReadCourseCustomChapter(chapterId)
-		studentEvaluation, _ = models.QueryEvaluationByChapter(chapter.UserId, chapterId)
-		teacherEvaluation, _ = models.QueryEvaluationByChapter(chapter.TeacherId, chapterId)
+		studentEvaluation, _ = models.QueryEvaluationByChapter(chapter.UserId, chapterId, 0)
+		teacherEvaluation, _ = models.QueryEvaluationByChapter(chapter.TeacherId, chapterId, 0)
 		if userId == chapter.UserId {
 			isStudent = true
 		} else if userId == chapter.TeacherId {
