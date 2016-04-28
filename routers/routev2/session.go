@@ -113,7 +113,7 @@ var sessionRoutes = route.Routes{
 	route.Route{
 		"SessionEvaluationCreateUpgrade",
 		"POST",
-		"/evaluation/upgrade/post",
+		"/evaluation/post",
 		handlerv2.SessionEvaluationCreateUpgrade,
 		true,
 		true,
@@ -123,7 +123,7 @@ var sessionRoutes = route.Routes{
 	route.Route{
 		"SessionEvaluationResultUpgrade",
 		"POST",
-		"/evaluation/upgrade/result",
+		"/evaluation/result",
 		handlerv2.SessionEvaluationResultUpgrade,
 		true,
 		true,
