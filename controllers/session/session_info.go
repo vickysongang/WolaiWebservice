@@ -153,7 +153,7 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 		}
 
 		o := orm.NewOrm()
-		var purchaseRecord *models.CoursePurchaseRecord
+		var purchaseRecord models.CoursePurchaseRecord
 		o.QueryTable("course_purchase_record").Filter("course_id", chapter.CourseId).Filter("user_id", chapter.UserId).
 			One(&purchaseRecord)
 		recordId = purchaseRecord.Id
