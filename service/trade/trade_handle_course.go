@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"WolaiWebservice/models"
+
+	seelog "github.com/cihub/seelog"
 )
 
 var ErrInsufficientFund error
@@ -124,14 +126,11 @@ func HandleAuditionCourseEarning(recordId int64, period int64, chapterId int64) 
 	}
 
 	comment := fmt.Sprintf("第%d课时", period)
-
-	amount := record.SalaryHourly
-	if period == 0 {
-		amount = record.SalaryHourly / 2
-	}
+	amount := record.SalaryHourly / 2
 
 	err = HandleUserBalance(record.TeacherId, amount)
 	if err != nil {
+		seelog.Error(err.Error())
 		return err
 	}
 

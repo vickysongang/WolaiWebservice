@@ -32,6 +32,8 @@ func GetCourseListStudentUpgrade(userId, page, count int64) (int64, []*courseStu
 	if err != nil {
 		return 0, items
 	}
+	totalCount, _ := o.QueryTable("course_purchase_record").Filter("user_id", userId).
+		Exclude("purchase_status", models.PURCHASE_RECORD_STATUS_IDLE).Count()
 
 	for _, record := range records {
 		course, err := models.ReadCourse(record.CourseId)
@@ -57,8 +59,7 @@ func GetCourseListStudentUpgrade(userId, page, count int64) (int64, []*courseStu
 		items = append(items, &item)
 	}
 
-	recordsLen := int64(len(records))
-	if recordsLen < count {
+	if page == totalCount/count {
 		var auditionCompleteRecords []*models.CourseAuditionRecord
 		o.QueryTable("course_audition_record").Filter("user_id", userId).
 			Filter("status", models.AUDITION_RECORD_STATUS_COMPLETE).
