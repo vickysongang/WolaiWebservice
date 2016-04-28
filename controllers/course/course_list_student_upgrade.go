@@ -27,6 +27,7 @@ func GetCourseListStudentUpgrade(userId, page, count int64) (int64, []*courseStu
 
 	var records []*models.CoursePurchaseRecord
 	_, err = o.QueryTable("course_purchase_record").Filter("user_id", userId).
+		Exclude("purchase_status", models.PURCHASE_RECORD_STATUS_IDLE).
 		OrderBy("-last_update_time").Offset(page * count).Limit(count).All(&records)
 	if err != nil {
 		return 0, items
