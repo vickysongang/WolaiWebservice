@@ -51,11 +51,23 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 		if purchaseRecord.TeacherId == 0 {
 			detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0, false)
 		} else {
-			detail.ChapterCompletedPeriod, err = courseService.QueryLatestCourseChapterPeriod(courseId, userId)
+			detail.ChapterCompletedPeriod, err = courseService.GetLatestCompleteChapterPeriod(courseId, userId, purchaseRecord.Id)
 			if err != nil {
-				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, userId, purchaseRecord.TeacherId, false)
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,
+					detail.ChapterCompletedPeriod,
+					userId,
+					purchaseRecord.TeacherId,
+					purchaseRecord.Id,
+					models.COURSE_TYPE_DELUXE,
+					false)
 			} else {
-				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, userId, purchaseRecord.TeacherId, false)
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,
+					detail.ChapterCompletedPeriod+1,
+					userId,
+					purchaseRecord.TeacherId,
+					purchaseRecord.Id,
+					models.COURSE_TYPE_DELUXE,
+					false)
 			}
 		}
 	}
@@ -76,7 +88,10 @@ func queryCourseTeacherList(courseId int64) ([]*teacherItem, error) {
 
 	for _, courseTeacher := range courseTeachers {
 		user, _ := models.ReadUser(courseTeacher.UserId)
-		profile, _ := models.ReadTeacherProfile(courseTeacher.UserId)
+		profile, err := models.ReadTeacherProfile(courseTeacher.UserId)
+		if err != nil {
+			continue
+		}
 		school, _ := models.ReadSchool(profile.SchoolId)
 
 		subjectNames, err := userService.GetTeacherSubjectNameSlice(courseTeacher.UserId)

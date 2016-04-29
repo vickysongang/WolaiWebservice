@@ -301,7 +301,7 @@ func CourseDetailTeacher(w http.ResponseWriter, r *http.Request) {
 
 // 9.3.3
 func CourseDetailStudentUpgrade(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	//	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -581,14 +581,12 @@ func CourseActionNextChapterUpgrade(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := r.Form
 
-	courseIdStr := vars["courseId"][0]
-	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
 	chapterIdStr := vars["chapterId"][0]
 	chapterId, _ := strconv.ParseInt(chapterIdStr, 10, 64)
-	studentIdStr := vars["studentId"][0]
-	studentId, _ := strconv.ParseInt(studentIdStr, 10, 64)
+	recordIdStr := vars["recordId"][0]
+	recordId, _ := strconv.ParseInt(recordIdStr, 10, 64)
 
-	status, err := courseController.HandleCourseActionNextChapterUpgrade(userId, studentId, courseId, chapterId)
+	status, err := courseController.HandleCourseActionNextChapterUpgrade(userId, chapterId, recordId)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullObject)

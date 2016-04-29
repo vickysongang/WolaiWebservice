@@ -33,11 +33,25 @@ func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeac
 
 	detail.ChapterCount = purchaseRecord.ChapterCount
 
-	detail.ChapterCompletedPeriod, err = courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
+	detail.ChapterCompletedPeriod, err = courseService.GetLatestCompleteChapterPeriod(courseId, studentId, purchaseRecord.Id)
 	if err != nil {
-		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, studentId, purchaseRecord.TeacherId, false)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(
+			courseId,
+			detail.ChapterCompletedPeriod,
+			studentId,
+			purchaseRecord.TeacherId,
+			purchaseRecord.Id,
+			models.COURSE_TYPE_DELUXE,
+			false)
 	} else {
-		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, studentId, purchaseRecord.TeacherId, false)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(
+			courseId,
+			detail.ChapterCompletedPeriod+1,
+			studentId,
+			purchaseRecord.TeacherId,
+			purchaseRecord.Id,
+			models.COURSE_TYPE_DELUXE,
+			false)
 	}
 
 	studentList := make([]*models.User, 0)

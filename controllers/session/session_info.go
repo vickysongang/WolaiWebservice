@@ -136,7 +136,7 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 	var isCourse, isCompleted bool
 	var chapterInfo courseChapterInfo
 	var evaluationStatus, evaluationComment, evaluationDetailUrl string
-	var recordId int64
+	recordId := order.RecordId
 	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		isCourse = true
 		chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
@@ -147,26 +147,20 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 			chapterInfo.Brief = chapter.Abstract
 			chapterInfo.Title = chapter.Title
 		}
-		chapterToUser, _ := courseService.GetCourseChapterToUser(chapter.Id, chapter.UserId, chapter.TeacherId)
+		chapterToUser, _ := courseService.GetCourseChapterToUser(chapter.Id, chapter.UserId, chapter.TeacherId, order.RecordId)
 		if chapterToUser.Id != 0 {
 			isCompleted = true
 		} else {
 			isCompleted = false
 		}
 
-		o := orm.NewOrm()
-		var purchaseRecord models.CoursePurchaseRecord
-		o.QueryTable("course_purchase_record").Filter("course_id", chapter.CourseId).Filter("user_id", chapter.UserId).
-			One(&purchaseRecord)
-		recordId = purchaseRecord.Id
-
-		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.TeacherId, chapter.Id, 0)
+		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.TeacherId, chapter.Id, recordId)
 		if evaluationApply.Id != 0 {
 			evaluationStatus = evaluationApply.Status
 			if evaluationApply.Status == models.EVALUATION_APPLY_STATUS_CREATED {
 				evaluationComment = "课时总结已提交，等待助教审核中..."
 			}
-			evaluationDetailUrl = fmt.Sprintf("%s%d", evaluationService.GetEvaluationDetailUrlPrefix(), chapter.Id)
+			evaluationDetailUrl = fmt.Sprintf("%s%d/%d", evaluationService.GetEvaluationDetailUrlPrefix(), chapter.Id, recordId)
 		} else {
 			evaluationStatus = models.EVALUATION_APPLY_STATUS_IDLE
 		}

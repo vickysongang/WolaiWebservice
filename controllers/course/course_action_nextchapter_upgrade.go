@@ -4,70 +4,57 @@ package course
 import (
 	"errors"
 
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
-func HandleCourseActionNextChapterUpgrade(userId, studentId, courseId, chapterId int64) (int64, error) {
+func HandleCourseActionNextChapterUpgrade(userId, chapterId, recordId int64) (int64, error) {
 	var err error
 	_, err = models.ReadUser(userId)
 	if err != nil {
 		return 2, errors.New("用户信息异常")
 	}
-
-	_, err = models.ReadUser(studentId)
+	chapter, err := models.ReadCourseCustomChapter(chapterId)
 	if err != nil {
-		return 2, errors.New("用户信息异常")
+		return 2, errors.New("课时信息异常")
 	}
 
-	var course *models.Course
-	if courseId == 0 { //代表试听课，从H5页面跳转过来的
-		course = courseService.QueryAuditionCourse()
-		if course == nil {
-			return 2, errors.New("课程信息异常")
-		}
-	} else {
-		course, err = models.ReadCourse(courseId)
-		if err != nil {
-			return 2, nil
-		}
+	course, err := models.ReadCourse(chapter.CourseId)
+	if err != nil {
+		return 2, nil
 	}
 	if course.Type == models.COURSE_TYPE_DELUXE {
-		status, err := HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId)
+		status, err := HandleDeluxeCourseNextChapterUpgrade(userId, chapterId, recordId)
 		return status, err
 	} else if course.Type == models.COURSE_TYPE_AUDITION {
-		status, err := HandleAuditionCourseNextChapterUpgrade(userId, studentId, courseId, chapterId)
+		status, err := HandleAuditionCourseNextChapterUpgrade(userId, chapterId, recordId)
 		return status, err
 	}
 	return 0, nil
 }
 
-func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId int64) (int64, error) {
+func HandleDeluxeCourseNextChapterUpgrade(userId, chapterId, recordId int64) (int64, error) {
 	var err error
-	o := orm.NewOrm()
 
 	chapter, err := models.ReadCourseCustomChapter(chapterId)
 	if err != nil {
-		return 2, errors.New("课程信息异常")
+		return 2, errors.New("课程课时信息异常")
 	}
 
-	var purchase models.CoursePurchaseRecord
-	err = o.QueryTable("course_purchase_record").
-		Filter("course_id", courseId).Filter("user_id", studentId).One(&purchase)
+	purchase, err := models.ReadCoursePurchaseRecord(recordId)
 	if err != nil {
 		return 2, errors.New("课程信息异常")
 	}
 	if purchase.TeacherId != userId {
-		return 2, errors.New("课程信息异常")
+		return 2, errors.New("课程导师信息异常")
 	}
-
-	latestPeriod, _ := courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
+	courseId := purchase.CourseId
+	studentId := purchase.UserId
+	latestPeriod, _ := courseService.GetLatestCompleteChapterPeriod(courseId, studentId, purchase.Id)
 
 	if chapter.Period != latestPeriod+1 {
-		return 2, errors.New("课程课时信息异常")
+		return 2, errors.New("课程课时号信息异常")
 	}
 	if purchase.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE {
 		return 2, errors.New("学生还未购买该课时")
@@ -81,6 +68,7 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId
 		UserId:    studentId,
 		TeacherId: userId,
 		Period:    chapter.Period,
+		RecordId:  purchase.Id,
 	}
 
 	_, err = models.CreateCourseChapterToUser(&record)
@@ -101,29 +89,23 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId
 	return 0, nil
 }
 
-func HandleAuditionCourseNextChapterUpgrade(teacherId, studentId, courseId, chapterId int64) (int64, error) {
+func HandleAuditionCourseNextChapterUpgrade(teacherId, chapterId, recordId int64) (int64, error) {
 	var err error
-	o := orm.NewOrm()
-
 	chapter, err := models.ReadCourseCustomChapter(chapterId)
 	if err != nil {
 		return 2, errors.New("课程信息异常")
 	}
 
-	var auditionRecord models.CourseAuditionRecord
-	err = o.QueryTable("course_audition_record").
-		Filter("course_id", courseId).
-		Filter("user_id", studentId).
-		Filter("teacher_id", teacherId).
-		One(&auditionRecord)
+	auditionRecord, err := models.ReadCourseAuditionRecord(recordId)
 	if err != nil {
 		return 2, errors.New("课程信息异常")
 	}
 	if auditionRecord.TeacherId != teacherId {
 		return 2, errors.New("课程信息异常")
 	}
-
-	latestPeriod, err := courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
+	courseId := auditionRecord.CourseId
+	studentId := auditionRecord.UserId
+	latestPeriod, err := courseService.GetLatestCompleteChapterPeriod(courseId, studentId, auditionRecord.Id)
 	if err == nil {
 		if chapter.Period != latestPeriod+1 {
 			return 2, errors.New("课程信息异常")
@@ -145,6 +127,7 @@ func HandleAuditionCourseNextChapterUpgrade(teacherId, studentId, courseId, chap
 		UserId:    studentId,
 		TeacherId: teacherId,
 		Period:    chapter.Period,
+		RecordId:  auditionRecord.Id,
 	}
 
 	_, err = models.CreateCourseChapterToUser(&record)

@@ -50,7 +50,7 @@ func GetCourseListTeacherUpgrade(teacherId, page, count int64) (int64, []*course
 		studentCount := courseService.GetCourseStudentCount(record.CourseId)
 		chapterCount := record.ChapterCount
 
-		chapterCompletePeriod, _ := courseService.QueryLatestCourseChapterPeriod(record.CourseId, record.UserId)
+		chapterCompletePeriod, _ := courseService.GetLatestCompleteChapterPeriod(record.CourseId, record.UserId, record.Id)
 		student, err := models.ReadUser(record.UserId)
 		if err != nil {
 			continue
@@ -97,7 +97,7 @@ func assignTeacherAuditionCourseInfo(courseId, userId int64, status string, last
 	studentCount := courseService.GetAuditionCourseStudentCount(courseId)
 	chapterCount := int64(1)
 
-	chapterCompletePeriod, _ := courseService.QueryLatestCourseChapterPeriod(courseId, userId)
+	chapterCompletePeriod, _ := courseService.GetLatestCompleteChapterPeriod(courseId, userId, recordId)
 
 	student, err := models.ReadUser(userId)
 	if err != nil {

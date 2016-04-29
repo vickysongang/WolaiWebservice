@@ -1,20 +1,26 @@
 package course
 
 import (
-	"WolaiWebBackend/config"
-
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
 )
 
 func GetCourseStudentCount(courseId int64) int64 {
-	o := orm.NewOrm()
-	studentCount, err := o.QueryTable(new(models.CoursePurchaseRecord).TableName()).
-		Filter("course_id", courseId).
-		Count()
+	course, err := models.ReadCourse(courseId)
 	if err != nil {
 		return 0
+	}
+	o := orm.NewOrm()
+	var studentCount int64
+	if course.Type == models.COURSE_TYPE_DELUXE {
+		studentCount, _ = o.QueryTable(new(models.CoursePurchaseRecord).TableName()).
+			Filter("course_id", courseId).
+			Count()
+	} else if course.Type == models.COURSE_TYPE_AUDITION {
+		studentCount, _ = o.QueryTable(new(models.CourseAuditionRecord).TableName()).
+			Filter("course_id", courseId).
+			Count()
 	}
 	return studentCount
 }
@@ -31,24 +37,18 @@ func GetCourseChapterCount(courseId int64) int64 {
 	return chapterCount
 }
 
-func GetCourseCustomChapterCount(courseId, userId, teacherId int64) int64 {
-	o := orm.NewOrm()
-	chapterCount, _ := o.QueryTable(new(models.CourseCustomChapter).TableName()).
-		Filter("course_id", courseId).
-		Filter("user_id", userId).
-		Filter("teacher_id", teacherId).
-		Exclude("period", 0).
-		Count()
-	return chapterCount
-}
-
-func GetCourseChapterToUser(chapterId, userId, teacherId int64) (*models.CourseChapterToUser, error) {
+func GetCourseChapterToUser(chapterId, userId, teacherId, recordId int64) (*models.CourseChapterToUser, error) {
 	o := orm.NewOrm()
 	var chapterToUser models.CourseChapterToUser
+	cond := orm.NewCondition()
+	cond = cond.And("chapter_id", chapterId)
+	cond = cond.And("user_id", userId)
+	cond = cond.And("teacher_id", teacherId)
+	if recordId != 0 {
+		cond = cond.And("record_id", recordId)
+	}
 	err := o.QueryTable(new(models.CourseChapterToUser).TableName()).
-		Filter("chapter_id", chapterId).
-		Filter("user_id", userId).
-		Filter("teacher_id", teacherId).One(&chapterToUser)
+		SetCond(cond).One(&chapterToUser)
 	return &chapterToUser, err
 }
 
@@ -80,13 +80,17 @@ func QueryCourseChapters(courseId int64) ([]models.CourseChapter, error) {
 }
 
 //查询最近完成的课时号
-func QueryLatestCourseChapterPeriod(courseId, userId int64) (int64, error) {
+func GetLatestCompleteChapterPeriod(courseId, userId, recordId int64) (int64, error) {
 	o := orm.NewOrm()
-	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
-	qb.Select("period").From("course_chapter_to_user").Where("course_id = ? and user_id = ?").OrderBy("period").Desc().Limit(1)
-	sql := qb.String()
-	var period int64
-	err := o.Raw(sql, courseId, userId).QueryRow(&period)
+	cond := orm.NewCondition()
+	cond = cond.And("course_id", courseId)
+	cond = cond.And("user_id", userId)
+	if recordId != 0 {
+		cond = cond.And("record_id", recordId)
+	}
+	var chapterToUser models.CourseChapterToUser
+	err := o.QueryTable("course_chapter_to_user").SetCond(cond).OrderBy("-period").Limit(1).One(&chapterToUser)
+	period := chapterToUser.Period
 	return period, err
 }
 
@@ -95,15 +99,4 @@ func QueryCourseContentIntros(courseId int64) ([]models.CourseContentIntro, erro
 	intros := make([]models.CourseContentIntro, 0)
 	_, err := o.QueryTable(new(models.CourseContentIntro).TableName()).Filter("course_id", courseId).OrderBy("rank").All(&intros)
 	return intros, err
-}
-
-func QueryCourseCustomChapter(courseId, period, userId int64) (*models.CourseCustomChapter, error) {
-	o := orm.NewOrm()
-	var customChapter models.CourseCustomChapter
-	err := o.QueryTable("course_custom_chapter").
-		Filter("course_id", courseId).
-		Filter("period", period).
-		Filter("user_id", userId).
-		One(&customChapter)
-	return &customChapter, err
 }

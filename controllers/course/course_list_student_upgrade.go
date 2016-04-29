@@ -44,7 +44,7 @@ func GetCourseListStudentUpgrade(userId, page, count int64) (int64, []*courseStu
 		studentCount := courseService.GetCourseStudentCount(record.CourseId)
 		chapterCount := record.ChapterCount
 
-		chapterCompletePeriod, _ := courseService.QueryLatestCourseChapterPeriod(record.CourseId, userId)
+		chapterCompletePeriod, _ := courseService.GetLatestCompleteChapterPeriod(record.CourseId, userId, record.Id)
 
 		item := courseStudentListItem{
 			Course:                 *course,
@@ -83,7 +83,7 @@ func assignStudentAuditionCourseInfo(courseId, userId int64, status string, reco
 	studentCount := courseService.GetAuditionCourseStudentCount(courseId)
 	chapterCount := int64(1)
 
-	chapterCompletePeriod, _ := courseService.QueryLatestCourseChapterPeriod(courseId, userId)
+	chapterCompletePeriod, _ := courseService.GetLatestCompleteChapterPeriod(courseId, userId, recordId)
 
 	item := courseStudentListItem{
 		Course:                 *course,

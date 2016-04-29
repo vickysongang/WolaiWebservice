@@ -80,7 +80,7 @@ func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (i
 		studentCount := courseService.GetCourseStudentCount(record.CourseId)
 		chapterCount := record.ChapterCount
 
-		chapterCompletePeriod, _ := courseService.QueryLatestCourseChapterPeriod(record.CourseId, userId)
+		chapterCompletePeriod, _ := courseService.GetLatestCompleteChapterPeriod(record.CourseId, userId, record.Id)
 
 		item := courseStudentListItem{
 			Course:                 *course,
