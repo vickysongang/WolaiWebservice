@@ -136,7 +136,7 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 	var isCourse, isCompleted bool
 	var chapterInfo courseChapterInfo
 	var evaluationStatus, evaluationComment, evaluationDetailUrl string
-	var recordId int64
+	recordId := order.RecordId
 	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		isCourse = true
 		chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
@@ -153,12 +153,6 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 		} else {
 			isCompleted = false
 		}
-
-		o := orm.NewOrm()
-		var purchaseRecord models.CoursePurchaseRecord
-		o.QueryTable("course_purchase_record").Filter("course_id", chapter.CourseId).Filter("user_id", chapter.UserId).
-			One(&purchaseRecord)
-		recordId = purchaseRecord.Id
 
 		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.TeacherId, chapter.Id, recordId)
 		if evaluationApply.Id != 0 {

@@ -88,7 +88,10 @@ func queryCourseTeacherList(courseId int64) ([]*teacherItem, error) {
 
 	for _, courseTeacher := range courseTeachers {
 		user, _ := models.ReadUser(courseTeacher.UserId)
-		profile, _ := models.ReadTeacherProfile(courseTeacher.UserId)
+		profile, err := models.ReadTeacherProfile(courseTeacher.UserId)
+		if err != nil {
+			continue
+		}
 		school, _ := models.ReadSchool(profile.SchoolId)
 
 		subjectNames, err := userService.GetTeacherSubjectNameSlice(courseTeacher.UserId)
