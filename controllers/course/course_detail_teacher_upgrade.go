@@ -99,6 +99,7 @@ func GetAuditionCourseDetailTeacher(studentId, teacherId int64, course *models.C
 	detail.StudentCount = courseService.GetCourseStudentCount(courseId)
 
 	detail.ChapterCount = 1
+	detail.RecordId = recordId
 
 	detail.ChapterCompletedPeriod, err = courseService.GetLatestCompleteChapterPeriod(courseId, studentId, auditionoRecord.Id)
 	if err != nil {
