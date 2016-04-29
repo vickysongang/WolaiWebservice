@@ -7,12 +7,20 @@ import (
 )
 
 func GetCourseStudentCount(courseId int64) int64 {
-	o := orm.NewOrm()
-	studentCount, err := o.QueryTable(new(models.CoursePurchaseRecord).TableName()).
-		Filter("course_id", courseId).
-		Count()
+	course, err := models.ReadCourse(courseId)
 	if err != nil {
 		return 0
+	}
+	o := orm.NewOrm()
+	var studentCount int64
+	if course.Type == models.COURSE_TYPE_DELUXE {
+		studentCount, _ = o.QueryTable(new(models.CoursePurchaseRecord).TableName()).
+			Filter("course_id", courseId).
+			Count()
+	} else if course.Type == models.COURSE_TYPE_AUDITION {
+		studentCount, _ = o.QueryTable(new(models.CourseAuditionRecord).TableName()).
+			Filter("course_id", courseId).
+			Count()
 	}
 	return studentCount
 }
