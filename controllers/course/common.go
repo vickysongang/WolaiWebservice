@@ -166,7 +166,7 @@ func queryCourseCustomChapterStatus(courseId, current, userId, teacherId, record
 	}
 	var courseCustomChapters []*models.CourseCustomChapter
 	cond := orm.NewCondition()
-	cond = cond.And("rel_id", courseId)
+	cond = cond.And("rel_id", courseRelation.Id)
 	if upgradeFlag {
 		cond = cond.AndNot("period", 0)
 	}
