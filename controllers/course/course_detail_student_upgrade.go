@@ -66,11 +66,23 @@ func GetDeluxeCourseDetail(userId int64, course *models.Course) (int64, *courseD
 		if purchaseRecord.TeacherId == 0 {
 			detail.ChapterList, _ = queryCourseChapterStatus(courseId, 1, true)
 		} else {
-			detail.ChapterCompletedPeriod, err = courseService.QueryLatestCourseChapterPeriod(courseId, userId)
+			detail.ChapterCompletedPeriod, err = courseService.GetLatestCompleteChapterPeriod(courseId, userId, purchaseRecord.Id)
 			if err != nil {
-				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, 1, userId, purchaseRecord.TeacherId, true)
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,
+					1,
+					userId,
+					purchaseRecord.TeacherId,
+					purchaseRecord.Id,
+					models.COURSE_TYPE_DELUXE,
+					true)
 			} else {
-				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, userId, purchaseRecord.TeacherId, true)
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,
+					detail.ChapterCompletedPeriod+1,
+					userId,
+					purchaseRecord.TeacherId,
+					purchaseRecord.Id,
+					models.COURSE_TYPE_DELUXE,
+					true)
 			}
 		}
 	}
@@ -118,11 +130,23 @@ func GetAuditionCourseDetail(userId int64, course *models.Course, recordId int64
 		if auditionRecord.TeacherId == 0 {
 			detail.ChapterList, _ = queryCourseChapterStatus(courseId, 1, true)
 		} else {
-			detail.ChapterCompletedPeriod, err = courseService.QueryLatestCourseChapterPeriod(courseId, userId)
+			detail.ChapterCompletedPeriod, err = courseService.GetLatestCompleteChapterPeriod(courseId, userId, auditionRecord.Id)
 			if err != nil {
-				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, 1, userId, auditionRecord.TeacherId, true)
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,
+					1,
+					userId,
+					auditionRecord.TeacherId,
+					auditionRecord.Id,
+					models.COURSE_TYPE_AUDITION,
+					true)
 			} else {
-				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, userId, auditionRecord.TeacherId, true)
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,
+					detail.ChapterCompletedPeriod+1,
+					userId,
+					auditionRecord.TeacherId,
+					auditionRecord.Id,
+					models.COURSE_TYPE_AUDITION,
+					true)
 			}
 		}
 	}

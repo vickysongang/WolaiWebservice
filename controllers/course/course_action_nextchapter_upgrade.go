@@ -64,7 +64,7 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId
 		return 2, errors.New("课程信息异常")
 	}
 
-	latestPeriod, _ := courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
+	latestPeriod, _ := courseService.GetLatestCompleteChapterPeriod(courseId, studentId, purchase.Id)
 
 	if chapter.Period != latestPeriod+1 {
 		return 2, errors.New("课程课时信息异常")
@@ -81,6 +81,7 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, studentId, courseId, chapterId
 		UserId:    studentId,
 		TeacherId: userId,
 		Period:    chapter.Period,
+		RecordId:  purchase.Id,
 	}
 
 	_, err = models.CreateCourseChapterToUser(&record)
@@ -123,7 +124,7 @@ func HandleAuditionCourseNextChapterUpgrade(teacherId, studentId, courseId, chap
 		return 2, errors.New("课程信息异常")
 	}
 
-	latestPeriod, err := courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
+	latestPeriod, err := courseService.GetLatestCompleteChapterPeriod(courseId, studentId, auditionRecord.Id)
 	if err == nil {
 		if chapter.Period != latestPeriod+1 {
 			return 2, errors.New("课程信息异常")
@@ -145,6 +146,7 @@ func HandleAuditionCourseNextChapterUpgrade(teacherId, studentId, courseId, chap
 		UserId:    studentId,
 		TeacherId: teacherId,
 		Period:    chapter.Period,
+		RecordId:  auditionRecord.Id,
 	}
 
 	_, err = models.CreateCourseChapterToUser(&record)

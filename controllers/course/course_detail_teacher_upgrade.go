@@ -54,11 +54,23 @@ func GetDeluxeCourseDetailTeacher(studentId, teacherId int64, course *models.Cou
 
 	detail.ChapterCount = purchaseRecord.ChapterCount
 
-	detail.ChapterCompletedPeriod, err = courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
+	detail.ChapterCompletedPeriod, err = courseService.GetLatestCompleteChapterPeriod(courseId, studentId, purchaseRecord.Id)
 	if err != nil {
-		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, 1, studentId, purchaseRecord.TeacherId, true)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,
+			1,
+			studentId,
+			purchaseRecord.TeacherId,
+			purchaseRecord.Id,
+			models.COURSE_TYPE_DELUXE,
+			true)
 	} else {
-		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, studentId, purchaseRecord.TeacherId, true)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,
+			detail.ChapterCompletedPeriod+1,
+			studentId,
+			purchaseRecord.TeacherId,
+			purchaseRecord.Id,
+			models.COURSE_TYPE_DELUXE,
+			true)
 	}
 
 	studentList := make([]*models.User, 0)
@@ -88,11 +100,23 @@ func GetAuditionCourseDetailTeacher(studentId, teacherId int64, course *models.C
 
 	detail.ChapterCount = 1
 
-	detail.ChapterCompletedPeriod, err = courseService.QueryLatestCourseChapterPeriod(courseId, studentId)
+	detail.ChapterCompletedPeriod, err = courseService.GetLatestCompleteChapterPeriod(courseId, studentId, auditionoRecord.Id)
 	if err != nil {
-		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, 1, studentId, auditionoRecord.TeacherId, true)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,
+			1,
+			studentId,
+			auditionoRecord.TeacherId,
+			auditionoRecord.Id,
+			models.COURSE_TYPE_AUDITION,
+			true)
 	} else {
-		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, studentId, auditionoRecord.TeacherId, true)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,
+			detail.ChapterCompletedPeriod+1,
+			studentId,
+			auditionoRecord.TeacherId,
+			auditionoRecord.Id,
+			models.COURSE_TYPE_AUDITION,
+			true)
 	}
 
 	studentList := make([]*models.User, 0)

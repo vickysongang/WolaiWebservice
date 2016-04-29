@@ -160,13 +160,13 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 			One(&purchaseRecord)
 		recordId = purchaseRecord.Id
 
-		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.TeacherId, chapter.Id, 0)
+		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.TeacherId, chapter.Id, recordId)
 		if evaluationApply.Id != 0 {
 			evaluationStatus = evaluationApply.Status
 			if evaluationApply.Status == models.EVALUATION_APPLY_STATUS_CREATED {
 				evaluationComment = "课时总结已提交，等待助教审核中..."
 			}
-			evaluationDetailUrl = fmt.Sprintf("%s%d", evaluationService.GetEvaluationDetailUrlPrefix(), chapter.Id)
+			evaluationDetailUrl = fmt.Sprintf("%s%d/%d", evaluationService.GetEvaluationDetailUrlPrefix(), chapter.Id, recordId)
 		} else {
 			evaluationStatus = models.EVALUATION_APPLY_STATUS_IDLE
 		}

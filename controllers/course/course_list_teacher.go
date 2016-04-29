@@ -30,7 +30,7 @@ func GetCourseListTeacher(userId, page, count int64) (int64, []*courseTeacherLis
 		studentCount := courseService.GetCourseStudentCount(record.CourseId)
 		chapterCount := courseService.GetCourseChapterCount(record.CourseId)
 
-		chapterCompletePeriod, _ := courseService.QueryLatestCourseChapterPeriod(record.CourseId, record.UserId)
+		chapterCompletePeriod, _ := courseService.GetLatestCompleteChapterPeriod(record.CourseId, record.UserId, record.Id)
 		student, err := models.ReadUser(record.UserId)
 		if err != nil {
 			continue

@@ -14,6 +14,7 @@ type CourseChapterToUser struct {
 	TeacherId  int64     `json:"teacherId"`
 	Period     int64     `json:"period"`
 	CreateTime time.Time `json:"createTime" orm:"type(datetime);auto_now_add"`
+	RecordId   int64     `json:"recordId"`
 }
 
 func init() {

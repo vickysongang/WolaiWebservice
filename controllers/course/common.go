@@ -156,14 +156,17 @@ func queryCourseChapterStatus(courseId int64, current int64, upgradeFlag bool) (
 	return statusList, nil
 }
 
-func queryCourseCustomChapterStatus(courseId int64, current int64, userId int64, teacherId int64, upgradeFlag bool) ([]*courseChapterStatus, error) {
+func queryCourseCustomChapterStatus(courseId, current, userId, teacherId, recordId int64, courseType string, upgradeFlag bool) ([]*courseChapterStatus, error) {
 	o := orm.NewOrm()
 
+	var courseRelation models.CourseRelation
+	err := o.QueryTable("course_relation").Filter("record_id", recordId).Filter("type", courseType).Limit(1).One(&courseRelation)
+	if err != nil {
+		return make([]*courseChapterStatus, 0), err
+	}
 	var courseCustomChapters []*models.CourseCustomChapter
 	cond := orm.NewCondition()
-	cond = cond.And("course_id", courseId)
-	cond = cond.And("user_id", userId)
-	cond = cond.And("teacher_id", teacherId)
+	cond = cond.And("rel_id", courseId)
 	if upgradeFlag {
 		cond = cond.AndNot("period", 0)
 	}
@@ -204,7 +207,7 @@ func queryCourseCustomChapterStatus(courseId int64, current int64, userId int64,
 			if evaluationApply.Status == models.EVALUATION_APPLY_STATUS_CREATED {
 				status.EvaluationComment = "课时总结已提交，等待助教审核中..."
 			}
-			status.EvaluationDetailUrl = fmt.Sprintf("%s%d", evaluationService.GetEvaluationDetailUrlPrefix(), chapter.Id)
+			status.EvaluationDetailUrl = fmt.Sprintf("%s%d/%d", evaluationService.GetEvaluationDetailUrlPrefix(), chapter.Id, recordId)
 		} else {
 			status.EvaluationStatus = models.EVALUATION_APPLY_STATUS_IDLE
 		}
