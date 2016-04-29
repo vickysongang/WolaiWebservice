@@ -570,7 +570,7 @@ func InitSessionMonitor(sessionId int64) bool {
 		virturlCourseId := courseRelation.Id
 		startMsg.Attribute["courseId"] = strconv.FormatInt(virturlCourseId, 10)
 	} else if order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
-		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_DELUXE)
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_AUDITION)
 		virturlCourseId := courseRelation.Id
 		startMsg.Attribute["courseId"] = strconv.FormatInt(virturlCourseId, 10)
 	}
