@@ -37,13 +37,18 @@ func GetCourseChapterCount(courseId int64) int64 {
 	return chapterCount
 }
 
-func GetCourseChapterToUser(chapterId, userId, teacherId int64) (*models.CourseChapterToUser, error) {
+func GetCourseChapterToUser(chapterId, userId, teacherId, recordId int64) (*models.CourseChapterToUser, error) {
 	o := orm.NewOrm()
 	var chapterToUser models.CourseChapterToUser
+	cond := orm.NewCondition()
+	cond = cond.And("chapter_id", chapterId)
+	cond = cond.And("user_id", userId)
+	cond = cond.And("teacher_id", teacherId)
+	if recordId != 0 {
+		cond = cond.And("record_id", recordId)
+	}
 	err := o.QueryTable(new(models.CourseChapterToUser).TableName()).
-		Filter("chapter_id", chapterId).
-		Filter("user_id", userId).
-		Filter("teacher_id", teacherId).One(&chapterToUser)
+		SetCond(cond).One(&chapterToUser)
 	return &chapterToUser, err
 }
 
