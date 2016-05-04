@@ -48,11 +48,11 @@ func AuthPhoneRegister(phone, code, password string) (int64, error, *authService
 
 func AuthPhonePasswordLogin(phone, password string) (int64, error, *authService.AuthInfo) {
 	var err error
-
 	user, err := userService.QueryUserByPhone(phone)
-	if user == nil {
+	if user == nil || user.Salt == nil || user.Password == nil {
 		return 1001, errors.New("帐号不存在或密码错误"), nil
 	}
+
 	encryptPassword := encrypt.EncryptPassword(password, *user.Salt)
 
 	if *user.Password != encryptPassword {
