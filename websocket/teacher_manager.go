@@ -224,12 +224,12 @@ func (tsm *TeacherStatusManager) GetAssignOnTeachers() []int64 {
 }
 
 func (tsm *TeacherStatusManager) MatchTeacherSubject(userId int64, subjectId int64) bool {
-	status, ok := tsm.teacherMap[userId]
-	if !ok {
-		return false
-	}
-
-	for _, subject := range status.subjectList {
+	//	status, ok := tsm.teacherMap[userId]
+	//	if !ok {
+	//		return false
+	//	}
+	subjectList := getTeacherSubject(userId)
+	for _, subject := range subjectList {
 		if subject.Id == subjectId {
 			return true
 		}
