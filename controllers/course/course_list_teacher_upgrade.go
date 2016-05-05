@@ -31,10 +31,11 @@ func GetCourseListTeacherUpgrade(teacherId, page, count int64) (int64, []*course
 		}
 	}
 
-	var records []*models.CoursePurchaseRecord
+	var records []models.CoursePurchaseRecord
 	_, err = o.QueryTable("course_purchase_record").Filter("teacher_id", teacherId).
 		Exclude("purchase_status", models.PURCHASE_RECORD_STATUS_IDLE).
 		OrderBy("-last_update_time").Offset(page * count).Limit(count).All(&records)
+
 	if err != nil {
 		return 0, items
 	}
@@ -69,7 +70,6 @@ func GetCourseListTeacherUpgrade(teacherId, page, count int64) (int64, []*course
 
 		items = append(items, &item)
 	}
-
 	if page == totalCount/count {
 		var auditionCompleteRecords []*models.CourseAuditionRecord
 		o.QueryTable("course_audition_record").Filter("teacher_id", teacherId).

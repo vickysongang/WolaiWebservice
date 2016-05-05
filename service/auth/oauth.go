@@ -33,7 +33,7 @@ func HasOauthBound(userId int64) (bool, error) {
 		return false, nil
 	}
 
-	return true, errors.New("用户已与其他账号绑定")
+	return true, errors.New("该手机号已被绑定")
 }
 
 func QueryUserOauthByOpenId(openId string) (*models.UserOauth, error) {

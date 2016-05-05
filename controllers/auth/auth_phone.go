@@ -56,7 +56,7 @@ func AuthPhonePasswordLogin(phone, password string) (int64, error, *authService.
 	encryptPassword := encrypt.EncryptPassword(password, *user.Salt)
 
 	if *user.Password != encryptPassword {
-		return 1002, errors.New("密码错误"), nil
+		return 1002, errors.New("帐号不存在或密码错误"), nil
 	}
 
 	flag, err := userService.IsTeacherFirstLogin(user)
