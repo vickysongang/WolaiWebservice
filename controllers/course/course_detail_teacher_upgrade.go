@@ -43,8 +43,9 @@ func GetDeluxeCourseDetailTeacher(studentId, teacherId int64, course *models.Cou
 	}
 
 	detail := courseDetailTeacher{
-		Course:   *course,
-		RecordId: purchaseRecord.Id,
+		Course:         *course,
+		RecordId:       purchaseRecord.Id,
+		PurchaseStatus: purchaseRecord.PurchaseStatus,
 	}
 
 	characteristicList, _ := courseService.QueryCourseContentIntros(courseId)
@@ -100,7 +101,7 @@ func GetAuditionCourseDetailTeacher(studentId, teacherId int64, course *models.C
 
 	detail.ChapterCount = 1
 	detail.RecordId = recordId
-
+	detail.PurchaseStatus = auditionoRecord.Status
 	detail.ChapterCompletedPeriod, err = courseService.GetLatestCompleteChapterPeriod(courseId, studentId, auditionoRecord.Id)
 	if err != nil {
 		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,

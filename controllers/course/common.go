@@ -74,6 +74,7 @@ type courseDetailTeacher struct {
 	ChapterList            []*courseChapterStatus      `json:"chapterList"`
 	StudentList            []*models.User              `json:"studentList"`
 	RecordId               int64                       `json:"recordId"`
+	PurchaseStatus         string                      `json:"purchaseStatus"`
 }
 
 type courseStudentListItem struct {
