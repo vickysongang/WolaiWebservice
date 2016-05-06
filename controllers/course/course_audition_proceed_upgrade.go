@@ -97,6 +97,12 @@ func HandleAuditionCourseProceed(userId int64, courseId int64, sourceCourseId in
 			createAuditionCourseOrder(currentRecord.Id)
 		}
 
+	case models.AUDITION_RECORD_STATUS_COMPLETE:
+		response = actionProceedResponse{
+			Action:  ACTION_PROCEED_NULL,
+			Message: "该试听课已经上完啦！",
+			Extra:   nullObject{},
+		}
 	}
 	return 0, &response
 }
