@@ -92,6 +92,7 @@ func HandleCourseActionAuditionCheck(userId int64) (int64, *actionProceedRespons
 		auditionInfo := map[string]interface{}{
 			"auditionCourseId": auditionRecord.CourseId,
 			"sourceCourseId":   auditionRecord.SourceCourseId,
+			"recordId":         auditionRecord.Id,
 			"exist":            true,
 		}
 		response = actionProceedResponse{
