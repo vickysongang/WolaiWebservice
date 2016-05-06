@@ -7,7 +7,6 @@ import (
 )
 
 func HandleAuditionCourseProceed(userId, recordId, courseId, sourceCourseId int64) (int64, *actionProceedResponse) {
-	var course *models.Course
 	var err error
 	var auditionRecordStatus string
 	currentRecord, err := models.ReadCourseAuditionRecord(recordId)
@@ -27,6 +26,10 @@ func HandleAuditionCourseProceed(userId, recordId, courseId, sourceCourseId int6
 		auditionRecordStatus = newRecord.Status
 	} else {
 		auditionRecordStatus = currentRecord.Status
+	}
+	course, err := models.ReadCourse(courseId)
+	if err != nil {
+		return 2, nil
 	}
 	var response actionProceedResponse
 	switch auditionRecordStatus {
