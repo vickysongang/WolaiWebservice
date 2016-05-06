@@ -1,37 +1,17 @@
 package course
 
 import (
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/websocket"
 )
 
-func HandleAuditionCourseProceed(userId int64, courseId int64, sourceCourseId int64) (int64, *actionProceedResponse) {
+func HandleAuditionCourseProceed(userId, recordId, courseId, sourceCourseId int64) (int64, *actionProceedResponse) {
 	var course *models.Course
 	var err error
-	if courseId == 0 { //代表试听课不是从课程进入的
-		course = courseService.QueryAuditionCourse()
-		if course == nil {
-			return 2, nil
-		}
-	} else {
-		course, err = models.ReadCourse(courseId)
-		if err != nil {
-			return 2, nil
-		}
-	}
-	o := orm.NewOrm()
 	var auditionRecordStatus string
-	// 先查询该用户是否有未完成的试听
-	var currentRecord models.CourseAuditionRecord
-	err = o.QueryTable(new(models.CourseAuditionRecord).TableName()).
-		Filter("course_id", courseId).Filter("user_id", userId).
-		Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
-		One(&currentRecord)
-	auditionRecordStatus = currentRecord.Status
-	if err == orm.ErrNoRows {
+	currentRecord, err := models.ReadCourseAuditionRecord(recordId)
+	if err != nil {
 		// 如果用户没有购买过，创建试听课购买记录
 		newRecord := models.CourseAuditionRecord{
 			CourseId:       courseId,
@@ -40,15 +20,13 @@ func HandleAuditionCourseProceed(userId int64, courseId int64, sourceCourseId in
 			SourceCourseId: sourceCourseId,
 			TraceStatus:    models.AUDITION_RECORD_TRACE_STATUS_IDLE,
 		}
-
 		_, err = models.CreateCourseAuditionRecord(&newRecord)
 		if err != nil {
 			return 2, nil
 		}
 		auditionRecordStatus = newRecord.Status
-	} else if err != nil {
-		// 如果到了这里说明数据库报错了...
-		return 2, nil
+	} else {
+		auditionRecordStatus = currentRecord.Status
 	}
 	var response actionProceedResponse
 	switch auditionRecordStatus {
