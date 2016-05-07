@@ -100,7 +100,7 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 			Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
 			One(&currentRecord)
 		if currentRecord.Id == 0 {
-			return 2, errors.New("试听记录异常")
+			return 2, errors.New("试听记录不存在")
 		} else {
 			if currentRecord.Status != models.AUDITION_RECORD_STATUS_APPLY && currentRecord.Status != models.AUDITION_RECORD_STATUS_WAITING {
 				return 2, errors.New("试听记录异常")
@@ -123,7 +123,7 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 			}
 			_, err := models.UpdateCourseAuditionRecord(currentRecord.Id, recordInfo)
 			if err != nil {
-				return 2, errors.New("购买记录异常")
+				return 2, errors.New("更新试听记录异常")
 			}
 		}
 	}
