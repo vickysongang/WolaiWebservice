@@ -521,6 +521,9 @@ func CourseAuditionActionProceed(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := r.Form
 
+	recordIdStr := vars["recordId"][0]
+	recordId, _ := strconv.ParseInt(recordIdStr, 10, 64)
+
 	courseIdStr := vars["courseId"][0]
 	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
 
@@ -530,7 +533,7 @@ func CourseAuditionActionProceed(w http.ResponseWriter, r *http.Request) {
 		sourceCourseId, _ = strconv.ParseInt(sourceCourseIdStr, 10, 64)
 	}
 
-	status, content := courseController.HandleAuditionCourseProceed(userId, courseId, sourceCourseId)
+	status, content := courseController.HandleAuditionCourseProceed(userId, recordId, courseId, sourceCourseId)
 	if content == nil {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
 	} else {
@@ -554,6 +557,8 @@ func CourseDeluxeActionProceed(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := r.Form
 
+	recordIdStr := vars["recordId"][0]
+	_, _ = strconv.ParseInt(recordIdStr, 10, 64)
 	courseIdStr := vars["courseId"][0]
 	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
 
