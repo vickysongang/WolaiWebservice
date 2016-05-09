@@ -304,7 +304,7 @@ func sessionHandler(sessionId int64) {
 					//如果老师所在的课程正在进行中，则通知老师该课正在进行中
 					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) {
 						seelog.Debug("send session:", sessionId, " live status message to teacher:", session.Tutor)
-						SendBreakReconnetSuccessMsgToTeacher(session.Creator, session.Tutor, sessionId, length)
+						SendBreakReconnectSuccessMsgToTeacher(session.Creator, session.Tutor, sessionId, length)
 					}
 
 					if SessionManager.IsSessionPaused(sessionId) {
@@ -339,7 +339,7 @@ func sessionHandler(sessionId int64) {
 					//如果学生所在的课程正在进行中，则通知学生该课正在进行中
 					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) {
 						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator)
-						SendBreakReconnetSuccessMsgToStudent(session.Creator, session.Tutor, sessionId, length)
+						SendBreakReconnectSuccessMsgToStudent(session.Creator, session.Tutor, sessionId, length)
 					}
 
 					if SessionManager.IsSessionPaused(sessionId) {
