@@ -6,6 +6,8 @@ import (
 	"WolaiWebservice/utils/apnsprovider"
 	"WolaiWebservice/websocket"
 	"time"
+
+	"github.com/cihub/seelog"
 )
 
 var voipTicker *time.Ticker
@@ -28,6 +30,7 @@ func VoipKeepAliveHandler() {
 					if device.DeviceType != models.DEVICE_TYPE_IOS {
 						continue
 					}
+					seelog.Trace("[Voip Push] Send: %d, (Token: %s)", userId, device.VoipToken)
 					if device.VoipToken == "" {
 						continue
 					}
