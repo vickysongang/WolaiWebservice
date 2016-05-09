@@ -13,6 +13,7 @@ import (
 	"github.com/cihub/seelog"
 
 	"WolaiWebservice/config"
+	"WolaiWebservice/handlers/handlerv2"
 	"WolaiWebservice/logger"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
@@ -63,6 +64,7 @@ func main() {
 	orm.Debug = false
 
 	go startRpcServer()
+	go handlerv2.VoipKeepAliveHandler()
 
 	if config.Env.Server.Live != 1 {
 		go func() {
