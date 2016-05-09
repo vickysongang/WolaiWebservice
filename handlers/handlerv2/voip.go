@@ -30,11 +30,11 @@ func VoipKeepAliveHandler() {
 					if device.DeviceType != models.DEVICE_TYPE_IOS {
 						continue
 					}
-					seelog.Trace("[Voip Push] Send: %d, (Token: %s)", userId, device.VoipToken)
 					if device.VoipToken == "" {
 						continue
 					}
-					apnsprovider.PushVoipAlive(device.VoipToken)
+					seelog.Tracef("[Voip Push] Send: %d, (Token: %s)", userId, device.VoipToken)
+					go apnsprovider.PushVoipAlive(device.VoipToken)
 				}
 			}
 		}
