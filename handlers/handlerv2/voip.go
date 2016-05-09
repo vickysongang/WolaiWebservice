@@ -22,7 +22,7 @@ func VoipKeepAliveHandler() {
 		case <-voipTicker.C:
 			{
 				onlineUserMap := websocket.UserManager.OnlineUserMap
-				for _, userId := range onlineUserMap {
+				for userId, _ := range onlineUserMap {
 					device, err := models.ReadUserDevice(userId)
 					if err != nil {
 						continue
