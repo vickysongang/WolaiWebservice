@@ -9,8 +9,11 @@ import (
 	"WolaiWebservice/service/push"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 	"encoding/json"
+	"errors"
 	"strconv"
 	"time"
+
+	sessionController "WolaiWebservice/controllers/session"
 
 	"github.com/cihub/seelog"
 )
@@ -180,9 +183,6 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		return resp, nil
 	}
 
-	SessionManager.sessionMap[sessionId].lock.Lock()
-	defer SessionManager.sessionMap[sessionId].lock.Unlock()
-
 	session, err := models.ReadSession(sessionId)
 	if err != nil {
 		resp.Attribute["errCode"] = "2"
@@ -195,6 +195,9 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		resp.Attribute["errMsg"] = "session is not online"
 		return resp, nil
 	}
+
+	SessionManager.sessionMap[sessionId].lock.Lock()
+	defer SessionManager.sessionMap[sessionId].lock.Unlock()
 
 	if !SessionManager.IsSessionActived(sessionId) {
 		resp.Attribute["errCode"] = "2"
@@ -721,4 +724,60 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		seelog.Debug("orderHandler|orderReply: ", orderId)
 	}
 	return resp, nil
+}
+
+type sessionStatusInfo struct {
+	SessionStatus string  `json:"sessionStatus"`
+	SessionInfo   string  `json:"sessionInfo"`
+	Timestamp     float64 `json:"timestamp"`
+	Timer         int64   `json:"timer"`
+}
+
+func GetSessionStatusInfo(userId int64, sessionId int64) (*sessionStatusInfo, error) {
+	if sessionId != 0 {
+		info := assignSessionInfo(userId, sessionId)
+		return info, nil
+	} else {
+		if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
+			for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
+				info := assignSessionInfo(userId, sessionId)
+				return info, nil
+			}
+		}
+	}
+	return nil, errors.New("no session online")
+}
+
+func assignSessionInfo(userId, sessionId int64) *sessionStatusInfo {
+	var info sessionStatusInfo
+	var sessionStatus string
+	var timestamp float64
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
+		return nil
+	}
+	if SessionManager.IsSessionOnline(sessionId) {
+		sessionStatus, _ = SessionManager.GetSessionStatus(sessionId)
+		timestamp = SessionManager.sessionMap[sessionId].timestamp
+		info.Timer, _ = SessionManager.GetSessionLength(sessionId)
+	} else {
+		sessionStatus = session.Status
+
+		timestampNano := time.Now().UnixNano()
+		timestampMillis := timestampNano / 1000
+		timestamp = float64(timestampMillis) / 1000000.0
+		info.Timer = session.Length
+	}
+	info.SessionStatus = sessionStatus
+	info.Timestamp = timestamp
+	if session.Creator == userId {
+		_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
+		studentByte, _ := json.Marshal(studentInfo)
+		info.SessionInfo = string(studentByte)
+	} else if session.Tutor == userId {
+		_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
+		teacherByte, _ := json.Marshal(teacherInfo)
+		info.SessionInfo = string(teacherByte)
+	}
+	return &info
 }

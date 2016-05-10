@@ -23,6 +23,7 @@ type SessionStatus struct {
 	isPaused    bool //课程是否被暂停
 	isBroken    bool //课程是否被中断
 	status      string
+	timestamp   float64
 	lock        sync.Mutex
 }
 
@@ -238,6 +239,12 @@ func (ssm *SessionStatusManager) SetSessionStatus(sessionId int64, status string
 		return ErrSessionNotFound
 	}
 	sessionStatus.status = status
+
+	timestampNano := time.Now().UnixNano()
+	timestampMillis := timestampNano / 1000
+	timestamp := float64(timestampMillis) / 1000000.0
+
+	sessionStatus.timestamp = timestamp
 	return nil
 }
 

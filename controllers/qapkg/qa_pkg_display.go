@@ -119,11 +119,11 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 				expireTime := monthlyQaPkgRecord.TimeTo.Format("2006-01-02")
 				userMonthlyQaPkg.ExpireComment = fmt.Sprintf("＊%v%s", expireTime, "前有效")
 				totalQaTimeLength = totalQaTimeLength + monthlyQaPkgRecord.LeftTime
+				userMonthlyQaPkg.CurrentMonth = index
+				userMonthlyQaPkgs = append(userMonthlyQaPkgs, &userMonthlyQaPkg)
 				break
 			}
 		}
-		userMonthlyQaPkg.CurrentMonth = index
-		userMonthlyQaPkgs = append(userMonthlyQaPkgs, &userMonthlyQaPkg)
 	}
 	detail.UserMonthlyQaPkgs = userMonthlyQaPkgs
 

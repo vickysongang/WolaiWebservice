@@ -25,6 +25,7 @@ const (
 
 	DEVICE_PROFILE_APPSTORE = "appstore"
 	DEVICE_PROFILE_INHOUSE  = "inhouse"
+	DEVICE_PROFILE_VOIP     = "voip"
 )
 
 func init() {

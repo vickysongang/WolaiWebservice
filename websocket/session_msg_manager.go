@@ -196,7 +196,7 @@ func SendRecoverMsgToStudent(studentId, teacherId, sessionId, length int64, orde
 	return ErrUserChanClose
 }
 
-func SendBreakReconnetSuccessMsgToTeacher(studentId, teacherId, sessionId, length int64) error {
+func SendBreakReconnectSuccessMsgToTeacher(studentId, teacherId, sessionId, length int64) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	sessionStatusMsg := NewWSMessage("", teacherId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 	sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
@@ -211,7 +211,7 @@ func SendBreakReconnetSuccessMsgToTeacher(studentId, teacherId, sessionId, lengt
 	return ErrUserChanClose
 }
 
-func SendBreakReconnetSuccessMsgToStudent(studentId, teacherId, sessionId, length int64) error {
+func SendBreakReconnectSuccessMsgToStudent(studentId, teacherId, sessionId, length int64) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	sessionStatusMsg := NewWSMessage("", studentId, WS_SESSION_BREAK_RECONNECT_SUCCESS)
 	sessionStatusMsg.Attribute["sessionId"] = sessionIdStr
