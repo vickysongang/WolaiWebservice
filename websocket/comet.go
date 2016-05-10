@@ -9,6 +9,7 @@ import (
 	"WolaiWebservice/service/push"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 	"encoding/json"
+	"errors"
 	"strconv"
 	"time"
 
@@ -721,4 +722,34 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		seelog.Debug("orderHandler|orderReply: ", orderId)
 	}
 	return resp, nil
+}
+
+type sessionStatusInfo struct {
+	SessionStatus  string `json:"sessionStatus"`
+	LastUpdateTime int64  `json:"lastUpdateTime"`
+}
+
+func GetSessionStatusInfo(userId int64) (*sessionStatusInfo, error) {
+	var info sessionStatusInfo
+	var sessionStatus string
+	var lastUpdateTime int64
+	if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
+		for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
+			session, err := models.ReadSession(sessionId)
+			if err != nil {
+				return nil, err
+			}
+			if SessionManager.IsSessionOnline(sessionId) {
+				sessionStatus, _ = SessionManager.GetSessionStatus(sessionId)
+				lastUpdateTime = SessionManager.sessionMap[sessionId].lastUpdateTime
+			} else {
+				sessionStatus = session.Status
+				lastUpdateTime = time.Now().Unix()
+			}
+			info.SessionStatus = sessionStatus
+			info.LastUpdateTime = lastUpdateTime
+			return &info, nil
+		}
+	}
+	return nil, errors.New("no session online")
 }

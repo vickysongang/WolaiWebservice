@@ -18,6 +18,8 @@ func HandleCometMessage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		seelog.Error(err.Error())
 	}
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
@@ -40,16 +42,14 @@ func GetSessionStatus(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		seelog.Error(err.Error())
 	}
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
-	vars := r.Form
 
-	sessionIdStr := vars["sessionId"][0]
-	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
-
-	content, err := websocket.GetSessionStatusInfo(sessionId)
+	content, err := websocket.GetSessionStatusInfo(userId)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
