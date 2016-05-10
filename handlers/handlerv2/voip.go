@@ -2,9 +2,8 @@
 package handlerv2
 
 import (
-	"WolaiWebservice/models"
+	userService "WolaiWebservice/service/user"
 	"WolaiWebservice/utils/apnsprovider"
-	"WolaiWebservice/websocket"
 	"time"
 
 	"github.com/cihub/seelog"
@@ -13,7 +12,7 @@ import (
 var voipTicker *time.Ticker
 
 func init() {
-	voipTicker = time.NewTicker(time.Second * 20)
+	voipTicker = time.NewTicker(time.Minute * 10)
 }
 
 func VoipKeepAliveHandler() {
@@ -21,19 +20,9 @@ func VoipKeepAliveHandler() {
 		select {
 		case <-voipTicker.C:
 			{
-				onlineUserMap := websocket.UserManager.OnlineUserMap
-				for userId, _ := range onlineUserMap {
-					device, err := models.ReadUserDevice(userId)
-					if err != nil {
-						continue
-					}
-					if device.DeviceType != models.DEVICE_TYPE_IOS {
-						continue
-					}
-					if device.VoipToken == "" {
-						continue
-					}
-					seelog.Tracef("[Voip Push] Send: %d, (Token: %s)", userId, device.VoipToken)
+				devices := userService.QueryIosUserDevices()
+				for _, device := range devices {
+					seelog.Tracef("[Voip Push] Send: %d, (Token: %s)", device.UserId, device.VoipToken)
 					go apnsprovider.PushVoipAlive(device.VoipToken)
 				}
 			}
