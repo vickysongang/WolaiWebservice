@@ -11,20 +11,20 @@ import (
 )
 
 type SessionStatus struct {
-	sessionId      int64
-	sessionInfo    *models.Session
-	sessionChan    chan WSMessage
-	liveTime       int64
-	length         int64
-	lastSync       int64
-	isCalling      bool //是否正在拨号中
-	isAccepted     bool //学生是否接受了老师的上课请求
-	isActived      bool //课程是否是激活的
-	isPaused       bool //课程是否被暂停
-	isBroken       bool //课程是否被中断
-	status         string
-	lastUpdateTime int64
-	lock           sync.Mutex
+	sessionId   int64
+	sessionInfo *models.Session
+	sessionChan chan WSMessage
+	liveTime    int64
+	length      int64
+	lastSync    int64
+	isCalling   bool //是否正在拨号中
+	isAccepted  bool //学生是否接受了老师的上课请求
+	isActived   bool //课程是否是激活的
+	isPaused    bool //课程是否被暂停
+	isBroken    bool //课程是否被中断
+	status      string
+	timestamp   float64
+	lock        sync.Mutex
 }
 
 const (
@@ -239,7 +239,12 @@ func (ssm *SessionStatusManager) SetSessionStatus(sessionId int64, status string
 		return ErrSessionNotFound
 	}
 	sessionStatus.status = status
-	sessionStatus.lastUpdateTime = time.Now().Unix()
+
+	timestampNano := time.Now().UnixNano()
+	timestampMillis := timestampNano / 1000
+	timestamp := float64(timestampMillis) / 1000000.0
+
+	sessionStatus.timestamp = timestamp
 	return nil
 }
 

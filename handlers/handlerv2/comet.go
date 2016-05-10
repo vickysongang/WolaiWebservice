@@ -48,8 +48,10 @@ func GetSessionStatus(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		return
 	}
-
-	content, err := websocket.GetSessionStatusInfo(userId)
+	vars := r.Form
+	sessionIdStr := vars["sessionId"][0]
+	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
+	content, err := websocket.GetSessionStatusInfo(userId, sessionId)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {

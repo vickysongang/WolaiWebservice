@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"time"
 
+	sessionController "WolaiWebservice/controllers/session"
+
 	"github.com/cihub/seelog"
 )
 
@@ -725,31 +727,55 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 }
 
 type sessionStatusInfo struct {
-	SessionStatus  string `json:"sessionStatus"`
-	LastUpdateTime int64  `json:"lastUpdateTime"`
+	SessionStatus string  `json:"sessionStatus"`
+	SessionInfo   string  `json:"sessionInfo"`
+	Timestamp     float64 `json:"timestamp"`
 }
 
-func GetSessionStatusInfo(userId int64) (*sessionStatusInfo, error) {
-	var info sessionStatusInfo
-	var sessionStatus string
-	var lastUpdateTime int64
-	if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
-		for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
-			session, err := models.ReadSession(sessionId)
-			if err != nil {
-				return nil, err
+func GetSessionStatusInfo(userId int64, sessionId int64) (*sessionStatusInfo, error) {
+	if sessionId != 0 {
+		info := assignSessionInfo(userId, sessionId)
+		return info, nil
+	} else {
+		if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
+			for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
+				info := assignSessionInfo(userId, sessionId)
+				return info, nil
 			}
-			if SessionManager.IsSessionOnline(sessionId) {
-				sessionStatus, _ = SessionManager.GetSessionStatus(sessionId)
-				lastUpdateTime = SessionManager.sessionMap[sessionId].lastUpdateTime
-			} else {
-				sessionStatus = session.Status
-				lastUpdateTime = time.Now().Unix()
-			}
-			info.SessionStatus = sessionStatus
-			info.LastUpdateTime = lastUpdateTime
-			return &info, nil
 		}
 	}
 	return nil, errors.New("no session online")
+}
+
+func assignSessionInfo(userId, sessionId int64) *sessionStatusInfo {
+	var info sessionStatusInfo
+	var sessionStatus string
+	var timestamp float64
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
+		return nil
+	}
+	if SessionManager.IsSessionOnline(sessionId) {
+		sessionStatus, _ = SessionManager.GetSessionStatus(sessionId)
+		timestamp = SessionManager.sessionMap[sessionId].timestamp
+	} else {
+		sessionStatus = session.Status
+
+		timestampNano := time.Now().UnixNano()
+		timestampMillis := timestampNano / 1000
+		timestamp = float64(timestampMillis) / 1000000.0
+
+	}
+	info.SessionStatus = sessionStatus
+	info.Timestamp = timestamp
+	if session.Creator == userId {
+		_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
+		studentByte, _ := json.Marshal(studentInfo)
+		info.SessionInfo = string(studentByte)
+	} else if session.Tutor == userId {
+		_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
+		teacherByte, _ := json.Marshal(teacherInfo)
+		info.SessionInfo = string(teacherByte)
+	}
+	return &info
 }
