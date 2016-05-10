@@ -181,9 +181,6 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		return resp, nil
 	}
 
-	SessionManager.sessionMap[sessionId].lock.Lock()
-	defer SessionManager.sessionMap[sessionId].lock.Unlock()
-
 	session, err := models.ReadSession(sessionId)
 	if err != nil {
 		resp.Attribute["errCode"] = "2"
@@ -196,6 +193,9 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		resp.Attribute["errMsg"] = "session is not online"
 		return resp, nil
 	}
+
+	SessionManager.sessionMap[sessionId].lock.Lock()
+	defer SessionManager.sessionMap[sessionId].lock.Unlock()
 
 	if !SessionManager.IsSessionActived(sessionId) {
 		resp.Attribute["errCode"] = "2"
