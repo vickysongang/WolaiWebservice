@@ -730,6 +730,7 @@ type sessionStatusInfo struct {
 	SessionStatus string  `json:"sessionStatus"`
 	SessionInfo   string  `json:"sessionInfo"`
 	Timestamp     float64 `json:"timestamp"`
+	Timer         int64   `json:"timer"`
 }
 
 func GetSessionStatusInfo(userId int64, sessionId int64) (*sessionStatusInfo, error) {
@@ -758,13 +759,14 @@ func assignSessionInfo(userId, sessionId int64) *sessionStatusInfo {
 	if SessionManager.IsSessionOnline(sessionId) {
 		sessionStatus, _ = SessionManager.GetSessionStatus(sessionId)
 		timestamp = SessionManager.sessionMap[sessionId].timestamp
+		info.Timer, _ = SessionManager.GetSessionLength(sessionId)
 	} else {
 		sessionStatus = session.Status
 
 		timestampNano := time.Now().UnixNano()
 		timestampMillis := timestampNano / 1000
 		timestamp = float64(timestampMillis) / 1000000.0
-
+		info.Timer = session.Length
 	}
 	info.SessionStatus = sessionStatus
 	info.Timestamp = timestamp

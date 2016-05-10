@@ -670,67 +670,72 @@ func RecoverUserSession(userId int64, msg WSMessage) {
 		if !ok {
 			return
 		}
-		if sessionIdStr != "" {
-			resp := NewWSMessage("", msg.UserId, WS_SESSION_STATUS_SYNC)
-			sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
-			if err != nil {
-				resp.Attribute["errCode"] = "2"
-				userChan <- resp
-				return
-			}
-			resp.Attribute["errCode"] = "0"
-			session, _ := models.ReadSession(sessionId)
-			if SessionManager.IsSessionOnline(sessionId) {
-				sessionStatus, _ := SessionManager.GetSessionStatus(sessionId)
-				resp.Attribute["sessionStatus"] = sessionStatus
-			} else {
-				resp.Attribute["sessionStatus"] = session.Status
-			}
-			if session.Creator == userId {
-				_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
-				studentByte, _ := json.Marshal(studentInfo)
-				resp.Attribute["sessionInfo"] = string(studentByte)
-			} else if session.Tutor == userId {
-				_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
-				teacherByte, _ := json.Marshal(teacherInfo)
-				resp.Attribute["sessionInfo"] = string(teacherByte)
-			}
-			userChan <- resp
+		if sessionIdStr == "" {
+			return
 		}
+
+		resp := NewWSMessage("", msg.UserId, WS_SESSION_STATUS_SYNC)
+		sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
+		if err != nil {
+			resp.Attribute["errCode"] = "2"
+			userChan <- resp
+			return
+		}
+		resp.Attribute["errCode"] = "0"
+		session, _ := models.ReadSession(sessionId)
+		if SessionManager.IsSessionOnline(sessionId) {
+			sessionStatus, _ := SessionManager.GetSessionStatus(sessionId)
+			resp.Attribute["sessionStatus"] = sessionStatus
+		} else {
+			resp.Attribute["sessionStatus"] = session.Status
+		}
+		if session.Creator == userId {
+			_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
+			studentByte, _ := json.Marshal(studentInfo)
+			resp.Attribute["sessionInfo"] = string(studentByte)
+		} else if session.Tutor == userId {
+			_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
+			teacherByte, _ := json.Marshal(teacherInfo)
+			resp.Attribute["sessionInfo"] = string(teacherByte)
+		}
+		userChan <- resp
 	}
 }
 
 func CheckCourseSessionEvaluation(userId int64, msg WSMessage) {
-	if msg.OperationCode == WS_LOGIN {
-		if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
-			for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
-				session, _ := models.ReadSession(sessionId)
-				if session == nil {
-					return
-				}
+	if msg.OperationCode != WS_LOGIN {
+		return
+	}
+	if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
+		for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
+			session, _ := models.ReadSession(sessionId)
+			if session == nil {
+				return
+			}
 
-				if SessionManager.IsSessionOnline(sessionId) {
-					return
-				}
+			if SessionManager.IsSessionOnline(sessionId) {
+				return
 			}
 		}
-		sessionId, courseId, chapterId, studentId, recordId, _ := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
-		if sessionId != 0 {
-			resp := NewWSMessage("", userId, WS_SESSION_NOT_EVALUATION_TIP)
-			sessionIdStr := strconv.FormatInt(sessionId, 10)
-			courseIdStr := strconv.FormatInt(courseId, 10)
-			chapterIdStr := strconv.FormatInt(chapterId, 10)
-			studentIdStr := strconv.FormatInt(studentId, 10)
-			recordIdStr := strconv.FormatInt(recordId, 10)
-			resp.Attribute["sessionId"] = sessionIdStr
-			resp.Attribute["courseId"] = courseIdStr
-			resp.Attribute["chapterId"] = chapterIdStr
-			resp.Attribute["studentId"] = studentIdStr
-			resp.Attribute["recordId"] = recordIdStr
-			if UserManager.HasUserChan(userId) {
-				userChan := UserManager.GetUserChan(userId)
-				userChan <- resp
-			}
-		}
+	}
+	sessionId, courseId, chapterId, studentId, recordId, _ := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
+	if sessionId == 0 {
+		return
+	}
+
+	resp := NewWSMessage("", userId, WS_SESSION_NOT_EVALUATION_TIP)
+	sessionIdStr := strconv.FormatInt(sessionId, 10)
+	courseIdStr := strconv.FormatInt(courseId, 10)
+	chapterIdStr := strconv.FormatInt(chapterId, 10)
+	studentIdStr := strconv.FormatInt(studentId, 10)
+	recordIdStr := strconv.FormatInt(recordId, 10)
+	resp.Attribute["sessionId"] = sessionIdStr
+	resp.Attribute["courseId"] = courseIdStr
+	resp.Attribute["chapterId"] = chapterIdStr
+	resp.Attribute["studentId"] = studentIdStr
+	resp.Attribute["recordId"] = recordIdStr
+	if UserManager.HasUserChan(userId) {
+		userChan := UserManager.GetUserChan(userId)
+		userChan <- resp
 	}
 }
