@@ -10,11 +10,37 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/cihub/seelog"
 )
 
 var ErrUserChanClose = errors.New("user chan closes")
+
+type sessionStatusInfo struct {
+	SessionStatus  string `json:"sessionStatus"`
+	LastUpdateTime int64  `json:"lastUpdateTime"`
+}
+
+func GetSessionStatusInfo(sessionId int64) (*sessionStatusInfo, error) {
+	var info sessionStatusInfo
+	var sessionStatus string
+	var lastUpdateTime int64
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
+		return nil, err
+	}
+	if SessionManager.IsSessionOnline(sessionId) {
+		sessionStatus, _ = SessionManager.GetSessionStatus(sessionId)
+		lastUpdateTime = SessionManager.sessionMap[sessionId].lastUpdateTime
+	} else {
+		sessionStatus = session.Status
+		lastUpdateTime = time.Now().Unix()
+	}
+	info.SessionStatus = sessionStatus
+	info.LastUpdateTime = lastUpdateTime
+	return &info, nil
+}
 
 func SendBreakMsgToStudent(studentId, teacherId, sessionId int64) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)

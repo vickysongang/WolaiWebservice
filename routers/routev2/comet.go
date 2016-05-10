@@ -28,4 +28,13 @@ var cometRoutes = route.Routes{
 		true,
 		true,
 	},
+	// 5.1.2
+	route.Route{
+		"GetSessionStatus",
+		"POST",
+		"/session/status",
+		handlerv2.GetSessionStatus,
+		true,
+		true,
+	},
 }
