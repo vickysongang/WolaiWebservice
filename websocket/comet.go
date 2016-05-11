@@ -5,6 +5,7 @@ import (
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
+	courseService "WolaiWebservice/service/course"
 	orderService "WolaiWebservice/service/order"
 	"WolaiWebservice/service/push"
 	"WolaiWebservice/utils/leancloud/lcmessage"
@@ -750,6 +751,7 @@ type sessionStatusInfo struct {
 	SessionInfo   string  `json:"sessionInfo"`
 	Timestamp     float64 `json:"timestamp"`
 	Timer         int64   `json:"timer"`
+	CourseId      int64   `json:"courseId"`
 }
 
 func GetSessionStatusInfo(userId int64, sessionId int64) (*sessionStatusInfo, error) {
@@ -797,6 +799,16 @@ func assignSessionInfo(userId, sessionId int64) *sessionStatusInfo {
 		_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
 		teacherByte, _ := json.Marshal(teacherInfo)
 		info.SessionInfo = string(teacherByte)
+	}
+	order, _ := models.ReadOrder(session.OrderId)
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_DELUXE)
+		virturlCourseId := courseRelation.Id
+		info.CourseId = virturlCourseId
+	} else if order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_AUDITION)
+		virturlCourseId := courseRelation.Id
+		info.CourseId = virturlCourseId
 	}
 	return &info
 }
