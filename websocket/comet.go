@@ -221,6 +221,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
 
 		//向学生发送重新开始上课的消息
 		continueMsg := NewWSMessage("", session.Creator, WS_SESSION_CONTINUE)
@@ -259,6 +260,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_CALLING
 
 		//向学生发送恢复上课的消息
 		resumeMsg := NewWSMessage("", session.Creator, WS_SESSION_RESUME)
@@ -287,6 +289,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_COMPLETE
 
 		//向学生发送下课消息
 		finishMsg := NewWSMessage("", session.Creator, WS_SESSION_FINISH)
@@ -353,6 +356,8 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		} else if SessionManager.IsSessionPaused(sessionId) {
 			sessionStatus = SESSION_STATUS_PAUSED
 		}
+		resp.Attribute["sessionStatus"] = sessionStatus
+
 		//向学生发送老师取消恢复上课的消息
 		resCancelMsg := NewWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
 		resCancelMsg.Attribute["sessionId"] = sessionIdStr
@@ -379,6 +384,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		WS_SESSION_RESUME_ACCEPT:
 		resp.OperationCode = msg.OperationCode + 1
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 
 		sessionChan <- msg
 		seelog.Debug("Handle session message:", sessionId, " operCode:", msg.OperationCode, "chanSize:", len(sessionChan))
@@ -395,6 +401,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 
 		//向老师发送下课请求
 		askFinishMsg := NewWSMessage("", session.Tutor, WS_SESSION_ASK_FINISH)
@@ -423,6 +430,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 
 		//向学生通知结果
 		askFinishRejectedMsg := NewWSMessage("", session.Creator, WS_SESSION_ASK_FINISH_REJECT)
