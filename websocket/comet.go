@@ -226,6 +226,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		continueMsg := NewWSMessage("", session.Creator, WS_SESSION_CONTINUE)
 		continueMsg.Attribute["sessionId"] = sessionIdStr
 		continueMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		continueMsg.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
 		if UserManager.HasUserChan(session.Creator) {
 			studentChan := UserManager.GetUserChan(session.Creator)
 			studentChan <- continueMsg
@@ -263,6 +264,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		resumeMsg := NewWSMessage("", session.Creator, WS_SESSION_RESUME)
 		resumeMsg.Attribute["sessionId"] = sessionIdStr
 		resumeMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		resumeMsg.Attribute["sessionStatus"] = SESSION_STATUS_CALLING
 		if UserManager.HasUserChan(session.Creator) {
 			studentChan := UserManager.GetUserChan(session.Creator)
 			studentChan <- resumeMsg
@@ -289,6 +291,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		//向学生发送下课消息
 		finishMsg := NewWSMessage("", session.Creator, WS_SESSION_FINISH)
 		finishMsg.Attribute["sessionId"] = sessionIdStr
+		finishMsg.Attribute["sessionStatus"] = SESSION_STATUS_COMPLETE
 		if UserManager.HasUserChan(session.Creator) {
 			creatorChan := UserManager.GetUserChan(session.Creator)
 			creatorChan <- finishMsg
@@ -344,11 +347,17 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 			return resp, nil
 		}
 		resp.Attribute["errCode"] = "0"
-
+		var sessionStatus string
+		if SessionManager.IsSessionBroken(sessionId) {
+			sessionStatus = SESSION_STATUS_BREAKED
+		} else if SessionManager.IsSessionPaused(sessionId) {
+			sessionStatus = SESSION_STATUS_PAUSED
+		}
 		//向学生发送老师取消恢复上课的消息
 		resCancelMsg := NewWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
 		resCancelMsg.Attribute["sessionId"] = sessionIdStr
 		resCancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		resCancelMsg.Attribute["sessionStatus"] = sessionStatus
 		if !UserManager.HasUserChan(session.Creator) {
 			break
 		}
@@ -391,6 +400,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		askFinishMsg := NewWSMessage("", session.Tutor, WS_SESSION_ASK_FINISH)
 		askFinishMsg.Attribute["sessionId"] = sessionIdStr
 		askFinishMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+		askFinishMsg.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 		if UserManager.HasUserChan(session.Tutor) {
 			tutorChan := UserManager.GetUserChan(session.Tutor)
 			tutorChan <- askFinishMsg
@@ -418,6 +428,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		askFinishRejectedMsg := NewWSMessage("", session.Creator, WS_SESSION_ASK_FINISH_REJECT)
 		askFinishRejectedMsg.Attribute["sessionId"] = sessionIdStr
 		askFinishRejectedMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		askFinishRejectedMsg.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 		if UserManager.HasUserChan(session.Creator) {
 			stuChan := UserManager.GetUserChan(session.Creator)
 			stuChan <- askFinishRejectedMsg
