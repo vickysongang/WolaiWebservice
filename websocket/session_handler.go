@@ -33,17 +33,16 @@ func sessionHandler(sessionId int64) {
 	autoFinishLimit := settings.SessionAutoFinishLimit()
 
 	var isCourse bool
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+		order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		isCourse = true
 	}
 
-	student, _ := models.ReadUser(session.Creator)
-	teacherProfile, _ := models.ReadTeacherProfile(session.Tutor)
-
-	teacherTier, _ := models.ReadTeacherTierHourly(teacherProfile.TierId)
-
 	var leftQaTimeLength, totalTimeLength int64
 	if !isCourse {
+		student, _ := models.ReadUser(session.Creator)
+		teacherProfile, _ := models.ReadTeacherProfile(session.Tutor)
+		teacherTier, _ := models.ReadTeacherTierHourly(teacherProfile.TierId)
 		leftQaTimeLength = qapkgService.GetLeftQaTimeLength(session.Creator)                //获取答疑的剩余时间
 		totalTimeLength = leftQaTimeLength + (student.Balance*60)/teacherTier.QAPriceHourly //获取可用的总上课时长
 		seelog.Debug("leftQaTimeLength:", leftQaTimeLength, " totalTimeLength:", totalTimeLength, "  autoFinishLimit:", autoFinishLimit, " sessionId:", sessionId)
@@ -412,24 +411,27 @@ func sessionHandler(sessionId int64) {
 						break
 					}
 
-					SendResumeCancelRespMsgToTeacher(msg.MessageId, msg.UserId, sessionId)
-
-					//向学生发送老师取消恢复上课的消息
-					err := SendResumeCancelRespMsgToStudent(session.Creator, session.Tutor, sessionId)
-					if err != nil {
-						break
-					}
-
 					//拨号停止
 					SessionManager.SetSessionCalling(sessionId, false)
 
 					//设置上课请求未被接受
 					SessionManager.SetSessionAccepted(sessionId, false)
 
+					var sessionStatus string
 					if SessionManager.IsSessionBroken(sessionId) {
+						sessionStatus = SESSION_STATUS_BREAKED
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 					} else if SessionManager.IsSessionPaused(sessionId) {
+						sessionStatus = SESSION_STATUS_PAUSED
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
+					}
+
+					SendResumeCancelRespMsgToTeacher(msg.MessageId, msg.UserId, sessionId, sessionStatus)
+
+					//向学生发送老师取消恢复上课的消息
+					err := SendResumeCancelRespMsgToStudent(session.Creator, session.Tutor, sessionId, sessionStatus)
+					if err != nil {
+						break
 					}
 
 				case WS_SESSION_RESUME_ACCEPT: //学生响应老师的恢复上课请求
@@ -444,21 +446,24 @@ func sessionHandler(sessionId int64) {
 						break
 					}
 
-					SendResumeAcceptRespMsgToStudent(msg.MessageId, msg.UserId, sessionId)
-
 					SessionManager.SetSessionCalling(sessionId, false) //拨号停止
-
-					SendResumeAcceptMsgToTeacher(session.Tutor, sessionId, acceptStr) //向老师发送响应恢复上课请求的消息
 
 					if acceptStr == "-1" {
 						//拒绝上课
+						var sessionStatus string
 						if SessionManager.IsSessionBroken(sessionId) {
+							sessionStatus = SESSION_STATUS_BREAKED
 							SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 						} else if SessionManager.IsSessionPaused(sessionId) {
+							sessionStatus = SESSION_STATUS_PAUSED
 							SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
 						}
+						SendResumeAcceptRespMsgToStudent(msg.MessageId, msg.UserId, sessionId, sessionStatus)
+						SendResumeAcceptMsgToTeacher(session.Tutor, sessionId, acceptStr, sessionStatus) //向老师发送响应恢复上课请求的消息
 						break
 					} else if acceptStr == "1" {
+						SendResumeAcceptRespMsgToStudent(msg.MessageId, msg.UserId, sessionId, SESSION_STATUS_SERVING)
+						SendResumeAcceptMsgToTeacher(session.Tutor, sessionId, acceptStr, SESSION_STATUS_SERVING) //向老师发送响应恢复上课请求的消息
 						//标记学生接受了老师的上课请求
 						SessionManager.SetSessionAccepted(sessionId, true)
 

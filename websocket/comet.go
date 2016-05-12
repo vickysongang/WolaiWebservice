@@ -5,6 +5,7 @@ import (
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
+	courseService "WolaiWebservice/service/course"
 	orderService "WolaiWebservice/service/order"
 	"WolaiWebservice/service/push"
 	"WolaiWebservice/utils/leancloud/lcmessage"
@@ -221,11 +222,13 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
 
 		//向学生发送重新开始上课的消息
 		continueMsg := NewWSMessage("", session.Creator, WS_SESSION_CONTINUE)
 		continueMsg.Attribute["sessionId"] = sessionIdStr
 		continueMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		continueMsg.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
 		if UserManager.HasUserChan(session.Creator) {
 			studentChan := UserManager.GetUserChan(session.Creator)
 			studentChan <- continueMsg
@@ -258,11 +261,13 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_CALLING
 
 		//向学生发送恢复上课的消息
 		resumeMsg := NewWSMessage("", session.Creator, WS_SESSION_RESUME)
 		resumeMsg.Attribute["sessionId"] = sessionIdStr
 		resumeMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		resumeMsg.Attribute["sessionStatus"] = SESSION_STATUS_CALLING
 		if UserManager.HasUserChan(session.Creator) {
 			studentChan := UserManager.GetUserChan(session.Creator)
 			studentChan <- resumeMsg
@@ -285,10 +290,12 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_COMPLETE
 
 		//向学生发送下课消息
 		finishMsg := NewWSMessage("", session.Creator, WS_SESSION_FINISH)
 		finishMsg.Attribute["sessionId"] = sessionIdStr
+		finishMsg.Attribute["sessionStatus"] = SESSION_STATUS_COMPLETE
 		if UserManager.HasUserChan(session.Creator) {
 			creatorChan := UserManager.GetUserChan(session.Creator)
 			creatorChan <- finishMsg
@@ -344,11 +351,19 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 			return resp, nil
 		}
 		resp.Attribute["errCode"] = "0"
+		var sessionStatus string
+		if SessionManager.IsSessionBroken(sessionId) {
+			sessionStatus = SESSION_STATUS_BREAKED
+		} else if SessionManager.IsSessionPaused(sessionId) {
+			sessionStatus = SESSION_STATUS_PAUSED
+		}
+		resp.Attribute["sessionStatus"] = sessionStatus
 
 		//向学生发送老师取消恢复上课的消息
 		resCancelMsg := NewWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
 		resCancelMsg.Attribute["sessionId"] = sessionIdStr
 		resCancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		resCancelMsg.Attribute["sessionStatus"] = sessionStatus
 		if !UserManager.HasUserChan(session.Creator) {
 			break
 		}
@@ -370,6 +385,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		WS_SESSION_RESUME_ACCEPT:
 		resp.OperationCode = msg.OperationCode + 1
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 
 		sessionChan <- msg
 		seelog.Debug("Handle session message:", sessionId, " operCode:", msg.OperationCode, "chanSize:", len(sessionChan))
@@ -386,11 +402,13 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 
 		//向老师发送下课请求
 		askFinishMsg := NewWSMessage("", session.Tutor, WS_SESSION_ASK_FINISH)
 		askFinishMsg.Attribute["sessionId"] = sessionIdStr
 		askFinishMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+		askFinishMsg.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 		if UserManager.HasUserChan(session.Tutor) {
 			tutorChan := UserManager.GetUserChan(session.Tutor)
 			tutorChan <- askFinishMsg
@@ -413,11 +431,13 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 
 		//向学生通知结果
 		askFinishRejectedMsg := NewWSMessage("", session.Creator, WS_SESSION_ASK_FINISH_REJECT)
 		askFinishRejectedMsg.Attribute["sessionId"] = sessionIdStr
 		askFinishRejectedMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		askFinishRejectedMsg.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 		if UserManager.HasUserChan(session.Creator) {
 			stuChan := UserManager.GetUserChan(session.Creator)
 			stuChan <- askFinishRejectedMsg
@@ -731,6 +751,7 @@ type sessionStatusInfo struct {
 	SessionInfo   string  `json:"sessionInfo"`
 	Timestamp     float64 `json:"timestamp"`
 	Timer         int64   `json:"timer"`
+	CourseId      int64   `json:"courseId"`
 }
 
 func GetSessionStatusInfo(userId int64, sessionId int64) (*sessionStatusInfo, error) {
@@ -778,6 +799,16 @@ func assignSessionInfo(userId, sessionId int64) *sessionStatusInfo {
 		_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
 		teacherByte, _ := json.Marshal(teacherInfo)
 		info.SessionInfo = string(teacherByte)
+	}
+	order, _ := models.ReadOrder(session.OrderId)
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_DELUXE)
+		virturlCourseId := courseRelation.Id
+		info.CourseId = virturlCourseId
+	} else if order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_AUDITION)
+		virturlCourseId := courseRelation.Id
+		info.CourseId = virturlCourseId
 	}
 	return &info
 }

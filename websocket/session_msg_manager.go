@@ -24,6 +24,7 @@ func SendBreakMsgToStudent(studentId, teacherId, sessionId int64) error {
 	breakMsg.Attribute["teacherId"] = strconv.FormatInt(teacherId, 10)
 	length, _ := SessionManager.GetSessionLength(sessionId)
 	breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+	breakMsg.Attribute["sessionStatus"] = SESSION_STATUS_BREAKED
 	if UserManager.HasUserChan(breakMsg.UserId) {
 		breakChan := UserManager.GetUserChan(breakMsg.UserId)
 		breakChan <- breakMsg
@@ -40,6 +41,7 @@ func SendBreakMsgToTeacher(studentId, teacherId, sessionId int64) error {
 	breakMsg.Attribute["teacherId"] = strconv.FormatInt(teacherId, 10)
 	length, _ := SessionManager.GetSessionLength(sessionId)
 	breakMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+	breakMsg.Attribute["sessionStatus"] = SESSION_STATUS_BREAKED
 	if UserManager.HasUserChan(breakMsg.UserId) {
 		breakChan := UserManager.GetUserChan(breakMsg.UserId)
 		breakChan <- breakMsg
@@ -64,6 +66,7 @@ func SendPauseRespMsgToTeacher(msgId string, teacherId, sessionId int64) error {
 	pauseResp := NewWSMessage(msgId, teacherId, WS_SESSION_PAUSE_RESP)
 	pauseResp.Attribute["errCode"] = "0"
 	pauseResp.Attribute["sessionId"] = sessionIdStr
+	pauseResp.Attribute["sessionStatus"] = SESSION_STATUS_PAUSED
 	if UserManager.HasUserChan(teacherId) {
 		userChan := UserManager.GetUserChan(teacherId)
 		userChan <- pauseResp
@@ -80,6 +83,7 @@ func SendPauseMsgToStudent(studentId, teacherId, sessionId, length int64) error 
 	pauseMsg.Attribute["sessionId"] = sessionIdStr
 	pauseMsg.Attribute["teacherId"] = strconv.FormatInt(teacherId, 10)
 	pauseMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+	pauseMsg.Attribute["sessionStatus"] = SESSION_STATUS_PAUSED
 	if UserManager.HasUserChan(studentId) {
 		studentChan := UserManager.GetUserChan(studentId)
 		studentChan <- pauseMsg
@@ -94,6 +98,7 @@ func SendExpireMsg(userId, sessionId int64) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	expireMsg := NewWSMessage("", userId, WS_SESSION_EXPIRE)
 	expireMsg.Attribute["sessionId"] = sessionIdStr
+	expireMsg.Attribute["sessionStatus"] = SESSION_STATUS_COMPLETE
 	if UserManager.HasUserChan(userId) {
 		userChan := UserManager.GetUserChan(userId)
 		userChan <- expireMsg
@@ -107,6 +112,7 @@ func SendSyncMsg(userId, sessionId, length int64) error {
 	syncMsg := NewWSMessage("", userId, WS_SESSION_SYNC)
 	syncMsg.Attribute["sessionId"] = sessionIdStr
 	syncMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+	syncMsg.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
 	if UserManager.HasUserChan(userId) {
 		userChan := UserManager.GetUserChan(userId)
 		userChan <- syncMsg
@@ -119,6 +125,7 @@ func SendFinishMsgToStudent(studentId, sessionId int64) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	finishMsg := NewWSMessage("", studentId, WS_SESSION_FINISH)
 	finishMsg.Attribute["sessionId"] = sessionIdStr
+	finishMsg.Attribute["sessionStatus"] = SESSION_STATUS_COMPLETE
 	if UserManager.HasUserChan(studentId) {
 		creatorChan := UserManager.GetUserChan(studentId)
 		creatorChan <- finishMsg
@@ -144,6 +151,7 @@ func SendFinishRespMsgToTeacher(msgId string, userId, sessionId int64) error {
 	finishResp := NewWSMessage(msgId, userId, WS_SESSION_FINISH_RESP)
 	finishResp.Attribute["errCode"] = "0"
 	finishResp.Attribute["sessionId"] = sessionIdStr
+	finishResp.Attribute["sessionStatus"] = SESSION_STATUS_COMPLETE
 	if UserManager.HasUserChan(userId) {
 		userChan := UserManager.GetUserChan(userId)
 		userChan <- finishResp
@@ -169,7 +177,8 @@ func SendRecoverMsgToTeacher(studentId, teacherId, sessionId, length int64, orde
 		virturlCourseId := courseRelation.Id
 		recoverTeacherMsg.Attribute["courseId"] = strconv.FormatInt(virturlCourseId, 10)
 	}
-
+	sessionStatus, _ := SessionManager.GetSessionStatus(sessionId)
+	recoverTeacherMsg.Attribute["sessionStatus"] = sessionStatus
 	if UserManager.HasUserChan(teacherId) {
 		teacherChan := UserManager.GetUserChan(teacherId)
 		teacherChan <- recoverTeacherMsg
@@ -187,7 +196,8 @@ func SendRecoverMsgToStudent(studentId, teacherId, sessionId, length int64, orde
 	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		recoverStuMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
 	}
-
+	sessionStatus, _ := SessionManager.GetSessionStatus(sessionId)
+	recoverStuMsg.Attribute["sessionStatus"] = sessionStatus
 	if UserManager.HasUserChan(studentId) {
 		studentChan := UserManager.GetUserChan(studentId)
 		studentChan <- recoverStuMsg
@@ -203,6 +213,8 @@ func SendBreakReconnectSuccessMsgToTeacher(studentId, teacherId, sessionId, leng
 	sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(studentId, 10)
 	sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(teacherId, 10)
 	sessionStatusMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+	sessionStatus, _ := SessionManager.GetSessionStatus(sessionId)
+	sessionStatusMsg.Attribute["sessionStatus"] = sessionStatus
 	if UserManager.HasUserChan(teacherId) {
 		teacherChan := UserManager.GetUserChan(teacherId)
 		teacherChan <- sessionStatusMsg
@@ -218,6 +230,8 @@ func SendBreakReconnectSuccessMsgToStudent(studentId, teacherId, sessionId, leng
 	sessionStatusMsg.Attribute["studentId"] = strconv.FormatInt(studentId, 10)
 	sessionStatusMsg.Attribute["teacherId"] = strconv.FormatInt(teacherId, 10)
 	sessionStatusMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
+	sessionStatus, _ := SessionManager.GetSessionStatus(sessionId)
+	sessionStatusMsg.Attribute["sessionStatus"] = sessionStatus
 	if UserManager.HasUserChan(studentId) {
 		studentChan := UserManager.GetUserChan(studentId)
 		studentChan <- sessionStatusMsg
@@ -260,6 +274,7 @@ func SendResumeRespMsgToTeacher(msgId string, teacherId, sessionId int64) error 
 	resumeResp := NewWSMessage(msgId, teacherId, WS_SESSION_RESUME_RESP)
 	resumeResp.Attribute["errCode"] = "0"
 	resumeResp.Attribute["sessionId"] = sessionIdStr
+	resumeResp.Attribute["sessionStatus"] = SESSION_STATUS_CALLING
 	if UserManager.HasUserChan(teacherId) {
 		userChan := UserManager.GetUserChan(teacherId)
 		userChan <- resumeResp
@@ -275,6 +290,7 @@ func SendResumeMsgToStudent(studentId, teacherId, sessionId int64) error {
 	resumeMsg := NewWSMessage("", studentId, WS_SESSION_RESUME)
 	resumeMsg.Attribute["sessionId"] = sessionIdStr
 	resumeMsg.Attribute["teacherId"] = strconv.FormatInt(teacherId, 10)
+	resumeMsg.Attribute["sessionStatus"] = SESSION_STATUS_CALLING
 	if UserManager.HasUserChan(studentId) {
 		studentChan := UserManager.GetUserChan(studentId)
 		studentChan <- resumeMsg
@@ -296,11 +312,12 @@ func SendResumeCancelRespMsgToTeacherOnError(msgId string, teacherId int64) erro
 	return ErrUserChanClose
 }
 
-func SendResumeCancelRespMsgToTeacher(msgId string, teacherId, sessionId int64) error {
+func SendResumeCancelRespMsgToTeacher(msgId string, teacherId, sessionId int64, sessionStatus string) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	resCancelResp := NewWSMessage(msgId, teacherId, WS_SESSION_RESUME_CANCEL_RESP)
 	resCancelResp.Attribute["errCode"] = "0"
 	resCancelResp.Attribute["sessionId"] = sessionIdStr
+	resCancelResp.Attribute["sessionStatus"] = sessionStatus
 	if UserManager.HasUserChan(teacherId) {
 		userChan := UserManager.GetUserChan(teacherId)
 		userChan <- resCancelResp
@@ -311,11 +328,12 @@ func SendResumeCancelRespMsgToTeacher(msgId string, teacherId, sessionId int64) 
 	return ErrUserChanClose
 }
 
-func SendResumeCancelRespMsgToStudent(studentId, teacherId, sessionId int64) error {
+func SendResumeCancelRespMsgToStudent(studentId, teacherId, sessionId int64, sessionStatus string) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	resCancelMsg := NewWSMessage("", studentId, WS_SESSION_RESUME_CANCEL)
 	resCancelMsg.Attribute["sessionId"] = sessionIdStr
 	resCancelMsg.Attribute["teacherId"] = strconv.FormatInt(teacherId, 10)
+	resCancelMsg.Attribute["sessionStatus"] = sessionStatus
 	if UserManager.HasUserChan(studentId) {
 		studentChan := UserManager.GetUserChan(studentId)
 		studentChan <- resCancelMsg
@@ -336,11 +354,12 @@ func SendResumeAcceptRespMsgToStudentOnError(msgId string, studentId int64, errM
 	return ErrUserChanClose
 }
 
-func SendResumeAcceptRespMsgToStudent(msgId string, studentId, sessionId int64) error {
+func SendResumeAcceptRespMsgToStudent(msgId string, studentId, sessionId int64, sessionStatus string) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	resAcceptResp := NewWSMessage(msgId, studentId, WS_SESSION_RESUME_ACCEPT_RESP)
 	resAcceptResp.Attribute["errCode"] = "0"
 	resAcceptResp.Attribute["sessionId"] = sessionIdStr
+	resAcceptResp.Attribute["sessionStatus"] = sessionStatus
 	if UserManager.HasUserChan(studentId) {
 		userChan := UserManager.GetUserChan(studentId)
 		userChan <- resAcceptResp
@@ -351,11 +370,12 @@ func SendResumeAcceptRespMsgToStudent(msgId string, studentId, sessionId int64) 
 	return ErrUserChanClose
 }
 
-func SendResumeAcceptMsgToTeacher(teacherId, sessionId int64, acceptStr string) error {
+func SendResumeAcceptMsgToTeacher(teacherId, sessionId int64, acceptStr string, sessionStatus string) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	resAcceptMsg := NewWSMessage("", teacherId, WS_SESSION_RESUME_ACCEPT)
 	resAcceptMsg.Attribute["sessionId"] = sessionIdStr
 	resAcceptMsg.Attribute["accept"] = acceptStr
+	resAcceptMsg.Attribute["sessionStatus"] = sessionStatus
 	if UserManager.HasUserChan(teacherId) {
 		teacherChan := UserManager.GetUserChan(teacherId)
 		teacherChan <- resAcceptMsg
@@ -369,6 +389,7 @@ func SendQaPkgTimeEndMsgToStudent(studentId, sessionId int64) error {
 	qaPkgTimeEndMsg := NewWSMessage("", studentId, WS_SESSION_QAPKG_TIME_END)
 	qaPkgTimeEndMsg.Attribute["sessionId"] = sessionIdStr
 	qaPkgTimeEndMsg.Attribute["comment"] = "答疑时间用完啦，本次上课已经换到账户余额支付"
+	qaPkgTimeEndMsg.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
 	if UserManager.HasUserChan(studentId) {
 		userChan := UserManager.GetUserChan(studentId)
 		userChan <- qaPkgTimeEndMsg
@@ -382,6 +403,7 @@ func SendAutoFinishTipMsgToStudent(studentId, sessionId, autoFinishLimit int64) 
 	autoFinishTipMsg := NewWSMessage("", studentId, WS_SESSION_AUTO_FINISH_TIP)
 	autoFinishTipMsg.Attribute["sessionId"] = sessionIdStr
 	autoFinishTipMsg.Attribute["comment"] = fmt.Sprintf("%s%d%s", "哎呀！账户里的钱都用完了", autoFinishLimit, "分钟后将自动下课哦")
+	autoFinishTipMsg.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
 	if UserManager.HasUserChan(studentId) {
 		userChan := UserManager.GetUserChan(studentId)
 		userChan <- autoFinishTipMsg
@@ -395,6 +417,7 @@ func SendAutoFinishTipMsgToTeacher(teacherId, sessionId, autoFinishLimit int64) 
 	autoFinishTipMsg := NewWSMessage("", teacherId, WS_SESSION_AUTO_FINISH_TIP)
 	autoFinishTipMsg.Attribute["sessionId"] = sessionIdStr
 	autoFinishTipMsg.Attribute["comment"] = "学生余额不足"
+	autoFinishTipMsg.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
 	if UserManager.HasUserChan(teacherId) {
 		userChan := UserManager.GetUserChan(teacherId)
 		userChan <- autoFinishTipMsg
