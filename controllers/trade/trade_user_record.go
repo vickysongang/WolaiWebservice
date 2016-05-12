@@ -219,7 +219,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 				continue
 			}
 			info.Avartar = user.Avatar
-			info.Type = trade.COMMENT_COURSE_AUDITION
+			info.Title = trade.COMMENT_AUDITION_COURSE_PURCHASE
 
 		case models.TRADE_COURSE_EARNING:
 			//老师课程收入

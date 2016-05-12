@@ -7,19 +7,20 @@ import (
 const (
 	AMOUNT_REWARD_REGISTRATION = 1500
 
-	COMMENT_CHARGE              = "账户充值"
-	COMMENT_CHARGE_CODE         = "充值卡充值"
-	COMMENT_CHARGE_PREMIUM      = "充值奖励"
-	COMMENT_WITHDRAW            = "账户提现"
-	COMMENT_PROMOTION           = "活动奖励"
-	COMMENT_VOUCHER             = "代金券"
-	COMMENT_DEDUCTION           = "服务扣费"
-	COMMENT_REWARD_REGISTRATION = "新用户注册"
-	COMMENT_REWARD_INVITATION   = "邀请注册"
-	COMMENT_COURSE_PURCHASE     = "课程购买"
-	COMMENT_COURSE_AUDITION     = "课程试听"
-	COMMENT_COURSE_EARNING      = "课程结算"
-	COMMENT_QA_PKG_PURCHASE     = "答疑包购买"
+	COMMENT_CHARGE                   = "账户充值"
+	COMMENT_CHARGE_CODE              = "充值卡充值"
+	COMMENT_CHARGE_PREMIUM           = "充值奖励"
+	COMMENT_WITHDRAW                 = "账户提现"
+	COMMENT_PROMOTION                = "活动奖励"
+	COMMENT_VOUCHER                  = "代金券"
+	COMMENT_DEDUCTION                = "服务扣费"
+	COMMENT_REWARD_REGISTRATION      = "新用户注册"
+	COMMENT_REWARD_INVITATION        = "邀请注册"
+	COMMENT_COURSE_PURCHASE          = "课程购买"
+	COMMENT_COURSE_AUDITION          = "课程试听"
+	COMMENT_AUDITION_COURSE_PURCHASE = "试听课购买"
+	COMMENT_COURSE_EARNING           = "课程结算"
+	COMMENT_QA_PKG_PURCHASE          = "答疑包购买"
 )
 
 func HandleTradeRewardRegistration(userId int64) error {

@@ -581,12 +581,20 @@ func InitSessionMonitor(sessionId int64) bool {
 	}
 
 	if UserManager.HasUserChan(session.Tutor) {
+		_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
+		teacherByte, _ := json.Marshal(teacherInfo)
+		startMsg.Attribute["sessionInfo"] = string(teacherByte)
+
 		teacherChan := UserManager.GetUserChan(session.Tutor)
 		teacherChan <- startMsg
 	} else {
 		push.PushSessionInstantStart(session.Tutor, sessionId)
 	}
 	if UserManager.HasUserChan(session.Creator) {
+		_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
+		studentByte, _ := json.Marshal(studentInfo)
+		startMsg.Attribute["sessionInfo"] = string(studentByte)
+
 		startMsg.UserId = session.Creator
 		studentChan := UserManager.GetUserChan(session.Creator)
 		studentChan <- startMsg
