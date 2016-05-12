@@ -810,5 +810,6 @@ func assignSessionInfo(userId, sessionId int64) *sessionStatusInfo {
 		virturlCourseId := courseRelation.Id
 		info.CourseId = virturlCourseId
 	}
+	SessionManager.SetPollingFlag(sessionId, userId, true)
 	return &info
 }
