@@ -25,6 +25,7 @@ type SessionStatus struct {
 	status      string
 	timestamp   float64
 	lock        sync.Mutex
+	pollingMap  map[int64]bool //userId to pollingFlag
 }
 
 const (
@@ -64,6 +65,7 @@ func NewSessionStatus(sessionId int64) *SessionStatus {
 		isActived:   false,
 		isBroken:    false,
 		status:      SESSION_STATUS_CREATED,
+		pollingMap:  make(map[int64]bool),
 	}
 	return &sessionStatus
 }
@@ -270,4 +272,25 @@ func (ssm *SessionStatusManager) SetSessionStatusCompleted(sessionId int64, leng
 		"Length": length,
 	}
 	models.UpdateSession(sessionId, sessionInfo)
+}
+
+func (ssm *SessionStatusManager) SetPollingFlag(sessionId, userId int64, pollingFlag bool) error {
+	sessionStatus, ok := ssm.sessionMap[sessionId]
+	if !ok {
+		return ErrSessionNotFound
+	}
+	sessionStatus.pollingMap[userId] = pollingFlag
+	return nil
+}
+
+func (ssm *SessionStatusManager) GetPollingFlag(sessionId, userId int64) bool {
+	sessionStatus, ok := ssm.sessionMap[sessionId]
+	if !ok {
+		return false
+	}
+	pollingFlag, ok := sessionStatus.pollingMap[userId]
+	if !ok {
+		return false
+	}
+	return pollingFlag
 }

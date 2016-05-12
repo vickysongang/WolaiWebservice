@@ -618,12 +618,16 @@ func CheckSessionBreak(userId int64) {
 	if _, ok := UserManager.UserSessionLiveMap[userId]; !ok {
 		return
 	}
+
+	for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
+		SessionManager.SetPollingFlag(sessionId, userId, false)
+	}
+
 	//延迟10秒判断用户是否重连上，给客户端10s的重连时间
 	breakTime := UserManager.GetUserOfflineStatus(userId)
 	if breakTime == -1 {
 		return
 	}
-
 	reconnLimit := settings.SessionReconnLimit()
 	time.Sleep(time.Duration(reconnLimit) * time.Second)
 	userLoginTime := UserManager.GetUserOnlineStatus(userId)
@@ -637,7 +641,9 @@ func CheckSessionBreak(userId int64) {
 		if !SessionManager.IsSessionOnline(sessionId) {
 			continue
 		}
-
+		if !SessionManager.GetPollingFlag(sessionId, userId) {
+			continue
+		}
 		sessionChan, _ := SessionManager.GetSessionChan(sessionId)
 		breakMsg := NewWSMessage("", userId, WS_SESSION_BREAK)
 		sessionChan <- breakMsg
