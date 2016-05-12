@@ -6,6 +6,7 @@ import (
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 	"WolaiWebservice/service/trade"
+	tradeService "WolaiWebservice/service/trade"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
@@ -158,6 +159,20 @@ func (watcher *RpcWatcher) HandleCourseEarning(request *RpcRequest, resp *RpcRes
 		}
 	}
 
+	*resp = NewRpcResponse(0, "", response.NullObject)
+	return nil
+}
+
+func (watcher *RpcWatcher) HandleTradeRewardRegistration(request *RpcRequest, resp *RpcResponse) error {
+	var err error
+
+	userId, err := strconv.ParseInt(request.Args["userId"], 10, 64)
+	if err != nil {
+		*resp = NewRpcResponse(2, "无效的用户Id", response.NullObject)
+		return err
+	}
+	tradeService.HandleTradeRewardRegistration(userId)
+	go lcmessage.SendWelcomeMessageStudent(userId)
 	*resp = NewRpcResponse(0, "", response.NullObject)
 	return nil
 }
