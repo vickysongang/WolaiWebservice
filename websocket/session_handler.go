@@ -641,7 +641,7 @@ func CheckSessionBreak(userId int64) {
 		if !SessionManager.IsSessionOnline(sessionId) {
 			continue
 		}
-		if !SessionManager.GetPollingFlag(sessionId, userId) {
+		if SessionManager.GetPollingFlag(sessionId, userId) {
 			continue
 		}
 		sessionChan, _ := SessionManager.GetSessionChan(sessionId)
