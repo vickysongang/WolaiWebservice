@@ -127,8 +127,9 @@ func GeneralOrderHandler(orderId int64) {
 
 		case <-dispatchTicker.C:
 			// 组装派发信息
-			if OrderManager.IsOrderLocked(orderId) {
-				seelog.Debug("Order has been locked by other tutor, orderId:", orderId)
+			if ok, err := OrderManager.LockOrder(orderId); !ok {
+				//if OrderManager.IsOrderLocked(orderId) {
+				seelog.Debug("Order lock failed orderId: ", orderId, " error msg: ", err)
 				continue
 			}
 
@@ -150,6 +151,7 @@ func GeneralOrderHandler(orderId int64) {
 				forceAssignMsg := NewWSMessage("", assignTarget, WS_ORDER2_ASSIGN_ACCEPT)
 				orderChan <- forceAssignMsg
 			} else {
+				OrderManager.SetOrderLocked(orderId, false)
 				dispatchOrderToTeachers(orderId, string(orderByte))
 			}
 

@@ -250,7 +250,7 @@ func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) erro
 	status.currentAssign = userId
 
 	//Set order to be locked, because currently assign mode and competing mode are in parallel
-	osm.SetOrderLocked(orderId, true)
+	//osm.SetOrderLocked(orderId, true)
 
 	//将指派对象写入分发表中，并标识为指派单
 	orderDispatch := models.OrderDispatch{
@@ -316,4 +316,19 @@ func (osm *OrderStatusManager) SetOrderLocked(orderId int64, isLocked bool) erro
 	status.isLocked = isLocked
 	status.lock.Unlock()
 	return nil
+}
+
+func (osm *OrderStatusManager) LockOrder(orderId int64) (bool, error) {
+	status, ok := osm.orderMap[orderId]
+	if !ok {
+		return false, errors.New("该订单已失效")
+	}
+	status.lock.Lock()
+	defer status.lock.Unlock()
+	if status.isLocked == false {
+		status.isLocked = true
+		return true, nil
+	} else {
+		return false, errors.New("该订单已被接")
+	}
 }
