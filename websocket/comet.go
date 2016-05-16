@@ -487,6 +487,12 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		return resp, nil
 	}
 
+	if ok, err := OrderManager.LockOrder(orderId); !ok {
+		resp.Attribute["errCode"] = "2"
+		resp.Attribute["errMsg"] = err.Error()
+		return resp, nil
+	}
+
 	orderInfo := GetOrderInfo(orderId)
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
 
@@ -505,14 +511,6 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		} else {
 			// 发送反馈消息
 			resp.OperationCode = WS_ORDER2_CANCEL_RESP
-
-			if OrderManager.IsOrderLocked(orderId) {
-				resp.Attribute["errCode"] = "2"
-				resp.Attribute["errMsg"] = "该订单已被抢"
-				return resp, nil
-			}
-
-			OrderManager.SetOrderLocked(orderId, true)
 
 			resp.Attribute["errCode"] = "0"
 
@@ -546,12 +544,6 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 	case WS_ORDER2_ACCEPT:
 		resp.OperationCode = WS_ORDER2_ACCEPT_RESP
 
-		if OrderManager.IsOrderLocked(orderId) {
-			resp.Attribute["errCode"] = "2"
-			resp.Attribute["errMsg"] = "该订单已被抢"
-			return resp, nil
-		}
-
 		if UserManager.IsUserBusyInSession(order.Creator) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
@@ -564,7 +556,11 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			return resp, nil
 		}
 
-		OrderManager.SetOrderLocked(orderId, true)
+		if UserManager.IsUserBusyInSession(msg.UserId) {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
+			return resp, nil
+		}
 
 		//发送反馈消息
 		resp.Attribute["errCode"] = "0"
@@ -627,12 +623,6 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 		//发送反馈消息
 		resp.OperationCode = WS_ORDER2_ASSIGN_ACCEPT_RESP
-
-		if OrderManager.IsOrderLocked(orderId) {
-			resp.Attribute["errCode"] = "2"
-			resp.Attribute["errMsg"] = "该订单已被抢"
-			return resp, nil
-		}
 
 		if currentAssign, _ := OrderManager.GetCurrentAssign(orderId); currentAssign != msg.UserId {
 			resp.Attribute["errCode"] = "2"
