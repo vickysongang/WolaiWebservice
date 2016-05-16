@@ -8,6 +8,7 @@ import (
 	"WolaiWebservice/service/trade"
 	tradeService "WolaiWebservice/service/trade"
 	"WolaiWebservice/utils/leancloud/lcmessage"
+	"WolaiWebservice/utils/wechat/wcmessage"
 )
 
 func (watcher *RpcWatcher) HandleTradeVoucher(request *RpcRequest, resp *RpcResponse) error {
@@ -158,6 +159,8 @@ func (watcher *RpcWatcher) HandleCourseEarning(request *RpcRequest, resp *RpcRes
 			return err
 		}
 	}
+
+	go wcmessage.SendChapterCompleteNotification(recordId, chapterId, course.Name, course.Type)
 
 	*resp = NewRpcResponse(0, "", response.NullObject)
 	return nil
