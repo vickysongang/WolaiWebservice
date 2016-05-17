@@ -71,8 +71,6 @@ func (usm *UserStatusManager) SetUserOffline(userId int64) {
 		seelog.Debug("SetUserOffline:", userId)
 		delete(usm.OnlineUserMap, userId)
 		usm.OfflineUserMap[userId] = time.Now().Unix()
-
-		usm.KickoutMap[userId] = false
 	}
 }
 
