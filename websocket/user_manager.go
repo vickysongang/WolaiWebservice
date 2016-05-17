@@ -77,9 +77,7 @@ func (usm *UserStatusManager) SetUserOffline(userId int64) {
 }
 
 func (usm *UserStatusManager) KickoutUser(userId int64, kickoutFlag bool) {
-	if _, ok := usm.KickoutMap[userId]; ok {
-		usm.KickoutMap[userId] = kickoutFlag
-	}
+	usm.KickoutMap[userId] = kickoutFlag
 }
 
 func (usm *UserStatusManager) GetKickoutFlag(userId int64) bool {
