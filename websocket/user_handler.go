@@ -41,28 +41,7 @@ func WSUserLogin(msg WSMessage) (chan WSMessage, bool) {
 		oldChan := UserManager.GetUserChan(msg.UserId)
 		//如果不是在同一设备上登陆的，则踢出
 		if objectId != oldObjectId {
-			if msg.OperationCode == WS_LOGIN {
-				WSUserLogout(msg.UserId)
-				select {
-				case _, ok := <-oldChan:
-					if ok {
-						if msg.OperationCode == WS_LOGIN {
-							seelog.Debug("Send Force Logout message to ", msg.UserId, " when old chan exsits!")
-							msgFL := NewWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
-							oldChan <- msgFL
-							close(oldChan)
-						}
-					}
-				default:
-					if msg.OperationCode == WS_LOGIN {
-						seelog.Debug("Send Force Logout message to ", msg.UserId, " when old chan doesn't exsits!")
-						msgFL := NewWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
-						oldChan <- msgFL
-					}
-				}
-				UserManager.SetUserChan(msg.UserId, userChan)
-				onlineFlag = true
-			} else if msg.OperationCode == WS_RECONNECT {
+			if msg.OperationCode == WS_RECONNECT || msg.OperationCode == WS_LOGIN {
 				msgFL := NewWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
 				userChan <- msgFL
 			}
@@ -98,4 +77,13 @@ func WSUserLogout(userId int64) {
 	UserManager.RemoveUserChan(userId)
 	//设置用户的下线状态
 	UserManager.SetUserOffline(userId)
+}
+
+func KickOnlineUser(userId int64) {
+	if UserManager.HasUserChan(userId) {
+		WSUserLogout(userId)
+		userChan := UserManager.GetUserChan(userId)
+		msgFL := NewWSMessage("", userId, WS_FORCE_LOGOUT)
+		userChan <- msgFL
+	}
 }
