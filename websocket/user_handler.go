@@ -86,6 +86,5 @@ func KickOutLoggedUser(userId int64) {
 		userChan := UserManager.GetUserChan(userId)
 		msgFL := NewWSMessage("", userId, WS_FORCE_LOGOUT)
 		userChan <- msgFL
-		WSUserLogout(userId)
 	}
 }
