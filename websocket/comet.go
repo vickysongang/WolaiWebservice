@@ -563,6 +563,14 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			return resp, nil
 		}
 
+		if err := TeacherManager.SetAcceptOrderLock(msg.UserId); err != nil {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "老师已接受其它订单"
+			// Unlock order so others could operate on this order
+			OrderManager.SetOrderLocked(orderId, false)
+			return resp, nil
+		}
+
 		//发送反馈消息
 		resp.Attribute["errCode"] = "0"
 
