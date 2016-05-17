@@ -42,6 +42,7 @@ func WSUserLogin(msg WSMessage) (chan WSMessage, bool) {
 		oldChan := UserManager.GetUserChan(msg.UserId)
 		//如果不是在同一设备上登陆的，则踢出当前设备用户
 		if objectId != oldObjectId {
+			seelog.Debug("diffrent device login:", msg.UserId)
 			msgFL := NewWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
 			userChan <- msgFL
 			UserManager.KickoutUser(msg.UserId, true)
@@ -49,11 +50,13 @@ func WSUserLogin(msg WSMessage) (chan WSMessage, bool) {
 			//在同一设备上登陆的，则继续使用原来的userChan
 			userChan = oldChan
 			onlineFlag = true
+			UserManager.KickoutUser(msg.UserId, false)
 		}
 	} else {
 		//用户没有登陆，则返回一个新的userChan
 		UserManager.SetUserChan(msg.UserId, userChan)
 		onlineFlag = true
+		UserManager.KickoutUser(msg.UserId, false)
 	}
 
 	if onlineFlag {
@@ -73,6 +76,8 @@ func WSUserLogout(userId int64) {
 	}()
 
 	go CheckSessionBreak(userId)
+
+	seelog.Debug("WSUserLogout GetKickoutFlag:", UserManager.GetKickoutFlag(userId), " userId:", userId)
 
 	if !UserManager.GetKickoutFlag(userId) {
 		UserManager.RemoveUserChan(userId)
