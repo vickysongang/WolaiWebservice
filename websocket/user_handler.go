@@ -79,11 +79,13 @@ func WSUserLogout(userId int64) {
 	UserManager.SetUserOffline(userId)
 }
 
-func KickOnlineUser(userId int64) {
+func KickOutLoggedUser(userId int64) {
+	seelog.Debug("KickOutLoggedUser:", userId)
 	if UserManager.HasUserChan(userId) {
+		seelog.Debug("kick logged user chan:", userId)
 		userChan := UserManager.GetUserChan(userId)
-		WSUserLogout(userId)
 		msgFL := NewWSMessage("", userId, WS_FORCE_LOGOUT)
 		userChan <- msgFL
+		WSUserLogout(userId)
 	}
 }

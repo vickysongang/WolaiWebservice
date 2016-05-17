@@ -77,7 +77,7 @@ func AuthPhonePasswordLogin(phone, password string) (int64, error, *authService.
 	if err != nil {
 		return 2, err, nil
 	}
-	websocket.KickOnlineUser(user.Id)
+	websocket.KickOutLoggedUser(user.Id)
 	return 0, nil, info
 }
 
@@ -137,7 +137,7 @@ func AuthPhoneRandCodeLogin(phone, code string, upgrade bool) (int64, error, *au
 	if err != nil {
 		return 2, err, nil
 	}
-	websocket.KickOnlineUser(user.Id)
+	websocket.KickOutLoggedUser(user.Id)
 	return 0, nil, info
 }
 
