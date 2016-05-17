@@ -81,8 +81,8 @@ func WSUserLogout(userId int64) {
 
 func KickOnlineUser(userId int64) {
 	if UserManager.HasUserChan(userId) {
-		WSUserLogout(userId)
 		userChan := UserManager.GetUserChan(userId)
+		WSUserLogout(userId)
 		msgFL := NewWSMessage("", userId, WS_FORCE_LOGOUT)
 		userChan <- msgFL
 	}
