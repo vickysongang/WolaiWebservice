@@ -42,7 +42,6 @@ func WSUserLogin(msg WSMessage) (chan WSMessage, bool) {
 		oldChan := UserManager.GetUserChan(msg.UserId)
 		//如果不是在同一设备上登陆的，则踢出当前设备用户
 		if objectId != oldObjectId {
-			seelog.Debug("diffrent device login:", msg.UserId)
 			msgFL := NewWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
 			userChan <- msgFL
 			UserManager.KickoutUser(msg.UserId, true)
@@ -77,8 +76,6 @@ func WSUserLogout(userId int64) {
 
 	go CheckSessionBreak(userId)
 
-	seelog.Debug("WSUserLogout GetKickoutFlag:", UserManager.GetKickoutFlag(userId), " userId:", userId)
-
 	if !UserManager.GetKickoutFlag(userId) {
 		UserManager.RemoveUserChan(userId)
 		UserManager.SetUserOffline(userId)
@@ -88,9 +85,7 @@ func WSUserLogout(userId int64) {
 }
 
 func KickOutLoggedUser(userId int64) {
-	seelog.Debug("KickOutLoggedUser:", userId)
 	if UserManager.HasUserChan(userId) {
-		seelog.Debug("kick logged user chan:", userId)
 		userChan := UserManager.GetUserChan(userId)
 		msgFL := NewWSMessage("", userId, WS_FORCE_LOGOUT)
 		userChan <- msgFL
