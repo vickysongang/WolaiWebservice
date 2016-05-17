@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"sync"
+
 	"github.com/cihub/seelog"
 
 	"WolaiWebservice/models"
@@ -20,6 +22,8 @@ type TeacherStatus struct {
 	dispatchMap          map[int64]int64
 	subjectList          []*models.Subject
 	profile              *models.TeacherProfile
+	lock                 sync.Mutex
+	isAcceptOrderLocked  bool
 }
 
 type TeacherStatusManager struct {
@@ -201,6 +205,33 @@ func (tsm *TeacherStatusManager) SetDispatchUnlock(userId int64) error {
 	}
 	status.isDispatchLocked = false
 	return nil
+}
+
+func (tsm *TeacherStatusManager) SetAcceptOrderLock(userId int64) error {
+	status, ok := tsm.teacherMap[userId]
+	if !ok {
+		return ErrTeacherOffline
+	}
+	status.lock.Lock()
+	defer status.lock.Unlock()
+	if !status.isAcceptOrderLocked {
+		status.isAcceptOrderLocked = true
+		return nil
+	} else {
+		return errors.New("Teacher is locked")
+	}
+}
+
+func (tsm *TeacherStatusManager) SetAcceptOrderUnlock(userId int64) error {
+	status, ok := tsm.teacherMap[userId]
+	if !ok {
+		return ErrTeacherOffline
+	}
+	status.lock.Lock()
+	defer status.lock.Unlock()
+	status.isAcceptOrderLocked = false
+	return nil
+
 }
 
 func (tsm *TeacherStatusManager) GetLiveTeachers() []int64 {
