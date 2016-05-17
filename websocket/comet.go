@@ -39,6 +39,7 @@ func HandleCometMessage(param string) (*WSMessage, error) {
 		resp.OperationCode = WS_LOGOUT_RESP
 		WSUserLogout(userId)
 		redis.RemoveUserObjectId(userId)
+
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
 			TeacherManager.SetOffline(userId)
 			TeacherManager.SetAssignOff(userId)
@@ -559,6 +560,14 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		if UserManager.IsUserBusyInSession(msg.UserId) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
+			OrderManager.SetOrderLocked(orderId, false)
+			return resp, nil
+		}
+
+		if err := TeacherManager.SetAcceptOrderLock(msg.UserId); err != nil {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "老师已接受其它订单"
+			// Unlock order so others could operate on this order
 			OrderManager.SetOrderLocked(orderId, false)
 			return resp, nil
 		}

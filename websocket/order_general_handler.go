@@ -687,6 +687,8 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 
 	UserManager.SetUserSession(session.Id, session.Tutor, session.Creator)
 
+	TeacherManager.SetAcceptOrderUnlock(session.Tutor)
+
 	time.Sleep(time.Second * time.Duration(orderSessionCountdown))
 	_ = InitSessionMonitor(session.Id)
 
