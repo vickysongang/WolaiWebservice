@@ -74,8 +74,8 @@ func WSUserLogout(userId int64) {
 	}()
 
 	go CheckSessionBreak(userId)
-	UserManager.RemoveUserChan(userId)
-	//设置用户的下线状态
+
+	//	UserManager.RemoveUserChan(userId)
 	UserManager.SetUserOffline(userId)
 }
 

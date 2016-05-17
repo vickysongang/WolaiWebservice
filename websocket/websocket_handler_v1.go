@@ -147,7 +147,6 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		err = json.Unmarshal([]byte(p), &msg)
 		if err != nil {
 			seelog.Error("V1WSHandler:", err.Error())
-			seelog.Debug("V1WSHandler: unstructed message")
 			continue
 		}
 
@@ -236,7 +235,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan WSM
 					msg.OperationCode == WS_FORCE_LOGOUT ||
 					msg.OperationCode == WS_LOGOUT_RESP {
 					if UserManager.GetUserOnlineStatus(userId) == loginTS {
-						//						WSUserLogout(userId)
+						WSUserLogout(userId)
 						close(userChan)
 						seelog.Trace("WebSocketWriter:User ", userId, " quit or logout!")
 					}
