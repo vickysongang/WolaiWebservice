@@ -21,7 +21,6 @@ func HandleWebsocketMessage(userId int64, msg WSMessage, userChan chan WSMessage
 		userChan <- resp
 		WSUserLogout(userId)
 		redis.RemoveUserObjectId(userId)
-		UserManager.RemoveUserChan(userId)
 
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
 			TeacherManager.SetOffline(userId)

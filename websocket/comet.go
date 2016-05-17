@@ -39,7 +39,6 @@ func HandleCometMessage(param string) (*WSMessage, error) {
 		resp.OperationCode = WS_LOGOUT_RESP
 		WSUserLogout(userId)
 		redis.RemoveUserObjectId(userId)
-		UserManager.RemoveUserChan(userId)
 
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
 			TeacherManager.SetOffline(userId)

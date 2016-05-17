@@ -17,6 +17,8 @@ type UserStatusManager struct {
 	UserOrderDispatchMap map[int64]map[int64]int64 // userId to orderId to timestamp
 
 	UserSessionLiveMap map[int64]map[int64]bool // userId to sessionId
+
+	KickoutMap map[int64]bool //userId to kickoutFlag
 }
 
 var UserManager UserStatusManager
@@ -35,6 +37,8 @@ func NewUserStatusManager() UserStatusManager {
 		UserOrderDispatchMap: make(map[int64]map[int64]int64),
 
 		UserSessionLiveMap: make(map[int64]map[int64]bool),
+
+		KickoutMap: make(map[int64]bool),
 	}
 }
 
@@ -67,7 +71,22 @@ func (usm *UserStatusManager) SetUserOffline(userId int64) {
 		seelog.Debug("SetUserOffline:", userId)
 		delete(usm.OnlineUserMap, userId)
 		usm.OfflineUserMap[userId] = time.Now().Unix()
+
+		usm.KickoutMap[userId] = false
 	}
+}
+
+func (usm *UserStatusManager) KickoutUser(userId int64, kickoutFlag bool) {
+	if _, ok := usm.KickoutMap[userId]; ok {
+		usm.KickoutMap[userId] = kickoutFlag
+	}
+}
+
+func (usm *UserStatusManager) GetKickoutFlag(userId int64) bool {
+	if km, ok := usm.KickoutMap[userId]; ok {
+		return km
+	}
+	return false
 }
 
 func (usm *UserStatusManager) GetUserOnlineStatus(userId int64) int64 {

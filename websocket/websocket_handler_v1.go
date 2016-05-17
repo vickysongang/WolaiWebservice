@@ -138,7 +138,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 			seelog.Debug("WebSocketWriteHandler: socket disconnect; UserId: ", userId, "; ErrorInfo:", errMsg)
 			if UserManager.GetUserOnlineStatus(userId) == loginTS {
 				WSUserLogout(userId)
-				//				close(userChan)
+				close(userChan)
 			}
 			return
 		}
@@ -147,6 +147,7 @@ func V1WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 		err = json.Unmarshal([]byte(p), &msg)
 		if err != nil {
 			seelog.Error("V1WSHandler:", err.Error())
+			seelog.Debug("V1WSHandler: unstructed message")
 			continue
 		}
 
@@ -207,7 +208,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan WSM
 				seelog.Error("WebSocket Write Error: UserId", userId, "ErrMsg: ", err.Error())
 				if UserManager.GetUserOnlineStatus(userId) == loginTS {
 					WSUserLogout(userId)
-					//					close(userChan)
+					close(userChan)
 				}
 				return
 			}
@@ -221,7 +222,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan WSM
 					seelog.Error("WebSocket Write Error: UserId", userId, " ErrMsg: ", err.Error())
 					if UserManager.GetUserOnlineStatus(userId) == loginTS {
 						WSUserLogout(userId)
-						//						close(userChan)
+						close(userChan)
 					}
 					return
 				}
@@ -236,7 +237,7 @@ func WebSocketWriteHandler(conn *websocket.Conn, userId int64, userChan chan WSM
 					msg.OperationCode == WS_LOGOUT_RESP {
 					if UserManager.GetUserOnlineStatus(userId) == loginTS {
 						WSUserLogout(userId)
-						//						close(userChan)
+						close(userChan)
 						seelog.Trace("WebSocketWriter:User ", userId, " quit or logout!")
 					}
 					return
