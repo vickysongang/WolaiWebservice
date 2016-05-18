@@ -135,7 +135,6 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 	for _, record := range permanentQaPkgRecords {
 		userPermanentQaPkg := PermanentQaPkg{}
 		qaPkg, _ := models.ReadQaPkg(record.QaPkgId)
-
 		if record.Type == models.QA_PKG_TYPE_GIVEN {
 			if !(now.After(record.TimeFrom) && record.TimeTo.After(now)) {
 				continue
@@ -148,7 +147,6 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 		userPermanentQaPkg.RecordId = record.Id
 		userPermanentQaPkg.QaPkgId = record.QaPkgId
 
-		userPermanentQaPkg.Title = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
 		userPermanentQaPkg.TotalTime = qaPkg.TimeLength
 		userPermanentQaPkg.LeftTime = record.LeftTime
 		userPermanentQaPkgs = append(userPermanentQaPkgs, &userPermanentQaPkg)
