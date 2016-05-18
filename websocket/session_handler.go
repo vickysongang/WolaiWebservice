@@ -462,8 +462,6 @@ func sessionHandler(sessionId int64) {
 						SendResumeAcceptMsgToTeacher(session.Tutor, sessionId, acceptStr, sessionStatus) //向老师发送响应恢复上课请求的消息
 						break
 					} else if acceptStr == "1" {
-						SendResumeAcceptRespMsgToStudent(msg.MessageId, msg.UserId, sessionId, SESSION_STATUS_SERVING)
-						SendResumeAcceptMsgToTeacher(session.Tutor, sessionId, acceptStr, SESSION_STATUS_SERVING) //向老师发送响应恢复上课请求的消息
 						//标记学生接受了老师的上课请求
 						SessionManager.SetSessionAccepted(sessionId, true)
 
@@ -476,6 +474,9 @@ func sessionHandler(sessionId int64) {
 						SessionManager.SetSessionPaused(sessionId, false)
 						SessionManager.SetSessionBroken(sessionId, false)
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
+
+						SendResumeAcceptRespMsgToStudent(msg.MessageId, msg.UserId, sessionId, SESSION_STATUS_SERVING)
+						SendResumeAcceptMsgToTeacher(session.Tutor, sessionId, acceptStr, SESSION_STATUS_SERVING) //向老师发送响应恢复上课请求的消息
 
 						//启动时间同步计时器
 						if !isCourse {
