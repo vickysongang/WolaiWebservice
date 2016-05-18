@@ -9,40 +9,43 @@ func HandleUserQaPkgTime(userId int64, timeLength int64) error {
 	now := time.Now()
 	balanceTime := timeLength
 	monthlyQaPkgRecords, _ := GetMonthlyQaPkgRecords(userId)
-	for _, monthlyQaPkgRecord := range monthlyQaPkgRecords {
-		if now.After(monthlyQaPkgRecord.TimeFrom) && monthlyQaPkgRecord.TimeTo.After(now) {
-			if timeLength < monthlyQaPkgRecord.LeftTime {
+	for _, record := range monthlyQaPkgRecords {
+		if now.After(record.TimeFrom) && record.TimeTo.After(now) {
+			if timeLength < record.LeftTime {
 				recordInfo := map[string]interface{}{
-					"LeftTime": monthlyQaPkgRecord.LeftTime - timeLength,
+					"LeftTime": record.LeftTime - timeLength,
 				}
-				models.UpdateQaPkgPurchaseRecord(monthlyQaPkgRecord.Id, recordInfo)
+				models.UpdateQaPkgPurchaseRecord(record.Id, recordInfo)
 				return nil
 			} else {
 				recordInfo := map[string]interface{}{
 					"LeftTime": 0,
 					"Status":   models.QA_PKG_PURCHASE_STATUS_COMPLETE,
 				}
-				models.UpdateQaPkgPurchaseRecord(monthlyQaPkgRecord.Id, recordInfo)
-				balanceTime = timeLength - monthlyQaPkgRecord.LeftTime
+				models.UpdateQaPkgPurchaseRecord(record.Id, recordInfo)
+				balanceTime = timeLength - record.LeftTime
 				break
 			}
 		}
 	}
 	permanentQaPkgRecords, _ := GetPermanentQaPkgRecords(userId)
-	for _, permanentQaPkgRecord := range permanentQaPkgRecords {
-		if balanceTime < permanentQaPkgRecord.LeftTime {
+	for _, record := range permanentQaPkgRecords {
+		if !(now.After(record.TimeFrom) && record.TimeTo.After(now)) {
+			continue
+		}
+		if balanceTime < record.LeftTime {
 			recordInfo := map[string]interface{}{
-				"LeftTime": permanentQaPkgRecord.LeftTime - balanceTime,
+				"LeftTime": record.LeftTime - balanceTime,
 			}
-			models.UpdateQaPkgPurchaseRecord(permanentQaPkgRecord.Id, recordInfo)
+			models.UpdateQaPkgPurchaseRecord(record.Id, recordInfo)
 			return nil
 		} else {
 			recordInfo := map[string]interface{}{
 				"LeftTime": 0,
 				"Status":   models.QA_PKG_PURCHASE_STATUS_COMPLETE,
 			}
-			models.UpdateQaPkgPurchaseRecord(permanentQaPkgRecord.Id, recordInfo)
-			balanceTime = balanceTime - permanentQaPkgRecord.LeftTime
+			models.UpdateQaPkgPurchaseRecord(record.Id, recordInfo)
+			balanceTime = balanceTime - record.LeftTime
 			continue
 		}
 	}

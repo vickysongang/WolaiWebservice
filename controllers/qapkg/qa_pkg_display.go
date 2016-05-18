@@ -39,11 +39,12 @@ type MonthlyQaPkg struct {
 }
 
 type PermanentQaPkg struct {
-	RecordId  int64  `json:"recordId"`
-	QaPkgId   int64  `json:"qaPkgId"`
-	Title     string `json:"title"`
-	LeftTime  int64  `json:"leftTime"`
-	TotalTime int64  `json:"totalTime"`
+	RecordId      int64  `json:"recordId"`
+	QaPkgId       int64  `json:"qaPkgId"`
+	Title         string `json:"title"`
+	LeftTime      int64  `json:"leftTime"`
+	TotalTime     int64  `json:"totalTime"`
+	ExpireComment string `json:"expireComment"`
 }
 
 type UserQaPkgDetail struct {
@@ -70,7 +71,6 @@ func GetQaPkgList() ([]QaPkgModuleInfo, error) {
 		moduleInfo.ModuleId = module.Id
 		moduleInfo.ModuleName = module.Name
 		moduleInfo.ModuleComment = module.Comment
-		//		moduleInfo.QaPkgs = qaPkgs
 		for _, qaPkg := range qaPkgs {
 			showInfo := QaPkgShowInfo{}
 			showInfo.QaPkg = qaPkg
@@ -106,19 +106,19 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 		userMonthlyQaPkg := MonthlyQaPkg{}
 		userMonthlyQaPkg.TotalMonth = int64(len(monthlyQaPkgRecords))
 		var index int64
-		for _, monthlyQaPkgRecord := range monthlyQaPkgRecords {
+		for _, record := range monthlyQaPkgRecords {
 			index++
-			if now.After(monthlyQaPkgRecord.TimeFrom) && monthlyQaPkgRecord.TimeTo.After(now) {
-				userMonthlyQaPkg.RecordId = monthlyQaPkgRecord.Id
-				userMonthlyQaPkg.QaPkgId = monthlyQaPkgRecord.QaPkgId
-				qaPkg, _ := models.ReadQaPkg(monthlyQaPkgRecord.QaPkgId)
+			if now.After(record.TimeFrom) && record.TimeTo.After(now) {
+				userMonthlyQaPkg.RecordId = record.Id
+				userMonthlyQaPkg.QaPkgId = record.QaPkgId
+				qaPkg, _ := models.ReadQaPkg(record.QaPkgId)
 				qaModule, _ := models.ReadQaPkgModule(qaPkg.ModuleId)
 				userMonthlyQaPkg.Title = qaModule.Name
 				userMonthlyQaPkg.TotalTime = qaPkg.TimeLength
-				userMonthlyQaPkg.LeftTime = monthlyQaPkgRecord.LeftTime
-				expireTime := monthlyQaPkgRecord.TimeTo.Format("2006-01-02")
+				userMonthlyQaPkg.LeftTime = record.LeftTime
+				expireTime := record.TimeTo.Format("2006-01-02")
 				userMonthlyQaPkg.ExpireComment = fmt.Sprintf("＊%v%s", expireTime, "前有效")
-				totalQaTimeLength = totalQaTimeLength + monthlyQaPkgRecord.LeftTime
+				totalQaTimeLength = totalQaTimeLength + record.LeftTime
 				userMonthlyQaPkg.CurrentMonth = index
 				userMonthlyQaPkgs = append(userMonthlyQaPkgs, &userMonthlyQaPkg)
 				break
@@ -132,17 +132,28 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, permanentQaPkgRecord := range permanentQaPkgRecords {
+	for _, record := range permanentQaPkgRecords {
 		userPermanentQaPkg := PermanentQaPkg{}
-		userPermanentQaPkg.RecordId = permanentQaPkgRecord.Id
-		userPermanentQaPkg.QaPkgId = permanentQaPkgRecord.QaPkgId
-		qaPkg, _ := models.ReadQaPkg(permanentQaPkgRecord.QaPkgId)
+		qaPkg, _ := models.ReadQaPkg(record.QaPkgId)
+
+		if record.Type == models.QA_PKG_TYPE_GIVEN {
+			if !(now.After(record.TimeFrom) && record.TimeTo.After(now)) {
+				continue
+			}
+			userPermanentQaPkg.Title = fmt.Sprintf("%s赠送包", qaPkg.Title)
+		} else {
+			userPermanentQaPkg.Title = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
+		}
+
+		userPermanentQaPkg.RecordId = record.Id
+		userPermanentQaPkg.QaPkgId = record.QaPkgId
+
 		userPermanentQaPkg.Title = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
 		userPermanentQaPkg.TotalTime = qaPkg.TimeLength
-		userPermanentQaPkg.LeftTime = permanentQaPkgRecord.LeftTime
+		userPermanentQaPkg.LeftTime = record.LeftTime
 		userPermanentQaPkgs = append(userPermanentQaPkgs, &userPermanentQaPkg)
 
-		totalQaTimeLength = totalQaTimeLength + permanentQaPkgRecord.LeftTime
+		totalQaTimeLength = totalQaTimeLength + record.LeftTime
 	}
 	detail.UserPermanentQaPkgs = userPermanentQaPkgs
 	detail.TotalQaTimeLength = totalQaTimeLength
