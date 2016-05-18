@@ -382,14 +382,19 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		} else if SessionManager.IsSessionPaused(sessionId) {
 			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
 		}
-	case WS_SESSION_PAUSE,
-		WS_SESSION_RESUME_ACCEPT:
+	case WS_SESSION_PAUSE:
 		resp.OperationCode = msg.OperationCode + 1
 		resp.Attribute["errCode"] = "0"
-		resp.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_PAUSED
 
 		sessionChan <- msg
-		seelog.Debug("Handle session message:", sessionId, " operCode:", msg.OperationCode, "chanSize:", len(sessionChan))
+
+	case WS_SESSION_RESUME_ACCEPT:
+		resp.OperationCode = msg.OperationCode + 1
+		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
+
+		sessionChan <- msg
 
 	case WS_SESSION_ASK_FINISH:
 		//学生主动发起下课请求
