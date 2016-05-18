@@ -37,9 +37,9 @@ func GetPermanentQaPkgRecords(userId int64) ([]*models.QaPkgPurchaseRecord, erro
 	var records []*models.QaPkgPurchaseRecord
 	_, err := o.QueryTable(new(models.QaPkgPurchaseRecord).TableName()).
 		Filter("user_id", userId).
-		Filter("type", models.QA_PKG_TYPE_PERMANENT).
+		Filter("type__in", models.QA_PKG_TYPE_PERMANENT, models.QA_PKG_TYPE_GIVEN).
 		Filter("left_time__gt", 0).
-		OrderBy("create_time").
+		OrderBy("time_to").OrderBy("create_time").
 		All(&records)
 	return records, err
 }
@@ -72,15 +72,18 @@ func GetLeftQaTimeLength(userId int64) int64 {
 	now := time.Now()
 	var leftQaTimeLength int64
 	monthlyQaPkgRecords, _ := GetMonthlyQaPkgRecords(userId)
-	for _, monthlyQaPkgRecord := range monthlyQaPkgRecords {
-		if now.After(monthlyQaPkgRecord.TimeFrom) && monthlyQaPkgRecord.TimeTo.After(now) {
-			leftQaTimeLength = leftQaTimeLength + monthlyQaPkgRecord.LeftTime
+	for _, record := range monthlyQaPkgRecords {
+		if now.After(record.TimeFrom) && record.TimeTo.After(now) {
+			leftQaTimeLength = leftQaTimeLength + record.LeftTime
 			break
 		}
 	}
 	permanentQaPkgRecords, _ := GetPermanentQaPkgRecords(userId)
-	for _, permanentQaPkgRecord := range permanentQaPkgRecords {
-		leftQaTimeLength = leftQaTimeLength + permanentQaPkgRecord.LeftTime
+	for _, record := range permanentQaPkgRecords {
+		if !(now.After(record.TimeFrom) && record.TimeTo.After(now)) {
+			continue
+		}
+		leftQaTimeLength = leftQaTimeLength + record.LeftTime
 	}
 	return leftQaTimeLength
 }

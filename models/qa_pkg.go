@@ -10,6 +10,7 @@ import (
 const (
 	QA_PKG_TYPE_PERMANENT = "permanent"
 	QA_PKG_TYPE_MONTHLY   = "monthly"
+	QA_PKG_TYPE_GIVEN     = "given"
 )
 
 type QaPkg struct {

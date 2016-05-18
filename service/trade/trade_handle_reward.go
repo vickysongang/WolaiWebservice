@@ -21,6 +21,7 @@ const (
 	COMMENT_AUDITION_COURSE_PURCHASE = "试听课购买"
 	COMMENT_COURSE_EARNING           = "课程结算"
 	COMMENT_QA_PKG_PURCHASE          = "答疑包购买"
+	COMMENT_QA_PKG_GIVEN             = "答疑包赠送"
 )
 
 func HandleTradeRewardRegistration(userId int64) error {
