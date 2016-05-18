@@ -139,7 +139,7 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 			if !(now.After(record.TimeFrom) && record.TimeTo.After(now)) {
 				continue
 			}
-			userPermanentQaPkg.Title = fmt.Sprintf("%s赠送包", qaPkg.Title)
+			userPermanentQaPkg.Title = fmt.Sprintf("赠送答疑时间%d分钟", qaPkg.TimeLength)
 		} else {
 			userPermanentQaPkg.Title = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
 		}

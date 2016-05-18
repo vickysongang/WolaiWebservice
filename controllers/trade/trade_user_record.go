@@ -265,7 +265,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 						info.Comment = fmt.Sprintf("%s-%d分钟", qaPkgModule.Name, qaPkg.TimeLength)
 					} else if qaPkg.Type == models.QA_PKG_TYPE_GIVEN {
 						info.Title = trade.COMMENT_QA_PKG_GIVEN
-						info.Comment = fmt.Sprintf("%s-%d分钟", qaPkgModule.Name, qaPkg.TimeLength)
+						info.Comment = fmt.Sprintf("%s-%d分钟", "赠送答疑时间", qaPkg.TimeLength)
 					}
 				}
 			}
