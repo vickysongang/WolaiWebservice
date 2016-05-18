@@ -36,7 +36,7 @@ var tradeRoutes = route.Routes{
 		"/user/record",
 		handlerv2.TradeUserRecord,
 		true,
-		true,
+		false,
 	},
 
 	// 7.2.1
