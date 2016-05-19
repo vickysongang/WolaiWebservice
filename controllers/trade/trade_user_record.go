@@ -263,11 +263,16 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 						info.Comment = fmt.Sprintf("%s-%d个月", qaPkgModule.Name, qaPkg.Month)
 					} else if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
 						info.Comment = fmt.Sprintf("%s-%d分钟", qaPkgModule.Name, qaPkg.TimeLength)
-					} else if qaPkg.Type == models.QA_PKG_TYPE_GIVEN {
-						info.Title = trade.COMMENT_QA_PKG_GIVEN
-						info.Comment = fmt.Sprintf("%s-%d分钟", "赠送答疑时间", qaPkg.TimeLength)
 					}
 				}
+			}
+		case models.TRADE_QA_PKG_GIVEN:
+			info.Avartar = AVATAR_QAPKG_PURCHASE
+			info.Title = trade.COMMENT_QA_PKG_GIVEN
+			qaPkgId := record.RecordId
+			qaPkg, err := models.ReadQaPkg(qaPkgId)
+			if err == nil {
+				info.Comment = fmt.Sprintf("%s-%d分钟", "赠送答疑时间", qaPkg.TimeLength)
 			}
 		default:
 			continue

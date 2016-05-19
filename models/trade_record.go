@@ -41,6 +41,7 @@ const (
 	TRADE_COURSE_EARNING           = "course_earning"           //课程结算
 	TRADE_AUDITION_COURSE_EARNING  = "audition_course_earning"  //试听课程结算
 	TRADE_QA_PKG_PURCHASE          = "qa_pkg_purchase"          //答疑包购买
+	TRADE_QA_PKG_GIVEN             = "qa_pkg_given"             //答疑包赠送
 	TRADE_COURSE_RENEW             = "course_renew"             //课程续课
 
 	TRADE_RESULT_SUCCESS = "S"
