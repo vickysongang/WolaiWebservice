@@ -112,7 +112,11 @@ func SendSyncMsg(userId, sessionId, length int64) error {
 	syncMsg := NewWSMessage("", userId, WS_SESSION_SYNC)
 	syncMsg.Attribute["sessionId"] = sessionIdStr
 	syncMsg.Attribute["timer"] = strconv.FormatInt(length, 10)
-	syncMsg.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
+	status, err := SessionManager.GetSessionStatus(sessionId)
+	if err != nil {
+		seelog.Debugf("GetSesssionStatus failed sessionId: %d ,error: %s", sessionId, err.Error())
+	}
+	syncMsg.Attribute["sessionStatus"] = status
 	if UserManager.HasUserChan(userId) {
 		userChan := UserManager.GetUserChan(userId)
 		userChan <- syncMsg
