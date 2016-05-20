@@ -272,7 +272,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			qaPkgId := record.RecordId
 			qaPkg, err := models.ReadQaPkg(qaPkgId)
 			if err == nil {
-				info.Comment = fmt.Sprintf("%s-%d分钟", "赠送答疑时间", qaPkg.TimeLength)
+				info.Comment = fmt.Sprintf("%s %d分钟", "赠送答疑时间", qaPkg.TimeLength)
 			}
 		default:
 			continue
