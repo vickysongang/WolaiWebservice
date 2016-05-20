@@ -49,7 +49,7 @@ func sessionHandler(sessionId int64) {
 	}
 
 	syncTicker := time.NewTicker(time.Second * 60) //时间同步计时器，每60s向客户端同步服务器端的时间来校准客户端的计时
-	syncTicker.Stop()                              //初始停止时间同步计时器，待正式上课的时候启动该计时器
+	//syncTicker.Stop()                              //初始停止时间同步计时器，待正式上课的时候启动该计时器
 
 	waitingTimer := time.NewTimer(time.Second * time.Duration(sessionExpireLimit)) //超时计时器，课程中段在规定时间内如果没有重新恢复则规定时间过后课程自动超时结束
 	waitingTimer.Stop()                                                            //初始停止超时计时器
@@ -90,7 +90,7 @@ func sessionHandler(sessionId int64) {
 			SessionManager.SetSessionBroken(sessionId, true)
 			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 		} else {
-			syncTicker = time.NewTicker(time.Second * 60)
+			//syncTicker = time.NewTicker(time.Second * 60)
 			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
 		}
 	} else {
@@ -154,7 +154,11 @@ func sessionHandler(sessionId int64) {
 
 		case cur := <-syncTicker.C:
 			//如果课程不在进行中或者被暂停，则停止同步时间
-			if !SessionManager.IsSessionActived(sessionId) || SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBroken(sessionId) {
+			if !SessionManager.IsSessionActived(sessionId) || SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBroken(sessionId) || SessionManager.IsSessionCalling(sessionId) {
+				// Now send session status to clients no matter whether it is serving or not
+				length, _ := SessionManager.GetSessionLength(sessionId)
+				SendSyncMsg(session.Tutor, sessionId, length)
+				SendSyncMsg(session.Creator, sessionId, length)
 				break
 			}
 			//计算课程时长，已计时长＋（本次同步时间－上次同步时间）
@@ -270,7 +274,8 @@ func sessionHandler(sessionId int64) {
 					waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
 					//停止时间同步计时器
-					syncTicker.Stop()
+					//Now we keep the sync ticker running, as every 1 minute, we do a sync with the clients
+					//syncTicker.Stop()
 
 					if msg.UserId == session.Creator {
 						SendBreakMsgToTeacher(session.Creator, session.Tutor, sessionId)
@@ -374,7 +379,7 @@ func sessionHandler(sessionId int64) {
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
 					//waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
-					syncTicker.Stop() //停止时间同步计时器
+					//syncTicker.Stop() //停止时间同步计时器
 
 					err := SendPauseMsgToStudent(session.Creator, session.Tutor, sessionId, length) //向学生发送课程暂停的消息
 					if err != nil {
@@ -478,6 +483,8 @@ func sessionHandler(sessionId int64) {
 						SendResumeAcceptRespMsgToStudent(msg.MessageId, msg.UserId, sessionId, SESSION_STATUS_SERVING)
 						SendResumeAcceptMsgToTeacher(session.Tutor, sessionId, acceptStr, SESSION_STATUS_SERVING) //向老师发送响应恢复上课请求的消息
 
+						// Stop the background ticker now, and re-start it according to autoFinish conditions
+						syncTicker.Stop()
 						//启动时间同步计时器
 						if !isCourse {
 							length, _ := SessionManager.GetSessionLength(sessionId)
@@ -485,6 +492,7 @@ func sessionHandler(sessionId int64) {
 							if leftTime >= 0 && leftTime < 60 {
 								syncTicker = time.NewTicker(time.Second * time.Duration(leftTime))
 							} else {
+
 								syncTicker = time.NewTicker(time.Second * 60)
 							}
 						} else {
@@ -504,6 +512,8 @@ func sessionHandler(sessionId int64) {
 					lastSync := timestamp
 					SessionManager.SetLastSync(sessionId, lastSync)
 
+					// Stop the background ticker now, and re-start it according to autoFinish conditions
+					syncTicker.Stop()
 					if !isCourse {
 						length, _ := SessionManager.GetSessionLength(sessionId)
 						leftTime := length - totalTimeLength*60
@@ -648,7 +658,7 @@ func CheckSessionBreak(userId int64) {
 		sessionChan, _ := SessionManager.GetSessionChan(sessionId)
 		breakMsg := NewWSMessage("", userId, WS_SESSION_BREAK)
 		sessionChan <- breakMsg
-		seelog.Debug("send break message when user", userId, " offline!")
+		seelog.Debug("send break message when user ", userId, " offline! sessionId: ", sessionId)
 	}
 }
 

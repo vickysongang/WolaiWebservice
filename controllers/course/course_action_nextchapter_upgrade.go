@@ -105,20 +105,15 @@ func HandleAuditionCourseNextChapterUpgrade(teacherId, chapterId, recordId int64
 	}
 	courseId := auditionRecord.CourseId
 	studentId := auditionRecord.UserId
+
+	if auditionRecord.Status != models.AUDITION_RECORD_STATUS_PAID {
+		return 2, errors.New("学生尚未完成课程支付")
+	}
+
 	latestPeriod, err := courseService.GetLatestCompleteChapterPeriod(courseId, studentId, auditionRecord.Id)
-	if err == nil {
-		if chapter.Period != latestPeriod+1 {
-			return 2, errors.New("课程信息异常")
-		}
 
-		if auditionRecord.Status != models.AUDITION_RECORD_STATUS_PAID {
-			return 2, errors.New("学生尚未完成课程支付")
-		}
-
-	} else {
-		if latestPeriod != 0 {
-			return 2, errors.New("课程信息异常")
-		}
+	if chapter.Period != latestPeriod+1 {
+		return 2, errors.New("课程课时信息异常")
 	}
 
 	record := models.CourseChapterToUser{

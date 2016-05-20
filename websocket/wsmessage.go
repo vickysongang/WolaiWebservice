@@ -103,7 +103,7 @@ const (
 	WS_SESSION_REPORT = 251
 )
 
-func NewWSMessage(msgId string, userId int64, oprCode int64) WSMessage {
+func NewWSMessage(msgId string, userId int64, operCode int64) WSMessage {
 	timestampNano := time.Now().UnixNano()
 	timestampMillis := timestampNano / 1000
 	timestamp := float64(timestampMillis) / 1000000.0
@@ -114,7 +114,7 @@ func NewWSMessage(msgId string, userId int64, oprCode int64) WSMessage {
 	return WSMessage{
 		MessageId:     msgId,
 		UserId:        userId,
-		OperationCode: oprCode,
+		OperationCode: operCode,
 		Timestamp:     timestamp,
 		Attribute:     make(map[string]string),
 	}
