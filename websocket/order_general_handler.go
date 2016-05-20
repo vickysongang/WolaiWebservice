@@ -511,11 +511,19 @@ func assignNextTeacher(orderId int64) int64 {
 	}
 
 	if pickedTutorId != -1 {
-		if err := OrderManager.SetAssignTarget(orderId, pickedTutorId); err == nil {
+		var err error
+		if err = TeacherManager.SetAcceptOrderLock(pickedTutorId); err != nil {
+			seelog.Debug("orderHandler|orderAssign Fail teacher has been locked by AcceptOrder: ", orderId, " to teacher: ", pickedTutorId)
+			return -1
+		}
+
+		if err = OrderManager.SetAssignTarget(orderId, pickedTutorId); err == nil {
 			// 更新老师发单记录
 			TeacherManager.SetAssignLock(pickedTutorId, orderId)
 			seelog.Debug("orderHandler|orderAssignSUCCESS: ", orderId, " to teacher: ", pickedTutorId)
 			return pickedTutorId
+		} else {
+			TeacherManager.SetAcceptOrderUnlock(pickedTutorId)
 		}
 	}
 
