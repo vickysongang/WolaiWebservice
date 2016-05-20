@@ -143,7 +143,6 @@ func (watcher *RpcWatcher) HandleCourseEarning(request *RpcRequest, resp *RpcRes
 		return err
 	}
 	if course.Type == models.COURSE_TYPE_DELUXE {
-		go lcmessage.SendCourseChapterCompleteMsg(recordId, chapterId)
 
 		err = trade.HandleCourseEarning(recordId, period, chapterId)
 		if err != nil {
@@ -151,7 +150,6 @@ func (watcher *RpcWatcher) HandleCourseEarning(request *RpcRequest, resp *RpcRes
 			return err
 		}
 	} else if course.Type == models.COURSE_TYPE_AUDITION {
-		go lcmessage.SendAuditionCourseChapterCompleteMsg(recordId, chapterId)
 
 		err = trade.HandleAuditionCourseEarning(recordId, period, chapterId)
 		if err != nil {
