@@ -96,6 +96,13 @@ func SendTradeNotification(recordId int64) {
 				month, day, session.TimeFrom.Hour(), session.TimeFrom.Minute(), lengthMin))
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+		if math.Abs(float64(record.QapkgTimeLength)) > 0 {
+			msg.body = append(msg.body,
+				fmt.Sprintf("账户消费：%s %.2f 元(答疑时间：%d分钟)", signStr, amount, record.QapkgTimeLength))
+		} else {
+			msg.body = append(msg.body,
+				fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+		}
 
 	case models.TRADE_RECEIVEMENT:
 		session, err := models.ReadSession(record.SessionId)
