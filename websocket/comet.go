@@ -360,6 +360,10 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 		resp.Attribute["sessionStatus"] = sessionStatus
 
+		SessionManager.SetSessionCalling(sessionId, false)
+		SessionManager.SetSessionAccepted(sessionId, false)
+		SessionManager.SetSessionStatus(sessionId, sessionStatus)
+
 		//向学生发送老师取消恢复上课的消息
 		resCancelMsg := NewWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
 		resCancelMsg.Attribute["sessionId"] = sessionIdStr
@@ -371,17 +375,6 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		studentChan := UserManager.GetUserChan(session.Creator)
 		studentChan <- resCancelMsg
 
-		//拨号停止
-		SessionManager.SetSessionCalling(sessionId, false)
-
-		//设置上课请求未被接受
-		SessionManager.SetSessionAccepted(sessionId, false)
-
-		if SessionManager.IsSessionBroken(sessionId) {
-			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
-		} else if SessionManager.IsSessionPaused(sessionId) {
-			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
-		}
 	case WS_SESSION_PAUSE:
 		resp.OperationCode = msg.OperationCode + 1
 		resp.Attribute["errCode"] = "0"
