@@ -94,8 +94,6 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("上课时间：%2d月%2d日 %02d:%02d %d分钟",
 				month, day, session.TimeFrom.Hour(), session.TimeFrom.Minute(), lengthMin))
-		msg.body = append(msg.body,
-			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
 		if math.Abs(float64(record.QapkgTimeLength)) > 0 {
 			msg.body = append(msg.body,
 				fmt.Sprintf("账户消费：%s %.2f 元(答疑时间：%d分钟)", signStr, amount, record.QapkgTimeLength))
