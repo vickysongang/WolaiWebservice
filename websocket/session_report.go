@@ -27,6 +27,7 @@ func SendSessionReport(sessionId int64) {
 
 	studentMsg := NewWSMessage("", session.Creator, WS_SESSION_REPORT)
 	studentMsg.Attribute["sessionInfo"] = string(studentByte)
+	studentMsg.Attribute["sessionStatus"] = session.Status
 
 	if UserManager.HasUserChan(session.Creator) {
 		studentChan := UserManager.GetUserChan(session.Creator)
@@ -35,6 +36,7 @@ func SendSessionReport(sessionId int64) {
 
 	teacherMsg := NewWSMessage("", session.Tutor, WS_SESSION_REPORT)
 	teacherMsg.Attribute["sessionInfo"] = string(teacherByte)
+	teacherMsg.Attribute["sessionStatus"] = session.Status
 
 	if UserManager.HasUserChan(session.Tutor) {
 		teacherChan := UserManager.GetUserChan(session.Tutor)
