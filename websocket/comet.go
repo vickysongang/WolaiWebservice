@@ -194,7 +194,9 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 
 	if !SessionManager.IsSessionOnline(sessionId) {
 		resp.Attribute["errCode"] = "2"
-		resp.Attribute["errMsg"] = "session is not online"
+		resp.Attribute["errMsg"] = "已结束上课"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_COMPLETE
+
 		return resp, nil
 	}
 
@@ -203,7 +205,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 
 	if !SessionManager.IsSessionActived(sessionId) {
 		resp.Attribute["errCode"] = "2"
-		resp.Attribute["errMsg"] = "session is not active"
+		resp.Attribute["errMsg"] = "未激活上课"
 		return resp, nil
 	}
 	sessionChan, _ := SessionManager.GetSessionChan(sessionId)
@@ -780,7 +782,8 @@ func assignSessionInfo(userId, sessionId int64) *sessionStatusInfo {
 		timestamp = SessionManager.sessionMap[sessionId].timestamp
 		info.Timer, _ = SessionManager.GetSessionLength(sessionId)
 	} else {
-		sessionStatus = session.Status
+		//If a session is not in the memory anymore, session is in abnormal status, we end clients' session by sending 'complete' status
+		sessionStatus = SESSION_STATUS_COMPLETE
 
 		timestampNano := time.Now().UnixNano()
 		timestampMillis := timestampNano / 1000
