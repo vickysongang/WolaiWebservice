@@ -82,10 +82,13 @@ func SendTradeNotification(recordId int64) {
 		}
 
 		_, month, day := session.TimeFrom.Date()
-		lengthMin := session.Length / 60
-		if lengthMin < 1 && session.Length > 0 {
-			lengthMin = 1
+
+		length := session.Length
+		if length > 0 && length < 60 {
+			length = 60
 		}
+		lengthMin := int64(math.Ceil(float64(length) / 60))
+
 		signStr = "-"
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已经完成%s导师的课程。",
 			user.Nickname, suffix, tutor.Nickname)
