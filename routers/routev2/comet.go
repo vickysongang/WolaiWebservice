@@ -34,7 +34,7 @@ var cometRoutes = route.Routes{
 		"POST",
 		"/session/status",
 		handlerv2.GetSessionStatus,
-		false,
+		true,
 		true,
 	},
 }
