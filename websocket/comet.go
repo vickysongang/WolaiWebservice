@@ -757,7 +757,11 @@ type sessionStatusInfo struct {
 func GetSessionStatusInfo(userId int64, sessionId int64) (*sessionStatusInfo, error) {
 	if sessionId != 0 {
 		info := assignSessionInfo(userId, sessionId)
-		return info, nil
+		if info == nil {
+			return nil, errors.New("session Id invalid")
+		} else {
+			return info, nil
+		}
 	} else {
 		if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
 			for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
@@ -800,6 +804,8 @@ func assignSessionInfo(userId, sessionId int64) *sessionStatusInfo {
 		_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
 		teacherByte, _ := json.Marshal(teacherInfo)
 		info.SessionInfo = string(teacherByte)
+	} else {
+		return nil
 	}
 	order, _ := models.ReadOrder(session.OrderId)
 	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
