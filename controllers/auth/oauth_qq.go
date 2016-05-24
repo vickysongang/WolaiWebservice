@@ -8,6 +8,7 @@ import (
 	userService "WolaiWebservice/service/user"
 	"WolaiWebservice/utils/encrypt"
 	"WolaiWebservice/utils/leancloud/lcmessage"
+	"WolaiWebservice/websocket"
 )
 
 func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
@@ -50,7 +51,7 @@ func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
 	if err != nil {
 		return 2, err, nil
 	}
-
+	websocket.KickOutLoggedUser(user.Id)
 	return 0, nil, info
 }
 
@@ -110,6 +111,6 @@ func OauthRegister(phone, code, openId, nickname, avatar string, gender int64) (
 	if err != nil {
 		return 2, err, nil
 	}
-
+	websocket.KickOutLoggedUser(user.Id)
 	return 0, nil, info
 }
