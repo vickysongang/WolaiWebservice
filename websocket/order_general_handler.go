@@ -697,6 +697,10 @@ func handleSessionCreation(orderId int64, teacherId int64) {
 
 	TeacherManager.SetAcceptOrderUnlock(session.Tutor)
 
+	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT {
+		OrderManager.UnlockUserCreateOrder(order.Creator)
+	}
+
 	time.Sleep(time.Second * time.Duration(orderSessionCountdown))
 	_ = InitSessionMonitor(session.Id)
 
