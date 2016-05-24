@@ -510,6 +510,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			orderChan <- quitMsg
 			OrderManager.SetOffline(orderId)
 		} else {
+			//instant order
 			// 发送反馈消息
 			resp.OperationCode = WS_ORDER2_CANCEL_RESP
 
@@ -539,6 +540,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 			// 结束订单派发，记录状态
 			OrderManager.SetOrderCancelled(orderId)
+			OrderManager.UnlockUserCreateOrder(order.Creator)
 		}
 		seelog.Debug("orderHandler|orderCancelled: ", orderId)
 
