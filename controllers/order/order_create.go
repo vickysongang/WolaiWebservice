@@ -60,11 +60,15 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignor
 			return 2, errors.New("你有一堂课正在进行中，暂时不能发单哦"), nil
 		}
 		orderType = models.ORDER_TYPE_GENERAL_INSTANT
+		if ok := websocket.OrderManager.LockUserCreateOrder(userId); !ok {
+			return 2, errors.New("不能重复发单哦"), nil
+		}
 	}
 
 	order, err := orderService.CreateOrder(userId, gradeId, subjectId, teacherId, teacherTier,
 		0, 0, orderType)
 	if err != nil {
+		websocket.OrderManager.UnlockUserCreateOrder(userId)
 		return 2, err, nil
 	}
 	orderInfo.Order = order

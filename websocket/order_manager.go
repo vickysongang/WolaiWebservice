@@ -1,11 +1,12 @@
 package websocket
 
 import (
+	"WolaiWebservice/models"
 	"errors"
 	"sync"
 	"time"
 
-	"WolaiWebservice/models"
+	"github.com/cihub/seelog"
 )
 
 type OrderStatus struct {
@@ -27,6 +28,8 @@ type OrderStatusManager struct {
 
 	personalOrderMap map[int64]map[int64]int64 // studentId to teacherId to orderId
 
+	creatingInstOdrUserSet     map[int64]bool // contain all userIds who are creating orders (including orders that are dispatching)
+	creatingInstOdrUserSetLock sync.Mutex
 }
 
 var ErrOrderNotFound = errors.New("Order is not serving")
@@ -65,9 +68,33 @@ func NewOrderStatusManager() *OrderStatusManager {
 		orderMap: make(map[int64]*OrderStatus),
 
 		personalOrderMap: make(map[int64]map[int64]int64),
+
+		creatingInstOdrUserSet: make(map[int64]bool),
 	}
 
 	return &manager
+}
+
+func (osm *OrderStatusManager) LockUserCreateOrder(userId int64) bool {
+	osm.creatingInstOdrUserSetLock.Lock()
+	defer osm.creatingInstOdrUserSetLock.Unlock()
+	if _, ok := osm.creatingInstOdrUserSet[userId]; ok {
+		//fail because this user already is in the set
+		return false
+	} else {
+		osm.creatingInstOdrUserSet[userId] = true
+		seelog.Debug("orderManager|LockUserCreateOrder userId: \t", userId)
+		return true
+	}
+}
+
+func (osm *OrderStatusManager) UnlockUserCreateOrder(userId int64) {
+	osm.creatingInstOdrUserSetLock.Lock()
+	defer osm.creatingInstOdrUserSetLock.Unlock()
+	if _, ok := osm.creatingInstOdrUserSet[userId]; ok {
+		seelog.Debug("orderManager|UnlockUserCreateOrder userId: \t", userId)
+		delete(osm.creatingInstOdrUserSet, userId)
+	}
 }
 
 func (osm *OrderStatusManager) IsOrderOnline(orderId int64) bool {
