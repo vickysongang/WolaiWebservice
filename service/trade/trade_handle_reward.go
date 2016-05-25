@@ -20,6 +20,7 @@ const (
 	COMMENT_COURSE_AUDITION          = "课程试听"
 	COMMENT_AUDITION_COURSE_PURCHASE = "试听课购买"
 	COMMENT_COURSE_EARNING           = "课程结算"
+	COMMENT_COURSE_RENEW             = "课程续课"
 	COMMENT_QA_PKG_PURCHASE          = "答疑包购买"
 	COMMENT_QA_PKG_GIVEN             = "答疑包赠送"
 )

@@ -238,6 +238,21 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
 
+	case models.TRADE_COURSE_RENEW:
+		renewRecord, err := models.ReadCourseRenewRecord(record.RecordId)
+		if err != nil {
+			return
+		}
+		course, err := models.ReadCourse(renewRecord.CourseId)
+		if err != nil {
+			return
+		}
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已成功续约课程。", user.Nickname, suffix)
+		msg.body = append(msg.body,
+			fmt.Sprintf("课程名称：%s", course.Name))
+		msg.body = append(msg.body,
+			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+
 	case models.TRADE_COURSE_AUDITION:
 		purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)
 		if err != nil {
