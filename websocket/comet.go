@@ -520,6 +520,11 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			go func() {
 				cancelMsg := NewWSMessage("", order.Creator, WS_ORDER2_CANCEL)
 				cancelMsg.Attribute["orderId"] = orderIdStr
+				if !OrderManager.IsOrderOnline(orderId) {
+					//In case the order status is cleared, don't use its dispatchMap anymore
+					seelog.Debug("orderHandler|orderCancel: order not online ", orderId)
+					return
+				}
 				for teacherId, _ := range OrderManager.orderMap[orderId].dispatchMap {
 					if UserManager.HasUserChan(teacherId) {
 						cancelMsg.UserId = teacherId
@@ -597,6 +602,12 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		go func() {
 			resultMsg := NewWSMessage("", msg.UserId, WS_ORDER2_RESULT)
 			resultMsg.Attribute["orderId"] = orderIdStr
+			if !OrderManager.IsOrderOnline(orderId) {
+				//In case the order status is cleared, don't use its dispatchMap anymore
+				seelog.Debug("orderHandler|orderAccept: order not online ", orderId)
+				return
+			}
+
 			for dispatchId, _ := range OrderManager.orderMap[orderId].dispatchMap {
 				var status int64
 				if dispatchId == teacher.Id {
