@@ -30,7 +30,7 @@ func HandleUserQaPkgTime(userId int64, timeLength int64) error {
 	}
 	permanentQaPkgRecords, _ := GetPermanentQaPkgRecords(userId)
 	for _, record := range permanentQaPkgRecords {
-		if !(now.After(record.TimeFrom) && record.TimeTo.After(now)) {
+		if record.Type == models.QA_PKG_TYPE_GIVEN && !(now.After(record.TimeFrom) && record.TimeTo.After(now)) {
 			continue
 		}
 		if balanceTime < record.LeftTime {

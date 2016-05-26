@@ -80,7 +80,7 @@ func GetLeftQaTimeLength(userId int64) int64 {
 	}
 	permanentQaPkgRecords, _ := GetPermanentQaPkgRecords(userId)
 	for _, record := range permanentQaPkgRecords {
-		if !(now.After(record.TimeFrom) && record.TimeTo.After(now)) {
+		if record.Type == models.QA_PKG_TYPE_GIVEN && !(now.After(record.TimeFrom) && record.TimeTo.After(now)) {
 			continue
 		}
 		leftQaTimeLength = leftQaTimeLength + record.LeftTime

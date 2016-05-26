@@ -63,6 +63,9 @@ func GetQaPkgList() ([]QaPkgModuleInfo, error) {
 		return nil, errors.New("答疑包资料异常")
 	}
 	for _, module := range modules {
+		if module.Active != "Y" {
+			continue
+		}
 		qaPkgs, err := qapkgService.GetModuleQaPkgs(module.Id)
 		if err != nil {
 			continue
