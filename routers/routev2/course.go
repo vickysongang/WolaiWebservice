@@ -27,7 +27,7 @@ var courseRoutes = route.Routes{
 		"/banner",
 		handlerv2.CourseBanner,
 		true,
-		false,
+		true,
 	},
 
 	// 9.1.2
