@@ -22,7 +22,7 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 		One(&currentRecord)
 
 	if err == orm.ErrNoRows {
-		chaperCount := courseService.GetCourseChapterCount(currentRecord.CourseId)
+		chaperCount := courseService.GetCourseChapterCount(courseId)
 		// 如果用户没有购买过，创建购买记录
 		newRecord := models.CoursePurchaseRecord{
 			CourseId:       courseId,
