@@ -60,6 +60,7 @@ func GeneralOrderHandler(orderId int64) {
 
 			OrderManager.SetOrderCancelled(orderId)
 			OrderManager.SetOffline(orderId)
+			OrderManager.UnlockUserCreateOrder(order.Creator)
 			seelog.Debug("orderHandler|orderExpired: ", orderId)
 			return
 
