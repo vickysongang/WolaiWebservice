@@ -23,7 +23,7 @@ func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
 	if err != nil {
 		return 2, err, nil
 	} else {
-		if user.Password == nil {
+		if *user.Password == "" {
 			phone := *user.Phone
 			salt := encrypt.GenerateSalt()
 			phoneSuffix := (phone)[len(phone)-6 : len(phone)]
