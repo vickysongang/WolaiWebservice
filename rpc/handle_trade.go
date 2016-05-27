@@ -4,8 +4,11 @@ import (
 	"strconv"
 
 	"WolaiWebservice/handlers/response"
+	"WolaiWebservice/models"
 	"WolaiWebservice/service/trade"
+	tradeService "WolaiWebservice/service/trade"
 	"WolaiWebservice/utils/leancloud/lcmessage"
+	"WolaiWebservice/utils/wechat/wcmessage"
 )
 
 func (watcher *RpcWatcher) HandleTradeVoucher(request *RpcRequest, resp *RpcResponse) error {
@@ -132,14 +135,45 @@ func (watcher *RpcWatcher) HandleCourseEarning(request *RpcRequest, resp *RpcRes
 		*resp = NewRpcResponse(2, "无效的课时号", response.NullObject)
 		return err
 	}
-	go lcmessage.SendCourseChapterCompleteMsg(recordId, chapterId)
 
-	err = trade.HandleCourseEarning(recordId, period, chapterId)
+	chapter, _ := models.ReadCourseCustomChapter(chapterId)
+	course, err := models.ReadCourse(chapter.CourseId)
 	if err != nil {
-		*resp = NewRpcResponse(2, "交易失败", response.NullObject)
+		*resp = NewRpcResponse(2, "无效的课程信息", response.NullObject)
 		return err
 	}
+	if course.Type == models.COURSE_TYPE_DELUXE {
 
+		err = trade.HandleCourseEarning(recordId, period, chapterId)
+		if err != nil {
+			*resp = NewRpcResponse(2, "交易失败", response.NullObject)
+			return err
+		}
+	} else if course.Type == models.COURSE_TYPE_AUDITION {
+
+		err = trade.HandleAuditionCourseEarning(recordId, period, chapterId)
+		if err != nil {
+			*resp = NewRpcResponse(2, "交易失败", response.NullObject)
+			return err
+		}
+	}
+
+	go wcmessage.SendChapterCompleteNotification(recordId, chapterId, course.Name, course.Type)
+
+	*resp = NewRpcResponse(0, "", response.NullObject)
+	return nil
+}
+
+func (watcher *RpcWatcher) HandleTradeRewardRegistration(request *RpcRequest, resp *RpcResponse) error {
+	var err error
+
+	userId, err := strconv.ParseInt(request.Args["userId"], 10, 64)
+	if err != nil {
+		*resp = NewRpcResponse(2, "无效的用户Id", response.NullObject)
+		return err
+	}
+	tradeService.HandleTradeRewardRegistration(userId)
+	go lcmessage.SendWelcomeMessageStudent(userId)
 	*resp = NewRpcResponse(0, "", response.NullObject)
 	return nil
 }

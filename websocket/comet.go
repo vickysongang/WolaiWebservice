@@ -5,12 +5,16 @@ import (
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
+	courseService "WolaiWebservice/service/course"
 	orderService "WolaiWebservice/service/order"
 	"WolaiWebservice/service/push"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 	"encoding/json"
+	"errors"
 	"strconv"
 	"time"
+
+	sessionController "WolaiWebservice/controllers/session"
 
 	"github.com/cihub/seelog"
 )
@@ -35,6 +39,7 @@ func HandleCometMessage(param string) (*WSMessage, error) {
 		resp.OperationCode = WS_LOGOUT_RESP
 		WSUserLogout(userId)
 		redis.RemoveUserObjectId(userId)
+
 		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
 			TeacherManager.SetOffline(userId)
 			TeacherManager.SetAssignOff(userId)
@@ -179,6 +184,7 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		resp.Attribute["errCode"] = "2"
 		return resp, nil
 	}
+
 	session, err := models.ReadSession(sessionId)
 	if err != nil {
 		resp.Attribute["errCode"] = "2"
@@ -188,13 +194,18 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 
 	if !SessionManager.IsSessionOnline(sessionId) {
 		resp.Attribute["errCode"] = "2"
-		resp.Attribute["errMsg"] = "session is not online"
+		resp.Attribute["errMsg"] = "已结束上课"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_COMPLETE
+
 		return resp, nil
 	}
 
+	SessionManager.sessionMap[sessionId].lock.Lock()
+	defer SessionManager.sessionMap[sessionId].lock.Unlock()
+
 	if !SessionManager.IsSessionActived(sessionId) {
 		resp.Attribute["errCode"] = "2"
-		resp.Attribute["errMsg"] = "session is not active"
+		resp.Attribute["errMsg"] = "未激活上课"
 		return resp, nil
 	}
 	sessionChan, _ := SessionManager.GetSessionChan(sessionId)
@@ -214,11 +225,13 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
 
 		//向学生发送重新开始上课的消息
 		continueMsg := NewWSMessage("", session.Creator, WS_SESSION_CONTINUE)
 		continueMsg.Attribute["sessionId"] = sessionIdStr
 		continueMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		continueMsg.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
 		if UserManager.HasUserChan(session.Creator) {
 			studentChan := UserManager.GetUserChan(session.Creator)
 			studentChan <- continueMsg
@@ -251,11 +264,13 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_CALLING
 
 		//向学生发送恢复上课的消息
 		resumeMsg := NewWSMessage("", session.Creator, WS_SESSION_RESUME)
 		resumeMsg.Attribute["sessionId"] = sessionIdStr
 		resumeMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		resumeMsg.Attribute["sessionStatus"] = SESSION_STATUS_CALLING
 		if UserManager.HasUserChan(session.Creator) {
 			studentChan := UserManager.GetUserChan(session.Creator)
 			studentChan <- resumeMsg
@@ -278,10 +293,12 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_COMPLETE
 
 		//向学生发送下课消息
 		finishMsg := NewWSMessage("", session.Creator, WS_SESSION_FINISH)
 		finishMsg.Attribute["sessionId"] = sessionIdStr
+		finishMsg.Attribute["sessionStatus"] = SESSION_STATUS_COMPLETE
 		if UserManager.HasUserChan(session.Creator) {
 			creatorChan := UserManager.GetUserChan(session.Creator)
 			creatorChan <- finishMsg
@@ -337,35 +354,42 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 			return resp, nil
 		}
 		resp.Attribute["errCode"] = "0"
+		var sessionStatus string
+		if SessionManager.IsSessionBroken(sessionId) {
+			sessionStatus = SESSION_STATUS_BREAKED
+		} else if SessionManager.IsSessionPaused(sessionId) {
+			sessionStatus = SESSION_STATUS_PAUSED
+		}
+		resp.Attribute["sessionStatus"] = sessionStatus
+
+		SessionManager.SetSessionCalling(sessionId, false)
+		SessionManager.SetSessionAccepted(sessionId, false)
+		SessionManager.SetSessionStatus(sessionId, sessionStatus)
 
 		//向学生发送老师取消恢复上课的消息
 		resCancelMsg := NewWSMessage("", msg.UserId, WS_SESSION_RESUME_CANCEL)
 		resCancelMsg.Attribute["sessionId"] = sessionIdStr
 		resCancelMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		resCancelMsg.Attribute["sessionStatus"] = sessionStatus
 		if !UserManager.HasUserChan(session.Creator) {
 			break
 		}
 		studentChan := UserManager.GetUserChan(session.Creator)
 		studentChan <- resCancelMsg
 
-		//拨号停止
-		SessionManager.SetSessionCalling(sessionId, false)
-
-		//设置上课请求未被接受
-		SessionManager.SetSessionAccepted(sessionId, false)
-
-		if SessionManager.IsSessionBroken(sessionId) {
-			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
-		} else if SessionManager.IsSessionPaused(sessionId) {
-			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
-		}
-	case WS_SESSION_PAUSE,
-		WS_SESSION_RESUME_ACCEPT:
+	case WS_SESSION_PAUSE:
 		resp.OperationCode = msg.OperationCode + 1
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_PAUSED
 
 		sessionChan <- msg
-		seelog.Debug("Handle session message:", sessionId, " operCode:", msg.OperationCode, "chanSize:", len(sessionChan))
+
+	case WS_SESSION_RESUME_ACCEPT:
+		resp.OperationCode = msg.OperationCode + 1
+		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
+
+		sessionChan <- msg
 
 	case WS_SESSION_ASK_FINISH:
 		//学生主动发起下课请求
@@ -379,11 +403,13 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 
 		//向老师发送下课请求
 		askFinishMsg := NewWSMessage("", session.Tutor, WS_SESSION_ASK_FINISH)
 		askFinishMsg.Attribute["sessionId"] = sessionIdStr
 		askFinishMsg.Attribute["studentId"] = strconv.FormatInt(session.Creator, 10)
+		askFinishMsg.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 		if UserManager.HasUserChan(session.Tutor) {
 			tutorChan := UserManager.GetUserChan(session.Tutor)
 			tutorChan <- askFinishMsg
@@ -406,11 +432,13 @@ func sessionMessageHandler(msg WSMessage, user *models.User, timestamp int64) (W
 		}
 
 		resp.Attribute["errCode"] = "0"
+		resp.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 
 		//向学生通知结果
 		askFinishRejectedMsg := NewWSMessage("", session.Creator, WS_SESSION_ASK_FINISH_REJECT)
 		askFinishRejectedMsg.Attribute["sessionId"] = sessionIdStr
 		askFinishRejectedMsg.Attribute["teacherId"] = strconv.FormatInt(session.Tutor, 10)
+		askFinishRejectedMsg.Attribute["sessionStatus"], _ = SessionManager.GetSessionStatus(sessionId)
 		if UserManager.HasUserChan(session.Creator) {
 			stuChan := UserManager.GetUserChan(session.Creator)
 			stuChan <- askFinishRejectedMsg
@@ -460,6 +488,12 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		return resp, nil
 	}
 
+	if ok, err := OrderManager.LockOrder(orderId); !ok {
+		resp.Attribute["errCode"] = "2"
+		resp.Attribute["errMsg"] = err.Error()
+		return resp, nil
+	}
+
 	orderInfo := GetOrderInfo(orderId)
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
 
@@ -467,7 +501,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 	switch msg.OperationCode {
 	case WS_ORDER2_CANCEL:
-		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT || order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT || order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 			resp.OperationCode = WS_ORDER2_CANCEL_RESP
 			resp.Attribute["errCode"] = "0"
 
@@ -476,16 +510,9 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			orderChan <- quitMsg
 			OrderManager.SetOffline(orderId)
 		} else {
+			//instant order
 			// 发送反馈消息
 			resp.OperationCode = WS_ORDER2_CANCEL_RESP
-
-			if OrderManager.IsOrderLocked(orderId) {
-				resp.Attribute["errCode"] = "2"
-				resp.Attribute["errMsg"] = "该订单已被抢"
-				return resp, nil
-			}
-
-			OrderManager.SetOrderLocked(orderId, true)
 
 			resp.Attribute["errCode"] = "0"
 
@@ -493,6 +520,11 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			go func() {
 				cancelMsg := NewWSMessage("", order.Creator, WS_ORDER2_CANCEL)
 				cancelMsg.Attribute["orderId"] = orderIdStr
+				if !OrderManager.IsOrderOnline(orderId) {
+					//In case the order status is cleared, don't use its dispatchMap anymore
+					seelog.Debug("orderHandler|orderCancel: order not online ", orderId)
+					return
+				}
 				for teacherId, _ := range OrderManager.orderMap[orderId].dispatchMap {
 					if UserManager.HasUserChan(teacherId) {
 						cancelMsg.UserId = teacherId
@@ -513,17 +545,12 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 			// 结束订单派发，记录状态
 			OrderManager.SetOrderCancelled(orderId)
+			OrderManager.UnlockUserCreateOrder(order.Creator)
 		}
 		seelog.Debug("orderHandler|orderCancelled: ", orderId)
 
 	case WS_ORDER2_ACCEPT:
 		resp.OperationCode = WS_ORDER2_ACCEPT_RESP
-
-		if OrderManager.IsOrderLocked(orderId) {
-			resp.Attribute["errCode"] = "2"
-			resp.Attribute["errMsg"] = "该订单已被抢"
-			return resp, nil
-		}
 
 		if UserManager.IsUserBusyInSession(order.Creator) {
 			resp.Attribute["errCode"] = "2"
@@ -537,7 +564,20 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			return resp, nil
 		}
 
-		OrderManager.SetOrderLocked(orderId, true)
+		if UserManager.IsUserBusyInSession(msg.UserId) {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
+			OrderManager.SetOrderLocked(orderId, false)
+			return resp, nil
+		}
+
+		if err := TeacherManager.SetAcceptOrderLock(msg.UserId); err != nil {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "老师已接受其它订单"
+			// Unlock order so others could operate on this order
+			OrderManager.SetOrderLocked(orderId, false)
+			return resp, nil
+		}
 
 		//发送反馈消息
 		resp.Attribute["errCode"] = "0"
@@ -562,6 +602,12 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		go func() {
 			resultMsg := NewWSMessage("", msg.UserId, WS_ORDER2_RESULT)
 			resultMsg.Attribute["orderId"] = orderIdStr
+			if !OrderManager.IsOrderOnline(orderId) {
+				//In case the order status is cleared, don't use its dispatchMap anymore
+				seelog.Debug("orderHandler|orderAccept: order not online ", orderId)
+				return
+			}
+
 			for dispatchId, _ := range OrderManager.orderMap[orderId].dispatchMap {
 				var status int64
 				if dispatchId == teacher.Id {
@@ -600,12 +646,6 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 		//发送反馈消息
 		resp.OperationCode = WS_ORDER2_ASSIGN_ACCEPT_RESP
-
-		if OrderManager.IsOrderLocked(orderId) {
-			resp.Attribute["errCode"] = "2"
-			resp.Attribute["errMsg"] = "该订单已被抢"
-			return resp, nil
-		}
 
 		if currentAssign, _ := OrderManager.GetCurrentAssign(orderId); currentAssign != msg.UserId {
 			resp.Attribute["errCode"] = "2"
@@ -689,7 +729,8 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		resp.Attribute["orderType"] = order.Type
 
 		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
-			order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+			order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+			order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 			teacher, _ := models.ReadUser(msg.UserId)
 			teacherByte, _ := json.Marshal(teacher)
 
@@ -716,4 +757,79 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		seelog.Debug("orderHandler|orderReply: ", orderId)
 	}
 	return resp, nil
+}
+
+type sessionStatusInfo struct {
+	SessionStatus string  `json:"sessionStatus"`
+	SessionInfo   string  `json:"sessionInfo"`
+	Timestamp     float64 `json:"timestamp"`
+	Timer         int64   `json:"timer"`
+	CourseId      int64   `json:"courseId"`
+}
+
+func GetSessionStatusInfo(userId int64, sessionId int64) (*sessionStatusInfo, error) {
+	if sessionId != 0 {
+		info := assignSessionInfo(userId, sessionId)
+		if info == nil {
+			return nil, errors.New("session Id invalid")
+		} else {
+			return info, nil
+		}
+	} else {
+		if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
+			for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
+				info := assignSessionInfo(userId, sessionId)
+				return info, nil
+			}
+		}
+	}
+	return nil, errors.New("no session online")
+}
+
+func assignSessionInfo(userId, sessionId int64) *sessionStatusInfo {
+	var info sessionStatusInfo
+	var sessionStatus string
+	var timestamp float64
+	session, err := models.ReadSession(sessionId)
+	if err != nil {
+		return nil
+	}
+	if SessionManager.IsSessionOnline(sessionId) {
+		sessionStatus, _ = SessionManager.GetSessionStatus(sessionId)
+		timestamp = SessionManager.sessionMap[sessionId].timestamp
+		info.Timer, _ = SessionManager.GetSessionLength(sessionId)
+	} else {
+		//If a session is not in the memory anymore, session is in abnormal status, we end clients' session by sending 'complete' status
+		sessionStatus = SESSION_STATUS_COMPLETE
+
+		timestampNano := time.Now().UnixNano()
+		timestampMillis := timestampNano / 1000
+		timestamp = float64(timestampMillis) / 1000000.0
+		info.Timer = session.Length
+	}
+	info.SessionStatus = sessionStatus
+	info.Timestamp = timestamp
+	if session.Creator == userId {
+		_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
+		studentByte, _ := json.Marshal(studentInfo)
+		info.SessionInfo = string(studentByte)
+	} else if session.Tutor == userId {
+		_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
+		teacherByte, _ := json.Marshal(teacherInfo)
+		info.SessionInfo = string(teacherByte)
+	} else {
+		return nil
+	}
+	order, _ := models.ReadOrder(session.OrderId)
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_DELUXE)
+		virturlCourseId := courseRelation.Id
+		info.CourseId = virturlCourseId
+	} else if order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_AUDITION)
+		virturlCourseId := courseRelation.Id
+		info.CourseId = virturlCourseId
+	}
+	SessionManager.SetPollingFlag(sessionId, userId, true)
+	return &info
 }

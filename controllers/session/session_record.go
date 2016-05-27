@@ -19,6 +19,8 @@ type sessionRecord struct {
 	Status       string       `json:"status"`
 	HasEvaluated bool         `json:"hasEvaluated"`
 	IsCourse     bool         `json:"isCourse"`
+	RecordId     int64        `json:"recordId"`
+	ChapterId    int64        `json:"chapterId"`
 }
 
 func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRecord) {
@@ -53,13 +55,15 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 		order, _ := models.ReadOrder(session.OrderId)
 		var title string
 		var isCourse bool
-		if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 			isCourse = true
 		}
+		var chapterId int64
 		if isCourse {
 			chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
 			if err == nil {
 				title = fmt.Sprintf("第%d课时 %s", chapter.Period, chapter.Title)
+				chapterId = chapter.Id
 			}
 		} else {
 			grade, err1 := models.ReadGrade(order.GradeId)
@@ -81,6 +85,8 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 			Status:       session.Status,
 			HasEvaluated: hasEvaluated,
 			IsCourse:     isCourse,
+			RecordId:     order.RecordId,
+			ChapterId:    chapterId,
 		}
 
 		result = append(result, &record)

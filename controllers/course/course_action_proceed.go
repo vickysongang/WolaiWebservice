@@ -4,44 +4,8 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/websocket"
-)
-
-type nullObject struct{}
-
-type paymentInfo struct {
-	Title   string `json:"title"`
-	Price   int64  `json:"price"`
-	Comment string `json:"comment"`
-	Type    string `json:"type"`
-}
-
-type sessionInfo struct {
-	TeacherId int64 `json:"teacherId"`
-}
-
-type actionProceedResponse struct {
-	Action  string      `json:"action"`
-	Message string      `json:"message"`
-	Extra   interface{} `json:"extra,omitempty"`
-}
-
-const (
-	ACTION_PROCEED_NULL    = "null"
-	ACTION_PROCEED_REFRESH = "refresh"
-	ACTION_PROCEED_PAY     = "pay"
-	ACTION_PROCEED_SERVE   = "serve"
-
-	PAYMENT_TITLE_PREFIX_AUDITION = "课程试听-"
-	PAYMENT_TITLE_PREFIX_PURCHASE = "课程购买-"
-
-	PAYMENT_TYPE_AUDITION = "audition"
-	PAYMENT_TYPE_PURCHASE = "purchase"
-
-	PAYMENT_COMMENT_AUDITION = "试听支付"
-	PAYMENT_COMMENT_PURCHASE = "无"
-
-	PAYMENT_PRICE_AUDITION = 100
 )
 
 func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProceedResponse) {
@@ -61,13 +25,15 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 		One(&currentRecord)
 
 	if err == orm.ErrNoRows {
-
+		chaperCount := courseService.GetCourseChapterCount(courseId)
 		// 如果用户没有购买过，创建购买记录
 		newRecord := models.CoursePurchaseRecord{
 			CourseId:       courseId,
 			UserId:         userId,
 			AuditionStatus: models.PURCHASE_RECORD_STATUS_APPLY,
 			PurchaseStatus: models.PURCHASE_RECORD_STATUS_IDLE,
+			TraceStatus:    models.PURCHASE_RECORD_TRACE_STATUS_IDLE,
+			ChapterCount:   chaperCount,
 		}
 
 		_, err = models.CreateCoursePurchaseRecord(&newRecord)
@@ -166,7 +132,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 				Message: "",
 				Extra:   session,
 			}
-			createCourseOrder(record.Id)
+			createDeluxeCourseOrder(record.Id, false)
 		}
 
 	case record.AuditionStatus == models.PURCHASE_RECORD_STATUS_COMPLETE &&
@@ -248,7 +214,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 				Extra:   session,
 			}
 
-			createCourseOrder(record.Id)
+			createDeluxeCourseOrder(record.Id, false)
 		}
 
 	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:

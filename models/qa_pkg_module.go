@@ -8,6 +8,7 @@ type QaPkgModule struct {
 	Name    string `json:"name"`
 	Comment string `json:"comment"`
 	Rank    int64  `json:"rank"`
+	Active  string `json:"active"`
 }
 
 func (pkgModule *QaPkgModule) TableName() string {

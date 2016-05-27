@@ -16,14 +16,18 @@ func CreateOrder(creatorId, gradeId, subjectId, teacherId, tierId, recordId, cha
 		return nil, err
 	}
 
-	_, err = models.ReadGrade(gradeId)
-	if err != nil {
-		return nil, err
+	if gradeId != 0 {
+		_, err = models.ReadGrade(gradeId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	_, err = models.ReadSubject(subjectId)
-	if err != nil {
-		return nil, err
+	if subjectId != 0 {
+		_, err = models.ReadSubject(subjectId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if teacherId != 0 {
@@ -47,19 +51,30 @@ func CreateOrder(creatorId, gradeId, subjectId, teacherId, tierId, recordId, cha
 	}
 
 	var courseId int64
-	if recordId != 0 {
-		record, err := models.ReadCoursePurchaseRecord(recordId)
-		if err != nil {
-			return nil, err
-		}
+	if orderType == models.ORDER_TYPE_COURSE_INSTANT {
+		if recordId != 0 {
+			record, err := models.ReadCoursePurchaseRecord(recordId)
+			if err != nil {
+				return nil, err
+			}
 
-		courseId = record.CourseId
-		priceHourly = record.PriceHourly
-		salaryHourly = record.SalaryHourly
+			courseId = record.CourseId
+			priceHourly = record.PriceHourly
+			salaryHourly = record.SalaryHourly
+		}
+	} else if orderType == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+		if recordId != 0 {
+			record, err := models.ReadCourseAuditionRecord(recordId)
+			if err != nil {
+				return nil, err
+			}
+			courseId = record.CourseId
+			priceHourly = record.PriceHourly
+			salaryHourly = record.SalaryHourly
+		}
 	}
 
 	if chapterId != 0 {
-		//		chapter, err := models.ReadCourseChapter(chapterId)
 		chapter, err := models.ReadCourseCustomChapter(chapterId)
 		if err != nil {
 			return nil, err
@@ -69,7 +84,6 @@ func CreateOrder(creatorId, gradeId, subjectId, teacherId, tierId, recordId, cha
 			return nil, errors.New("课程信息不匹配")
 		}
 	}
-
 	date := time.Now().Format(time.RFC3339)
 
 	order := models.Order{
@@ -85,6 +99,7 @@ func CreateOrder(creatorId, gradeId, subjectId, teacherId, tierId, recordId, cha
 		SalaryHourly: salaryHourly,
 		CourseId:     courseId,
 		ChapterId:    chapterId,
+		RecordId:     recordId,
 	}
 
 	orderPtr, err := models.CreateOrder(&order)

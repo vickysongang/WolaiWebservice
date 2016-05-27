@@ -2,10 +2,13 @@ package auth
 
 import (
 	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 	authService "WolaiWebservice/service/auth"
 	tradeService "WolaiWebservice/service/trade"
 	userService "WolaiWebservice/service/user"
+	"WolaiWebservice/utils/encrypt"
 	"WolaiWebservice/utils/leancloud/lcmessage"
+	"WolaiWebservice/websocket"
 )
 
 func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
@@ -19,6 +22,16 @@ func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
 	user, err := models.ReadUser(userOauth.UserId)
 	if err != nil {
 		return 2, err, nil
+	} else {
+		if user.Password == nil {
+			phone := *user.Phone
+			salt := encrypt.GenerateSalt()
+			phoneSuffix := (phone)[len(phone)-6 : len(phone)]
+			encryptPassword := encrypt.EncryptPassword(phoneSuffix, salt)
+			user.Salt = &salt
+			user.Password = &encryptPassword
+			models.UpdateUser(user)
+		}
 	}
 
 	flag, err := userService.IsTeacherFirstLogin(user)
@@ -38,20 +51,19 @@ func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
 	if err != nil {
 		return 2, err, nil
 	}
-
+	websocket.KickOutLoggedUser(user.Id)
 	return 0, nil, info
 }
 
 func OauthRegister(phone, code, openId, nickname, avatar string, gender int64) (int64, error, *authService.AuthInfo) {
 	var err error
 
-	err = authService.VerifySMSCode(phone, code)
-	if err != nil {
-		return 2, err, nil
-	}
-
 	user, err := userService.QueryUserByPhone(phone)
 	if err != nil {
+		err = authService.VerifySMSCode(phone, code, redis.SC_LOGIN_RAND_CODE)
+		if err != nil {
+			return 2, err, nil
+		}
 		user, err = userService.RegisterUser(phone, nickname, avatar, gender)
 		if err != nil {
 			return 2, err, nil
@@ -99,6 +111,6 @@ func OauthRegister(phone, code, openId, nickname, avatar string, gender int64) (
 	if err != nil {
 		return 2, err, nil
 	}
-
+	websocket.KickOutLoggedUser(user.Id)
 	return 0, nil, info
 }

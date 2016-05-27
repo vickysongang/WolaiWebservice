@@ -70,6 +70,26 @@ var courseRoutes = route.Routes{
 		true,
 	},
 
+	// 9.2.3
+	route.Route{
+		"CourseListStudentUpgrade",
+		"POST",
+		"/upgrade/user/list/student",
+		handlerv2.CourseListStudentUpgrade,
+		true,
+		true,
+	},
+
+	// 9.2.4
+	route.Route{
+		"CourseListTeacherUpgrade",
+		"POST",
+		"/upgrade/user/list/teacher",
+		handlerv2.CourseListTeacherUpgrade,
+		true,
+		true,
+	},
+
 	// 9.3.1
 	route.Route{
 		"CourseDetailStudent",
@@ -86,6 +106,26 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/detail/teacher",
 		handlerv2.CourseDetailTeacher,
+		true,
+		true,
+	},
+
+	// 9.3.3
+	route.Route{
+		"CourseDetailStudentUpgrade",
+		"POST",
+		"/upgrade/detail/student",
+		handlerv2.CourseDetailStudentUpgrade,
+		true,
+		true,
+	},
+
+	// 9.3.4
+	route.Route{
+		"CourseDetailTeacherUpgrade",
+		"POST",
+		"/upgrade/detail/teacher",
+		handlerv2.CourseDetailTeacherUpgrade,
 		true,
 		true,
 	},
@@ -130,6 +170,46 @@ var courseRoutes = route.Routes{
 		true,
 	},
 
+	// 9.4.5
+	route.Route{
+		"CourseActionAuditionCheck",
+		"POST",
+		"/action/audition/check",
+		handlerv2.CourseActionAuditionCheck,
+		true,
+		true,
+	},
+
+	// 9.4.6
+	route.Route{
+		"CourseAuditionActionProceed",
+		"POST",
+		"/action/audition/proceed",
+		handlerv2.CourseAuditionActionProceed,
+		true,
+		true,
+	},
+
+	// 9.4.7
+	route.Route{
+		"CourseDeluxeActionProceed",
+		"POST",
+		"/action/deluxe/proceed",
+		handlerv2.CourseDeluxeActionProceed,
+		true,
+		true,
+	},
+
+	// 9.4.8
+	route.Route{
+		"CourseActionNextChapterUpgrade",
+		"POST",
+		"/upgrade/action/nextchapter",
+		handlerv2.CourseActionNextChapterUpgrade,
+		true,
+		true,
+	},
+
 	// 9.5.1
 	route.Route{
 		"CourseAttachs",
@@ -166,6 +246,16 @@ var courseRoutes = route.Routes{
 		"POST",
 		"/conversation/user/list",
 		handlerv2.CourseListStudentOfConversation,
+		true,
+		true,
+	},
+
+	// 9.7.1
+	route.Route{
+		"CourseRenewWaitingRecordDetail",
+		"POST",
+		"/renew/waiting/detail",
+		handlerv2.CourseRenewWaitingRecordDetail,
 		true,
 		true,
 	},

@@ -9,22 +9,23 @@ import (
 )
 
 type PingppRecord struct {
-	Id         int64     `json:"id" orm:"pk"`
-	UserId     int64     `json:"id"`
-	Phone      string    `json:"phone"`
-	ChargeId   string    `json:"chargeId"`
-	OrderNo    string    `json:"orderNo"`
-	Amount     uint64    `json:"amount"`
-	Channel    string    `json:"channel"`
-	Currency   string    `json:"currency"`
-	Subject    string    `json:"subject"`
-	Body       string    `json:"body"`
-	Result     string    `json:"result"`
-	Comment    string    `json:"comment"`
-	RefundId   string    `json:"refundId"`
-	CreateTime time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
-	Type       string    `json:"type"`
-	RefId      int64     `json:"refId"`
+	Id          int64     `json:"id" orm:"pk"`
+	UserId      int64     `json:"id"`
+	Phone       string    `json:"phone"`
+	ChargeId    string    `json:"chargeId"`
+	OrderNo     string    `json:"orderNo"`
+	Amount      uint64    `json:"amount"`
+	Channel     string    `json:"channel"`
+	Currency    string    `json:"currency"`
+	Subject     string    `json:"subject"`
+	Body        string    `json:"body"`
+	Result      string    `json:"result"`
+	Comment     string    `json:"comment"`
+	RefundId    string    `json:"refundId"`
+	CreateTime  time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+	Type        string    `json:"type"`
+	RefId       int64     `json:"refId"`
+	TotalAmount uint64    `json:"totalAmount"`
 }
 
 func (r *PingppRecord) TableName() string {

@@ -170,6 +170,80 @@ func CourseListTeacher(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// 9.2.3  新版学生课程列表
+func CourseListStudentUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, content := courseController.GetCourseListStudentUpgrade(userId, page, count)
+	if content == nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 9.2.4 新版导师课程列表
+func CourseListTeacherUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, content := courseController.GetCourseListTeacherUpgrade(userId, page, count)
+	if content == nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
 // 9.3.1
 func CourseDetailStudent(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
@@ -185,10 +259,8 @@ func CourseDetailStudent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	vars := r.Form
-
 	courseIdStr := vars["courseId"][0]
 	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
-
 	status, content := courseController.GetCourseDetailStudent(userId, courseId)
 	if content == nil {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
@@ -227,7 +299,75 @@ func CourseDetailTeacher(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 9.4.1
+// 9.3.3
+func CourseDetailStudentUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+	var courseId int64
+	if len(vars["courseId"]) > 0 {
+		courseIdStr := vars["courseId"][0]
+		courseId, _ = strconv.ParseInt(courseIdStr, 10, 64)
+	} else {
+		courseId = 0 //如果没有传courseId,代表是试听课
+	}
+	var recordId int64
+	if len(vars["recordId"]) > 0 {
+		recordIdStr := vars["recordId"][0]
+		recordId, _ = strconv.ParseInt(recordIdStr, 10, 64)
+	}
+	status, content := courseController.GetCourseDetailStudentUpgrade(userId, courseId, recordId)
+	if content == nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 9.3.4
+func CourseDetailTeacherUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	courseIdStr := vars["courseId"][0]
+	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
+
+	studentIdStr := vars["studentId"][0]
+	studentId, _ := strconv.ParseInt(studentIdStr, 10, 64)
+
+	recordIdStr := vars["recordId"][0]
+	recordId, _ := strconv.ParseInt(recordIdStr, 10, 64)
+
+	status, content := courseController.GetCourseDetailTeacherUpgrade(courseId, studentId, userId, recordId)
+	if content == nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 9.4.1  旧版试听
 func CourseActionProceed(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
@@ -254,7 +394,7 @@ func CourseActionProceed(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// 9.4.2
+// 9.4.2 旧版购买
 func CourseActionQuickbuy(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
@@ -335,6 +475,123 @@ func CourseActionNextChapter(w http.ResponseWriter, r *http.Request) {
 	studentId, _ := strconv.ParseInt(studentIdStr, 10, 64)
 
 	status, err := courseController.HandleCourseActionNextChapter(userId, studentId, courseId, chapterId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", response.NullObject)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 9.4.5
+func CourseActionAuditionCheck(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	status, content := courseController.HandleCourseActionAuditionCheck(userId)
+	var resp *response.Response
+	resp = response.NewResponse(status, "", content)
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 9.4.6 新版试听
+func CourseAuditionActionProceed(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	recordIdStr := vars["recordId"][0]
+	recordId, _ := strconv.ParseInt(recordIdStr, 10, 64)
+
+	courseIdStr := vars["courseId"][0]
+	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
+
+	var sourceCourseId int64
+	if len(vars["sourceCourseId"]) > 0 {
+		sourceCourseIdStr := vars["sourceCourseId"][0]
+		sourceCourseId, _ = strconv.ParseInt(sourceCourseIdStr, 10, 64)
+	}
+
+	status, content := courseController.HandleAuditionCourseProceed(userId, recordId, courseId, sourceCourseId)
+	if content == nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 9.4.7  新版购买
+func CourseDeluxeActionProceed(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	recordIdStr := vars["recordId"][0]
+	_, _ = strconv.ParseInt(recordIdStr, 10, 64)
+	courseIdStr := vars["courseId"][0]
+	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
+
+	status, content := courseController.HandleDeluxeCourseActionQuickbuy(userId, courseId)
+	if content == nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 9.4.8 新版标记完成
+func CourseActionNextChapterUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	chapterIdStr := vars["chapterId"][0]
+	chapterId, _ := strconv.ParseInt(chapterIdStr, 10, 64)
+	recordIdStr := vars["recordId"][0]
+	recordId, _ := strconv.ParseInt(recordIdStr, 10, 64)
+
+	status, err := courseController.HandleCourseActionNextChapterUpgrade(userId, chapterId, recordId)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullObject)
@@ -456,6 +713,32 @@ func CourseListStudentOfConversation(w http.ResponseWriter, r *http.Request) {
 	status, content, err := courseController.GetCourseListStudentOfConversation(userId, teacherId, page, count)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullSlice))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
+
+// 9.7.1
+func CourseRenewWaitingRecordDetail(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+	courseIdStr := vars["courseId"][0]
+	courseId, _ := strconv.ParseInt(courseIdStr, 10, 64)
+
+	status, content, err := courseController.GetCourseRenewDetail(courseId, userId)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullObject))
 	} else {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}

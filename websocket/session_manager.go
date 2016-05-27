@@ -4,6 +4,7 @@ package websocket
 import (
 	"WolaiWebservice/models"
 	"errors"
+	"sync"
 	"time"
 
 	seelog "github.com/cihub/seelog"
@@ -22,6 +23,9 @@ type SessionStatus struct {
 	isPaused    bool //课程是否被暂停
 	isBroken    bool //课程是否被中断
 	status      string
+	timestamp   float64
+	lock        sync.Mutex
+	pollingMap  map[int64]bool //userId to pollingFlag
 }
 
 const (
@@ -61,6 +65,7 @@ func NewSessionStatus(sessionId int64) *SessionStatus {
 		isActived:   false,
 		isBroken:    false,
 		status:      SESSION_STATUS_CREATED,
+		pollingMap:  make(map[int64]bool),
 	}
 	return &sessionStatus
 }
@@ -236,6 +241,12 @@ func (ssm *SessionStatusManager) SetSessionStatus(sessionId int64, status string
 		return ErrSessionNotFound
 	}
 	sessionStatus.status = status
+
+	timestampNano := time.Now().UnixNano()
+	timestampMillis := timestampNano / 1000
+	timestamp := float64(timestampMillis) / 1000000.0
+
+	sessionStatus.timestamp = timestamp
 	return nil
 }
 
@@ -261,4 +272,25 @@ func (ssm *SessionStatusManager) SetSessionStatusCompleted(sessionId int64, leng
 		"Length": length,
 	}
 	models.UpdateSession(sessionId, sessionInfo)
+}
+
+func (ssm *SessionStatusManager) SetPollingFlag(sessionId, userId int64, pollingFlag bool) error {
+	sessionStatus, ok := ssm.sessionMap[sessionId]
+	if !ok {
+		return ErrSessionNotFound
+	}
+	sessionStatus.pollingMap[userId] = pollingFlag
+	return nil
+}
+
+func (ssm *SessionStatusManager) GetPollingFlag(sessionId, userId int64) bool {
+	sessionStatus, ok := ssm.sessionMap[sessionId]
+	if !ok {
+		return false
+	}
+	pollingFlag, ok := sessionStatus.pollingMap[userId]
+	if !ok {
+		return false
+	}
+	return pollingFlag
 }

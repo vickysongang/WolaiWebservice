@@ -1,0 +1,98 @@
+package course
+
+import (
+	"github.com/astaxie/beego/orm"
+
+	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
+)
+
+func GetCourseListStudentUpgrade(userId, page, count int64) (int64, []*courseStudentListItem) {
+	o := orm.NewOrm()
+	var err error
+
+	items := make([]*courseStudentListItem, 0)
+	if page == 0 {
+		var auditionUncompleteRecords []*models.CourseAuditionRecord
+
+		_, err = o.QueryTable("course_audition_record").Filter("user_id", userId).
+			Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
+			OrderBy("-last_update_time").All(&auditionUncompleteRecords)
+
+		for _, auditionRecord := range auditionUncompleteRecords {
+			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status, auditionRecord.Id, auditionRecord.TeacherId)
+			items = append(items, item)
+		}
+	}
+
+	var records []*models.CoursePurchaseRecord
+	_, err = o.QueryTable("course_purchase_record").Filter("user_id", userId).
+		Exclude("purchase_status", models.PURCHASE_RECORD_STATUS_IDLE).
+		OrderBy("-last_update_time").Offset(page * count).Limit(count).All(&records)
+	if err != nil {
+		return 0, items
+	}
+	totalCount, _ := o.QueryTable("course_purchase_record").Filter("user_id", userId).
+		Exclude("purchase_status", models.PURCHASE_RECORD_STATUS_IDLE).Count()
+
+	for _, record := range records {
+		course, err := models.ReadCourse(record.CourseId)
+		if err != nil {
+			continue
+		}
+
+		studentCount := courseService.GetCourseStudentCount(record.CourseId)
+		chapterCount := record.ChapterCount
+
+		chapterCompletePeriod, _ := courseService.GetLatestCompleteChapterPeriod(record.CourseId, userId, record.Id)
+
+		item := courseStudentListItem{
+			Course:                 *course,
+			StudentCount:           studentCount,
+			ChapterCount:           chapterCount,
+			PurchaseStatus:         record.PurchaseStatus,
+			ChapterCompletedPeriod: chapterCompletePeriod,
+			TeacherId:              record.TeacherId,
+			RecordId:               record.Id,
+		}
+
+		items = append(items, &item)
+	}
+
+	if page == totalCount/count {
+		var auditionCompleteRecords []*models.CourseAuditionRecord
+		o.QueryTable("course_audition_record").Filter("user_id", userId).
+			Filter("status", models.AUDITION_RECORD_STATUS_COMPLETE).
+			OrderBy("-last_update_time").All(&auditionCompleteRecords)
+
+		for _, auditionRecord := range auditionCompleteRecords {
+			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status, auditionRecord.Id, auditionRecord.TeacherId)
+			items = append(items, item)
+		}
+	}
+
+	return 0, items
+}
+
+func assignStudentAuditionCourseInfo(courseId, userId int64, status string, recordId, teacherId int64) *courseStudentListItem {
+	course, err := models.ReadCourse(courseId)
+	if err != nil {
+		return nil
+	}
+
+	studentCount := courseService.GetAuditionCourseStudentCount(courseId)
+	chapterCount := int64(1)
+
+	chapterCompletePeriod, _ := courseService.GetLatestCompleteChapterPeriod(courseId, userId, recordId)
+
+	item := courseStudentListItem{
+		Course:                 *course,
+		StudentCount:           studentCount,
+		ChapterCount:           chapterCount,
+		PurchaseStatus:         status,
+		ChapterCompletedPeriod: chapterCompletePeriod,
+		TeacherId:              teacherId,
+		RecordId:               recordId,
+	}
+	return &item
+}

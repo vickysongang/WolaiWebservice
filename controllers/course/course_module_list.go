@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 )
 
 type courseItem struct {
@@ -39,9 +40,9 @@ func GetCourseModuleList(moduleType, page, count int64) (int64, []*courseItem) {
 			ImgLongCover: course.ImgLongCover,
 		}
 
-		chapterCount := queryCourseChapterCount(courseModule.CourseId)
-		item.ChapterCount = chapterCount - 1
-		item.StudentCount = queryCourseStudentCount(course.Id)
+		chapterCount := courseService.GetCourseChapterCount(courseModule.CourseId)
+		item.ChapterCount = chapterCount
+		item.StudentCount = courseService.GetCourseStudentCount(course.Id)
 
 		courses = append(courses, &item)
 	}

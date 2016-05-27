@@ -108,8 +108,9 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 
 func CreateEvaluation(userId, targetId, sessionId, chapterId int64, evaluationContent string) (*models.Evaluation, error) {
 	user, _ := models.ReadUser(userId)
-	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
-		if chapterId == 0 {
+	if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER { //导师插入评价
+
+		if chapterId == 0 { //兼容旧版，旧版未传该字段
 			session, err := models.ReadSession(sessionId)
 			if err == nil {
 				order, err := models.ReadOrder(session.OrderId)
@@ -118,8 +119,9 @@ func CreateEvaluation(userId, targetId, sessionId, chapterId int64, evaluationCo
 				}
 			}
 		}
-		if chapterId != 0 {
-			apply, _ := evaluationService.GetEvaluationApply(userId, chapterId)
+
+		if chapterId != 0 { // 课程插入评价申请
+			apply, _ := evaluationService.GetEvaluationApply(userId, chapterId, 0)
 			chapter, _ := models.ReadCourseCustomChapter(chapterId)
 			if apply.Id == 0 {
 				evaluationApply := models.EvaluationApply{
@@ -145,18 +147,18 @@ func CreateEvaluation(userId, targetId, sessionId, chapterId int64, evaluationCo
 				}
 			}
 			return nil, nil
-		} else {
-			content, err := EvaluateSession(sessionId, userId, targetId, chapterId, evaluationContent)
+		} else { //答疑插入评价
+			content, err := evaluateSession(sessionId, userId, targetId, chapterId, evaluationContent)
 			return content, err
 		}
-	} else {
-		content, err := EvaluateSession(sessionId, userId, targetId, chapterId, evaluationContent)
+	} else { //学生插入评价
+		content, err := evaluateSession(sessionId, userId, targetId, chapterId, evaluationContent)
 		return content, err
 	}
 	return nil, nil
 }
 
-func EvaluateSession(sessionId, userId, targetId, chapterId int64, evaluationContent string) (*models.Evaluation, error) {
+func evaluateSession(sessionId, userId, targetId, chapterId int64, evaluationContent string) (*models.Evaluation, error) {
 	session, _ := models.ReadSession(sessionId)
 	if targetId == 1 {
 		if userId == session.Creator {
@@ -212,8 +214,8 @@ func QueryEvaluationInfo(userId, sessionId, targetId, chapterId int64) ([]*evalu
 		}
 	} else {
 		chapter, _ := models.ReadCourseCustomChapter(chapterId)
-		studentEvaluation, _ = models.QueryEvaluationByChapter(chapter.UserId, chapterId)
-		teacherEvaluation, _ = models.QueryEvaluationByChapter(chapter.TeacherId, chapterId)
+		studentEvaluation, _ = models.QueryEvaluationByChapter(chapter.UserId, chapterId, 0)
+		teacherEvaluation, _ = models.QueryEvaluationByChapter(chapter.TeacherId, chapterId, 0)
 		if userId == chapter.UserId {
 			isStudent = true
 		} else if userId == chapter.TeacherId {

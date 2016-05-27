@@ -33,24 +33,23 @@ func sessionHandler(sessionId int64) {
 	autoFinishLimit := settings.SessionAutoFinishLimit()
 
 	var isCourse bool
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+		order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		isCourse = true
 	}
 
-	student, _ := models.ReadUser(session.Creator)
-	teacherProfile, _ := models.ReadTeacherProfile(session.Tutor)
-
-	teacherTier, _ := models.ReadTeacherTierHourly(teacherProfile.TierId)
-
 	var leftQaTimeLength, totalTimeLength int64
 	if !isCourse {
+		student, _ := models.ReadUser(session.Creator)
+		teacherProfile, _ := models.ReadTeacherProfile(session.Tutor)
+		teacherTier, _ := models.ReadTeacherTierHourly(teacherProfile.TierId)
 		leftQaTimeLength = qapkgService.GetLeftQaTimeLength(session.Creator)                //获取答疑的剩余时间
 		totalTimeLength = leftQaTimeLength + (student.Balance*60)/teacherTier.QAPriceHourly //获取可用的总上课时长
 		seelog.Debug("leftQaTimeLength:", leftQaTimeLength, " totalTimeLength:", totalTimeLength, "  autoFinishLimit:", autoFinishLimit, " sessionId:", sessionId)
 	}
 
 	syncTicker := time.NewTicker(time.Second * 60) //时间同步计时器，每60s向客户端同步服务器端的时间来校准客户端的计时
-	syncTicker.Stop()                              //初始停止时间同步计时器，待正式上课的时候启动该计时器
+	//syncTicker.Stop()                              //初始停止时间同步计时器，待正式上课的时候启动该计时器
 
 	waitingTimer := time.NewTimer(time.Second * time.Duration(sessionExpireLimit)) //超时计时器，课程中段在规定时间内如果没有重新恢复则规定时间过后课程自动超时结束
 	waitingTimer.Stop()                                                            //初始停止超时计时器
@@ -91,7 +90,7 @@ func sessionHandler(sessionId int64) {
 			SessionManager.SetSessionBroken(sessionId, true)
 			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 		} else {
-			syncTicker = time.NewTicker(time.Second * 60)
+			//syncTicker = time.NewTicker(time.Second * 60)
 			SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
 		}
 	} else {
@@ -155,7 +154,11 @@ func sessionHandler(sessionId int64) {
 
 		case cur := <-syncTicker.C:
 			//如果课程不在进行中或者被暂停，则停止同步时间
-			if !SessionManager.IsSessionActived(sessionId) || SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBroken(sessionId) {
+			if !SessionManager.IsSessionActived(sessionId) || SessionManager.IsSessionPaused(sessionId) || SessionManager.IsSessionBroken(sessionId) || SessionManager.IsSessionCalling(sessionId) {
+				// Now send session status to clients no matter whether it is serving or not
+				length, _ := SessionManager.GetSessionLength(sessionId)
+				SendSyncMsg(session.Tutor, sessionId, length)
+				SendSyncMsg(session.Creator, sessionId, length)
 				break
 			}
 			//计算课程时长，已计时长＋（本次同步时间－上次同步时间）
@@ -271,7 +274,8 @@ func sessionHandler(sessionId int64) {
 					waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
 					//停止时间同步计时器
-					syncTicker.Stop()
+					//Now we keep the sync ticker running, as every 1 minute, we do a sync with the clients
+					//syncTicker.Stop()
 
 					if msg.UserId == session.Creator {
 						SendBreakMsgToTeacher(session.Creator, session.Tutor, sessionId)
@@ -304,7 +308,7 @@ func sessionHandler(sessionId int64) {
 					//如果老师所在的课程正在进行中，则通知老师该课正在进行中
 					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) {
 						seelog.Debug("send session:", sessionId, " live status message to teacher:", session.Tutor)
-						SendBreakReconnetSuccessMsgToTeacher(session.Creator, session.Tutor, sessionId, length)
+						SendBreakReconnectSuccessMsgToTeacher(session.Creator, session.Tutor, sessionId, length)
 					}
 
 					if SessionManager.IsSessionPaused(sessionId) {
@@ -339,7 +343,7 @@ func sessionHandler(sessionId int64) {
 					//如果学生所在的课程正在进行中，则通知学生该课正在进行中
 					if !SessionManager.IsSessionPaused(sessionId) && !SessionManager.IsSessionBroken(sessionId) {
 						seelog.Debug("send session:", sessionId, " live status message to student:", session.Creator)
-						SendBreakReconnetSuccessMsgToStudent(session.Creator, session.Tutor, sessionId, length)
+						SendBreakReconnectSuccessMsgToStudent(session.Creator, session.Tutor, sessionId, length)
 					}
 
 					if SessionManager.IsSessionPaused(sessionId) {
@@ -375,7 +379,7 @@ func sessionHandler(sessionId int64) {
 					//启动5分钟超时计时器，如果五分钟内课程没有被恢复，则课程被自动结束
 					//waitingTimer = time.NewTimer(time.Second * time.Duration(sessionExpireLimit))
 
-					syncTicker.Stop() //停止时间同步计时器
+					//syncTicker.Stop() //停止时间同步计时器
 
 					err := SendPauseMsgToStudent(session.Creator, session.Tutor, sessionId, length) //向学生发送课程暂停的消息
 					if err != nil {
@@ -412,24 +416,27 @@ func sessionHandler(sessionId int64) {
 						break
 					}
 
-					SendResumeCancelRespMsgToTeacher(msg.MessageId, msg.UserId, sessionId)
-
-					//向学生发送老师取消恢复上课的消息
-					err := SendResumeCancelRespMsgToStudent(session.Creator, session.Tutor, sessionId)
-					if err != nil {
-						break
-					}
-
 					//拨号停止
 					SessionManager.SetSessionCalling(sessionId, false)
 
 					//设置上课请求未被接受
 					SessionManager.SetSessionAccepted(sessionId, false)
 
+					var sessionStatus string
 					if SessionManager.IsSessionBroken(sessionId) {
+						sessionStatus = SESSION_STATUS_BREAKED
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 					} else if SessionManager.IsSessionPaused(sessionId) {
+						sessionStatus = SESSION_STATUS_PAUSED
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
+					}
+
+					SendResumeCancelRespMsgToTeacher(msg.MessageId, msg.UserId, sessionId, sessionStatus)
+
+					//向学生发送老师取消恢复上课的消息
+					err := SendResumeCancelRespMsgToStudent(session.Creator, session.Tutor, sessionId, sessionStatus)
+					if err != nil {
+						break
 					}
 
 				case WS_SESSION_RESUME_ACCEPT: //学生响应老师的恢复上课请求
@@ -444,19 +451,20 @@ func sessionHandler(sessionId int64) {
 						break
 					}
 
-					SendResumeAcceptRespMsgToStudent(msg.MessageId, msg.UserId, sessionId)
-
 					SessionManager.SetSessionCalling(sessionId, false) //拨号停止
-
-					SendResumeAcceptMsgToTeacher(session.Tutor, sessionId, acceptStr) //向老师发送响应恢复上课请求的消息
 
 					if acceptStr == "-1" {
 						//拒绝上课
+						var sessionStatus string
 						if SessionManager.IsSessionBroken(sessionId) {
+							sessionStatus = SESSION_STATUS_BREAKED
 							SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_BREAKED)
 						} else if SessionManager.IsSessionPaused(sessionId) {
+							sessionStatus = SESSION_STATUS_PAUSED
 							SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_PAUSED)
 						}
+						SendResumeAcceptRespMsgToStudent(msg.MessageId, msg.UserId, sessionId, sessionStatus)
+						SendResumeAcceptMsgToTeacher(session.Tutor, sessionId, acceptStr, sessionStatus) //向老师发送响应恢复上课请求的消息
 						break
 					} else if acceptStr == "1" {
 						//标记学生接受了老师的上课请求
@@ -472,6 +480,11 @@ func sessionHandler(sessionId int64) {
 						SessionManager.SetSessionBroken(sessionId, false)
 						SessionManager.SetSessionStatus(sessionId, SESSION_STATUS_SERVING)
 
+						SendResumeAcceptRespMsgToStudent(msg.MessageId, msg.UserId, sessionId, SESSION_STATUS_SERVING)
+						SendResumeAcceptMsgToTeacher(session.Tutor, sessionId, acceptStr, SESSION_STATUS_SERVING) //向老师发送响应恢复上课请求的消息
+
+						// Stop the background ticker now, and re-start it according to autoFinish conditions
+						syncTicker.Stop()
 						//启动时间同步计时器
 						if !isCourse {
 							length, _ := SessionManager.GetSessionLength(sessionId)
@@ -479,6 +492,7 @@ func sessionHandler(sessionId int64) {
 							if leftTime >= 0 && leftTime < 60 {
 								syncTicker = time.NewTicker(time.Second * time.Duration(leftTime))
 							} else {
+
 								syncTicker = time.NewTicker(time.Second * 60)
 							}
 						} else {
@@ -498,6 +512,8 @@ func sessionHandler(sessionId int64) {
 					lastSync := timestamp
 					SessionManager.SetLastSync(sessionId, lastSync)
 
+					// Stop the background ticker now, and re-start it according to autoFinish conditions
+					syncTicker.Stop()
 					if !isCourse {
 						length, _ := SessionManager.GetSessionLength(sessionId)
 						leftTime := length - totalTimeLength*60
@@ -548,7 +564,8 @@ func InitSessionMonitor(sessionId int64) bool {
 
 	if order.Type != models.ORDER_TYPE_GENERAL_INSTANT &&
 		order.Type != models.ORDER_TYPE_PERSONAL_INSTANT &&
-		order.Type != models.ORDER_TYPE_COURSE_INSTANT {
+		order.Type != models.ORDER_TYPE_COURSE_INSTANT &&
+		order.Type != models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		return false
 	}
 
@@ -565,19 +582,30 @@ func InitSessionMonitor(sessionId int64) bool {
 	}
 
 	if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
-		courseRelation, _ := courseService.GetCourseRelation(order.CourseId, order.Creator, order.TeacherId)
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_DELUXE)
 		virturlCourseId := courseRelation.Id
-		//startMsg.Attribute["courseId"] = strconv.FormatInt(order.CourseId, 10)
+		startMsg.Attribute["courseId"] = strconv.FormatInt(virturlCourseId, 10)
+	} else if order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+		courseRelation, _ := courseService.GetCourseRelation(order.RecordId, models.COURSE_TYPE_AUDITION)
+		virturlCourseId := courseRelation.Id
 		startMsg.Attribute["courseId"] = strconv.FormatInt(virturlCourseId, 10)
 	}
 
 	if UserManager.HasUserChan(session.Tutor) {
+		_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
+		teacherByte, _ := json.Marshal(teacherInfo)
+		startMsg.Attribute["sessionInfo"] = string(teacherByte)
+
 		teacherChan := UserManager.GetUserChan(session.Tutor)
 		teacherChan <- startMsg
 	} else {
 		push.PushSessionInstantStart(session.Tutor, sessionId)
 	}
 	if UserManager.HasUserChan(session.Creator) {
+		_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
+		studentByte, _ := json.Marshal(studentInfo)
+		startMsg.Attribute["sessionInfo"] = string(studentByte)
+
 		startMsg.UserId = session.Creator
 		studentChan := UserManager.GetUserChan(session.Creator)
 		studentChan <- startMsg
@@ -601,12 +629,16 @@ func CheckSessionBreak(userId int64) {
 	if _, ok := UserManager.UserSessionLiveMap[userId]; !ok {
 		return
 	}
+
+	for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
+		SessionManager.SetPollingFlag(sessionId, userId, false)
+	}
+
 	//延迟10秒判断用户是否重连上，给客户端10s的重连时间
 	breakTime := UserManager.GetUserOfflineStatus(userId)
 	if breakTime == -1 {
 		return
 	}
-
 	reconnLimit := settings.SessionReconnLimit()
 	time.Sleep(time.Duration(reconnLimit) * time.Second)
 	userLoginTime := UserManager.GetUserOnlineStatus(userId)
@@ -620,11 +652,13 @@ func CheckSessionBreak(userId int64) {
 		if !SessionManager.IsSessionOnline(sessionId) {
 			continue
 		}
-
+		if SessionManager.GetPollingFlag(sessionId, userId) {
+			continue
+		}
 		sessionChan, _ := SessionManager.GetSessionChan(sessionId)
 		breakMsg := NewWSMessage("", userId, WS_SESSION_BREAK)
 		sessionChan <- breakMsg
-		seelog.Debug("send break message when user", userId, " offline!")
+		seelog.Debug("send break message when user ", userId, " offline! sessionId: ", sessionId)
 	}
 }
 
@@ -666,65 +700,72 @@ func RecoverUserSession(userId int64, msg WSMessage) {
 		if !ok {
 			return
 		}
-		if sessionIdStr != "" {
-			resp := NewWSMessage("", msg.UserId, WS_SESSION_STATUS_SYNC)
-			sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
-			if err != nil {
-				resp.Attribute["errCode"] = "2"
-				userChan <- resp
-				return
-			}
-			resp.Attribute["errCode"] = "0"
-			session, _ := models.ReadSession(sessionId)
-			if SessionManager.IsSessionOnline(sessionId) {
-				sessionStatus, _ := SessionManager.GetSessionStatus(sessionId)
-				resp.Attribute["sessionStatus"] = sessionStatus
-			} else {
-				resp.Attribute["sessionStatus"] = session.Status
-			}
-			if session.Creator == userId {
-				_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
-				studentByte, _ := json.Marshal(studentInfo)
-				resp.Attribute["sessionInfo"] = string(studentByte)
-			} else if session.Tutor == userId {
-				_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
-				teacherByte, _ := json.Marshal(teacherInfo)
-				resp.Attribute["sessionInfo"] = string(teacherByte)
-			}
-			userChan <- resp
+		if sessionIdStr == "" {
+			return
 		}
+
+		resp := NewWSMessage("", msg.UserId, WS_SESSION_STATUS_SYNC)
+		sessionId, err := strconv.ParseInt(sessionIdStr, 10, 64)
+		if err != nil {
+			resp.Attribute["errCode"] = "2"
+			userChan <- resp
+			return
+		}
+		resp.Attribute["errCode"] = "0"
+		session, _ := models.ReadSession(sessionId)
+		if SessionManager.IsSessionOnline(sessionId) {
+			sessionStatus, _ := SessionManager.GetSessionStatus(sessionId)
+			resp.Attribute["sessionStatus"] = sessionStatus
+		} else {
+			resp.Attribute["sessionStatus"] = session.Status
+		}
+		if session.Creator == userId {
+			_, studentInfo := sessionController.GetSessionInfo(sessionId, session.Creator)
+			studentByte, _ := json.Marshal(studentInfo)
+			resp.Attribute["sessionInfo"] = string(studentByte)
+		} else if session.Tutor == userId {
+			_, teacherInfo := sessionController.GetSessionInfo(sessionId, session.Tutor)
+			teacherByte, _ := json.Marshal(teacherInfo)
+			resp.Attribute["sessionInfo"] = string(teacherByte)
+		}
+		userChan <- resp
 	}
 }
 
 func CheckCourseSessionEvaluation(userId int64, msg WSMessage) {
-	if msg.OperationCode == WS_LOGIN {
-		if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
-			for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
-				session, _ := models.ReadSession(sessionId)
-				if session == nil {
-					return
-				}
+	if msg.OperationCode != WS_LOGIN {
+		return
+	}
+	if _, ok := UserManager.UserSessionLiveMap[userId]; ok {
+		for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
+			session, _ := models.ReadSession(sessionId)
+			if session == nil {
+				return
+			}
 
-				if SessionManager.IsSessionOnline(sessionId) {
-					return
-				}
+			if SessionManager.IsSessionOnline(sessionId) {
+				return
 			}
 		}
-		sessionId, courseId, chapterId, studentId, _ := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
-		if sessionId != 0 {
-			resp := NewWSMessage("", userId, WS_SESSION_NOT_EVALUATION_TIP)
-			sessionIdStr := strconv.FormatInt(sessionId, 10)
-			courseIdStr := strconv.FormatInt(courseId, 10)
-			chapterIdStr := strconv.FormatInt(chapterId, 10)
-			studentIdStr := strconv.FormatInt(studentId, 10)
-			resp.Attribute["sessionId"] = sessionIdStr
-			resp.Attribute["courseId"] = courseIdStr
-			resp.Attribute["chapterId"] = chapterIdStr
-			resp.Attribute["studentId"] = studentIdStr
-			if UserManager.HasUserChan(userId) {
-				userChan := UserManager.GetUserChan(userId)
-				userChan <- resp
-			}
-		}
+	}
+	sessionId, courseId, chapterId, studentId, recordId, _ := evaluationService.GetLatestNotEvaluatedCourseSession(userId)
+	if sessionId == 0 {
+		return
+	}
+
+	resp := NewWSMessage("", userId, WS_SESSION_NOT_EVALUATION_TIP)
+	sessionIdStr := strconv.FormatInt(sessionId, 10)
+	courseIdStr := strconv.FormatInt(courseId, 10)
+	chapterIdStr := strconv.FormatInt(chapterId, 10)
+	studentIdStr := strconv.FormatInt(studentId, 10)
+	recordIdStr := strconv.FormatInt(recordId, 10)
+	resp.Attribute["sessionId"] = sessionIdStr
+	resp.Attribute["courseId"] = courseIdStr
+	resp.Attribute["chapterId"] = chapterIdStr
+	resp.Attribute["studentId"] = studentIdStr
+	resp.Attribute["recordId"] = recordIdStr
+	if UserManager.HasUserChan(userId) {
+		userChan := UserManager.GetUserChan(userId)
+		userChan <- resp
 	}
 }

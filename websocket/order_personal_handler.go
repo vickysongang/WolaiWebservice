@@ -28,7 +28,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 
 	var orderLifespan int64
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
-		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+		order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		orderLifespan = settings.OrderLifespanPI()
 	} else {
 		return
@@ -99,7 +100,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 					userChan <- resultMsg
 
 					if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
-						order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+						order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+						order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 						teacher, _ := models.ReadUser(msg.UserId)
 						teacherByte, _ := json.Marshal(teacher)
 
@@ -178,8 +180,8 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 		} else if !UserManager.HasUserChan(teacherId) {
 			push.PushNewOrderDispatch(teacherId, orderId)
 		}
-
-	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+		order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		go lcmessage.SendOrderCourseNotification(orderId, teacherId)
 		if !UserManager.HasUserChan(teacherId) {
 			push.PushNewOrderDispatch(teacherId, orderId)

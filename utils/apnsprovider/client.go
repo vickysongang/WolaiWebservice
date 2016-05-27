@@ -20,6 +20,7 @@ const (
 
 var appStoreClient *apns.Client
 var inHouseClient *apns.Client
+var voipClient *apns.Client
 
 func init() {
 	var gateway string
@@ -31,6 +32,7 @@ func init() {
 
 	appStoreClient = apns.NewClient(gateway, config.Env.APNS.AppStoreCert, config.Env.APNS.AppStoreKey)
 	inHouseClient = apns.NewClient(gateway, config.Env.APNS.InHouseCert, config.Env.APNS.InHouseKey)
+	voipClient = apns.NewClient(gateway, config.Env.APNS.VoipCert, config.Env.APNS.VoipKey)
 }
 
 func send(pn *apns.PushNotification, deviceProfile string) error {
@@ -38,6 +40,8 @@ func send(pn *apns.PushNotification, deviceProfile string) error {
 
 	if deviceProfile == models.DEVICE_PROFILE_APPSTORE {
 		resp = appStoreClient.Send(pn)
+	} else if deviceProfile == models.DEVICE_PROFILE_VOIP {
+		resp = voipClient.Send(pn)
 	} else {
 		resp = inHouseClient.Send(pn)
 	}

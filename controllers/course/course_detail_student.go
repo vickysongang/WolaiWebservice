@@ -1,36 +1,13 @@
+// course_detail_student
 package course
 
 import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 	userService "WolaiWebservice/service/user"
 )
-
-type teacherItem struct {
-	Id           int64    `json:"id"`
-	Nickname     string   `json:"nickname"`
-	Avatar       string   `json:"avatar"`
-	Gender       int64    `json:"gender"`
-	AccessRight  int64    `json:"accessRight"`
-	School       string   `json:"school"`
-	Major        string   `json:"major"`
-	Intro        string   `json:"intro"`
-	SubjectList  []string `json:"subjectList,omitempty"`
-	OnlineStatus string   `json:"onlineStatus,omitempty"`
-}
-
-type courseDetailStudent struct {
-	models.Course
-	StudentCount           int64                       `json:"studentCount"`
-	ChapterCount           int64                       `json:"chapterCount"`
-	AuditionStatus         string                      `json:"auditionStatus"`
-	PurchaseStatus         string                      `json:"purchaseStatus"`
-	ChapterCompletedPeriod int64                       `json:"chapterCompletePeriod"`
-	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
-	ChapterList            []*courseChapterStatus      `json:"chapterList"`
-	TeacherList            []*teacherItem              `json:"teacherList"`
-}
 
 func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailStudent) {
 	o := orm.NewOrm()
@@ -40,17 +17,17 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 		return 2, nil
 	}
 
-	studentCount := queryCourseStudentCount(courseId)
+	studentCount := courseService.GetCourseStudentCount(courseId)
 
-	chapterCount := queryCourseChapterCount(courseId)
+	chapterCount := courseService.GetCourseChapterCount(courseId)
 
 	detail := courseDetailStudent{
 		Course:       *course,
 		StudentCount: studentCount,
-		ChapterCount: chapterCount - 1,
+		ChapterCount: chapterCount,
 	}
 
-	characteristicList, _ := queryCourseContentIntros(courseId)
+	characteristicList, _ := courseService.QueryCourseContentIntros(courseId)
 	detail.CharacteristicList = characteristicList
 
 	var purchaseRecord models.CoursePurchaseRecord
@@ -65,20 +42,32 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 		detail.AuditionStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.PurchaseStatus = models.PURCHASE_RECORD_STATUS_IDLE
 		detail.TeacherList, _ = queryCourseTeacherList(courseId)
-		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0)
+		detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0, false)
 	} else {
 		detail.AuditionStatus = purchaseRecord.AuditionStatus
 		detail.PurchaseStatus = purchaseRecord.PurchaseStatus
 		detail.TeacherList, _ = queryCourseCurrentTeacher(purchaseRecord.TeacherId)
 
 		if purchaseRecord.TeacherId == 0 {
-			detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0)
+			detail.ChapterList, _ = queryCourseChapterStatus(courseId, 0, false)
 		} else {
-			detail.ChapterCompletedPeriod, err = queryLatestCourseChapterPeriod(courseId, userId)
+			detail.ChapterCompletedPeriod, err = courseService.GetLatestCompleteChapterPeriod(courseId, userId, purchaseRecord.Id)
 			if err != nil {
-				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, userId, purchaseRecord.TeacherId)
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,
+					detail.ChapterCompletedPeriod,
+					userId,
+					purchaseRecord.TeacherId,
+					purchaseRecord.Id,
+					models.COURSE_TYPE_DELUXE,
+					false)
 			} else {
-				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, userId, purchaseRecord.TeacherId)
+				detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId,
+					detail.ChapterCompletedPeriod+1,
+					userId,
+					purchaseRecord.TeacherId,
+					purchaseRecord.Id,
+					models.COURSE_TYPE_DELUXE,
+					false)
 			}
 		}
 	}
@@ -99,7 +88,10 @@ func queryCourseTeacherList(courseId int64) ([]*teacherItem, error) {
 
 	for _, courseTeacher := range courseTeachers {
 		user, _ := models.ReadUser(courseTeacher.UserId)
-		profile, _ := models.ReadTeacherProfile(courseTeacher.UserId)
+		profile, err := models.ReadTeacherProfile(courseTeacher.UserId)
+		if err != nil {
+			continue
+		}
 		school, _ := models.ReadSchool(profile.SchoolId)
 
 		subjectNames, err := userService.GetTeacherSubjectNameSlice(courseTeacher.UserId)

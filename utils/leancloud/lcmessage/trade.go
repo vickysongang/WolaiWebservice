@@ -7,9 +7,16 @@ import (
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/utils/leancloud"
+
+	seelog "github.com/cihub/seelog"
 )
 
 func SendTradeNotification(recordId int64) {
+	defer func() {
+		if x := recover(); x != nil {
+			seelog.Error(x)
+		}
+	}()
 	var err error
 
 	record, err := models.ReadTradeRecord(recordId)
@@ -75,10 +82,13 @@ func SendTradeNotification(recordId int64) {
 		}
 
 		_, month, day := session.TimeFrom.Date()
-		lengthMin := session.Length / 60
-		if lengthMin < 1 && session.Length > 0 {
-			lengthMin = 1
+
+		length := session.Length
+		if length > 0 && length < 60 {
+			length = 60
 		}
+		lengthMin := int64(math.Ceil(float64(length) / 60))
+
 		signStr = "-"
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已经完成%s导师的课程。",
 			user.Nickname, suffix, tutor.Nickname)
@@ -87,8 +97,13 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("上课时间：%2d月%2d日 %02d:%02d %d分钟",
 				month, day, session.TimeFrom.Hour(), session.TimeFrom.Minute(), lengthMin))
-		msg.body = append(msg.body,
-			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+		if math.Abs(float64(record.QapkgTimeLength)) > 0 {
+			msg.body = append(msg.body,
+				fmt.Sprintf("账户消费：%s %.2f 元(答疑时间：%d分钟)", signStr, amount, record.QapkgTimeLength))
+		} else {
+			msg.body = append(msg.body,
+				fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+		}
 
 	case models.TRADE_RECEIVEMENT:
 		session, err := models.ReadSession(record.SessionId)
@@ -189,6 +204,23 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("邀请红包：%s %.2f 元", signStr, amount))
 
+	case models.TRADE_AUDITION_COURSE_PURCHASE:
+		audition, err := models.ReadCourseAuditionRecord(record.RecordId)
+		if err != nil {
+			return
+		}
+
+		course, err := models.ReadCourse(audition.CourseId)
+		if err != nil {
+			return
+		}
+
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已成功购买课程。", user.Nickname, suffix)
+		msg.body = append(msg.body,
+			fmt.Sprintf("课程名称：%s", course.Name))
+		msg.body = append(msg.body,
+			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+
 	case models.TRADE_COURSE_PURCHASE:
 		purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)
 		if err != nil {
@@ -201,6 +233,21 @@ func SendTradeNotification(recordId int64) {
 		}
 
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已成功购买课程。", user.Nickname, suffix)
+		msg.body = append(msg.body,
+			fmt.Sprintf("课程名称：%s", course.Name))
+		msg.body = append(msg.body,
+			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+
+	case models.TRADE_COURSE_RENEW:
+		renewRecord, err := models.ReadCourseRenewRecord(record.RecordId)
+		if err != nil {
+			return
+		}
+		course, err := models.ReadCourse(renewRecord.CourseId)
+		if err != nil {
+			return
+		}
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已成功续约课程。", user.Nickname, suffix)
 		msg.body = append(msg.body,
 			fmt.Sprintf("课程名称：%s", course.Name))
 		msg.body = append(msg.body,
@@ -235,6 +282,29 @@ func SendTradeNotification(recordId int64) {
 		}
 
 		student, err := models.ReadUser(purchase.UserId)
+		if err != nil {
+			return
+		}
+
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已成功授完%s同学的课程。",
+			user.Nickname, suffix, student.Nickname)
+		msg.body = append(msg.body,
+			fmt.Sprintf("课程名称：%s", course.Name))
+		msg.body = append(msg.body,
+			fmt.Sprintf("账户收入：%s %.2f 元", signStr, amount))
+
+	case models.TRADE_AUDITION_COURSE_EARNING:
+		audition, err := models.ReadCourseAuditionRecord(record.RecordId)
+		if err != nil {
+			return
+		}
+
+		course, err := models.ReadCourse(audition.CourseId)
+		if err != nil {
+			return
+		}
+
+		student, err := models.ReadUser(audition.UserId)
 		if err != nil {
 			return
 		}

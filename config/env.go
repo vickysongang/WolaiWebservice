@@ -75,6 +75,8 @@ type apnsConf struct {
 	AppStoreKey  string
 	InHouseCert  string
 	InHouseKey   string
+	VoipCert     string
+	VoipKey      string
 }
 
 type leancloudConf struct {

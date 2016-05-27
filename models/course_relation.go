@@ -13,6 +13,8 @@ type CourseRelation struct {
 	UserId     int64     `json:"userId"`
 	TeacherId  int64     `json:"teacherId"`
 	CreateTime time.Time `json:"createTime"`
+	Type       string    `json:"type"`
+	RecordId   int64     `json:"recordId"`
 }
 
 func (relation *CourseRelation) TableName() string {
@@ -21,4 +23,10 @@ func (relation *CourseRelation) TableName() string {
 
 func init() {
 	orm.RegisterModel(new(CourseRelation))
+}
+
+func InsertCourseRelation(relation *CourseRelation) (int64, error) {
+	o := orm.NewOrm()
+	id, err := o.Insert(relation)
+	return id, err
 }

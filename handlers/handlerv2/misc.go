@@ -14,6 +14,7 @@ import (
 	miscController "WolaiWebservice/controllers/misc"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
+	"WolaiWebservice/redis"
 	"WolaiWebservice/utils/pingxx"
 	"WolaiWebservice/utils/sendcloud"
 )
@@ -33,7 +34,7 @@ func HookSendcloud(w http.ResponseWriter, r *http.Request) {
 	timestamp := vars["timestamp"][0]
 	phones := vars["phones"][0]
 
-	sendcloud.SMSHook(token, timestamp, signature, event, phones)
+	sendcloud.SMSHook(token, timestamp, signature, event, phones, redis.SC_LOGIN_RAND_CODE)
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
 

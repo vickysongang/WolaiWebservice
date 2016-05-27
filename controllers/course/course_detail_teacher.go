@@ -4,17 +4,8 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 )
-
-type courseDetailTeacher struct {
-	models.Course
-	StudentCount           int64                       `json:"studentCount"`
-	ChapterCount           int64                       `json:"chapterCount"`
-	ChapterCompletedPeriod int64                       `json:"chapterCompletePeriod"`
-	CharacteristicList     []models.CourseContentIntro `json:"characteristicList"`
-	ChapterList            []*courseChapterStatus      `json:"chapterList"`
-	StudentList            []*models.User              `json:"studentList"`
-}
 
 func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeacher) {
 	o := orm.NewOrm()
@@ -35,19 +26,32 @@ func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeac
 		Course: *course,
 	}
 
-	characteristicList, _ := queryCourseContentIntros(courseId)
+	characteristicList, _ := courseService.QueryCourseContentIntros(courseId)
 	detail.CharacteristicList = characteristicList
 
-	detail.StudentCount = queryCourseStudentCount(courseId)
-	chapterCount := queryCourseChapterCount(courseId)
+	detail.StudentCount = courseService.GetCourseStudentCount(courseId)
 
-	detail.ChapterCount = chapterCount - 1
+	detail.ChapterCount = purchaseRecord.ChapterCount
 
-	detail.ChapterCompletedPeriod, err = queryLatestCourseChapterPeriod(courseId, studentId)
+	detail.ChapterCompletedPeriod, err = courseService.GetLatestCompleteChapterPeriod(courseId, studentId, purchaseRecord.Id)
 	if err != nil {
-		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod, studentId, purchaseRecord.TeacherId)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(
+			courseId,
+			detail.ChapterCompletedPeriod,
+			studentId,
+			purchaseRecord.TeacherId,
+			purchaseRecord.Id,
+			models.COURSE_TYPE_DELUXE,
+			false)
 	} else {
-		detail.ChapterList, _ = queryCourseCustomChapterStatus(courseId, detail.ChapterCompletedPeriod+1, studentId, purchaseRecord.TeacherId)
+		detail.ChapterList, _ = queryCourseCustomChapterStatus(
+			courseId,
+			detail.ChapterCompletedPeriod+1,
+			studentId,
+			purchaseRecord.TeacherId,
+			purchaseRecord.Id,
+			models.COURSE_TYPE_DELUXE,
+			false)
 	}
 
 	studentList := make([]*models.User, 0)

@@ -209,6 +209,30 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Avartar = user.Avatar
 			info.Title = trade.COMMENT_COURSE_AUDITION
 
+		case models.TRADE_AUDITION_COURSE_PURCHASE:
+			auditionRecord, err := models.ReadCourseAuditionRecord(record.RecordId)
+			if err != nil {
+				continue
+			}
+			user, err := models.ReadUser(auditionRecord.TeacherId)
+			if err != nil {
+				continue
+			}
+			info.Avartar = user.Avatar
+			info.Title = trade.COMMENT_AUDITION_COURSE_PURCHASE
+
+		case models.TRADE_COURSE_RENEW:
+			renewRecord, err := models.ReadCourseRenewRecord(record.RecordId)
+			if err != nil {
+				continue
+			}
+			user, err := models.ReadUser(renewRecord.UserId)
+			if err != nil {
+				continue
+			}
+			info.Avartar = user.Avatar
+			info.Title = trade.COMMENT_COURSE_RENEW
+
 		case models.TRADE_COURSE_EARNING:
 			//老师课程收入
 			purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)
@@ -223,6 +247,22 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Type = TRADE_TYPE_INCOME
 			info.Avartar = user.Avatar
 			info.Title = trade.COMMENT_COURSE_EARNING
+
+		case models.TRADE_AUDITION_COURSE_EARNING:
+			//老师课程收入
+			audition, err := models.ReadCourseAuditionRecord(record.RecordId)
+			if err != nil {
+				continue
+			}
+
+			user, err := models.ReadUser(audition.UserId)
+			if err != nil {
+				continue
+			}
+			info.Type = TRADE_TYPE_INCOME
+			info.Avartar = user.Avatar
+			info.Title = trade.COMMENT_COURSE_EARNING
+
 		case models.TRADE_QA_PKG_PURCHASE:
 			info.Avartar = AVATAR_QAPKG_PURCHASE
 			info.Title = trade.COMMENT_QA_PKG_PURCHASE
@@ -237,6 +277,14 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 						info.Comment = fmt.Sprintf("%s-%d分钟", qaPkgModule.Name, qaPkg.TimeLength)
 					}
 				}
+			}
+		case models.TRADE_QA_PKG_GIVEN:
+			info.Avartar = AVATAR_QAPKG_PURCHASE
+			info.Title = trade.COMMENT_QA_PKG_GIVEN
+			qaPkgId := record.RecordId
+			qaPkg, err := models.ReadQaPkg(qaPkgId)
+			if err == nil {
+				info.Comment = fmt.Sprintf("%s %d分钟", "赠送答疑时间", qaPkg.TimeLength)
 			}
 		default:
 			continue

@@ -1,19 +1,11 @@
 package course
 
 import (
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
-)
+	courseService "WolaiWebservice/service/course"
 
-type courseStudentListItem struct {
-	models.Course
-	StudentCount           int64  `json:"studentCount"`
-	ChapterCount           int64  `json:"chapterCount"`
-	AuditionStatus         string `json:"auditionStatus"`
-	PurchaseStatus         string `json:"purchaseStatus"`
-	ChapterCompletedPeriod int64  `json:"chapterCompletePeriod"`
-}
+	"github.com/astaxie/beego/orm"
+)
 
 func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentListItem) {
 	o := orm.NewOrm()
@@ -33,10 +25,10 @@ func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentLis
 			continue
 		}
 
-		studentCount := queryCourseStudentCount(record.CourseId)
-		chapterCount := queryCourseChapterCount(record.CourseId)
+		studentCount := courseService.GetCourseStudentCount(record.CourseId)
+		chapterCount := courseService.GetCourseChapterCount(record.CourseId)
 
-		chapterCompletePeriod, _ := queryLatestCourseChapterPeriod(record.CourseId, userId)
+		chapterCompletePeriod, _ := courseService.GetLatestCompleteChapterPeriod(record.CourseId, userId, record.Id)
 
 		item := courseStudentListItem{
 			Course:                 *course,

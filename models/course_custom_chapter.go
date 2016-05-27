@@ -39,3 +39,19 @@ func ReadCourseCustomChapter(chapterId int64) (*CourseCustomChapter, error) {
 
 	return &chapter, nil
 }
+
+func InsertCourseCustomChapter(chapter *CourseCustomChapter) (int64, error) {
+	o := orm.NewOrm()
+	id, err := o.Insert(chapter)
+	return id, err
+}
+
+func UpdateCourseCustomChapter(chapterId int64, courseChapterInfo map[string]interface{}) error {
+	o := orm.NewOrm()
+	var params orm.Params = make(orm.Params)
+	for k, v := range courseChapterInfo {
+		params[k] = v
+	}
+	_, err := o.QueryTable("course_custom_chapter").Filter("id", chapterId).Update(params)
+	return err
+}

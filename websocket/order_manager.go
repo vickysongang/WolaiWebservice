@@ -1,11 +1,12 @@
 package websocket
 
 import (
+	"WolaiWebservice/models"
 	"errors"
 	"sync"
 	"time"
 
-	"WolaiWebservice/models"
+	"github.com/cihub/seelog"
 )
 
 type OrderStatus struct {
@@ -19,7 +20,7 @@ type OrderStatus struct {
 	dispatchMap     map[int64]int64 //teacherId to timestamp
 	assignMap       map[int64]int64 //teacherId to timestamp
 	isLocked        bool            //用来控制是否被抢
-	lock            sync.RWMutex
+	lock            sync.Mutex
 }
 
 type OrderStatusManager struct {
@@ -27,6 +28,8 @@ type OrderStatusManager struct {
 
 	personalOrderMap map[int64]map[int64]int64 // studentId to teacherId to orderId
 
+	creatingInstOdrUserSet     map[int64]bool // contain all userIds who are creating orders (including orders that are dispatching)
+	creatingInstOdrUserSetLock sync.Mutex
 }
 
 var ErrOrderNotFound = errors.New("Order is not serving")
@@ -65,9 +68,33 @@ func NewOrderStatusManager() *OrderStatusManager {
 		orderMap: make(map[int64]*OrderStatus),
 
 		personalOrderMap: make(map[int64]map[int64]int64),
+
+		creatingInstOdrUserSet: make(map[int64]bool),
 	}
 
 	return &manager
+}
+
+func (osm *OrderStatusManager) LockUserCreateOrder(userId int64) bool {
+	osm.creatingInstOdrUserSetLock.Lock()
+	defer osm.creatingInstOdrUserSetLock.Unlock()
+	if _, ok := osm.creatingInstOdrUserSet[userId]; ok {
+		//fail because this user already is in the set
+		return false
+	} else {
+		osm.creatingInstOdrUserSet[userId] = true
+		seelog.Debug("orderManager|LockUserCreateOrder userId: \t", userId)
+		return true
+	}
+}
+
+func (osm *OrderStatusManager) UnlockUserCreateOrder(userId int64) {
+	osm.creatingInstOdrUserSetLock.Lock()
+	defer osm.creatingInstOdrUserSetLock.Unlock()
+	if _, ok := osm.creatingInstOdrUserSet[userId]; ok {
+		seelog.Debug("orderManager|UnlockUserCreateOrder userId: \t", userId)
+		delete(osm.creatingInstOdrUserSet, userId)
+	}
 }
 
 func (osm *OrderStatusManager) IsOrderOnline(orderId int64) bool {
@@ -103,7 +130,8 @@ func (osm *OrderStatusManager) SetOnline(orderId int64) error {
 	osm.orderMap[orderId] = NewOrderStatus(orderId)
 
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
-		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+		order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		if _, ok := osm.personalOrderMap[order.Creator]; !ok {
 			osm.personalOrderMap[order.Creator] = make(map[int64]int64)
 		}
@@ -126,7 +154,8 @@ func (osm *OrderStatusManager) SetOffline(orderId int64) error {
 	delete(osm.orderMap, orderId)
 
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
-		order.Type == models.ORDER_TYPE_COURSE_INSTANT {
+		order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+		order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		if _, ok := osm.personalOrderMap[order.Creator]; ok {
 			delete(osm.personalOrderMap[order.Creator], order.TeacherId)
 		}
@@ -248,7 +277,7 @@ func (osm *OrderStatusManager) SetAssignTarget(orderId int64, userId int64) erro
 	status.currentAssign = userId
 
 	//Set order to be locked, because currently assign mode and competing mode are in parallel
-	osm.SetOrderLocked(orderId, true)
+	//osm.SetOrderLocked(orderId, true)
 
 	//将指派对象写入分发表中，并标识为指派单
 	orderDispatch := models.OrderDispatch{
@@ -300,8 +329,8 @@ func (osm *OrderStatusManager) IsOrderLocked(orderId int64) bool {
 	if !ok {
 		return false
 	}
-	status.lock.RLock()
-	defer status.lock.RUnlock()
+	status.lock.Lock()
+	defer status.lock.Unlock()
 	return status.isLocked
 }
 
@@ -314,4 +343,19 @@ func (osm *OrderStatusManager) SetOrderLocked(orderId int64, isLocked bool) erro
 	status.isLocked = isLocked
 	status.lock.Unlock()
 	return nil
+}
+
+func (osm *OrderStatusManager) LockOrder(orderId int64) (bool, error) {
+	status, ok := osm.orderMap[orderId]
+	if !ok {
+		return false, errors.New("该订单已失效")
+	}
+	status.lock.Lock()
+	defer status.lock.Unlock()
+	if status.isLocked == false {
+		status.isLocked = true
+		return true, nil
+	} else {
+		return false, errors.New("该订单已被接")
+	}
 }

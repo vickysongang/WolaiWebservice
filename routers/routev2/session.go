@@ -46,7 +46,7 @@ var sessionRoutes = route.Routes{
 		"/course/info",
 		handlerv2.CourseSessionInfo,
 		true,
-		true,
+		false,
 	},
 
 	// 6.2.1
@@ -105,6 +105,26 @@ var sessionRoutes = route.Routes{
 		"POST",
 		"/evaluation/label/result",
 		handlerv2.SessionEvaluationLabelResult,
+		true,
+		true,
+	},
+
+	// 6.3.4
+	route.Route{
+		"SessionEvaluationCreateUpgrade",
+		"POST",
+		"/evaluation/post",
+		handlerv2.SessionEvaluationCreateUpgrade,
+		true,
+		true,
+	},
+
+	// 6.3.5
+	route.Route{
+		"SessionEvaluationResultUpgrade",
+		"POST",
+		"/evaluation/result",
+		handlerv2.SessionEvaluationResultUpgrade,
 		true,
 		true,
 	},

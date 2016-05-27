@@ -90,6 +90,12 @@ func HandlerWrapper(inner http.Handler, name string, logFlag bool, authFlag bool
 			}
 		}
 
+		//		rt := redis.RateLimit(fmt.Sprintf("%s_%d", name, userId))
+		//		if rt == 0 {
+		//			http.Error(w, "Frequent request", http.StatusServiceUnavailable)
+		//			return
+		//		}
+
 		start := time.Now()
 
 		inner.ServeHTTP(w, r)

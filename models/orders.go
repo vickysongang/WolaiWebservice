@@ -25,7 +25,8 @@ type Order struct {
 	PriceHourly    int64     `json:"-" orm:"column(price_hourly)"`
 	SalaryHourly   int64     `json:"-" orm:"column(salary_hourly)"`
 	CourseId       int64     `json:"courseId" orm:"column(course_id)"`
-	ChapterId      int64     `json:"chapterId" orm:"column(chapter_id"`
+	ChapterId      int64     `json:"chapterId" orm:"column(chapter_id)"`
+	RecordId       int64     `json:"recordId"`
 }
 
 const (
@@ -34,13 +35,10 @@ const (
 	ORDER_STATUS_CONFIRMED   = "confirmed"
 	ORDER_STATUS_CANCELLED   = "cancelled"
 
-	ORDER_TYPE_GENERAL_INSTANT = "general_instant"
-	//ORDER_TYPE_GENERAL_APPOINTMENT   = "general_appointment"
-	ORDER_TYPE_PERSONAL_INSTANT = "personal_instant"
-	//ORDER_TYPE_PERSONAL_APPOINTEMENT = "personal_appointment"
-	//ORDER_TYPE_REALTIME_SESSION = "realtime_session"
-	ORDER_TYPE_COURSE_INSTANT = "course_instant"
-	//ORDER_TYPE_COURSE_APPOINTMENT = "course_appointment"
+	ORDER_TYPE_GENERAL_INSTANT         = "general_instant"
+	ORDER_TYPE_PERSONAL_INSTANT        = "personal_instant"
+	ORDER_TYPE_COURSE_INSTANT          = "course_instant"
+	ORDER_TYPE_AUDITION_COURSE_INSTANT = "audition_course_instant"
 )
 
 func init() {
