@@ -167,7 +167,7 @@ func SendTradeNotification(recordId int64) {
 	case models.TRADE_WITHDRAW:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已提现成功。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("账户充值：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("账户提现：%s %.2f 元", signStr, amount))
 
 	case models.TRADE_PROMOTION:
 		comment := "活动奖励"

@@ -23,7 +23,7 @@ func VoipKeepAliveHandler() {
 				devices := userService.QueryIosUserDevices()
 				for _, device := range devices {
 					seelog.Tracef("[Voip Push] Send: %d, (Token: %s)", device.UserId, device.VoipToken)
-					go apnsprovider.PushVoipAlive(device.VoipToken)
+					go apnsprovider.PushVoipAlive(device.VoipToken, 0)
 				}
 			}
 		}
