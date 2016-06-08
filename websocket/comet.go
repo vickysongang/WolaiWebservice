@@ -560,6 +560,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 				OrderManager.SetOrderCancelled(orderId)
 				orderChan <- quitMsg
 				OrderManager.SetOffline(orderId)
+				OrderManager.UnlockUserCreateOrder(order.Creator)
 			}
 			return resp, nil
 		}
