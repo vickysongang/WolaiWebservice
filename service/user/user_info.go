@@ -89,9 +89,15 @@ func UpdateUserInfo(userId, gender int64, nickname, avatar string) (*models.User
 		return nil, err
 	}
 
-	user.Nickname = nickname
-	user.Avatar = avatar
-	user.Gender = gender
+	if nickname != "" {
+		user.Nickname = nickname
+	}
+	if avatar != "" {
+		user.Avatar = avatar
+	}
+	if gender != -1 {
+		user.Gender = gender
+	}
 
 	user, err = models.UpdateUser(user)
 	if err != nil {

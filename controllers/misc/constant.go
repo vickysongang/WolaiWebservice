@@ -10,10 +10,16 @@ func GetGradeList(pid int64) (int64, []*models.Grade) {
 	o := orm.NewOrm()
 
 	var grades []*models.Grade
-
-	_, err := o.QueryTable("grade").Filter("pid", pid).All(&grades)
-	if err != nil {
-		return 2, nil
+	if pid != -1 {
+		_, err := o.QueryTable("grade").Filter("pid", pid).All(&grades)
+		if err != nil {
+			return 2, nil
+		}
+	} else {
+		_, err := o.QueryTable("grade").All(&grades)
+		if err != nil {
+			return 2, nil
+		}
 	}
 
 	return 0, grades

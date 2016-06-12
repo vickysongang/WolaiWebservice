@@ -43,3 +43,13 @@ func ReadQaPkg(pkgId int64) (*QaPkg, error) {
 	}
 	return &pkg, nil
 }
+
+func QueryGivenQaPkgByLength(length int64) (*QaPkg, error) {
+	o := orm.NewOrm()
+	var qaPkg QaPkg
+	err := o.QueryTable("qa_pkg").Filter("type", QA_PKG_TYPE_GIVEN).Filter("time_length", length).One(&qaPkg)
+	if err != nil {
+		return nil, err
+	}
+	return &qaPkg, nil
+}

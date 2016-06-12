@@ -115,7 +115,25 @@ var userRoutes = route.Routes{
 		"StudentProfile",
 		"POST",
 		"/student/profile",
-		handlerv2.Dummy,
+		handlerv2.UserStudentProfile,
+		true,
+		true,
+	},
+
+	route.Route{
+		"UpdateStudentProfile",
+		"POST",
+		"/student/profile/update",
+		handlerv2.UserStudentProfileUpdate,
+		true,
+		true,
+	},
+
+	route.Route{
+		"CompleteStudentProfile",
+		"POST",
+		"/student/profile/complete",
+		handlerv2.UserStudentProfileComplete,
 		true,
 		true,
 	},

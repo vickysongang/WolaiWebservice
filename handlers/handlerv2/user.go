@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/cihub/seelog"
 
@@ -99,10 +100,24 @@ func UserInfoUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := r.Form
 
-	nickname := vars["nickname"][0]
-	avatar := vars["avatar"][0]
-	genderStr := vars["gender"][0]
-	gender, _ := strconv.ParseInt(genderStr, 10, 64)
+	var nickname string
+	if len(vars["nickname"]) > 0 {
+		nickname = vars["nickname"][0]
+	}
+
+	var avatar string
+	if len(vars["avatar"]) > 0 {
+		avatar = vars["avatar"][0]
+	}
+
+	var gender int64 = -1
+	if len(vars["gender"]) > 0 {
+		genderStr := vars["gender"][0]
+		gender, err = strconv.ParseInt(genderStr, 10, 64)
+		if err != nil {
+			gender = -1
+		}
+	}
 
 	status, err, content := userController.UpdateUserInfo(userId, gender, nickname, avatar)
 	var resp *response.Response
@@ -180,6 +195,114 @@ func UserPromotionOnLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
+}
+
+func UserStudentProfile(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	var studentId int64 = userId
+	if len(vars["userId"]) > 0 {
+		studentIdStr := vars["userId"][0]
+		studentId, err = strconv.ParseInt(studentIdStr, 10, 64)
+		if err != nil {
+			studentId = userId
+		}
+	}
+
+	status, err, content := userController.GetStudentProfile(userId, studentId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+func UserStudentProfileUpdate(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	var schoolName string
+	if len(vars["schoolName"]) > 0 {
+		schoolName = vars["schoolName"][0]
+	}
+
+	var gradeId int64
+	if len(vars["gradeId"]) > 0 {
+		gradeIdStr := vars["gradeId"][0]
+		gradeId, err = strconv.ParseInt(gradeIdStr, 10, 64)
+		if err != nil {
+			gradeId = 0
+		}
+	}
+
+	subjectIdList := make([]int64, 0)
+	if len(vars["subjectList"]) > 0 {
+		subjectIdListStr := vars["subjectList"][0]
+		for _, subjectIdStr := range strings.Split(subjectIdListStr, ",") {
+			subjectId, err := strconv.ParseInt(subjectIdStr, 10, 64)
+			if err == nil {
+				subjectIdList = append(subjectIdList, subjectId)
+			}
+		}
+	}
+
+	status, err, content := userController.UpdateStudentProfile(userId, gradeId, schoolName, subjectIdList)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+func UserStudentProfileComplete(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	status, err, content := userController.CompleteStudentProfile(userId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
 }
 
 // 2.2.2
