@@ -4,7 +4,6 @@ import (
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
 	authService "WolaiWebservice/service/auth"
-	tradeService "WolaiWebservice/service/trade"
 	userService "WolaiWebservice/service/user"
 	"WolaiWebservice/utils/encrypt"
 	"WolaiWebservice/utils/leancloud/lcmessage"
@@ -79,7 +78,7 @@ func OauthRegister(phone, code, openId, nickname, avatar string, gender int64) (
 			return 2, err, nil
 		}
 
-		tradeService.HandleTradeRewardRegistration(user.Id)
+		//tradeService.HandleTradeRewardRegistration(user.Id)
 		go lcmessage.SendWelcomeMessageStudent(user.Id)
 
 		return 1321, nil, info

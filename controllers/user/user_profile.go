@@ -1,15 +1,13 @@
 package user
 
 import (
-	"encoding/json"
-	"fmt"
-
-	"github.com/cihub/seelog"
-
 	"WolaiWebservice/models"
-	qaPkgService "WolaiWebservice/service/qapkg"
 	tradeService "WolaiWebservice/service/trade"
 	userService "WolaiWebservice/service/user"
+
+	"encoding/json"
+
+	"github.com/cihub/seelog"
 
 	"errors"
 )
@@ -42,10 +40,6 @@ type studentProfile struct {
 	Processed   string            `json:"processed"`
 	Prompted    string            `json:"prompted"`
 }
-
-const (
-	MINUTES_REWARD_PROFILE_COMPLETION = 20
-)
 
 func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherProfile) {
 	var err error
@@ -184,17 +178,7 @@ func CompleteStudentProfile(userId int64) (int64, error, string) {
 		return 2, errors.New("学生已经领取过奖励"), ""
 	}
 
-	qaPkg, err := models.QueryGivenQaPkgByLength(MINUTES_REWARD_PROFILE_COMPLETION)
-	if err != nil {
-		return 2, errors.New("赠送答疑包资料异常"), ""
-	}
-
-	status, err := qaPkgService.HandleGivenQaPkgPurchaseRecord(userId, qaPkg.Id)
-	if err != nil {
-		return status, err, ""
-	}
-
-	err = tradeService.HandleGivenQaPkgPurchaseTradeRecord(userId, qaPkg.Id)
+	content, err := tradeService.HandleTradeRewardGivenQaPkg(userId, tradeService.COMMENT_QA_PKG_GIVEN_COMPLETE_PROFILE)
 	if err != nil {
 		return 2, err, ""
 	}
@@ -204,7 +188,7 @@ func CompleteStudentProfile(userId int64) (int64, error, string) {
 		return 2, err, ""
 	}
 
-	return 0, nil, fmt.Sprintf("成功获得%d分钟答疑时间\n快去我的账户里看看吧", MINUTES_REWARD_PROFILE_COMPLETION)
+	return 0, nil, content
 }
 
 func GetTeacherProfileChecked(userId int64, teacherId int64) (int64, error, *teacherProfile) {

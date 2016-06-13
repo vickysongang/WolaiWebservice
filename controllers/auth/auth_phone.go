@@ -41,7 +41,7 @@ func AuthPhoneRegister(phone, code, password string) (int64, error, *authService
 		return 2, err, nil
 	}
 
-	tradeService.HandleTradeRewardRegistration(user.Id)
+	//tradeService.HandleTradeRewardRegistration(user.Id)
 	go lcmessage.SendWelcomeMessageStudent(user.Id)
 
 	return 0, nil, info
