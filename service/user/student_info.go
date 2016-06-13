@@ -68,13 +68,20 @@ func UpdateStudentProfile(userId, gradeId int64, schoolName string, subjectList 
 }
 
 func UpdateStudentToSubject(userId int64, subjectList []int64) error {
-	models.DeleteStudentToSubjectByUserId(userId)
+	var err error
+	err = models.DeleteStudentToSubjectByUserId(userId)
+	if err != nil {
+		return err
+	}
 	for _, subjectId := range subjectList {
 		studentSubject := models.StudentSubject{
 			UserId:    userId,
 			SubjectId: subjectId,
 		}
-		models.InsertStudentToSubject(&studentSubject)
+		_, err = models.InsertStudentToSubject(&studentSubject)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
