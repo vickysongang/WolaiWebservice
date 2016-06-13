@@ -107,3 +107,20 @@ func GetTeacherCourses(teacherId, page, count int64) ([]*models.Course, error) {
 
 	return courses, nil
 }
+
+func GetTeacherEvaluations(teacherId, page, count int64) ([]*models.EvaluationRecommend, error) {
+	var err error
+
+	o := orm.NewOrm()
+
+	var teacherEvalutions []*models.EvaluationRecommend
+	_, err = o.QueryTable("evaluation_recommend").
+		Filter("teacher_id", teacherId).OrderBy("rank").
+		Offset(page * count).Limit(count).
+		All(&teacherEvalutions)
+	if err != nil {
+		seelog.Errorf("%s | teacherId: %d", err.Error(), teacherId)
+		return nil, errors.New("该老师没有评价匹配")
+	}
+	return teacherEvalutions, nil
+}

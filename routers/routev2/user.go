@@ -102,7 +102,7 @@ var userRoutes = route.Routes{
 
 	// 2.2.3
 	route.Route{
-		"TeacherProfile",
+		"TeacherProfileCourse",
 		"POST",
 		"/teacher/profile/course",
 		handlerv2.UserTeacherProfileCourse,
@@ -112,6 +112,16 @@ var userRoutes = route.Routes{
 
 	// 2.2.4
 	route.Route{
+		"TeacherProfileEvaluation",
+		"POST",
+		"/teacher/profile/evaluation",
+		handlerv2.UserTeacherProfileEvalution,
+		true,
+		true,
+	},
+
+	// 2.2.5
+	route.Route{
 		"StudentProfile",
 		"POST",
 		"/student/profile",
@@ -120,6 +130,7 @@ var userRoutes = route.Routes{
 		true,
 	},
 
+	// 2.2.6
 	route.Route{
 		"UpdateStudentProfile",
 		"POST",
@@ -129,6 +140,7 @@ var userRoutes = route.Routes{
 		true,
 	},
 
+	// 2.2.7
 	route.Route{
 		"CompleteStudentProfile",
 		"POST",
@@ -138,7 +150,7 @@ var userRoutes = route.Routes{
 		true,
 	},
 
-	// 2.2.5
+	// 2.2.8
 	route.Route{
 		"TeacherProfileChecked",
 		"POST",

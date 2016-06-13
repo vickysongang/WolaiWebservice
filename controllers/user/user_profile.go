@@ -13,19 +13,22 @@ import (
 )
 
 type teacherProfile struct {
-	Id          int64                   `json:"id"`
-	Nickname    string                  `json:"nickname"`
-	Avatar      string                  `json:"avatar"`
-	Gender      int64                   `json:"gender"`
-	AccessRight int64                   `json:"accessRight"`
-	School      string                  `json:"school"`
-	Major       string                  `json:"major"`
-	Extra       string                  `json:"extra"`
-	ServiceTime int64                   `json:"serviceTime"`
-	SubjectList []string                `json:"subjectList,omitempty"`
-	Intro       string                  `json:"intro"`
-	Resume      []*models.TeacherResume `json:"resume,omitempty"`
-	CourseList  []*CourseListItem       `json:"courseList"`
+	Id              int64                   `json:"id"`
+	Nickname        string                  `json:"nickname"`
+	Avatar          string                  `json:"avatar"`
+	Gender          int64                   `json:"gender"`
+	AccessRight     int64                   `json:"accessRight"`
+	School          string                  `json:"school"`
+	Major           string                  `json:"major"`
+	Extra           string                  `json:"extra"`
+	ServiceTime     int64                   `json:"serviceTime"`
+	SubjectList     []string                `json:"subjectList,omitempty"`
+	Intro           string                  `json:"intro"`
+	Attitude        float64                 `json:"attitude"`
+	Professionalism float64                 `json:"professionalism"`
+	Resume          []*models.TeacherResume `json:"resume,omitempty"`
+	CourseList      []*CourseListItem       `json:"courseList"`
+	EvaluationList  []*EvaluationListItem   `json:"evaluationList"`
 }
 
 type studentProfile struct {
@@ -55,15 +58,17 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherPro
 	}
 
 	profile := teacherProfile{
-		Id:          user.Id,
-		Nickname:    user.Nickname,
-		Avatar:      user.Avatar,
-		Gender:      user.Gender,
-		AccessRight: user.AccessRight,
-		Major:       teacher.Major,
-		ServiceTime: teacher.ServiceTime,
-		Intro:       teacher.Intro,
-		Extra:       teacher.Extra,
+		Id:              user.Id,
+		Nickname:        user.Nickname,
+		Avatar:          user.Avatar,
+		Gender:          user.Gender,
+		AccessRight:     user.AccessRight,
+		Major:           teacher.Major,
+		ServiceTime:     teacher.ServiceTime,
+		Intro:           teacher.Intro,
+		Extra:           teacher.Extra,
+		Attitude:        teacher.Attitude,
+		Professionalism: teacher.Professionalism,
 	}
 
 	school, err := models.ReadSchool(teacher.SchoolId)
@@ -86,6 +91,11 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherPro
 	seelog.Debug("profile courses", string(raw))
 	if err == nil {
 		profile.CourseList = courses
+	}
+
+	evaluations, err := AssembleTeacherEvaluationList(teacherId, 0, 10)
+	if err == nil {
+		profile.EvaluationList = evaluations
 	}
 
 	return 0, nil, &profile
@@ -216,4 +226,15 @@ func GetTeacherCourseList(teacherId, page, count int64) (int64, error, []*Course
 	}
 
 	return 0, nil, courseList
+}
+
+func GetTeacherEvalutionList(teacherId, page, count int64) (int64, error, []*EvaluationListItem) {
+	var err error
+
+	evaluationList, err := AssembleTeacherEvaluationList(teacherId, page, count)
+	if err != nil {
+		return 2, err, nil
+	}
+
+	return 0, nil, evaluationList
 }

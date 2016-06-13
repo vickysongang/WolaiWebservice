@@ -197,6 +197,130 @@ func UserPromotionOnLogin(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
 }
 
+// 2.2.2
+func UserTeacherProfile(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	teacherIdStr := vars["userId"][0]
+	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
+
+	status, err, content := userController.GetTeacherProfile(userId, teacherId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 2.2.3
+func UserTeacherProfileCourse(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	teacherIdStr := vars["userId"][0]
+	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
+	teacher, err := models.ReadUser(teacherId)
+	if teacher.AccessRight == models.USER_ACCESSRIGHT_STUDENT {
+		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullSlice))
+		return
+	}
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, err, content := userController.GetTeacherCourseList(teacherId, page, count)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 2.2.4
+func UserTeacherProfileEvalution(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	teacherIdStr := vars["userId"][0]
+	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
+	teacher, err := models.ReadUser(teacherId)
+	if teacher.AccessRight == models.USER_ACCESSRIGHT_STUDENT {
+		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullObject))
+		return
+	}
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, err, content := userController.GetTeacherEvalutionList(teacherId, page, count)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 2.2.5
 func UserStudentProfile(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
@@ -231,6 +355,7 @@ func UserStudentProfile(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
+// 2.2.6
 func UserStudentProfileUpdate(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
@@ -281,6 +406,7 @@ func UserStudentProfileUpdate(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
+// 2.2.7
 func UserStudentProfileComplete(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
@@ -305,83 +431,7 @@ func UserStudentProfileComplete(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-// 2.2.2
-func UserTeacherProfile(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
-	err := r.ParseForm()
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-
-	userIdStr := r.Header.Get("X-Wolai-ID")
-	userId, err := strconv.ParseInt(userIdStr, 10, 64)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		return
-	}
-	vars := r.Form
-
-	teacherIdStr := vars["userId"][0]
-	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
-
-	status, err, content := userController.GetTeacherProfile(userId, teacherId)
-	var resp *response.Response
-	if err != nil {
-		resp = response.NewResponse(status, err.Error(), response.NullObject)
-	} else {
-		resp = response.NewResponse(status, "", content)
-	}
-	json.NewEncoder(w).Encode(resp)
-}
-
-// 2.2.3
-func UserTeacherProfileCourse(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
-	err := r.ParseForm()
-	if err != nil {
-		seelog.Error(err.Error())
-	}
-
-	userIdStr := r.Header.Get("X-Wolai-ID")
-	_, err = strconv.ParseInt(userIdStr, 10, 64)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		return
-	}
-	vars := r.Form
-
-	teacherIdStr := vars["userId"][0]
-	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
-	teacher, err := models.ReadUser(teacherId)
-	if teacher.AccessRight == models.USER_ACCESSRIGHT_STUDENT {
-		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullSlice))
-		return
-	}
-
-	var page int64
-	if len(vars["page"]) > 0 {
-		pageStr := vars["page"][0]
-		page, _ = strconv.ParseInt(pageStr, 10, 64)
-	}
-	var count int64
-	if len(vars["count"]) > 0 {
-		countStr := vars["count"][0]
-		count, _ = strconv.ParseInt(countStr, 10, 64)
-	} else {
-		count = 10
-	}
-
-	status, err, content := userController.GetTeacherCourseList(teacherId, page, count)
-	var resp *response.Response
-	if err != nil {
-		resp = response.NewResponse(status, err.Error(), response.NullSlice)
-	} else {
-		resp = response.NewResponse(status, "", content)
-	}
-	json.NewEncoder(w).Encode(resp)
-}
-
-// 2.2.5
+// 2.2.8
 func UserTeacherProfileChecked(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
