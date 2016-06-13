@@ -8,16 +8,19 @@ import (
 )
 
 type StudentProfile struct {
-	UserId     int64  `json:"userId" orm:"column(user_id);pk"`
-	SchoolId   int64  `json:"schoolId" orm:"column(school_id)"`
-	SchoolName string `json:"schoolName" orm:"column(school_name)"`
-	GradeId    int64  `json:"gradeId" orm:"column(grade_id)"`
-	Processed  string `json:"processed" orm:"column(process_flag)"`
+	UserId        int64  `json:"userId" orm:"column(user_id);pk"`
+	SchoolId      int64  `json:"schoolId" orm:"column(school_id)"`
+	SchoolName    string `json:"schoolName" orm:"column(school_name)"`
+	GradeId       int64  `json:"gradeId" orm:"column(grade_id)"`
+	Processed     string `json:"processed" orm:"column(process_flag)"`
+	FirstPrompted string `json:"firstPrompted" orm:"column(first_prompted)"`
 }
 
 const (
 	COMPLETE_PROFILE_PROCESSED_FLAG_YES = "Y"
 	COMPLETE_PROFILE_PROCESSED_FLAG_NO  = "N"
+	FIRST_TIME_PROMPTED_FLAG_NO         = "N"
+	FIRST_TIME_PROMPTED_FLAG_YES        = "Y"
 )
 
 func init() {

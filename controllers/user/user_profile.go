@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/cihub/seelog"
 
@@ -39,6 +40,7 @@ type studentProfile struct {
 	SubjectList []*models.Subject `json:"subjectList,omitempty"`
 	GradeId     int64             `json:"gradeId"`
 	Processed   string            `json:"processed"`
+	Prompted    string            `json:"prompted"`
 }
 
 const (
@@ -110,13 +112,24 @@ func GetStudentProfile(userId int64, studentId int64) (int64, error, *studentPro
 	student, err := models.ReadStudentProfile(studentId)
 	if err != nil {
 		newStudentProfile := models.StudentProfile{
-			UserId: studentId,
+			UserId:        studentId,
+			Processed:     models.COMPLETE_PROFILE_PROCESSED_FLAG_NO,
+			FirstPrompted: models.FIRST_TIME_PROMPTED_FLAG_NO,
 		}
 		student, err = models.CreateStudentProfile(&newStudentProfile)
 		if err != nil {
 			return 2, err, nil
 		}
+	}
 
+	firstTime := student.FirstPrompted
+	if userId == studentId && firstTime == models.FIRST_TIME_PROMPTED_FLAG_NO {
+		// userId == studentId 代表是用户自己掉的这个接口，而不是某个其它用户来查看此学生详情接口
+		student.FirstPrompted = models.FIRST_TIME_PROMPTED_FLAG_YES
+		_, err = models.UpdateStudentProfile(student)
+		if err != nil {
+			return 2, err, nil
+		}
 	}
 
 	profile := studentProfile{
@@ -128,6 +141,7 @@ func GetStudentProfile(userId int64, studentId int64) (int64, error, *studentPro
 		School:      student.SchoolName,
 		GradeId:     student.GradeId,
 		Processed:   student.Processed,
+		Prompted:    firstTime,
 	}
 
 	subjects, err := userService.GetStudentSubjects(studentId)
@@ -149,48 +163,48 @@ func UpdateStudentProfile(userId, gradeId int64, schoolName string, subjectList 
 	return 0, nil, profile
 }
 
-func CompleteStudentProfile(userId int64) (int64, error, int64) {
+func CompleteStudentProfile(userId int64) (int64, error, string) {
 	var err error
 
 	student, err := models.ReadStudentProfile(userId)
 	if err != nil {
-		return 2, err, 0
+		return 2, err, ""
 	}
 
 	subjects, err := userService.GetStudentSubjects(userId)
 	if err != nil || len(subjects) == 0 {
-		return 2, errors.New("还未完善科目信息"), 0
+		return 2, errors.New("还未完善科目信息"), ""
 	}
 
 	if student.GradeId == 0 || student.SchoolName == "" {
-		return 2, errors.New("还未完善全部信息"), 0
+		return 2, errors.New("还未完善全部信息"), ""
 	}
 
 	if student.Processed != models.COMPLETE_PROFILE_PROCESSED_FLAG_NO {
-		return 2, errors.New("学生已经领取过奖励"), 0
+		return 2, errors.New("学生已经领取过奖励"), ""
 	}
 
 	qaPkg, err := models.QueryGivenQaPkgByLength(MINUTES_REWARD_PROFILE_COMPLETION)
 	if err != nil {
-		return 2, errors.New("赠送答疑包资料异常"), 0
+		return 2, errors.New("赠送答疑包资料异常"), ""
 	}
 
 	status, err := qaPkgService.HandleGivenQaPkgPurchaseRecord(userId, qaPkg.Id)
 	if err != nil {
-		return status, err, 0
+		return status, err, ""
 	}
 
 	err = tradeService.HandleGivenQaPkgPurchaseTradeRecord(userId, qaPkg.Id)
 	if err != nil {
-		return 2, err, 0
+		return 2, err, ""
 	}
 
 	err = userService.CompleteStudentProfile(userId)
 	if err != nil {
-		return 2, err, 0
+		return 2, err, ""
 	}
 
-	return 0, nil, MINUTES_REWARD_PROFILE_COMPLETION
+	return 0, nil, fmt.Sprintf("成功获得%d分钟答疑时间\n快去我的账户里看看吧", MINUTES_REWARD_PROFILE_COMPLETION)
 }
 
 func GetTeacherProfileChecked(userId int64, teacherId int64) (int64, error, *teacherProfile) {
