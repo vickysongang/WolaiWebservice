@@ -58,19 +58,22 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherPro
 	}
 
 	profile := teacherProfile{
-		Id:              user.Id,
-		Nickname:        user.Nickname,
-		Avatar:          user.Avatar,
-		Gender:          user.Gender,
-		AccessRight:     user.AccessRight,
-		Major:           teacher.Major,
-		ServiceTime:     teacher.ServiceTime,
-		Intro:           teacher.Intro,
-		Extra:           teacher.Extra,
-		Attitude:        teacher.Attitude,
-		Professionalism: teacher.Professionalism,
+		Id:          user.Id,
+		Nickname:    user.Nickname,
+		Avatar:      user.Avatar,
+		Gender:      user.Gender,
+		AccessRight: user.AccessRight,
+		Major:       teacher.Major,
+		ServiceTime: teacher.ServiceTime,
+		Intro:       teacher.Intro,
+		Extra:       teacher.Extra,
 	}
-
+	if teacher.Attitude == 0 {
+		profile.Attitude = 5.0
+	}
+	if teacher.Professionalism == 0 {
+		profile.Professionalism = 5.0
+	}
 	school, err := models.ReadSchool(teacher.SchoolId)
 	if err == nil {
 		profile.School = school.Name
