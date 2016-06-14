@@ -22,6 +22,9 @@ func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
 	if err != nil {
 		return 2, err, nil
 	} else {
+		if user.Freeze == "Y" {
+			return 1003, ERR_USER_FREEZE, nil
+		}
 		if *user.Password == "" {
 			phone := *user.Phone
 			salt := encrypt.GenerateSalt()
@@ -82,6 +85,10 @@ func OauthRegister(phone, code, openId, nickname, avatar string, gender int64) (
 		go lcmessage.SendWelcomeMessageStudent(user.Id)
 
 		return 1321, nil, info
+	}
+
+	if user.Freeze == "Y" {
+		return 1003, ERR_USER_FREEZE, nil
 	}
 
 	if boundFlag, err := authService.HasOauthBound(user.Id); boundFlag {

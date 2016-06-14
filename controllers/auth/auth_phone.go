@@ -4,7 +4,6 @@ import (
 	authService "WolaiWebservice/service/auth"
 	tradeService "WolaiWebservice/service/trade"
 	userService "WolaiWebservice/service/user"
-	"errors"
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
@@ -23,7 +22,7 @@ func AuthPhoneRegister(phone, code, password string) (int64, error, *authService
 
 	user, err := userService.QueryUserByPhone(phone)
 	if user != nil {
-		return 1001, errors.New("该手机号码已注册"), nil
+		return 1001, ERR_PHONE_REGISTERED, nil
 	}
 
 	user, err = userService.RegisterUserByPhone(phone, password)
@@ -51,13 +50,17 @@ func AuthPhonePasswordLogin(phone, password string) (int64, error, *authService.
 	var err error
 	user, err := userService.QueryUserByPhone(phone)
 	if user == nil || *user.Salt == "" || *user.Password == "" {
-		return 1001, errors.New("帐号不存在或密码错误"), nil
+		return 1001, ERR_USER_OR_PWD_WRONG, nil
+	}
+
+	if user.Freeze == "Y" {
+		return 1003, ERR_USER_FREEZE, nil
 	}
 
 	encryptPassword := encrypt.EncryptPassword(password, *user.Salt)
 
 	if *user.Password != encryptPassword {
-		return 1002, errors.New("帐号不存在或密码错误"), nil
+		return 1002, ERR_USER_OR_PWD_WRONG, nil
 	}
 
 	flag, err := userService.IsTeacherFirstLogin(user)
@@ -92,7 +95,7 @@ func AuthPhoneRandCodeLogin(phone, code string, upgrade bool) (int64, error, *au
 	user, err := userService.QueryUserByPhone(phone)
 	if user == nil {
 		if upgrade {
-			return 2, errors.New("帐号不存在或密码错误"), nil
+			return 2, ERR_USER_OR_PWD_WRONG, nil
 		}
 
 		user, err = userService.RegisterUserByPhone(phone, "")
@@ -110,6 +113,10 @@ func AuthPhoneRandCodeLogin(phone, code string, upgrade bool) (int64, error, *au
 
 		return 1231, nil, info
 	} else {
+		if user.Freeze == "Y" {
+			return 1003, ERR_USER_FREEZE, nil
+		}
+
 		if *user.Password == "" {
 			salt := encrypt.GenerateSalt()
 			phoneSuffix := (phone)[len(phone)-6 : len(phone)]
@@ -146,7 +153,7 @@ func ForgotPassword(phone, code, password string) (int64, error, *authService.Au
 
 	user, err := userService.QueryUserByPhone(phone)
 	if user == nil {
-		return 1001, errors.New("该号码未注册"), nil
+		return 1001, ERR_PHONE_NOT_REGISTER, nil
 	}
 
 	err = authService.VerifySMSCode(phone, code, redis.SC_FORGOTPASSWORD_RAND_CODE)
@@ -195,7 +202,7 @@ func SetPassword(userId int64, oldPassword, newPassword string) (int64, error) {
 	oldEncryptPassword := encrypt.EncryptPassword(oldPassword, *user.Salt)
 
 	if *user.Password != oldEncryptPassword {
-		return 1001, errors.New("原密码错误")
+		return 1001, ERR_OLD_PWD_WRONG
 	}
 
 	salt := encrypt.GenerateSalt()
