@@ -43,6 +43,7 @@ func WSUserLogin(msg WSMessage) (chan WSMessage, bool) {
 		//如果不是在同一设备上登陆的，则踢出当前设备用户
 		if objectId != oldObjectId {
 			msgFL := NewWSMessage("", msg.UserId, WS_FORCE_LOGOUT)
+			msgFL.Attribute["errMsg"] = "您的帐号已在另一台手机登录"
 			userChan <- msgFL
 			UserManager.KickoutUser(msg.UserId, true)
 		} else {
@@ -88,6 +89,7 @@ func KickOutLoggedUser(userId int64) {
 	if UserManager.HasUserChan(userId) {
 		userChan := UserManager.GetUserChan(userId)
 		msgFL := NewWSMessage("", userId, WS_FORCE_LOGOUT)
+		msgFL.Attribute["errMsg"] = "您的帐号已在另一台手机登录"
 		userChan <- msgFL
 	}
 }
@@ -114,5 +116,6 @@ func FreezeUser(userId int64) {
 	}
 	userChan := UserManager.GetUserChan(userId)
 	msgFL := NewWSMessage("", userId, WS_FORCE_LOGOUT)
+	msgFL.Attribute["errMsg"] = "账号已经被冻结\n如有疑问请联系助教\n400-960-6700"
 	userChan <- msgFL
 }
