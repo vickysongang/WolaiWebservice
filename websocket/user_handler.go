@@ -91,3 +91,29 @@ func KickOutLoggedUser(userId int64) {
 		userChan <- msgFL
 	}
 }
+
+func FreezeUser(userId int64) {
+	if !UserManager.HasUserChan(userId) {
+		return
+	}
+	_, ok := UserManager.UserSessionLiveMap[userId]
+	if !ok {
+		return
+	}
+	for sessionId, _ := range UserManager.UserSessionLiveMap[userId] {
+		session, _ := models.ReadSession(sessionId)
+		if session == nil {
+			continue
+		}
+
+		if !SessionManager.IsSessionOnline(sessionId) {
+			continue
+		}
+		sessionChan, _ := SessionManager.GetSessionChan(sessionId)
+		autoFinishMsg := NewWSMessage("", session.Tutor, WS_SESSION_FINISH)
+		sessionChan <- autoFinishMsg
+	}
+	userChan := UserManager.GetUserChan(userId)
+	msgFL := NewWSMessage("", userId, WS_FORCE_LOGOUT)
+	userChan <- msgFL
+}
