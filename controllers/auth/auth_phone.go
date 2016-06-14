@@ -22,7 +22,7 @@ func AuthPhoneRegister(phone, code, password string) (int64, error, *authService
 
 	user, err := userService.QueryUserByPhone(phone)
 	if user != nil {
-		return 1001, ERR_PHONE_REGISTERED, nil
+		return 1001, ErrPhoneAlreadyRegister, nil
 	}
 
 	user, err = userService.RegisterUserByPhone(phone, password)
@@ -50,17 +50,17 @@ func AuthPhonePasswordLogin(phone, password string) (int64, error, *authService.
 	var err error
 	user, err := userService.QueryUserByPhone(phone)
 	if user == nil || *user.Salt == "" || *user.Password == "" {
-		return 1001, ERR_USER_OR_PWD_WRONG, nil
+		return 1001, ErrUserOrPwdWrong, nil
 	}
 
 	if user.Freeze == "Y" {
-		return 1003, ERR_USER_FREEZE, nil
+		return 1003, ErrUserFreeze, nil
 	}
 
 	encryptPassword := encrypt.EncryptPassword(password, *user.Salt)
 
 	if *user.Password != encryptPassword {
-		return 1002, ERR_USER_OR_PWD_WRONG, nil
+		return 1002, ErrUserOrPwdWrong, nil
 	}
 
 	flag, err := userService.IsTeacherFirstLogin(user)
@@ -95,7 +95,7 @@ func AuthPhoneRandCodeLogin(phone, code string, upgrade bool) (int64, error, *au
 	user, err := userService.QueryUserByPhone(phone)
 	if user == nil {
 		if upgrade {
-			return 2, ERR_USER_OR_PWD_WRONG, nil
+			return 2, ErrUserOrPwdWrong, nil
 		}
 
 		user, err = userService.RegisterUserByPhone(phone, "")
@@ -114,7 +114,7 @@ func AuthPhoneRandCodeLogin(phone, code string, upgrade bool) (int64, error, *au
 		return 1231, nil, info
 	} else {
 		if user.Freeze == "Y" {
-			return 1003, ERR_USER_FREEZE, nil
+			return 1003, ErrUserFreeze, nil
 		}
 
 		if *user.Password == "" {
@@ -153,7 +153,7 @@ func ForgotPassword(phone, code, password string) (int64, error, *authService.Au
 
 	user, err := userService.QueryUserByPhone(phone)
 	if user == nil {
-		return 1001, ERR_PHONE_NOT_REGISTER, nil
+		return 1001, ErrPhoneNotRegister, nil
 	}
 
 	err = authService.VerifySMSCode(phone, code, redis.SC_FORGOTPASSWORD_RAND_CODE)
@@ -202,7 +202,7 @@ func SetPassword(userId int64, oldPassword, newPassword string) (int64, error) {
 	oldEncryptPassword := encrypt.EncryptPassword(oldPassword, *user.Salt)
 
 	if *user.Password != oldEncryptPassword {
-		return 1001, ERR_OLD_PWD_WRONG
+		return 1001, ErrOldPwdWrong
 	}
 
 	salt := encrypt.GenerateSalt()

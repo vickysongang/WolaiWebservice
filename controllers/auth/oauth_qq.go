@@ -23,7 +23,7 @@ func OauthLogin(openId string) (int64, error, *authService.AuthInfo) {
 		return 2, err, nil
 	} else {
 		if user.Freeze == "Y" {
-			return 1003, ERR_USER_FREEZE, nil
+			return 1003, ErrUserFreeze, nil
 		}
 		if *user.Password == "" {
 			phone := *user.Phone
@@ -88,7 +88,7 @@ func OauthRegister(phone, code, openId, nickname, avatar string, gender int64) (
 	}
 
 	if user.Freeze == "Y" {
-		return 1003, ERR_USER_FREEZE, nil
+		return 1003, ErrUserFreeze, nil
 	}
 
 	if boundFlag, err := authService.HasOauthBound(user.Id); boundFlag {
