@@ -7,6 +7,7 @@ import (
 	"WolaiWebservice/models"
 	"WolaiWebservice/service/trade"
 	tradeService "WolaiWebservice/service/trade"
+
 	"WolaiWebservice/utils/leancloud/lcmessage"
 	"WolaiWebservice/utils/wechat/wcmessage"
 )
@@ -172,7 +173,7 @@ func (watcher *RpcWatcher) HandleTradeRewardRegistration(request *RpcRequest, re
 		*resp = NewRpcResponse(2, "无效的用户Id", response.NullObject)
 		return err
 	}
-	tradeService.HandleTradeRewardRegistration(userId)
+	tradeService.HandleTradeRewardGivenQaPkg(userId, tradeService.COMMENT_QA_PKG_GIVEN_INVITATION)
 	go lcmessage.SendWelcomeMessageStudent(userId)
 	*resp = NewRpcResponse(0, "", response.NullObject)
 	return nil

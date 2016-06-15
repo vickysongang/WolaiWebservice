@@ -7,7 +7,7 @@ import (
 	"github.com/anachronistic/apns"
 )
 
-func PushVoipAlive(voipToken string) error {
+func PushVoipAlive(voipToken string, sessionId int64) error {
 	payload := apns.NewPayload()
 
 	payload.Badge = 1
@@ -15,6 +15,9 @@ func PushVoipAlive(voipToken string) error {
 	pn := apns.NewPushNotification()
 	pn.DeviceToken = voipToken
 	pn.AddPayload(payload)
+	if sessionId != 0 {
+		pn.Set("sessionId", sessionId)
+	}
 
 	return send(pn, models.DEVICE_PROFILE_VOIP)
 }

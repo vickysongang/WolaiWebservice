@@ -42,7 +42,7 @@ func CheckUserInvitation(userId int64) (bool, error) {
 		return false, errors.New("没有邀请记录")
 	}
 
-	trade.HandleTradeRewardInvitation(record.Inviter, record.Amount)
+	trade.HandleTradeRewardInvitationGivenQaPkg(record.Inviter, record.Amount)
 
 	return true, nil
 }

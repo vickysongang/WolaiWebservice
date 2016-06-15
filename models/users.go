@@ -23,6 +23,7 @@ type User struct {
 	Gender        int64     `json:"gender" orm:"column(gender);default(0)"`
 	Avatar        string    `json:"avatar" orm:"column(avatar);null"`
 	Balance       int64     `json:"-" orm:"column(balance);default(0)"`
+	Freeze        string    `json:"-"`
 }
 
 const (
