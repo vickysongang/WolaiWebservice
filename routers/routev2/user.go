@@ -239,4 +239,24 @@ var userRoutes = route.Routes{
 		false,
 		true,
 	},
+
+	// 2.5.1
+	route.Route{
+		"GetUserDataUsage",
+		"POST",
+		"/data/usage",
+		handlerv2.UserDataUsage,
+		true,
+		true,
+	},
+
+	// 2.5.2
+	route.Route{
+		"UpdateUserDataUsage",
+		"POST",
+		"/data/usage/update",
+		handlerv2.UserDataUsageUpdate,
+		true,
+		true,
+	},
 }
