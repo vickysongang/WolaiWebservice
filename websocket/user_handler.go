@@ -29,11 +29,10 @@ func WSUserLogin(msg WSMessage) (chan WSMessage, bool) {
 	if !oko {
 		return userChan, false
 	}
-
-	if _, err := models.ReadUser(msg.UserId); err != nil {
+	user, err := models.ReadUser(msg.UserId)
+	if err != nil {
 		return userChan, false
 	}
-
 	//如果用户已经登陆了，则先判断是否在同一设备上登陆的，若不是在同一设备上登陆的，则将另一设备上的该用户踢出
 	oldObjectId := redis.GetUserObjectId(msg.UserId)
 	onlineFlag := false
@@ -65,6 +64,9 @@ func WSUserLogin(msg WSMessage) (chan WSMessage, bool) {
 		UserManager.SetUserOnline(msg.UserId, time.Now().Unix())
 		//保存用户的objectId
 		redis.SetUserObjectId(msg.UserId, objectId)
+	}
+	if user.Freeze == "Y" {
+		FreezeUser(user.Id)
 	}
 	return userChan, true
 }
