@@ -667,3 +667,73 @@ func UserContactRecommendation(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(resp)
 }
+
+// 2.5.1
+func UserDataUsage(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	status, err, content := userController.GetUserDataUsage(userId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 2.5.2
+func UserDataUsageUpdate(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	vars := r.Form
+
+	var data int64
+	if len(vars["data"]) > 0 {
+		str := vars["data"][0]
+		data, err = strconv.ParseInt(str, 10, 64)
+		if err != nil {
+			data = 0
+		}
+	}
+
+	var dataClass int64
+	if len(vars["dataClass"]) > 0 {
+		str := vars["dataClass"][0]
+		dataClass, err = strconv.ParseInt(str, 10, 64)
+		if err != nil {
+			dataClass = 0
+		}
+	}
+
+	status, err, content := userController.UpdateUserDataUsage(userId, data, dataClass)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
