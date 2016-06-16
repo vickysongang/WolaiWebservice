@@ -77,6 +77,16 @@ var miscRoutes = route.Routes{
 		false,
 	},
 
+	// 10.2.4
+	route.Route{
+		"AdvBanner",
+		"POST",
+		"/adv/banner",
+		handlerv2.AdvBanner,
+		false,
+		false,
+	},
+
 	route.Route{
 		"Dummy",
 		"GET",

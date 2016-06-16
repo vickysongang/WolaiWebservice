@@ -1,6 +1,8 @@
 package misc
 
 import (
+	"time"
+
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
@@ -64,4 +66,17 @@ func GetHelpItemList() (int64, []*models.HelpItem) {
 	}
 
 	return 0, items
+}
+
+func GetAdvBanner(version string) (int64, *models.AdvBanner) {
+	o := orm.NewOrm()
+	now := time.Now()
+	cond := orm.NewCondition()
+	cond = cond.And("time_from__lt", now).And("time_to__gte", now)
+	var advBanner models.AdvBanner
+	o.QueryTable("adv_banner").SetCond(cond).One(&advBanner)
+	if advBanner.Id == 0 {
+		return 2, nil
+	}
+	return 0, &advBanner
 }
