@@ -728,12 +728,7 @@ func UserDataUsageUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var timeStr string
-	if len(vars["time"]) > 0 {
-		timeStr = vars["time"][0]
-	}
-
-	status, err, content := userController.UpdateUserDataUsage(userId, data, dataClass, timeStr)
+	status, err, content := userController.UpdateUserDataUsage(userId, data, dataClass)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullSlice)
