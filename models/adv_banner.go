@@ -8,7 +8,7 @@ import (
 )
 
 type AdvBanner struct {
-	Id         int64     `json:"int64" orm:"pk"`
+	Id         int64     `json:"id" orm:"pk"`
 	Title      string    `json:"title"`
 	Url        string    `json:"url"`
 	MediaId    string    `json:"mediaId"`
