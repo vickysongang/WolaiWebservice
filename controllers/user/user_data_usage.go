@@ -36,6 +36,8 @@ func UpdateUserDataUsage(userId, data, dataClass int64) (int64, error, *models.U
 	if dataUsage.Data > data || dataUsage.DataClass > dataClass {
 		return 2, errors.New("更新的流量怎么会小啊！"), nil
 	}
+	dataUsage.DataToClaim += data - dataUsage.Data
+	dataUsage.DataClassToClaim += dataClass - dataUsage.DataClass
 	dataUsage.Data = data
 	dataUsage.DataClass = dataClass
 	dataUsage.LastUpdateTime = time.Now()
