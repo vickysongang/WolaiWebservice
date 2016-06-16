@@ -1,6 +1,7 @@
 package user
 
 import (
+	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
 	userService "WolaiWebservice/service/user"
 
@@ -8,7 +9,12 @@ import (
 	"time"
 )
 
-func GetUserDataUsage(userId int64) (int64, error, *models.UserDataUsage) {
+type initialUserDataUsage struct {
+	*models.UserDataUsage
+	Freq int64 `json:"freq"`
+}
+
+func GetUserDataUsage(userId int64) (int64, error, *initialUserDataUsage) {
 	var err error
 
 	data, err := models.ReadUserDataUsage(userId)
@@ -22,7 +28,14 @@ func GetUserDataUsage(userId int64) (int64, error, *models.UserDataUsage) {
 			return 2, err, nil
 		}
 	}
-	return 0, nil, data
+	freq := settings.FreqSyncDataUsage()
+
+	initialData := initialUserDataUsage{
+		UserDataUsage: data,
+		Freq:          freq,
+	}
+
+	return 0, nil, &initialData
 }
 
 func UpdateUserDataUsage(userId, data, dataClass int64) (int64, error, *models.UserDataUsage) {
@@ -36,6 +49,8 @@ func UpdateUserDataUsage(userId, data, dataClass int64) (int64, error, *models.U
 	if dataUsage.Data > data || dataUsage.DataClass > dataClass {
 		return 2, errors.New("更新的流量怎么会小啊！"), nil
 	}
+	dataUsage.DataToClaim += data - dataUsage.Data
+	dataUsage.DataClassToClaim += dataClass - dataUsage.DataClass
 	dataUsage.Data = data
 	dataUsage.DataClass = dataClass
 	dataUsage.LastUpdateTime = time.Now()
