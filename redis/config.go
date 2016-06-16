@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	CONFIG_GENERAL               = "config:general"
-	CONFIG_KEY_GENERAL_WEBSOCKET = "websocket"
-	CONFIG_KEY_GENERAL_KAMAILIO  = "kamailio"
+	CONFIG_GENERAL                    = "config:general"
+	CONFIG_KEY_GENERAL_WEBSOCKET      = "websocket"
+	CONFIG_KEY_GENERAL_KAMAILIO       = "kamailio"
+	CONFIG_KEY_GENERAL_DATA_SYNC_FREQ = "data_sync_freq"
 
 	CONFIG_ORDER                        = "config:order"
 	CONFIG_KEY_ORDER_LIFESPAN_GI        = "lifespan_gi"
@@ -68,8 +69,9 @@ var defaultMap = map[string]map[string]string{
 		CONFIG_KEY_WEBSOCKET_WRITE_WAIT:  "10",
 	},
 	CONFIG_GENERAL: map[string]string{
-		CONFIG_KEY_GENERAL_WEBSOCKET: "115.29.207.236:8080/v1/ws",
-		CONFIG_KEY_GENERAL_KAMAILIO:  "115.29.207.236:5060",
+		CONFIG_KEY_GENERAL_WEBSOCKET:      "115.29.207.236:8080/v1/ws",
+		CONFIG_KEY_GENERAL_KAMAILIO:       "115.29.207.236:5060",
+		CONFIG_KEY_GENERAL_DATA_SYNC_FREQ: "60",
 	},
 	CONFIG_TOKEN: map[string]string{
 		CONFIG_KEY_TOKEN_DURATION: "2592000",
