@@ -73,10 +73,17 @@ func GetAdvBanner(version string) (int64, *models.AdvBanner) {
 	now := time.Now()
 	cond := orm.NewCondition()
 	cond = cond.And("time_from__lt", now).And("time_to__gte", now)
-	var advBanner models.AdvBanner
-	o.QueryTable("adv_banner").SetCond(cond).One(&advBanner)
-	if advBanner.Id == 0 {
-		return 2, nil
+	var advBanners []models.AdvBanner
+	o.QueryTable("adv_banner").SetCond(cond).OrderBy("-time_from").All(&advBanners)
+	for _, advBanner := range advBanners {
+		if advBanner.Version == "all" || advBanner.Version == version {
+			return 0, &advBanner
+		} else {
+			versionStr := advBanner.Version[1:]
+			if version < versionStr {
+				return 0, &advBanner
+			}
+		}
 	}
-	return 0, &advBanner
+	return 2, nil
 }

@@ -12,6 +12,8 @@ type AdvBanner struct {
 	Title      string    `json:"title"`
 	Url        string    `json:"url"`
 	MediaId    string    `json:"mediaId"`
+	Type       string    `json:"type"`
+	Version    string    `json:"version"`
 	TimeFrom   time.Time `json:"-" orm:"type(datetime)"`
 	TimeTo     time.Time `json:"-" orm:"type(datetime)"`
 	CreateTime time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
