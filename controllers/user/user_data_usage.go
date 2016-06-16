@@ -38,7 +38,7 @@ func GetUserDataUsage(userId int64) (int64, error, *initialUserDataUsage) {
 	return 0, nil, &initialData
 }
 
-func UpdateUserDataUsage(userId, data, dataClass int64) (int64, error, *models.UserDataUsage) {
+func UpdateUserDataUsage(userId, data, dataClass int64) (int64, error, *initialUserDataUsage) {
 	var err error
 
 	dataUsage, err := models.ReadUserDataUsage(userId)
@@ -60,5 +60,12 @@ func UpdateUserDataUsage(userId, data, dataClass int64) (int64, error, *models.U
 		return 2, err, nil
 	}
 
-	return 0, nil, dataUsage
+	freq := settings.FreqSyncDataUsage()
+
+	initialData := initialUserDataUsage{
+		UserDataUsage: dataUsage,
+		Freq:          freq,
+	}
+
+	return 0, nil, &initialData
 }
