@@ -10,8 +10,6 @@ import (
 )
 
 func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailStudent) {
-	o := orm.NewOrm()
-
 	course, err := models.ReadCourse(courseId)
 	if err != nil {
 		return 2, nil
@@ -30,9 +28,7 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 	characteristicList, _ := courseService.QueryCourseContentIntros(courseId)
 	detail.CharacteristicList = characteristicList
 
-	var purchaseRecord models.CoursePurchaseRecord
-	err = o.QueryTable("course_purchase_record").Filter("user_id", userId).Filter("course_id", courseId).
-		One(&purchaseRecord)
+	purchaseRecord, err := courseService.GetCoursePurchaseRecordByUserId(courseId, userId)
 	if err != nil && err != orm.ErrNoRows {
 		return 2, nil
 	}
@@ -76,12 +72,9 @@ func GetCourseDetailStudent(userId int64, courseId int64) (int64, *courseDetailS
 }
 
 func queryCourseTeacherList(courseId int64) ([]*teacherItem, error) {
-	o := orm.NewOrm()
-
 	result := make([]*teacherItem, 0)
 
-	var courseTeachers []*models.CourseToTeacher
-	_, err := o.QueryTable("course_to_teachers").Filter("course_id", courseId).All(&courseTeachers)
+	courseTeachers, err := courseService.QueryCourseTeachers(courseId)
 	if err != nil {
 		return result, nil
 	}

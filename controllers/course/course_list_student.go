@@ -3,18 +3,12 @@ package course
 import (
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
-
-	"github.com/astaxie/beego/orm"
 )
 
 func GetCourseListStudent(userId, page, count int64) (int64, []*courseStudentListItem) {
-	o := orm.NewOrm()
-
 	items := make([]*courseStudentListItem, 0)
 
-	var records []*models.CoursePurchaseRecord
-	_, err := o.QueryTable("course_purchase_record").Filter("user_id", userId).
-		OrderBy("-last_update_time").Offset(page * count).Limit(count).All(&records)
+	records, err := courseService.QueryStudentCoursePurchaseRecords(userId, page, count, false)
 	if err != nil {
 		return 0, items
 	}

@@ -11,19 +11,14 @@ import (
 func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProceedResponse) {
 	var err error
 
-	o := orm.NewOrm()
-
 	course, err := models.ReadCourse(courseId)
 	if err != nil {
 		return 2, nil
 	}
 
 	// 先查询该用户是否有购买（或试图购买）过这个课程
-	var currentRecord models.CoursePurchaseRecord
 	var record *models.CoursePurchaseRecord
-	err = o.QueryTable("course_purchase_record").Filter("course_id", courseId).Filter("user_id", userId).
-		One(&currentRecord)
-
+	currentRecord, err := courseService.GetCoursePurchaseRecordByUserId(courseId, userId)
 	if err == orm.ErrNoRows {
 		chaperCount := courseService.GetCourseChapterCount(courseId)
 		// 如果用户没有购买过，创建购买记录

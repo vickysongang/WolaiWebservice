@@ -1,9 +1,8 @@
 package course
 
 import (
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 )
 
 type attachInfo struct {
@@ -16,13 +15,8 @@ type chapterAttachInfo struct {
 	AttachList []*attachInfo `json:"attachInfo"`
 }
 
-func GetCourseAttachs(courseId int64) (int64, []*chapterAttachInfo) {
-	o := orm.NewOrm()
-
-	var courseCustomChapters []*models.CourseCustomChapter
-	_, err := o.QueryTable("course_custom_chapter").
-		Filter("rel_id", courseId).
-		All(&courseCustomChapters)
+func GetCourseAttachs(relId int64) (int64, []*chapterAttachInfo) {
+	courseCustomChapters, err := courseService.QueryCustomChaptersByRelId(relId)
 	if err != nil {
 		return 2, nil
 	}
@@ -39,8 +33,7 @@ func GetCourseAttachs(courseId int64) (int64, []*chapterAttachInfo) {
 			continue
 		}
 
-		var attachPics []*models.CourseChapterAttachPic
-		_, err = o.QueryTable("course_chapter_attach_pic").Filter("attach_id", courseChapterAttach.Id).All(&attachPics)
+		attachPics, err := courseService.QueryChapterAttachPics(courseChapterAttach.Id)
 		if err != nil {
 			continue
 		}
@@ -65,8 +58,6 @@ func GetCourseAttachs(courseId int64) (int64, []*chapterAttachInfo) {
 }
 
 func GetCourseChapterAttachs(chapterId int64) (int64, *chapterAttachInfo) {
-	o := orm.NewOrm()
-
 	courseChapter, err := models.ReadCourseCustomChapter(chapterId)
 	if err != nil {
 		return 2, nil
@@ -81,8 +72,7 @@ func GetCourseChapterAttachs(chapterId int64) (int64, *chapterAttachInfo) {
 		return 2, nil
 	}
 
-	var attachPics []*models.CourseChapterAttachPic
-	_, err = o.QueryTable("course_chapter_attach_pic").Filter("attach_id", courseChapterAttach.Id).All(&attachPics)
+	attachPics, err := courseService.QueryChapterAttachPics(courseChapterAttach.Id)
 	if err != nil {
 		return 2, nil
 	}

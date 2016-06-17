@@ -1,18 +1,12 @@
 package course
 
 import (
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 )
 
 func GetCourseDetailTeacher(courseId, studentId int64) (int64, *courseDetailTeacher) {
-	o := orm.NewOrm()
-
-	var purchaseRecord models.CoursePurchaseRecord
-	err := o.QueryTable("course_purchase_record").Filter("user_id", studentId).Filter("course_id", courseId).
-		One(&purchaseRecord)
+	purchaseRecord, err := courseService.GetCoursePurchaseRecordByUserId(courseId, studentId)
 	if err != nil {
 		return 2, nil
 	}

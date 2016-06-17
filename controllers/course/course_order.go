@@ -3,8 +3,6 @@ package course
 import (
 	"errors"
 
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 	orderService "WolaiWebservice/service/order"
@@ -13,8 +11,6 @@ import (
 
 func createDeluxeCourseOrder(recordId int64, upgrade bool) error {
 	var err error
-
-	o := orm.NewOrm()
 
 	record, err := models.ReadCoursePurchaseRecord(recordId)
 	if err != nil {
@@ -37,17 +33,12 @@ func createDeluxeCourseOrder(recordId int64, upgrade bool) error {
 			currentPeriod = 0
 		}
 	}
-	var courseRelation models.CourseRelation
-	err = o.QueryTable("course_relation").Filter("record_id", recordId).Filter("type", models.COURSE_TYPE_DELUXE).Limit(1).One(&courseRelation)
+	courseRelation, err := courseService.GetCourseRelation(recordId, models.COURSE_TYPE_DELUXE)
 	if err != nil {
 		return errors.New("查找绑定关系失败")
 	}
 
-	var chapter models.CourseCustomChapter
-	err = o.QueryTable("course_custom_chapter").
-		Filter("rel_id", courseRelation.Id).
-		Filter("period", currentPeriod).
-		One(&chapter)
+	chapter, err := courseService.GetCurrentCustomChapter(courseRelation.Id, currentPeriod)
 	if err != nil {
 		return errors.New("查找当前章节失败")
 	}
@@ -66,25 +57,22 @@ func createDeluxeCourseOrder(recordId int64, upgrade bool) error {
 func createAuditionCourseOrder(recordId int64) error {
 	var err error
 
-	o := orm.NewOrm()
-
 	record, err := models.ReadCourseAuditionRecord(recordId)
 	if err != nil {
 		return err
 	}
-	var courseRelation models.CourseRelation
-	err = o.QueryTable("course_relation").Filter("record_id", recordId).Filter("type", models.COURSE_TYPE_AUDITION).Limit(1).One(&courseRelation)
+
+	courseRelation, err := courseService.GetCourseRelation(recordId, models.COURSE_TYPE_AUDITION)
 	if err != nil {
 		return errors.New("查找绑定关系失败")
 	}
-	var chapter models.CourseCustomChapter
-	err = o.QueryTable("course_custom_chapter").
-		Filter("rel_id", courseRelation.Id).
-		One(&chapter)
-	if err != nil {
+
+	chapters, err := courseService.QueryCustomChaptersByRelId(courseRelation.Id)
+	if err != nil || len(chapters) == 0 {
 		return errors.New("查找当前章节失败")
 	}
 
+	chapter := chapters[0]
 	order, err := orderService.CreateOrder(record.UserId, 0, 0, record.TeacherId,
 		0, record.Id, chapter.Id, models.ORDER_TYPE_AUDITION_COURSE_INSTANT)
 	if err != nil {

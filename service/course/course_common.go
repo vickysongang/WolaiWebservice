@@ -6,6 +6,15 @@ import (
 	"WolaiWebservice/models"
 )
 
+func QueryCourseBanners() ([]*models.CourseBanners, error) {
+	o := orm.NewOrm()
+
+	var banners []*models.CourseBanners
+	_, err := o.QueryTable("course_banners").
+		OrderBy("rank").All(&banners)
+	return banners, err
+}
+
 func GetCourseStudentCount(courseId int64) int64 {
 	course, err := models.ReadCourse(courseId)
 	if err != nil {
@@ -25,31 +34,21 @@ func GetCourseStudentCount(courseId int64) int64 {
 	return studentCount
 }
 
-func GetCourseChapterCount(courseId int64) int64 {
+func GetConversationCourseCount(studentId, teacherId int64) int64 {
 	o := orm.NewOrm()
-	chapterCount, err := o.QueryTable(new(models.CourseChapter).TableName()).
-		Filter("course_id", courseId).
-		Exclude("period", 0).
-		Count()
-	if err != nil {
-		return 0
-	}
-	return chapterCount
+	count, _ := o.QueryTable("course_purchase_record").
+		Filter("user_id", studentId).
+		Filter("teacher_id", teacherId).Count()
+	return count
 }
 
-func GetCourseChapterToUser(chapterId, userId, teacherId, recordId int64) (*models.CourseChapterToUser, error) {
+func GetConversationAuditonCourseCount(studentId, teacherId int64) int64 {
 	o := orm.NewOrm()
-	var chapterToUser models.CourseChapterToUser
-	cond := orm.NewCondition()
-	cond = cond.And("chapter_id", chapterId)
-	cond = cond.And("user_id", userId)
-	cond = cond.And("teacher_id", teacherId)
-	if recordId != 0 {
-		cond = cond.And("record_id", recordId)
-	}
-	err := o.QueryTable(new(models.CourseChapterToUser).TableName()).
-		SetCond(cond).One(&chapterToUser)
-	return &chapterToUser, err
+	count, _ := o.QueryTable("course_audition_record").
+		Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
+		Filter("user_id", studentId).
+		Filter("teacher_id", teacherId).Count()
+	return count
 }
 
 func GetSessionIdByChapter(chapterId int64) int64 {
@@ -71,32 +70,40 @@ func GetSessionIdByChapter(chapterId int64) int64 {
 	return sessionId
 }
 
-//查询课程的章节
-func QueryCourseChapters(courseId int64) ([]models.CourseChapter, error) {
-	o := orm.NewOrm()
-	courseChapters := make([]models.CourseChapter, 0)
-	_, err := o.QueryTable(new(models.CourseChapter).TableName()).Filter("course_id", courseId).OrderBy("period").All(&courseChapters)
-	return courseChapters, err
-}
-
-//查询最近完成的课时号
-func GetLatestCompleteChapterPeriod(courseId, userId, recordId int64) (int64, error) {
-	o := orm.NewOrm()
-	cond := orm.NewCondition()
-	cond = cond.And("course_id", courseId)
-	cond = cond.And("user_id", userId)
-	if recordId != 0 {
-		cond = cond.And("record_id", recordId)
-	}
-	var chapterToUser models.CourseChapterToUser
-	err := o.QueryTable("course_chapter_to_user").SetCond(cond).OrderBy("-period").Limit(1).One(&chapterToUser)
-	period := chapterToUser.Period
-	return period, err
-}
-
 func QueryCourseContentIntros(courseId int64) ([]models.CourseContentIntro, error) {
 	o := orm.NewOrm()
 	intros := make([]models.CourseContentIntro, 0)
-	_, err := o.QueryTable(new(models.CourseContentIntro).TableName()).Filter("course_id", courseId).OrderBy("rank").All(&intros)
+	_, err := o.QueryTable(new(models.CourseContentIntro).TableName()).
+		Filter("course_id", courseId).OrderBy("rank").All(&intros)
 	return intros, err
+}
+
+func QueryCourseTeachers(courseId int64) ([]*models.CourseToTeacher, error) {
+	o := orm.NewOrm()
+	var courseTeachers []*models.CourseToTeacher
+	_, err := o.QueryTable("course_to_teachers").
+		Filter("course_id", courseId).
+		All(&courseTeachers)
+	return courseTeachers, err
+}
+
+func QueryModuleCourses(moduleId int64) ([]*models.CourseToModule, error) {
+	o := orm.NewOrm()
+	var moduleCourses []*models.CourseToModule
+	_, err := o.QueryTable("course_to_module").
+		Filter("module_id", moduleId).
+		Filter("recommend", 1).
+		OrderBy("rank").All(&moduleCourses)
+	return moduleCourses, err
+}
+
+func QueryCourseModules(moduleId, page, count int64) ([]*models.CourseToModule, error) {
+	o := orm.NewOrm()
+	var courseModules []*models.CourseToModule
+	_, err := o.QueryTable("course_to_module").
+		Filter("module_id", moduleId).
+		OrderBy("rank").
+		Offset(page * count).Limit(count).
+		All(&courseModules)
+	return courseModules, err
 }
