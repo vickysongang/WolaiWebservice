@@ -70,6 +70,7 @@ func GetQaPkgList() ([]QaPkgModuleInfo, error) {
 		if err != nil {
 			continue
 		}
+
 		var moduleInfo QaPkgModuleInfo
 		moduleInfo.ModuleId = module.Id
 		moduleInfo.ModuleName = module.Name
@@ -77,11 +78,13 @@ func GetQaPkgList() ([]QaPkgModuleInfo, error) {
 		for _, qaPkg := range qaPkgs {
 			showInfo := QaPkgShowInfo{}
 			showInfo.QaPkg = qaPkg
+
 			if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
 				showInfo.Name = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
 				showInfo.Content = fmt.Sprintf("%d分钟", qaPkg.TimeLength)
 				showInfo.Price = fmt.Sprintf("%.2f元（原价%.2f元）", float64(qaPkg.DiscountPrice)/100, float64(qaPkg.OriginalPrice)/100)
 				showInfo.Comment = "购买该优惠包后可以任意使用快速提问功能"
+
 			} else if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
 				showInfo.Name = fmt.Sprintf("%s-%d%s", module.Name, qaPkg.Month, "个月")
 				showInfo.Content = fmt.Sprintf("%d分钟/月", qaPkg.TimeLength)
@@ -89,6 +92,7 @@ func GetQaPkgList() ([]QaPkgModuleInfo, error) {
 				showInfo.Comment = "购买该优惠包后可以任意使用快速提问功能"
 			}
 			moduleInfo.QaPkgs = append(moduleInfo.QaPkgs, &showInfo)
+
 		}
 		pkgModuleInfos = append(pkgModuleInfos, moduleInfo)
 	}
@@ -106,24 +110,24 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 	}
 	var totalQaTimeLength int64
 	if len(monthlyQaPkgRecords) > 0 {
-		userMonthlyQaPkg := MonthlyQaPkg{}
-		userMonthlyQaPkg.TotalMonth = int64(len(monthlyQaPkgRecords))
+		qapkg := MonthlyQaPkg{}
+		qapkg.TotalMonth = int64(len(monthlyQaPkgRecords))
 		var index int64
 		for _, record := range monthlyQaPkgRecords {
 			index++
 			if now.After(record.TimeFrom) && record.TimeTo.After(now) {
-				userMonthlyQaPkg.RecordId = record.Id
-				userMonthlyQaPkg.QaPkgId = record.QaPkgId
+				qapkg.RecordId = record.Id
+				qapkg.QaPkgId = record.QaPkgId
 				qaPkg, _ := models.ReadQaPkg(record.QaPkgId)
 				qaModule, _ := models.ReadQaPkgModule(qaPkg.ModuleId)
-				userMonthlyQaPkg.Title = qaModule.Name
-				userMonthlyQaPkg.TotalTime = qaPkg.TimeLength
-				userMonthlyQaPkg.LeftTime = record.LeftTime
+				qapkg.Title = qaModule.Name
+				qapkg.TotalTime = qaPkg.TimeLength
+				qapkg.LeftTime = record.LeftTime
 				expireTime := record.TimeTo.Format("2006-01-02")
-				userMonthlyQaPkg.ExpireComment = fmt.Sprintf("＊%v%s", expireTime, "前有效")
+				qapkg.ExpireComment = fmt.Sprintf("＊%v%s", expireTime, "前有效")
 				totalQaTimeLength = totalQaTimeLength + record.LeftTime
-				userMonthlyQaPkg.CurrentMonth = index
-				userMonthlyQaPkgs = append(userMonthlyQaPkgs, &userMonthlyQaPkg)
+				qapkg.CurrentMonth = index
+				userMonthlyQaPkgs = append(userMonthlyQaPkgs, &qapkg)
 				break
 			}
 		}
@@ -136,23 +140,23 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 		return nil, err
 	}
 	for _, record := range permanentQaPkgRecords {
-		userPermanentQaPkg := PermanentQaPkg{}
+		qapkg := PermanentQaPkg{}
 		qaPkg, _ := models.ReadQaPkg(record.QaPkgId)
 		if record.Type == models.QA_PKG_TYPE_GIVEN {
 			if !(now.After(record.TimeFrom) && record.TimeTo.After(now)) {
 				continue
 			}
-			userPermanentQaPkg.Title = fmt.Sprintf("赠送答疑时间%d分钟", qaPkg.TimeLength)
+			qapkg.Title = fmt.Sprintf("赠送答疑时间%d分钟", qaPkg.TimeLength)
 		} else {
-			userPermanentQaPkg.Title = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
+			qapkg.Title = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
 		}
 
-		userPermanentQaPkg.RecordId = record.Id
-		userPermanentQaPkg.QaPkgId = record.QaPkgId
+		qapkg.RecordId = record.Id
+		qapkg.QaPkgId = record.QaPkgId
 
-		userPermanentQaPkg.TotalTime = qaPkg.TimeLength
-		userPermanentQaPkg.LeftTime = record.LeftTime
-		userPermanentQaPkgs = append(userPermanentQaPkgs, &userPermanentQaPkg)
+		qapkg.TotalTime = qaPkg.TimeLength
+		qapkg.LeftTime = record.LeftTime
+		userPermanentQaPkgs = append(userPermanentQaPkgs, &qapkg)
 
 		totalQaTimeLength = totalQaTimeLength + record.LeftTime
 	}
