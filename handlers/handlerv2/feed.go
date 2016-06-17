@@ -121,7 +121,7 @@ func FeedPost(w http.ResponseWriter, r *http.Request) {
 		attributeStr = vars["attribute"][0]
 	}
 
-	content, err := feedController.PostPOIFeed(
+	content, err := feedController.PostFeed(
 		userId,
 		timestamp,
 		feedType,
@@ -183,7 +183,7 @@ func FeedLike(w http.ResponseWriter, r *http.Request) {
 
 	feedId := vars["feedId"][0]
 
-	_, _ = feedController.LikePOIFeed(userId, feedId, timestamp)
+	_, _ = feedController.LikeFeed(userId, feedId, timestamp)
 
 	content, err := feedController.GetFeedDetail(feedId, userId)
 	if err != nil {
@@ -226,7 +226,7 @@ func FeedComment(w http.ResponseWriter, r *http.Request) {
 		replyToId, _ = strconv.ParseInt(replyToStr, 10, 64)
 	}
 
-	_, _ = feedController.PostPOIFeedComment(userId, feedId, timestamp, text, imageStr, replyToId)
+	_, _ = feedController.PostFeedComment(userId, feedId, timestamp, text, imageStr, replyToId)
 
 	content, err := feedController.GetFeedDetail(feedId, userId)
 	if err != nil {

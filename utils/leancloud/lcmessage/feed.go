@@ -6,18 +6,19 @@ import (
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
+	feedService "WolaiWebservice/service/feed"
 	"WolaiWebservice/utils/leancloud"
 )
 
 func SendCommentNotification(feedCommentId string) {
-	var feedComment *models.POIFeedComment
-	var feed *models.POIFeed
+	var feedComment *models.FeedComment
+	var feed *models.Feed
 	if redis.RedisFailErr == nil {
 		feedComment = redis.GetFeedComment(feedCommentId)
 		feed = redis.GetFeed(feedComment.FeedId)
 	} else {
-		feedComment, _ = models.GetFeedComment(feedCommentId)
-		feed, _ = models.GetFeed(feedComment.FeedId)
+		feedComment, _ = feedService.GetFeedComment(feedCommentId)
+		feed, _ = feedService.GetFeed(feedComment.FeedId)
 	}
 
 	if feedComment == nil || feed == nil {
@@ -59,11 +60,11 @@ func SendCommentNotification(feedCommentId string) {
 
 func SendLikeNotification(userId int64, timestamp float64, feedId string) {
 	user, _ := models.ReadUser(userId)
-	var feed *models.POIFeed
+	var feed *models.Feed
 	if redis.RedisFailErr == nil {
 		feed = redis.GetFeed(feedId)
 	} else {
-		feed, _ = models.GetFeed(feedId)
+		feed, _ = feedService.GetFeed(feedId)
 	}
 
 	if user == nil || feed == nil {

@@ -9,6 +9,7 @@ import (
 	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
+	tradeService "WolaiWebservice/service/trade"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 )
 
@@ -71,7 +72,7 @@ func (watcher *RpcWatcher) PayByPingpp(request *RpcRequest, resp *RpcResponse) e
 func (watcher *RpcWatcher) QueryPingppRecordByChargeId(request *RpcRequest, resp *RpcResponse) error {
 	chargeId := request.Args["chargeId"]
 
-	content, err := models.QueryPingppRecordByChargeId(chargeId)
+	content, err := tradeService.QueryPingppRecordByChargeId(chargeId)
 	if err != nil {
 		*resp = NewRpcResponse(2, err.Error(), response.NullObject)
 	} else {

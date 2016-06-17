@@ -4,8 +4,6 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-
-	"WolaiWebservice/config"
 )
 
 type Complaint struct {
@@ -54,15 +52,4 @@ func UpdateComplaint(complaintId int64, complaintInfo map[string]interface{}) er
 	_, err = o.QueryTable("complaint").Filter("id", complaintId).Update(params)
 
 	return err
-}
-
-func GetComplaintStatus(userId, sessionId int64) string {
-	o := orm.NewOrm()
-
-	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
-	status := ""
-	qb.Select("status").From("complaint").Where("user_id = ? and session_id = ?")
-	sql := qb.String()
-	o.Raw(sql, userId, sessionId).QueryRow(&status)
-	return status
 }
