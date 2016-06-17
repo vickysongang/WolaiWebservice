@@ -14,6 +14,7 @@ type AdvBanner struct {
 	MediaId    string    `json:"mediaId"`
 	Type       string    `json:"type"`
 	Version    string    `json:"version"`
+	Countdown  int64     `json:"countdown"`
 	TimeFrom   time.Time `json:"-" orm:"type(datetime)"`
 	TimeTo     time.Time `json:"-" orm:"type(datetime)"`
 	CreateTime time.Time `json:"-" orm:"auto_now_add;type(datetime)"`

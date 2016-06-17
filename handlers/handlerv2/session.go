@@ -375,7 +375,7 @@ func SessionComplainPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	complaint := models.Complaint{UserId: userId, SessionId: sessionId, Reasons: reasons, Comment: comment, Status: "pending"}
-	content, err := models.InsertPOIComplaint(&complaint)
+	content, err := models.InsertComplaint(&complaint)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
