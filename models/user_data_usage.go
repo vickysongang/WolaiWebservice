@@ -12,7 +12,7 @@ type UserDataUsage struct {
 	UserId           int64     `json:"userId" orm:"column(user_id);pk"`
 	Data             int64     `json:"data" orm:"column(total_data)"`
 	DataClass        int64     `json:"dataClass" orm:"column(total_data_class)"`
-	LastUpdateTime   time.Time `json:"lastUpdateTime" orm:"column(last_update_time);type(datetime)"`
+	LastUpdateTime   time.Time `json:"lastUpdateTime" orm:"column(last_update_time);type(datetime);auto_now"`
 	DataToClaim      int64     `json:"dataToClaim" orm:"column(total_data_to_claim)"`
 	DataClassToClaim int64     `json:"dataClassToClaim" orm:"column(total_data_class_to_claim)"`
 }
@@ -65,4 +65,16 @@ func UpdateUserDataUsage(userDataUsage *UserDataUsage) (*UserDataUsage, error) {
 	}
 
 	return userDataUsage, nil
+}
+
+func HandleDataClaimUpdate(userId int64, data, dataClass, totalClaimAdd, totalClassClaimAdd int64) error {
+	o := orm.NewOrm()
+	_, err := o.QueryTable("user_data_usage").Filter("user_id", userId).Update(orm.Params{
+		"total_data_to_claim":       orm.ColValue(orm.ColAdd, totalClaimAdd),
+		"total_data_class_to_claim": orm.ColValue(orm.ColAdd, totalClassClaimAdd),
+		"total_data":                data,
+		"total_data_class":          dataClass,
+		"last_update_time":          time.Now(),
+	})
+	return err
 }
