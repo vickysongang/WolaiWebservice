@@ -24,6 +24,8 @@ type Course struct {
 	LastUpdateTime time.Time `json:"-"`
 	SuitCrowd      string    `json:"suitCrowd"`
 	Proposal       string    `json:"proposal"`
+	MediaType      string    `json:"mediaType"`
+	MediaUrl       string    `json:"mediaUrl"`
 }
 
 func init() {
