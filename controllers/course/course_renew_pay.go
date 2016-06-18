@@ -7,14 +7,12 @@ import (
 
 	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/service/trade"
-
-	"github.com/astaxie/beego/orm"
 )
 
 func HandleCourseRenewPayByBalance(userId, courseId, amount int64) (int64, error) {
 	user, err := models.ReadUser(userId)
 	if err != nil {
-		return 2, errors.New("用户信息异常")
+		return 2, ErrUserAbnormal
 	}
 	if user.Balance < amount {
 		return 2, trade.ErrInsufficientFund
@@ -30,7 +28,7 @@ func HandleCourseRenewPayByBalance(userId, courseId, amount int64) (int64, error
 func HandleCourseRenewPayByThird(userId, courseId, pingppAmount, totalAmount, pingppId int64) (int64, error) {
 	user, err := models.ReadUser(userId)
 	if err != nil {
-		return 2, errors.New("用户信息异常")
+		return 2, ErrUserAbnormal
 	}
 	if pingppAmount < totalAmount {
 		err = trade.HandleUserBalance(userId, 0-user.Balance)
@@ -43,20 +41,17 @@ func HandleCourseRenewPayByThird(userId, courseId, pingppAmount, totalAmount, pi
 }
 
 func HandleCourseRenewPay(userId, courseId, amount int64, pingppId int64) (int64, error) {
-	o := orm.NewOrm()
 	_, err := models.ReadCourse(courseId)
 	if err != nil {
 		return 2, errors.New("课程包资料异常")
 	}
 	_, err = models.ReadUser(userId)
 	if err != nil {
-		return 2, errors.New("用户资料异常")
+		return 2, ErrUserAbnormal
 	}
-	var currentRecord models.CoursePurchaseRecord
-	err = o.QueryTable("course_purchase_record").Filter("course_id", courseId).Filter("user_id", userId).
-		One(&currentRecord)
+	currentRecord, err := courseService.GetCoursePurchaseRecordByUserId(courseId, userId)
 	if err != nil {
-		return 2, errors.New("购买记录异常")
+		return 2, ErrPurchaseAbnormal
 	}
 	var renewCount int64
 	var renewRecordId int64
@@ -99,7 +94,7 @@ func HandleCourseRenewPay(userId, courseId, amount int64, pingppId int64) (int64
 	}
 	_, err = models.UpdateCoursePurchaseRecord(currentRecord.Id, purchaseRecordInfo)
 	if err != nil {
-		return 2, errors.New("购买记录异常")
+		return 2, ErrPurchaseAbnormal
 	}
 	return 0, nil
 }

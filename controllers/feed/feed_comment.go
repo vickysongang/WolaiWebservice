@@ -7,15 +7,16 @@ import (
 
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
+	feedService "WolaiWebservice/service/feed"
 	"WolaiWebservice/utils/leancloud/lcmessage"
 
 	"github.com/cihub/seelog"
 	"github.com/satori/go.uuid"
 )
 
-func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text string, imageStr string,
-	replyToId int64) (*models.POIFeedComment, error) {
-	feedComment := models.POIFeedComment{}
+func PostFeedComment(userId int64, feedId string, timestamp float64, text string, imageStr string,
+	replyToId int64) (*models.FeedComment, error) {
+	feedComment := models.FeedComment{}
 	var err error
 	user, _ := models.ReadUser(userId)
 	if user == nil {
@@ -23,11 +24,11 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 		seelog.Error(err.Error())
 		return nil, err
 	}
-	var feed *models.POIFeed
+	var feed *models.Feed
 	if redis.RedisFailErr == nil {
 		feed = redis.GetFeed(feedId)
 	} else {
-		feed, err = models.GetFeed(feedId)
+		feed, err = feedService.GetFeed(feedId)
 		if err != nil {
 			return nil, err
 		}
@@ -56,13 +57,13 @@ func PostPOIFeedComment(userId int64, feedId string, timestamp float64, text str
 	}
 	go lcmessage.SendCommentNotification(feedComment.Id)
 
-	feedCommentModel := models.POIFeedComment{
+	feedCommentModel := models.FeedComment{
 		Created:   userId,
 		Id:        feedComment.Id,
 		FeedId:    feedId,
 		Text:      text,
 		ImageInfo: imageStr,
 		ReplyToId: replyToId}
-	go models.InsertPOIFeedComment(&feedCommentModel)
+	go models.InsertFeedComment(&feedCommentModel)
 	return &feedComment, nil
 }

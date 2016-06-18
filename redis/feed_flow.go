@@ -20,14 +20,14 @@ const (
  ******************************************************************************
  */
 
-func GetFeedFlowAtrium(start, stop int64, plateType string) models.POIFeeds {
+func GetFeedFlowAtrium(start, stop int64, plateType string) models.Feeds {
 	feedflowType := FEEDFLOW_ATRIUM
 	if plateType == "1001" {
 		feedflowType = FEEDFLOW_GANHUO
 	}
 	feedZs := redisClient.ZRevRangeWithScores(feedflowType, start, stop).Val()
 
-	feeds := make(models.POIFeeds, 0)
+	feeds := make(models.Feeds, 0)
 
 	for i := range feedZs {
 		str, _ := feedZs[i].Member.(string)
@@ -39,11 +39,11 @@ func GetFeedFlowAtrium(start, stop int64, plateType string) models.POIFeeds {
 	return feeds
 }
 
-func GetFeedFlowUserFeed(userId int64, start, stop int64) models.POIFeeds {
+func GetFeedFlowUserFeed(userId int64, start, stop int64) models.Feeds {
 	userIdStr := strconv.FormatInt(userId, 10)
 	feedIds := redisClient.ZRevRange(USER_FEED+userIdStr, start, stop).Val()
 
-	feeds := make(models.POIFeeds, len(feedIds))
+	feeds := make(models.Feeds, len(feedIds))
 	for i := range feedIds {
 		feedId := feedIds[i]
 		feeds[i] = *(GetFeed(feedId))
@@ -52,11 +52,11 @@ func GetFeedFlowUserFeed(userId int64, start, stop int64) models.POIFeeds {
 	return feeds
 }
 
-func GetFeedFlowUserFeedLike(userId int64, start, stop int64) models.POIFeeds {
+func GetFeedFlowUserFeedLike(userId int64, start, stop int64) models.Feeds {
 	userIdStr := strconv.FormatInt(userId, 10)
 	feedIds := redisClient.ZRevRange(USER_FEED_LIKE+userIdStr, start, stop).Val()
 
-	feeds := make(models.POIFeeds, len(feedIds))
+	feeds := make(models.Feeds, len(feedIds))
 	for i := range feedIds {
 		feedId := feedIds[i]
 		feeds[i] = *(GetFeed(feedId))
@@ -72,7 +72,7 @@ func GetFeedFlowUserFeedLike(userId int64, start, stop int64) models.POIFeeds {
  */
 
 //发布干货
-func PostPlateFeed(feed *models.POIFeed, plateType string) {
+func PostPlateFeed(feed *models.Feed, plateType string) {
 	if feed == nil {
 		return
 	}
@@ -89,14 +89,14 @@ func PostPlateFeed(feed *models.POIFeed, plateType string) {
  */
 
 //获取置顶消息
-func GetTopFeeds(plateType string) models.POIFeeds {
+func GetTopFeeds(plateType string) models.Feeds {
 	feedflowType := ""
 	if plateType == "1001" {
 		feedflowType = FEEDFLOW_GANHUO_TOP
 	}
 	feedZs := redisClient.ZRevRangeWithScores(feedflowType, 0, -1).Val()
 
-	feeds := make(models.POIFeeds, 0)
+	feeds := make(models.Feeds, 0)
 
 	for i := range feedZs {
 		str, _ := feedZs[i].Member.(string)
@@ -110,7 +110,7 @@ func GetTopFeeds(plateType string) models.POIFeeds {
 }
 
 //置顶消息
-func TopFeed(feed *models.POIFeed, plateType string) {
+func TopFeed(feed *models.Feed, plateType string) {
 	if plateType == "1001" {
 		//将已经置顶的干货还原到干货中
 		ganhuoFeedZs := redisClient.ZRangeWithScores(FEEDFLOW_GANHUO_TOP, 0, -1).Val()
@@ -129,7 +129,7 @@ func TopFeed(feed *models.POIFeed, plateType string) {
 }
 
 //取消置顶
-func UndoTopFeed(feed *models.POIFeed, plateType string) {
+func UndoTopFeed(feed *models.Feed, plateType string) {
 	if plateType == "1001" {
 		_ = redisClient.ZRem(FEEDFLOW_GANHUO_TOP, feed.Id)
 		feedZ := redis.Z{Member: feed.Id, Score: feed.CreateTimestamp}

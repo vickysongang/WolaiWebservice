@@ -87,3 +87,15 @@ func GetLeftQaTimeLength(userId int64) int64 {
 	}
 	return leftQaTimeLength
 }
+
+func QueryGivenQaPkgByLength(length int64) (*models.QaPkg, error) {
+	o := orm.NewOrm()
+	var qaPkg models.QaPkg
+	err := o.QueryTable("qa_pkg").
+		Filter("type", models.QA_PKG_TYPE_GIVEN).
+		Filter("time_length", length).One(&qaPkg)
+	if err != nil {
+		return nil, err
+	}
+	return &qaPkg, nil
+}

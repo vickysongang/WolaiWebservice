@@ -13,11 +13,11 @@ func HandleCourseActionNextChapterUpgrade(userId, chapterId, recordId int64) (in
 	var err error
 	_, err = models.ReadUser(userId)
 	if err != nil {
-		return 2, errors.New("用户信息异常")
+		return 2, ErrUserAbnormal
 	}
 	chapter, err := models.ReadCourseCustomChapter(chapterId)
 	if err != nil {
-		return 2, errors.New("课时信息异常")
+		return 2, ErrChapterAbnormal
 	}
 
 	course, err := models.ReadCourse(chapter.CourseId)
@@ -39,12 +39,12 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, chapterId, recordId int64) (in
 
 	chapter, err := models.ReadCourseCustomChapter(chapterId)
 	if err != nil {
-		return 2, errors.New("课程课时信息异常")
+		return 2, ErrChapterAbnormal
 	}
 
 	purchase, err := models.ReadCoursePurchaseRecord(recordId)
 	if err != nil {
-		return 2, errors.New("课程信息异常")
+		return 2, ErrCourseAbnormal
 	}
 	if purchase.TeacherId != userId {
 		return 2, errors.New("课程导师信息异常")
@@ -73,7 +73,7 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, chapterId, recordId int64) (in
 
 	_, err = models.CreateCourseChapterToUser(&record)
 	if err != nil {
-		return 2, errors.New("服务器操作异常")
+		return 2, ErrServerAbnormal
 	}
 
 	go lcmessage.SendCourseChapterCompleteMsg(purchase.Id, chapter.Id)
@@ -93,15 +93,15 @@ func HandleAuditionCourseNextChapterUpgrade(teacherId, chapterId, recordId int64
 	var err error
 	chapter, err := models.ReadCourseCustomChapter(chapterId)
 	if err != nil {
-		return 2, errors.New("课程信息异常")
+		return 2, ErrCourseAbnormal
 	}
 
 	auditionRecord, err := models.ReadCourseAuditionRecord(recordId)
 	if err != nil {
-		return 2, errors.New("课程信息异常")
+		return 2, ErrCourseAbnormal
 	}
 	if auditionRecord.TeacherId != teacherId {
-		return 2, errors.New("课程信息异常")
+		return 2, ErrCourseAbnormal
 	}
 	courseId := auditionRecord.CourseId
 	studentId := auditionRecord.UserId
@@ -127,7 +127,7 @@ func HandleAuditionCourseNextChapterUpgrade(teacherId, chapterId, recordId int64
 
 	_, err = models.CreateCourseChapterToUser(&record)
 	if err != nil {
-		return 2, errors.New("服务器操作异常")
+		return 2, ErrServerAbnormal
 	}
 
 	go lcmessage.SendAuditionCourseChapterCompleteMsg(auditionRecord.Id, chapter.Id)
@@ -137,7 +137,7 @@ func HandleAuditionCourseNextChapterUpgrade(teacherId, chapterId, recordId int64
 	}
 	_, err = models.UpdateCourseAuditionRecord(auditionRecord.Id, recordInfo)
 	if err != nil {
-		return 2, errors.New("服务器操作异常")
+		return 2, ErrServerAbnormal
 	}
 	return 0, nil
 }

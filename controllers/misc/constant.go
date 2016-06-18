@@ -1,22 +1,20 @@
 package misc
 
 import (
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
+	miscService "WolaiWebservice/service/misc"
 )
 
 func GetGradeList(pid int64) (int64, []*models.Grade) {
-	o := orm.NewOrm()
-
+	var err error
 	var grades []*models.Grade
 	if pid != -1 {
-		_, err := o.QueryTable("grade").Filter("pid", pid).All(&grades)
+		grades, err = miscService.QueryGradesByPid(pid)
 		if err != nil {
 			return 2, nil
 		}
 	} else {
-		_, err := o.QueryTable("grade").All(&grades)
+		grades, err = miscService.QueryAllGrades()
 		if err != nil {
 			return 2, nil
 		}
@@ -26,13 +24,10 @@ func GetGradeList(pid int64) (int64, []*models.Grade) {
 }
 
 func GetSubjectList(gradeId int64) (int64, []*models.Subject) {
-	o := orm.NewOrm()
-
 	subjects := make([]*models.Subject, 0)
-
+	var err error
 	if gradeId != 0 {
-		var gradeSubjects []*models.GradeToSubject
-		_, err := o.QueryTable("grade_to_subject").Filter("grade_id", gradeId).All(&gradeSubjects)
+		gradeSubjects, err := miscService.QueryGradeSubjects(gradeId)
 		if err != nil {
 			return 2, nil
 		}
@@ -45,7 +40,7 @@ func GetSubjectList(gradeId int64) (int64, []*models.Subject) {
 			subjects = append(subjects, subject)
 		}
 	} else {
-		_, err := o.QueryTable("subject").All(&subjects)
+		subjects, err = miscService.QueryAllSubjects()
 		if err != nil {
 			return 2, nil
 		}
@@ -54,14 +49,24 @@ func GetSubjectList(gradeId int64) (int64, []*models.Subject) {
 }
 
 func GetHelpItemList() (int64, []*models.HelpItem) {
-	o := orm.NewOrm()
-
-	var items []*models.HelpItem
-
-	_, err := o.QueryTable("help_item").OrderBy("rank").All(&items)
+	items, err := miscService.QueryAllHelpItems()
 	if err != nil {
 		return 2, nil
 	}
-
 	return 0, items
+}
+
+func GetAdvBanner(version string) (int64, *models.AdvBanner) {
+	advBanners, _ := miscService.QueryAllAdvBanners()
+	for _, advBanner := range advBanners {
+		if advBanner.Version == "all" || advBanner.Version == version {
+			return 0, advBanner
+		} else {
+			versionStr := advBanner.Version[1:]
+			if version < versionStr {
+				return 0, advBanner
+			}
+		}
+	}
+	return 2, nil
 }

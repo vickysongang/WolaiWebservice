@@ -1,39 +1,28 @@
 package course
 
 import (
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 )
 
 func GetCourseListStudentUpgrade(userId, page, count int64) (int64, []*courseStudentListItem) {
-	o := orm.NewOrm()
 	var err error
 
 	items := make([]*courseStudentListItem, 0)
 	if page == 0 {
-		var auditionUncompleteRecords []*models.CourseAuditionRecord
-
-		_, err = o.QueryTable("course_audition_record").Filter("user_id", userId).
-			Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
-			OrderBy("-last_update_time").All(&auditionUncompleteRecords)
-
+		auditionUncompleteRecords, _ := courseService.QueryStudentUncompletedAuditionRecords(userId)
 		for _, auditionRecord := range auditionUncompleteRecords {
-			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status, auditionRecord.Id, auditionRecord.TeacherId)
+			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId,
+				userId, auditionRecord.Status, auditionRecord.Id, auditionRecord.TeacherId)
 			items = append(items, item)
 		}
 	}
 
-	var records []*models.CoursePurchaseRecord
-	_, err = o.QueryTable("course_purchase_record").Filter("user_id", userId).
-		Exclude("purchase_status", models.PURCHASE_RECORD_STATUS_IDLE).
-		OrderBy("-last_update_time").Offset(page * count).Limit(count).All(&records)
+	records, err := courseService.QueryStudentCoursePurchaseRecords(userId, page, count, true)
 	if err != nil {
 		return 0, items
 	}
-	totalCount, _ := o.QueryTable("course_purchase_record").Filter("user_id", userId).
-		Exclude("purchase_status", models.PURCHASE_RECORD_STATUS_IDLE).Count()
+	totalCount := courseService.GetStudentCoursePurchaseRecordCount(userId)
 
 	for _, record := range records {
 		course, err := models.ReadCourse(record.CourseId)
@@ -60,11 +49,7 @@ func GetCourseListStudentUpgrade(userId, page, count int64) (int64, []*courseStu
 	}
 
 	if page == totalCount/count {
-		var auditionCompleteRecords []*models.CourseAuditionRecord
-		o.QueryTable("course_audition_record").Filter("user_id", userId).
-			Filter("status", models.AUDITION_RECORD_STATUS_COMPLETE).
-			OrderBy("-last_update_time").All(&auditionCompleteRecords)
-
+		auditionCompleteRecords, _ := courseService.QueryStudentCompletedAuditionRecords(userId)
 		for _, auditionRecord := range auditionCompleteRecords {
 			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId, userId, auditionRecord.Status, auditionRecord.Id, auditionRecord.TeacherId)
 			items = append(items, item)

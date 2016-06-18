@@ -4,8 +4,6 @@ import (
 	"WolaiWebservice/models"
 
 	courseService "WolaiWebservice/service/course"
-
-	"github.com/astaxie/beego/orm"
 )
 
 func GetCourseDetailTeacherUpgrade(courseId, studentId, teacherId, recordId int64) (int64, *courseDetailTeacher) {
@@ -33,11 +31,8 @@ func GetCourseDetailTeacherUpgrade(courseId, studentId, teacherId, recordId int6
 }
 
 func GetDeluxeCourseDetailTeacher(studentId, teacherId int64, course *models.Course) (int64, *courseDetailTeacher) {
-	o := orm.NewOrm()
 	courseId := course.Id
-	var purchaseRecord models.CoursePurchaseRecord
-	err := o.QueryTable("course_purchase_record").Filter("user_id", studentId).Filter("course_id", courseId).Filter("teacher_id", teacherId).
-		One(&purchaseRecord)
+	purchaseRecord, err := courseService.GetCoursePurchaseRecordByUserId(courseId, studentId)
 	if err != nil {
 		return 2, nil
 	}

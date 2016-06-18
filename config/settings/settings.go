@@ -110,3 +110,8 @@ func VersionAndroidTutorPause() int64 {
 	return redis.GetConfigInt64(redis.CONFIG_VERSION,
 		redis.CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE)
 }
+
+func FreqSyncDataUsage() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_GENERAL,
+		redis.CONFIG_KEY_GENERAL_DATA_SYNC_FREQ)
+}

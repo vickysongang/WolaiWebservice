@@ -1,8 +1,6 @@
 package course
 
 import (
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 )
@@ -16,12 +14,9 @@ type courseItem struct {
 	ChapterCount int64  `json:"chapterCount"`
 }
 
-func GetCourseModuleList(moduleType, page, count int64) (int64, []*courseItem) {
-	o := orm.NewOrm()
+func GetCourseModuleList(moduleId, page, count int64) (int64, []*courseItem) {
 
-	var courseModules []*models.CourseToModule
-	_, err := o.QueryTable("course_to_module").Filter("module_id", moduleType).
-		OrderBy("rank").Offset(page * count).Limit(count).All(&courseModules)
+	courseModules, err := courseService.QueryCourseModules(moduleId, page, count)
 	if err != nil {
 		return 2, nil
 	}

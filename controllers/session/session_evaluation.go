@@ -58,7 +58,7 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 	if userId == session.Creator {
 		teacher, _ := models.ReadUser(session.Tutor)
 		//个人标签
-		teacherPersonalLabels, err := models.QueryEvaluationLabels(teacher.Gender, models.PERSONAL_EVALUATION_LABEL, models.TEACHER_EVALUATION_LABEL)
+		teacherPersonalLabels, err := evaluationService.QueryEvaluationLabels(teacher.Gender, models.PERSONAL_EVALUATION_LABEL, models.TEACHER_EVALUATION_LABEL)
 		if err != nil {
 			return nil, err
 		}
@@ -67,7 +67,7 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 			labels = append(labels, teacherPersonalLabels[v])
 		}
 		//讲课风格
-		teacherStyleLabels, err := models.QueryEvaluationLabels(teacher.Gender, models.STYLE_EVALUATION_LABEL, models.TEACHER_EVALUATION_LABEL)
+		teacherStyleLabels, err := evaluationService.QueryEvaluationLabels(teacher.Gender, models.STYLE_EVALUATION_LABEL, models.TEACHER_EVALUATION_LABEL)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 		}
 		//科目标签
 		order, _ := models.ReadOrder(session.OrderId)
-		teacherSubjectLabels, err := models.QueryEvaluationLabelsBySubject(order.SubjectId)
+		teacherSubjectLabels, err := evaluationService.QueryEvaluationLabelsBySubject(order.SubjectId)
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +86,7 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 	} else if userId == session.Tutor { //老师
 		student, _ := models.ReadUser(session.Creator)
 		//个人标签
-		studentPersonalLabels, err := models.QueryEvaluationLabels(student.Gender, models.PERSONAL_EVALUATION_LABEL, models.STUDENT_EVALUATION_LABEL)
+		studentPersonalLabels, err := evaluationService.QueryEvaluationLabels(student.Gender, models.PERSONAL_EVALUATION_LABEL, models.STUDENT_EVALUATION_LABEL)
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +95,7 @@ func QuerySystemEvaluationLabels(userId, sessionId, count int64) ([]*models.Eval
 			labels = append(labels, studentPersonalLabels[v])
 		}
 		//能力程度
-		studentAbilityLabels, err := models.QueryEvaluationLabels(student.Gender, models.ABILITY_EVALUATION_LABEL, models.STUDENT_EVALUATION_LABEL)
+		studentAbilityLabels, err := evaluationService.QueryEvaluationLabels(student.Gender, models.ABILITY_EVALUATION_LABEL, models.STUDENT_EVALUATION_LABEL)
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +167,7 @@ func evaluateSession(sessionId, userId, targetId, chapterId int64, evaluationCon
 			targetId = session.Creator
 		}
 	}
-	oldEvaluation, _ := models.QueryEvaluation(userId, sessionId)
+	oldEvaluation, _ := evaluationService.QueryEvaluation(userId, sessionId)
 	if oldEvaluation.Id == 0 {
 		evaluation := models.Evaluation{
 			UserId:    userId,
@@ -205,8 +205,8 @@ func QueryEvaluationInfo(userId, sessionId, targetId, chapterId int64) ([]*evalu
 	var studentEvaluation, teacherEvaluation *models.Evaluation
 	if sessionId != 0 {
 		session, _ := models.ReadSession(sessionId)
-		studentEvaluation, _ = models.QueryEvaluation(session.Creator, sessionId)
-		teacherEvaluation, _ = models.QueryEvaluation(session.Tutor, sessionId)
+		studentEvaluation, _ = evaluationService.QueryEvaluation(session.Creator, sessionId)
+		teacherEvaluation, _ = evaluationService.QueryEvaluation(session.Tutor, sessionId)
 		if userId == session.Creator {
 			isStudent = true
 		} else if userId == session.Tutor {
@@ -214,8 +214,8 @@ func QueryEvaluationInfo(userId, sessionId, targetId, chapterId int64) ([]*evalu
 		}
 	} else {
 		chapter, _ := models.ReadCourseCustomChapter(chapterId)
-		studentEvaluation, _ = models.QueryEvaluationByChapter(chapter.UserId, chapterId, 0)
-		teacherEvaluation, _ = models.QueryEvaluationByChapter(chapter.TeacherId, chapterId, 0)
+		studentEvaluation, _ = evaluationService.QueryEvaluationByChapter(chapter.UserId, chapterId, 0)
+		teacherEvaluation, _ = evaluationService.QueryEvaluationByChapter(chapter.TeacherId, chapterId, 0)
 		if userId == chapter.UserId {
 			isStudent = true
 		} else if userId == chapter.TeacherId {

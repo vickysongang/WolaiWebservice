@@ -50,7 +50,7 @@ func HandleTradeRewardRegistration(userId int64) error {
 
 func HandleTradeRewardGivenQaPkg(userId int64, comment string) (string, error) {
 	var err error
-	qaPkg, err := models.QueryGivenQaPkgByLength(MINUTES_REWARD_PROFILE_COMPLETION)
+	qaPkg, err := qaPkgService.QueryGivenQaPkgByLength(MINUTES_REWARD_PROFILE_COMPLETION)
 	if err != nil {
 		return "", errors.New("赠送答疑包资料异常")
 	}
@@ -70,7 +70,7 @@ func HandleTradeRewardGivenQaPkg(userId int64, comment string) (string, error) {
 
 func HandleTradeRewardInvitationGivenQaPkg(userId, amount int64) (string, error) {
 	var err error
-	qaPkg, err := models.QueryGivenQaPkgByLength(amount)
+	qaPkg, err := qaPkgService.QueryGivenQaPkgByLength(amount)
 	if err != nil {
 		return "", errors.New("赠送答疑包资料异常")
 	}

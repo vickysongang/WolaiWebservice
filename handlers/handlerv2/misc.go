@@ -129,3 +129,27 @@ func SubjectList(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
+
+// 10.2.4
+func AdvBanner(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.UserAgent())
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	var version string
+	if len(vars["version"]) > 0 {
+		version = vars["version"][0]
+	}
+
+	status, content := miscController.GetAdvBanner(version)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}

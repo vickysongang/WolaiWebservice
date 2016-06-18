@@ -1,6 +1,7 @@
 package course
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/astaxie/beego/orm"
@@ -8,6 +9,38 @@ import (
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 	evaluationService "WolaiWebservice/service/evaluation"
+)
+
+const (
+	COURSE_CHAPTER_STATUS_IDLE     = "idle"     //章节普通状态
+	COURSE_CHAPTER_STATUS_CURRENT  = "current"  //章节可以上课
+	COURSE_CHAPTER_STATUS_COMPLETE = "complete" //章节已经结束
+
+	ACTION_PROCEED_NULL    = "null"
+	ACTION_PROCEED_REFRESH = "refresh"
+	ACTION_PROCEED_PAY     = "pay"
+	ACTION_PROCEED_SERVE   = "serve"
+	ACTION_PROCEED_RENEW   = "renew"
+
+	PAYMENT_TITLE_PREFIX_AUDITION = "课程试听-"
+	PAYMENT_TITLE_PREFIX_PURCHASE = "课程购买-"
+
+	PAYMENT_TYPE_AUDITION = "audition"
+	PAYMENT_TYPE_PURCHASE = "purchase"
+
+	PAYMENT_COMMENT_AUDITION = "试听支付"
+	PAYMENT_COMMENT_PURCHASE = "无"
+
+	PAYMENT_PRICE_AUDITION = 100
+)
+
+var (
+	ErrUserAbnormal     = errors.New("用户信息异常")
+	ErrCourseAbnormal   = errors.New("课程信息异常")
+	ErrChapterAbnormal  = errors.New("课时信息异常")
+	ErrPurchaseAbnormal = errors.New("购买记录异常")
+	ErrAuditionAbnormal = errors.New("试听记录异常")
+	ErrServerAbnormal   = errors.New("服务器操作异常")
 )
 
 type courseChapterStatus struct {
@@ -99,29 +132,6 @@ type courseTeacherListItem struct {
 	StudentInfo            *models.User `json:"studentInfo"`
 	RecordId               int64        `json:"recordId"`
 }
-
-const (
-	COURSE_CHAPTER_STATUS_IDLE     = "idle"     //章节普通状态
-	COURSE_CHAPTER_STATUS_CURRENT  = "current"  //章节可以上课
-	COURSE_CHAPTER_STATUS_COMPLETE = "complete" //章节已经结束
-
-	ACTION_PROCEED_NULL    = "null"
-	ACTION_PROCEED_REFRESH = "refresh"
-	ACTION_PROCEED_PAY     = "pay"
-	ACTION_PROCEED_SERVE   = "serve"
-	ACTION_PROCEED_RENEW   = "renew"
-
-	PAYMENT_TITLE_PREFIX_AUDITION = "课程试听-"
-	PAYMENT_TITLE_PREFIX_PURCHASE = "课程购买-"
-
-	PAYMENT_TYPE_AUDITION = "audition"
-	PAYMENT_TYPE_PURCHASE = "purchase"
-
-	PAYMENT_COMMENT_AUDITION = "试听支付"
-	PAYMENT_COMMENT_PURCHASE = "无"
-
-	PAYMENT_PRICE_AUDITION = 100
-)
 
 func queryCourseChapterStatus(courseId int64, current int64, upgradeFlag bool) ([]*courseChapterStatus, error) {
 	o := orm.NewOrm()

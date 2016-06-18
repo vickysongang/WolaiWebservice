@@ -60,9 +60,6 @@ func (tr *TradeRecord) TableName() string {
 	return "trade_record"
 }
 
-/*
-* 插入交易记录
- */
 func InsertTradeRecord(tradeRecord *TradeRecord) (*TradeRecord, error) {
 	o := orm.NewOrm()
 

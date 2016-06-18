@@ -3,39 +3,35 @@ package course
 import (
 	"errors"
 
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/service/trade"
 )
 
 func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string) (int64, error) {
 	var err error
-	o := orm.NewOrm()
 
 	course, err := models.ReadCourse(courseId)
 	if err != nil {
-		return 2, errors.New("课程信息异常")
+		return 2, ErrCourseAbnormal
 	}
 	user, err := models.ReadUser(userId)
 	if err != nil {
-		return 2, errors.New("用户信息异常")
+		return 2, ErrUserAbnormal
 	}
 	if course.Type == models.COURSE_TYPE_DELUXE {
 		// 先查询该用户是否有购买（或试图购买）过这个课程
-		var currentRecord models.CoursePurchaseRecord
 		var record *models.CoursePurchaseRecord
-		err = o.QueryTable(new(models.CoursePurchaseRecord).TableName()).Filter("course_id", courseId).Filter("user_id", userId).
-			One(&currentRecord)
+		currentRecord, err := courseService.GetCoursePurchaseRecordByUserId(courseId, userId)
 		if err != nil {
-			return 2, errors.New("购买记录异常")
+			return 2, ErrPurchaseAbnormal
 		}
 		record = &currentRecord
 
 		switch payType {
 		case PAYMENT_TYPE_AUDITION:
 			if record.AuditionStatus != models.PURCHASE_RECORD_STATUS_WAITING {
-				return 2, errors.New("购买记录异常")
+				return 2, ErrPurchaseAbnormal
 			}
 			if user.Balance < PAYMENT_PRICE_AUDITION {
 				return 2, trade.ErrInsufficientFund
@@ -57,12 +53,12 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 
 			record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
 			if err != nil {
-				return 2, errors.New("购买记录异常")
+				return 2, ErrPurchaseAbnormal
 			}
 
 		case PAYMENT_TYPE_PURCHASE:
 			if record.PurchaseStatus != models.PURCHASE_RECORD_STATUS_WAITING {
-				return 2, errors.New("购买记录异常")
+				return 2, ErrPurchaseAbnormal
 			}
 			if user.Balance < record.PriceTotal {
 				return 2, trade.ErrInsufficientFund
@@ -90,20 +86,17 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 
 			record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
 			if err != nil {
-				return 2, errors.New("购买记录异常")
+				return 2, ErrPurchaseAbnormal
 			}
 		}
 	} else if course.Type == models.COURSE_TYPE_AUDITION {
-		var currentRecord models.CourseAuditionRecord
-		o.QueryTable(new(models.CourseAuditionRecord).TableName()).
-			Filter("course_id", courseId).Filter("user_id", userId).
-			Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
-			One(&currentRecord)
+		currentRecord, _ := courseService.GetCourseAuditionRecordByUserId(courseId, userId)
 		if currentRecord.Id == 0 {
 			return 2, errors.New("试听记录不存在")
 		} else {
-			if currentRecord.Status != models.AUDITION_RECORD_STATUS_APPLY && currentRecord.Status != models.AUDITION_RECORD_STATUS_WAITING {
-				return 2, errors.New("试听记录异常")
+			if currentRecord.Status != models.AUDITION_RECORD_STATUS_APPLY &&
+				currentRecord.Status != models.AUDITION_RECORD_STATUS_WAITING {
+				return 2, ErrAuditionAbnormal
 			}
 			if user.Balance < PAYMENT_PRICE_AUDITION {
 				return 2, trade.ErrInsufficientFund
@@ -132,41 +125,35 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 
 func CheckCourseActionPayByThird(userId int64, courseId int64, tradeType string) (int64, error) {
 	var err error
-	o := orm.NewOrm()
 
 	course, err := models.ReadCourse(courseId)
 	if err != nil {
-		return 2, errors.New("课程信息异常")
+		return 2, ErrCourseAbnormal
 	}
 	if course.Type == models.COURSE_TYPE_DELUXE {
 		// 先查询该用户是否有购买（或试图购买）过这个课程
-		var currentRecord models.CoursePurchaseRecord
-		err = o.QueryTable("course_purchase_record").Filter("course_id", courseId).Filter("user_id", userId).
-			One(&currentRecord)
+		currentRecord, err := courseService.GetCoursePurchaseRecordByUserId(courseId, userId)
 		if err != nil {
-			return 2, errors.New("购买记录异常")
+			return 2, ErrPurchaseAbnormal
 		}
 		switch tradeType {
 		case models.TRADE_COURSE_AUDITION:
 			if currentRecord.AuditionStatus != models.PURCHASE_RECORD_STATUS_WAITING {
-				return 2, errors.New("购买记录异常")
+				return 2, ErrPurchaseAbnormal
 			}
 		case models.TRADE_COURSE_PURCHASE:
 			if currentRecord.PurchaseStatus != models.PURCHASE_RECORD_STATUS_WAITING {
-				return 2, errors.New("购买记录异常")
+				return 2, ErrPurchaseAbnormal
 			}
 		}
 	} else if course.Type == models.COURSE_TYPE_AUDITION {
-		var currentRecord models.CourseAuditionRecord
-		o.QueryTable(new(models.CourseAuditionRecord).TableName()).
-			Filter("course_id", courseId).Filter("user_id", userId).
-			Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
-			One(&currentRecord)
+		currentRecord, _ := courseService.GetCourseAuditionRecordByUserId(courseId, userId)
 		if currentRecord.Id == 0 {
-			return 2, errors.New("试听记录异常")
+			return 2, ErrAuditionAbnormal
 		} else {
-			if currentRecord.Status != models.AUDITION_RECORD_STATUS_APPLY && currentRecord.Status != models.AUDITION_RECORD_STATUS_WAITING {
-				return 2, errors.New("试听记录异常")
+			if currentRecord.Status != models.AUDITION_RECORD_STATUS_APPLY &&
+				currentRecord.Status != models.AUDITION_RECORD_STATUS_WAITING {
+				return 2, ErrAuditionAbnormal
 			}
 		}
 	}
@@ -175,23 +162,20 @@ func CheckCourseActionPayByThird(userId int64, courseId int64, tradeType string)
 
 func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string, pingppAmount, pingppId int64) (int64, error) {
 	var err error
-	o := orm.NewOrm()
 	course, err := models.ReadCourse(courseId)
 	if err != nil {
-		return 2, errors.New("课程信息异常")
+		return 2, ErrCourseAbnormal
 	}
 	user, err := models.ReadUser(userId)
 	if err != nil {
-		return 2, errors.New("用户信息异常")
+		return 2, ErrUserAbnormal
 	}
 	if course.Type == models.COURSE_TYPE_DELUXE {
 		// 先查询该用户是否有购买（或试图购买）过这个课程
-		var currentRecord models.CoursePurchaseRecord
 		var record *models.CoursePurchaseRecord
-		err = o.QueryTable("course_purchase_record").Filter("course_id", courseId).Filter("user_id", userId).
-			One(&currentRecord)
+		currentRecord, err := courseService.GetCoursePurchaseRecordByUserId(courseId, userId)
 		if err != nil {
-			return 2, errors.New("购买记录异常")
+			return 2, ErrPurchaseAbnormal
 		}
 		record = &currentRecord
 		switch tradeType {
@@ -213,7 +197,7 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 
 			record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
 			if err != nil {
-				return 2, errors.New("购买记录异常")
+				return 2, ErrPurchaseAbnormal
 			}
 
 		case models.TRADE_COURSE_PURCHASE:
@@ -240,7 +224,7 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 
 			record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
 			if err != nil {
-				return 2, errors.New("购买记录异常")
+				return 2, ErrPurchaseAbnormal
 			}
 		}
 	} else if course.Type == models.COURSE_TYPE_AUDITION {
@@ -250,13 +234,9 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 				return 2, err
 			}
 		}
-		var currentRecord models.CourseAuditionRecord
-		o.QueryTable(new(models.CourseAuditionRecord).TableName()).
-			Filter("course_id", courseId).Filter("user_id", userId).
-			Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
-			One(&currentRecord)
+		currentRecord, _ := courseService.GetCourseAuditionRecordByUserId(courseId, userId)
 		if currentRecord.Id == 0 {
-			return 2, errors.New("试听记录异常")
+			return 2, ErrAuditionAbnormal
 		}
 		err = trade.HandleAuditionCoursePurchaseTradeRecord(currentRecord.Id, PAYMENT_PRICE_AUDITION, 0)
 		if err != nil {
@@ -267,7 +247,7 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 		}
 		_, err := models.UpdateCourseAuditionRecord(currentRecord.Id, recordInfo)
 		if err != nil {
-			return 2, errors.New("购买记录异常")
+			return 2, ErrPurchaseAbnormal
 		}
 	}
 
