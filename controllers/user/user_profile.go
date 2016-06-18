@@ -24,6 +24,7 @@ type teacherProfile struct {
 	ServiceTime     int64                   `json:"serviceTime"`
 	MediaType       string                  `json:"mediaType"`
 	MediaUrl        string                  `json:"mediaUrl"`
+	MediaCover      string                  `json:"mediaCover"`
 	SubjectList     []string                `json:"subjectList,omitempty"`
 	Intro           string                  `json:"intro"`
 	Attitude        float64                 `json:"attitude"`
@@ -71,6 +72,7 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherPro
 		Extra:       teacher.Extra,
 		MediaType:   teacher.MediaType,
 		MediaUrl:    teacher.MediaUrl,
+		MediaCover:  teacher.MediaCover,
 	}
 	if teacher.Attitude == 0 {
 		profile.Attitude = 5.0

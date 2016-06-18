@@ -23,6 +23,7 @@ type TeacherProfile struct {
 	Professionalism float64 `json:"professionalism"`
 	MediaType       string  `json:"mediaType"`
 	MediaUrl        string  `json:"mediaUrl"`
+	MediaCover      string  `json:"mediaCover"`
 }
 
 func init() {
