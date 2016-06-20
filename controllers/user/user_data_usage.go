@@ -40,7 +40,7 @@ func GetUserDataUsage(userId int64) (int64, error, *initialUserDataUsage) {
 	return 0, nil, &initialData
 }
 
-func UpdateUserDataUsage(userId, data, dataClass int64) (int64, error, *updateReturn) {
+func UpdateUserDataUsage(userId, data, dataClass, dataLog int64) (int64, error, *updateReturn) {
 	var err error
 
 	dataUsage, err := models.ReadUserDataUsage(userId)
@@ -48,14 +48,22 @@ func UpdateUserDataUsage(userId, data, dataClass int64) (int64, error, *updateRe
 		return 2, err, nil
 	}
 
-	if dataUsage.Data > data || dataUsage.DataClass > dataClass {
+	if dataUsage.Data > data || dataUsage.DataClass > dataClass || dataUsage.DataLog > dataLog {
 		return 2, errors.New("更新的流量怎么会小啊！"), nil
 	}
 
 	totalClaimAdd := data - dataUsage.Data
 	totalClassClaimAdd := dataClass - dataUsage.DataClass
+	logDiff := dataLog - dataUsage.DataLog
 
-	err = models.HandleDataClaimUpdate(userId, data, dataClass, totalClaimAdd, totalClassClaimAdd)
+	logTarget := settings.LogDataTarget()
+	totalClaimAdd += logDiff
+
+	if logTarget == models.CONST_CLAIM_TYPE_CLASS {
+		totalClassClaimAdd += logDiff
+	}
+
+	err = models.HandleDataClaimUpdate(userId, data, dataClass, dataLog, totalClaimAdd, totalClassClaimAdd)
 
 	if err != nil {
 		return 2, err, nil

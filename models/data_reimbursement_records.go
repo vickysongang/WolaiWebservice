@@ -27,6 +27,9 @@ const (
 	CONST_REIMBSMT_TYPE_SHARE      = "share"
 	CONST_REIMBSMT_STATUS_APPLY    = "apply"
 	CONST_REIMBSMT_STATUS_COMPLETE = "complete"
+
+	CONST_CLAIM_TYPE_ALL   = "all"
+	CONST_CLAIM_TYPE_CLASS = "class"
 )
 
 var ReIMBSMTMap = map[string]string{

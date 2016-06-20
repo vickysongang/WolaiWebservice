@@ -728,7 +728,16 @@ func UserDataUsageUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	status, err, content := userController.UpdateUserDataUsage(userId, data, dataClass)
+	var dataLog int64
+	if len(vars["dataLog"]) > 0 {
+		str := vars["dataLog"][0]
+		dataLog, err = strconv.ParseInt(str, 10, 64)
+		if err != nil {
+			dataLog = 0
+		}
+	}
+
+	status, err, content := userController.UpdateUserDataUsage(userId, data, dataClass, dataLog)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullSlice)
