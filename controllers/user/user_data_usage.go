@@ -3,6 +3,7 @@ package user
 import (
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
+	userService "WolaiWebservice/service/user"
 	"errors"
 	"time"
 )
@@ -112,4 +113,18 @@ func GetReimbstRecords(userId int64, page, count int64) (int64, error, []*ReImbs
 		}
 	}
 	return 0, nil, resultRecords
+}
+
+func GetMyAccountBanner(userId int64) (int64, error, []*models.MyAccountBanner) {
+	_, err := models.ReadUser(userId)
+	if err != nil {
+		return 2, errors.New("用户信息异常"), nil
+	}
+
+	banners, err := userService.QueryMyAccountBanners()
+	if err != nil {
+		return 2, errors.New("数据异常"), nil
+	}
+
+	return 0, nil, banners
 }
