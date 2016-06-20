@@ -69,3 +69,39 @@ func UpdateUserDataUsage(userId, data, dataClass int64) (int64, error, *updateRe
 
 	return 0, nil, &result
 }
+
+type ReImbstRecordByMonth struct {
+	Month   time.Month                    `json:"month"`
+	Year    int64                         `json:"year"`
+	Records []*models.DataReimbsmtRecords `json:"records"`
+}
+
+func GetReimbstRecords(userId int64, page, count int64) (int64, error, []*ReImbstRecordByMonth) {
+	var err error
+	records, err := models.QueryUserReimbsmtRecords(userId, page, count)
+
+	if err != nil {
+		return 2, err, nil
+	}
+
+	resultRecords := make([]*ReImbstRecordByMonth, 0)
+	curIndex := 0
+	for _, record := range records {
+		record.Type = models.ReIMBSMTMap[record.Type]
+		record.Status = models.ReIMBSMTMap[record.Status]
+
+		if len(resultRecords) == 0 || resultRecords[curIndex-1].Month != record.CreateTime.Month() || resultRecords[curIndex-1].Year != int64(record.CreateTime.Year()) {
+			recordMonth := ReImbstRecordByMonth{
+				Month:   record.CreateTime.Month(),
+				Year:    int64(record.CreateTime.Year()),
+				Records: make([]*models.DataReimbsmtRecords, 0),
+			}
+			recordMonth.Records = append(recordMonth.Records, record)
+			resultRecords = append(resultRecords, &recordMonth)
+			curIndex++
+		} else {
+			resultRecords[curIndex-1].Records = append(resultRecords[curIndex-1].Records, record)
+		}
+	}
+	return 0, nil, resultRecords
+}
