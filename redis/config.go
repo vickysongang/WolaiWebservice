@@ -39,9 +39,13 @@ const (
 	CONFIG_TOKEN              = "config:token"
 	CONFIG_KEY_TOKEN_DURATION = "duration"
 
-	CONFIG_VERSION                         = "config:version"
-	CONFIG_KEY_VERSION_IOS_TUTOR_PAUSE     = "tutor_pause_ios"
-	CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE = "tutor_pause_android"
+	CONFIG_VERSION                                 = "config:version"
+	CONFIG_KEY_VERSION_IOS_TUTOR_PAUSE             = "tutor_pause_ios"
+	CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE         = "tutor_pause_android"
+	CONFIG_KEY_VERSION_ANDROID_WHITEBOARD_QACARD   = "whiteboard_qacard_android"
+	CONFIG_KEY_VERSION_IOS_WHITEBOARD_QACARD       = "whiteboard_qacard_ios"
+	CONFIG_KEY_VERSION_ANDROID_WHITEBOARD_RECOVERY = "whiteboard_recovery_android"
+	CONFIG_KEY_VERSION_IOS_WHITEBOARD_RECOVERY     = "whiteboard_recovery_ios"
 )
 
 var defaultMap = map[string]map[string]string{
@@ -77,8 +81,12 @@ var defaultMap = map[string]map[string]string{
 		CONFIG_KEY_TOKEN_DURATION: "2592000",
 	},
 	CONFIG_VERSION: map[string]string{
-		CONFIG_KEY_VERSION_IOS_TUTOR_PAUSE:     "543",
-		CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE: "122",
+		CONFIG_KEY_VERSION_IOS_TUTOR_PAUSE:             "543",
+		CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE:         "122",
+		CONFIG_KEY_VERSION_ANDROID_WHITEBOARD_QACARD:   "109",
+		CONFIG_KEY_VERSION_IOS_WHITEBOARD_QACARD:       "522",
+		CONFIG_KEY_VERSION_ANDROID_WHITEBOARD_RECOVERY: "183",
+		CONFIG_KEY_VERSION_IOS_WHITEBOARD_RECOVERY:     "543",
 	},
 }
 
