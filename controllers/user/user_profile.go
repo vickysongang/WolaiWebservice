@@ -22,6 +22,9 @@ type teacherProfile struct {
 	Major           string                  `json:"major"`
 	Extra           string                  `json:"extra"`
 	ServiceTime     int64                   `json:"serviceTime"`
+	MediaType       string                  `json:"mediaType"`
+	MediaUrl        string                  `json:"mediaUrl"`
+	MediaCover      string                  `json:"mediaCover"`
 	SubjectList     []string                `json:"subjectList,omitempty"`
 	Intro           string                  `json:"intro"`
 	Attitude        float64                 `json:"attitude"`
@@ -58,15 +61,20 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherPro
 	}
 
 	profile := teacherProfile{
-		Id:          user.Id,
-		Nickname:    user.Nickname,
-		Avatar:      user.Avatar,
-		Gender:      user.Gender,
-		AccessRight: user.AccessRight,
-		Major:       teacher.Major,
-		ServiceTime: teacher.ServiceTime,
-		Intro:       teacher.Intro,
-		Extra:       teacher.Extra,
+		Id:              user.Id,
+		Nickname:        user.Nickname,
+		Avatar:          user.Avatar,
+		Gender:          user.Gender,
+		AccessRight:     user.AccessRight,
+		Major:           teacher.Major,
+		ServiceTime:     teacher.ServiceTime,
+		Intro:           teacher.Intro,
+		Extra:           teacher.Extra,
+		MediaType:       teacher.MediaType,
+		MediaUrl:        teacher.MediaUrl,
+		MediaCover:      teacher.MediaCover,
+		Attitude:        teacher.Attitude,
+		Professionalism: teacher.Professionalism,
 	}
 	if teacher.Attitude == 0 {
 		profile.Attitude = 5.0

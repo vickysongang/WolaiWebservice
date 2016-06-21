@@ -111,7 +111,42 @@ func VersionAndroidTutorPause() int64 {
 		redis.CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE)
 }
 
+func VersionIOSWhiteboardQaCard() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_VERSION,
+		redis.CONFIG_KEY_VERSION_IOS_WHITEBOARD_QACARD)
+}
+
+func VersionAndroidWhiteboardQaCard() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_VERSION,
+		redis.CONFIG_KEY_VERSION_ANDROID_WHITEBOARD_QACARD)
+}
+
+func VersionIOSWhiteboardRecovery() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_VERSION,
+		redis.CONFIG_KEY_VERSION_IOS_WHITEBOARD_RECOVERY)
+}
+
+func VersionAndroidWhiteboardRecovery() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_VERSION,
+		redis.CONFIG_KEY_VERSION_ANDROID_WHITEBOARD_RECOVERY)
+}
+
 func FreqSyncDataUsage() int64 {
 	return redis.GetConfigInt64(redis.CONFIG_GENERAL,
 		redis.CONFIG_KEY_GENERAL_DATA_SYNC_FREQ)
+}
+
+func ClaimDataUsageType() string {
+	return redis.GetConfigStr(redis.CONFIG_DATA_USAGE,
+		redis.CONFIG_KEY_DATA_USAGE_CLAIM_TYPE)
+}
+
+func ShareClaimDataReward() int64 {
+	return redis.GetConfigInt64(redis.CONFIG_DATA_USAGE,
+		redis.CONFIG_KEY_DATA_USAGE_CLAIM_SHARE_REWARD)
+}
+
+func LogDataTarget() string {
+	return redis.GetConfigStr(redis.CONFIG_DATA_USAGE,
+		redis.CONFIG_KEY_LOG_DATA_TARGET)
 }

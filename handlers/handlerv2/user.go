@@ -728,10 +728,83 @@ func UserDataUsageUpdate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	status, err, content := userController.UpdateUserDataUsage(userId, data, dataClass)
+	var dataLog int64
+	if len(vars["dataLog"]) > 0 {
+		str := vars["dataLog"][0]
+		dataLog, err = strconv.ParseInt(str, 10, 64)
+		if err != nil {
+			dataLog = 0
+		}
+	}
+
+	status, err, content := userController.UpdateUserDataUsage(userId, data, dataClass, dataLog)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullSlice)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+//2.5.3
+func GetReimbstRecords(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, err, content := userController.GetReimbstRecords(userId, page, count)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 2.5.4
+func MyAccountBanner(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+
+	status, err, content := userController.GetMyAccountBanner(userId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
 	} else {
 		resp = response.NewResponse(status, "", content)
 	}

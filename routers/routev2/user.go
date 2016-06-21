@@ -259,4 +259,23 @@ var userRoutes = route.Routes{
 		true,
 		true,
 	},
+
+	// 2.5.3
+	route.Route{
+		"GetReimbstRecords",
+		"POST",
+		"/data/claim/records",
+		handlerv2.GetReimbstRecords,
+		true,
+		true,
+	},
+	// 2.5.4
+	route.Route{
+		"MyAccountBanner",
+		"POST",
+		"/account/banner",
+		handlerv2.MyAccountBanner,
+		true,
+		true,
+	},
 }

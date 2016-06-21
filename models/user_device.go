@@ -2,21 +2,24 @@ package models
 
 import (
 	"errors"
+	"time"
 
 	"github.com/astaxie/beego/orm"
 	"github.com/cihub/seelog"
 )
 
 type UserDevice struct {
-	UserId         int64  `json:"userId" orm:"pk"`
-	VersionCode    int64  `json:"versionCode"`
-	DeviceType     string `json:"deviceType"`
-	ObjectId       string `json:"objectId"`
-	DeviceToken    string `json:"deviceToken"`
-	DeviceProfile  string `json:"deviceProfile"`
-	InstallationId string `json:"installationId"`
-	TimeZone       string `json:"timeZone"`
-	VoipToken      string `json:"voipToken"`
+	UserId         int64     `json:"userId" orm:"pk"`
+	VersionCode    int64     `json:"versionCode"`
+	DeviceType     string    `json:"deviceType"`
+	ObjectId       string    `json:"objectId"`
+	DeviceToken    string    `json:"deviceToken"`
+	DeviceProfile  string    `json:"deviceProfile"`
+	InstallationId string    `json:"installationId"`
+	TimeZone       string    `json:"timeZone"`
+	VoipToken      string    `json:"voipToken"`
+	CreateTime     time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
+	LastUpdateTime time.Time `json:"lastUpdateTime" orm:"type(datetime)"`
 }
 
 const (
@@ -69,7 +72,7 @@ func UpdateUserDevice(userDevice *UserDevice) (*UserDevice, error) {
 	var err error
 
 	o := orm.NewOrm()
-
+	userDevice.LastUpdateTime = time.Now()
 	_, err = o.Update(userDevice)
 	if err != nil {
 		seelog.Errorf("%s | UserId: %d", err.Error(), userDevice.UserId)

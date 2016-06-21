@@ -21,6 +21,9 @@ type TeacherProfile struct {
 	CertifyFlag     string  `json:"certifyFlag"`
 	Attitude        float64 `json:"attitude"`
 	Professionalism float64 `json:"professionalism"`
+	MediaType       string  `json:"mediaType"`
+	MediaUrl        string  `json:"mediaUrl"`
+	MediaCover      string  `json:"mediaCover"`
 }
 
 func init() {
