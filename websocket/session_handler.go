@@ -178,7 +178,9 @@ func sessionHandler(sessionId int64) {
 
 			if !isCourse {
 				//答疑时间用完了，给学生发送提示消息
-				if leftQaTimeLength > 0 && length >= leftQaTimeLength*60 && !qaPkgTimeEndFlag {
+				student, _ := models.ReadUser(session.Creator)
+				if leftQaTimeLength > 0 && length >= leftQaTimeLength*60 &&
+					!qaPkgTimeEndFlag && student.Balance > 0 {
 					qaPkgTimeEndFlag = true
 					SendQaPkgTimeEndMsgToStudent(session.Creator, sessionId)
 				}
