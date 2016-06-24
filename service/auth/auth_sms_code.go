@@ -6,6 +6,7 @@ import (
 
 	"WolaiWebservice/config"
 	"WolaiWebservice/redis"
+	userService "WolaiWebservice/service/user"
 	"WolaiWebservice/utils/sendcloud"
 )
 
@@ -36,7 +37,10 @@ func GetRandCodeType(operType string) string {
 
 func SendSMSCode(phone, randCodeType string) error {
 	var err error
-
+	_, err = userService.QueryUserByPhone(phone)
+	if err != nil {
+		return err
+	}
 	err = sendcloud.SendMessage(phone, randCodeType)
 	if err != nil {
 		return err
