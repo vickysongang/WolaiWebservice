@@ -205,3 +205,16 @@ func HandleTradeDeduction(userId, amount int64, comment string) error {
 
 	return err
 }
+
+func HandleTradeQapkgGiven(userId, qapkgId int64, comment string) error {
+	var err error
+	qaPkg, err := models.ReadQaPkg(qapkgId)
+	if err != nil {
+		return errors.New("答疑包资料异常")
+	}
+	_, err = createTradeRecord(userId, 0,
+		models.TRADE_QA_PKG_GIVEN, models.TRADE_RESULT_SUCCESS, comment,
+		0, qaPkg.Id, 0, "", qaPkg.TimeLength, 0)
+
+	return err
+}

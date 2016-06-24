@@ -95,7 +95,7 @@ var defaultMap = map[string]map[string]string{
 	},
 
 	CONFIG_DATA_USAGE: map[string]string{
-		CONFIG_KEY_DATA_USAGE_CLAIM_TYPE:         "all",
+		CONFIG_KEY_DATA_USAGE_CLAIM_TYPE:         "class",
 		CONFIG_KEY_DATA_USAGE_CLAIM_SHARE_REWARD: "10240",
 		CONFIG_KEY_LOG_DATA_TARGET:               "class",
 	},

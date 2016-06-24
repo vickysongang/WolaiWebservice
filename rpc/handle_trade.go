@@ -178,3 +178,30 @@ func (watcher *RpcWatcher) HandleTradeRewardRegistration(request *RpcRequest, re
 	*resp = NewRpcResponse(0, "", response.NullObject)
 	return nil
 }
+
+func (watcher *RpcWatcher) HandleTradeQapkgGiven(request *RpcRequest, resp *RpcResponse) error {
+	var err error
+
+	userId, err := strconv.ParseInt(request.Args["userId"], 10, 64)
+	if err != nil {
+		*resp = NewRpcResponse(2, "无效的用户ID", response.NullObject)
+		return err
+	}
+
+	qapkgId, err := strconv.ParseInt(request.Args["qapkgId"], 10, 64)
+	if err != nil {
+		*resp = NewRpcResponse(2, "无效的答疑包id", response.NullObject)
+		return err
+	}
+
+	comment := request.Args["comment"]
+
+	err = trade.HandleTradeQapkgGiven(userId, qapkgId, comment)
+	if err != nil {
+		*resp = NewRpcResponse(2, "交易失败", response.NullObject)
+		return err
+	}
+
+	*resp = NewRpcResponse(0, "", response.NullObject)
+	return nil
+}
