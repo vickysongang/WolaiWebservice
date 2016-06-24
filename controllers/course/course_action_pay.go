@@ -238,7 +238,7 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 		if currentRecord.Id == 0 {
 			return 2, ErrAuditionAbnormal
 		}
-		err = trade.HandleAuditionCoursePurchaseTradeRecord(currentRecord.Id, PAYMENT_PRICE_AUDITION, 0)
+		err = trade.HandleAuditionCoursePurchaseTradeRecord(currentRecord.Id, PAYMENT_PRICE_AUDITION, pingppId)
 		if err != nil {
 			return 2, err
 		}
