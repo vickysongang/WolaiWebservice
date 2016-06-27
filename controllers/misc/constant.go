@@ -56,16 +56,20 @@ func GetHelpItemList() (int64, []*models.HelpItem) {
 	return 0, items
 }
 
-func GetAdvBanner(version string) (int64, *models.AdvBanner) {
+func GetAdvBanner(userId int64, version string) (int64, *models.AdvBanner) {
+	user, err := models.ReadUser(userId)
+	if err != nil {
+		return 2, nil
+	}
 	advBanners, _ := miscService.QueryAllAdvBanners()
 	for _, advBanner := range advBanners {
+		if advBanner.AccessRight != 0 && advBanner.AccessRight != user.AccessRight {
+			continue
+		}
 		if advBanner.Version == "all" || advBanner.Version == version {
 			return 0, advBanner
-		} else {
-			versionStr := advBanner.Version[1:]
-			if version < versionStr {
-				return 0, advBanner
-			}
+		} else if version < advBanner.Version[1:] {
+			return 0, advBanner
 		}
 	}
 	return 2, nil
