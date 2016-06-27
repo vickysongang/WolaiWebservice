@@ -72,5 +72,5 @@ func GetAdvBanner(userId int64, version string) (int64, *models.AdvBanner) {
 			return 0, advBanner
 		}
 	}
-	return 2, nil
+	return 0, nil
 }
