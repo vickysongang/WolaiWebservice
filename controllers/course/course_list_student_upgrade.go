@@ -65,7 +65,7 @@ func assignStudentAuditionCourseInfo(courseId, userId int64, status string, reco
 		return nil
 	}
 
-	studentCount := courseService.GetAuditionCourseStudentCount(courseId)
+	studentCount := courseService.GetCourseStudentCount(courseId)
 	chapterCount := int64(1)
 
 	chapterCompletePeriod, _ := courseService.GetLatestCompleteChapterPeriod(courseId, userId, recordId)

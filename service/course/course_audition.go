@@ -7,12 +7,6 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-func GetAuditionCourseStudentCount(courseId int64) int64 {
-	o := orm.NewOrm()
-	auditionCount, _ := o.QueryTable(new(models.CourseAuditionRecord).TableName()).Count()
-	return auditionCount
-}
-
 func QueryAuditionCourse() *models.Course {
 	o := orm.NewOrm()
 	var course models.Course
