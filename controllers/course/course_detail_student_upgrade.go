@@ -92,7 +92,7 @@ func GetDeluxeCourseDetail(userId int64, course *models.Course) (int64, *courseD
 
 func GetAuditionCourseDetail(userId int64, course *models.Course, recordId int64) (int64, *courseDetailStudent) {
 	courseId := course.Id
-	studentCount := courseService.GetAuditionCourseStudentCount(courseId)
+	studentCount := courseService.GetCourseStudentCount(courseId)
 	detail := courseDetailStudent{
 		Course:       *course,
 		ChapterCount: 1,
