@@ -143,7 +143,7 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 			chapterInfo.Brief = chapter.Abstract
 			chapterInfo.Title = chapter.Title
 		}
-		chapterToUser, _ := courseService.GetCourseChapterToUser(chapter.Id, chapter.UserId, chapter.TeacherId, order.RecordId)
+		chapterToUser, _ := courseService.GetCourseChapterToUser(chapter.Id, chapter.UserId, order.RecordId)
 		if chapterToUser.Id != 0 {
 			isCompleted = true
 		} else {
