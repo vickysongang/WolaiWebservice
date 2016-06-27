@@ -151,9 +151,9 @@ func AdvBanner(w http.ResponseWriter, r *http.Request) {
 		version = vars["version"][0]
 	}
 
-	status, content := miscController.GetAdvBanner(userId, version)
+	status, content, err := miscController.GetAdvBanner(userId, version)
 	if status != 0 {
-		json.NewEncoder(w).Encode(response.NewResponse(status, "", response.NullObject))
+		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullObject))
 	} else {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
