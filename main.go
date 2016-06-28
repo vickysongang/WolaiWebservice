@@ -63,7 +63,7 @@ func main() {
 	orm.Debug = false
 
 	go startRpcServer()
-	//go handlerv2.VoipKeepAliveHandler()
+	//	go handlerv2.VoipKeepAliveHandler()
 
 	if config.Env.Server.Live != 1 {
 		go func() {

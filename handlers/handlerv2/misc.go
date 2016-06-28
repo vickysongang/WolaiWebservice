@@ -129,3 +129,32 @@ func SubjectList(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
+
+// 10.2.4
+func AdvBanner(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	var version string
+	if len(vars["version"]) > 0 {
+		version = vars["version"][0]
+	}
+
+	status, content, err := miscController.GetAdvBanner(userId, version)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}

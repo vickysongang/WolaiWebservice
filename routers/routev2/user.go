@@ -102,7 +102,7 @@ var userRoutes = route.Routes{
 
 	// 2.2.3
 	route.Route{
-		"TeacherProfile",
+		"TeacherProfileCourse",
 		"POST",
 		"/teacher/profile/course",
 		handlerv2.UserTeacherProfileCourse,
@@ -112,15 +112,45 @@ var userRoutes = route.Routes{
 
 	// 2.2.4
 	route.Route{
-		"StudentProfile",
+		"TeacherProfileEvaluation",
 		"POST",
-		"/student/profile",
-		handlerv2.Dummy,
+		"/teacher/profile/evaluation",
+		handlerv2.UserTeacherProfileEvalution,
 		true,
 		true,
 	},
 
 	// 2.2.5
+	route.Route{
+		"StudentProfile",
+		"POST",
+		"/student/profile",
+		handlerv2.UserStudentProfile,
+		true,
+		true,
+	},
+
+	// 2.2.6
+	route.Route{
+		"UpdateStudentProfile",
+		"POST",
+		"/student/profile/update",
+		handlerv2.UserStudentProfileUpdate,
+		true,
+		true,
+	},
+
+	// 2.2.7
+	route.Route{
+		"CompleteStudentProfile",
+		"POST",
+		"/student/profile/complete",
+		handlerv2.UserStudentProfileComplete,
+		true,
+		true,
+	},
+
+	// 2.2.8
 	route.Route{
 		"TeacherProfileChecked",
 		"POST",
@@ -207,6 +237,45 @@ var userRoutes = route.Routes{
 		"/invitation/record",
 		handlerv2.Dummy,
 		false,
+		true,
+	},
+
+	// 2.5.1
+	route.Route{
+		"GetUserDataUsage",
+		"POST",
+		"/data/usage",
+		handlerv2.UserDataUsage,
+		true,
+		true,
+	},
+
+	// 2.5.2
+	route.Route{
+		"UpdateUserDataUsage",
+		"POST",
+		"/data/usage/update",
+		handlerv2.UserDataUsageUpdate,
+		true,
+		true,
+	},
+
+	// 2.5.3
+	route.Route{
+		"GetReimbstRecords",
+		"POST",
+		"/data/claim/records",
+		handlerv2.GetReimbstRecords,
+		true,
+		true,
+	},
+	// 2.5.4
+	route.Route{
+		"MyAccountBanner",
+		"POST",
+		"/account/banner",
+		handlerv2.MyAccountBanner,
+		true,
 		true,
 	},
 }

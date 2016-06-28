@@ -33,7 +33,6 @@ func GetCourseDetailStudentUpgrade(userId int64, courseId int64, recordId int64)
 
 func GetDeluxeCourseDetail(userId int64, course *models.Course) (int64, *courseDetailStudent) {
 	var err error
-	o := orm.NewOrm()
 	courseId := course.Id
 	studentCount := courseService.GetCourseStudentCount(courseId)
 
@@ -45,9 +44,7 @@ func GetDeluxeCourseDetail(userId int64, course *models.Course) (int64, *courseD
 	characteristicList, _ := courseService.QueryCourseContentIntros(courseId)
 	detail.CharacteristicList = characteristicList
 
-	var purchaseRecord models.CoursePurchaseRecord
-	err = o.QueryTable(new(models.CoursePurchaseRecord).TableName()).Filter("user_id", userId).Filter("course_id", courseId).
-		One(&purchaseRecord)
+	purchaseRecord, err := courseService.GetCoursePurchaseRecordByUserId(courseId, userId)
 	if err != nil && err != orm.ErrNoRows {
 		return 2, nil
 	}
@@ -94,9 +91,8 @@ func GetDeluxeCourseDetail(userId int64, course *models.Course) (int64, *courseD
 }
 
 func GetAuditionCourseDetail(userId int64, course *models.Course, recordId int64) (int64, *courseDetailStudent) {
-	o := orm.NewOrm()
 	courseId := course.Id
-	studentCount := courseService.GetAuditionCourseStudentCount(courseId)
+	studentCount := courseService.GetCourseStudentCount(courseId)
 	detail := courseDetailStudent{
 		Course:       *course,
 		ChapterCount: 1,
@@ -106,11 +102,7 @@ func GetAuditionCourseDetail(userId int64, course *models.Course, recordId int64
 	detail.CharacteristicList = characteristicList
 
 	if recordId == 0 {
-		var auditionRecord models.CourseAuditionRecord
-		o.QueryTable(new(models.CourseAuditionRecord).TableName()).
-			Filter("course_id", courseId).Filter("user_id", userId).
-			Exclude("status", models.AUDITION_RECORD_STATUS_COMPLETE).
-			One(&auditionRecord)
+		auditionRecord, _ := courseService.GetCourseAuditionRecordByUserId(courseId, userId)
 		if auditionRecord.Id != 0 {
 			detail.PurchaseStatus = auditionRecord.Status
 			detail.RecordId = auditionRecord.Id

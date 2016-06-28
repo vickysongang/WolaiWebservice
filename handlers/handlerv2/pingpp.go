@@ -12,6 +12,7 @@ import (
 	"WolaiWebservice/controllers/trade"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
+	tradeService "WolaiWebservice/service/trade"
 	"WolaiWebservice/utils/pingxx"
 )
 
@@ -277,7 +278,7 @@ func PingppResult(w http.ResponseWriter, r *http.Request) {
 
 	chargeId := vars["chargeId"][0]
 
-	content, err := models.QueryPingppRecordByChargeId(chargeId)
+	content, err := tradeService.QueryPingppRecordByChargeId(chargeId)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {

@@ -7,7 +7,7 @@ import (
 	seelog "github.com/cihub/seelog"
 )
 
-type POIFeedComment struct {
+type FeedComment struct {
 	Id              string    `json:"id" orm:"pk;column(comment_id)"`
 	FeedId          string    `json:"feedId"`
 	Creator         *User     `json:"creatorInfo" orm:"-"`
@@ -23,25 +23,25 @@ type POIFeedComment struct {
 	ReplyToId       int64     `json:"-" orm:"column(reply_to)"`
 }
 
-type POIFeedComments []POIFeedComment
+type FeedComments []FeedComment
 
-func (fc *POIFeedComment) TableName() string {
+func (fc *FeedComment) TableName() string {
 	return "feed_comment"
 }
 
 func init() {
-	orm.RegisterModel(new(POIFeedComment))
+	orm.RegisterModel(new(FeedComment))
 }
 
-func NewPOIFeedComment() POIFeedComment {
-	return POIFeedComment{ImageList: make([]string, 9)}
+func NewFeedComment() FeedComment {
+	return FeedComment{ImageList: make([]string, 9)}
 }
 
-func (f *POIFeedComment) IncreaseLike() {
+func (f *FeedComment) IncreaseLike() {
 	f.LikeCount = f.LikeCount + 1
 }
 
-func InsertPOIFeedComment(feedComment *POIFeedComment) *POIFeedComment {
+func InsertFeedComment(feedComment *FeedComment) *FeedComment {
 	o := orm.NewOrm()
 	_, err := o.Insert(feedComment)
 	if err != nil {

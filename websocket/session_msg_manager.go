@@ -6,6 +6,7 @@ import (
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/service/push"
+	"WolaiWebservice/utils/apnsprovider"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -121,6 +122,11 @@ func SendSyncMsg(userId, sessionId, length int64) error {
 		userChan := UserManager.GetUserChan(userId)
 		userChan <- syncMsg
 		return nil
+	} else {
+		device, err := models.ReadUserDevice(userId)
+		if err == nil && device.DeviceType == models.DEVICE_TYPE_IOS && device.VoipToken != "" {
+			go apnsprovider.PushVoipAlive(device.VoipToken, sessionId)
+		}
 	}
 	return ErrUserChanClose
 }

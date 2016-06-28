@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	CONFIG_GENERAL               = "config:general"
-	CONFIG_KEY_GENERAL_WEBSOCKET = "websocket"
-	CONFIG_KEY_GENERAL_KAMAILIO  = "kamailio"
+	CONFIG_GENERAL                    = "config:general"
+	CONFIG_KEY_GENERAL_WEBSOCKET      = "websocket"
+	CONFIG_KEY_GENERAL_KAMAILIO       = "kamailio"
+	CONFIG_KEY_GENERAL_DATA_SYNC_FREQ = "data_sync_freq"
 
 	CONFIG_ORDER                        = "config:order"
 	CONFIG_KEY_ORDER_LIFESPAN_GI        = "lifespan_gi"
@@ -38,9 +39,18 @@ const (
 	CONFIG_TOKEN              = "config:token"
 	CONFIG_KEY_TOKEN_DURATION = "duration"
 
-	CONFIG_VERSION                         = "config:version"
-	CONFIG_KEY_VERSION_IOS_TUTOR_PAUSE     = "tutor_pause_ios"
-	CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE = "tutor_pause_android"
+	CONFIG_VERSION                                 = "config:version"
+	CONFIG_KEY_VERSION_IOS_TUTOR_PAUSE             = "tutor_pause_ios"
+	CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE         = "tutor_pause_android"
+	CONFIG_KEY_VERSION_ANDROID_WHITEBOARD_QACARD   = "whiteboard_qacard_android"
+	CONFIG_KEY_VERSION_IOS_WHITEBOARD_QACARD       = "whiteboard_qacard_ios"
+	CONFIG_KEY_VERSION_ANDROID_WHITEBOARD_RECOVERY = "whiteboard_recovery_android"
+	CONFIG_KEY_VERSION_IOS_WHITEBOARD_RECOVERY     = "whiteboard_recovery_ios"
+
+	CONFIG_DATA_USAGE                        = "config:data"
+	CONFIG_KEY_DATA_USAGE_CLAIM_TYPE         = "claim_type"
+	CONFIG_KEY_DATA_USAGE_CLAIM_SHARE_REWARD = "share_reward"
+	CONFIG_KEY_LOG_DATA_TARGET               = "log_data_target"
 )
 
 var defaultMap = map[string]map[string]string{
@@ -68,15 +78,26 @@ var defaultMap = map[string]map[string]string{
 		CONFIG_KEY_WEBSOCKET_WRITE_WAIT:  "10",
 	},
 	CONFIG_GENERAL: map[string]string{
-		CONFIG_KEY_GENERAL_WEBSOCKET: "115.29.207.236:8080/v1/ws",
-		CONFIG_KEY_GENERAL_KAMAILIO:  "115.29.207.236:5060",
+		CONFIG_KEY_GENERAL_WEBSOCKET:      "115.29.207.236:8080/v1/ws",
+		CONFIG_KEY_GENERAL_KAMAILIO:       "115.29.207.236:5060",
+		CONFIG_KEY_GENERAL_DATA_SYNC_FREQ: "60",
 	},
 	CONFIG_TOKEN: map[string]string{
 		CONFIG_KEY_TOKEN_DURATION: "2592000",
 	},
 	CONFIG_VERSION: map[string]string{
-		CONFIG_KEY_VERSION_IOS_TUTOR_PAUSE:     "543",
-		CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE: "122",
+		CONFIG_KEY_VERSION_IOS_TUTOR_PAUSE:             "543",
+		CONFIG_KEY_VERSION_ANDROID_TUTOR_PAUSE:         "122",
+		CONFIG_KEY_VERSION_ANDROID_WHITEBOARD_QACARD:   "109",
+		CONFIG_KEY_VERSION_IOS_WHITEBOARD_QACARD:       "522",
+		CONFIG_KEY_VERSION_ANDROID_WHITEBOARD_RECOVERY: "183",
+		CONFIG_KEY_VERSION_IOS_WHITEBOARD_RECOVERY:     "543",
+	},
+
+	CONFIG_DATA_USAGE: map[string]string{
+		CONFIG_KEY_DATA_USAGE_CLAIM_TYPE:         "class",
+		CONFIG_KEY_DATA_USAGE_CLAIM_SHARE_REWARD: "10240",
+		CONFIG_KEY_LOG_DATA_TARGET:               "class",
 	},
 }
 

@@ -5,10 +5,9 @@ import (
 	"math"
 	"time"
 
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
 	"WolaiWebservice/service/trade"
+	tradeService "WolaiWebservice/service/trade"
 )
 
 type tradeInfo struct {
@@ -39,13 +38,9 @@ const (
 
 func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) {
 	var err error
-	o := orm.NewOrm()
-
 	result := make([]*tradeInfo, 0)
 
-	var records []*models.TradeRecord
-	_, err = o.QueryTable("trade_record").Filter("user_id", userId).OrderBy("-id").
-		Offset(page * count).Limit(count).All(&records)
+	records, err := tradeService.QueryUserTradeRecords(userId, page, count)
 	if err != nil {
 		return 0, nil, result
 	}
@@ -267,25 +262,30 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Avartar = AVATAR_QAPKG_PURCHASE
 			info.Title = trade.COMMENT_QA_PKG_PURCHASE
 			qaPkgId := record.RecordId
-			if qaPkgId != 0 {
-				qaPkg, err := models.ReadQaPkg(qaPkgId)
-				if err == nil {
-					qaPkgModule, _ := models.ReadQaPkgModule(qaPkg.ModuleId)
-					if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
-						info.Comment = fmt.Sprintf("%s-%d个月", qaPkgModule.Name, qaPkg.Month)
-					} else if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
-						info.Comment = fmt.Sprintf("%s-%d分钟", qaPkgModule.Name, qaPkg.TimeLength)
-					}
-				}
+			if qaPkgId == 0 {
+				continue
 			}
+			qaPkg, err := models.ReadQaPkg(qaPkgId)
+			if err != nil {
+				continue
+			}
+			qaPkgModule, _ := models.ReadQaPkgModule(qaPkg.ModuleId)
+			if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
+				info.Comment = fmt.Sprintf("%s-%d个月", qaPkgModule.Name, qaPkg.Month)
+			} else if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
+				info.Comment = fmt.Sprintf("%s-%d分钟", qaPkgModule.Name, qaPkg.TimeLength)
+			}
+
 		case models.TRADE_QA_PKG_GIVEN:
 			info.Avartar = AVATAR_QAPKG_PURCHASE
 			info.Title = trade.COMMENT_QA_PKG_GIVEN
 			qaPkgId := record.RecordId
 			qaPkg, err := models.ReadQaPkg(qaPkgId)
-			if err == nil {
-				info.Comment = fmt.Sprintf("%s %d分钟", "赠送答疑时间", qaPkg.TimeLength)
+			if err != nil {
+				continue
 			}
+			info.Comment = fmt.Sprintf("%s %d分钟", "赠送答疑时间", qaPkg.TimeLength)
+
 		default:
 			continue
 		}

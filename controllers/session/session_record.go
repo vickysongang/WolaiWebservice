@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
+	sessionService "WolaiWebservice/service/session"
 )
 
 type sessionRecord struct {
@@ -24,19 +23,11 @@ type sessionRecord struct {
 }
 
 func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRecord) {
-	o := orm.NewOrm()
-
 	_, err := models.ReadUser(userId)
 	if err != nil {
 		return 2, nil
 	}
-
-	cond := orm.NewCondition()
-	cond1 := cond.Or("creator", userId).Or("tutor", userId)
-
-	var sessions []*models.Session
-	_, err = o.QueryTable("sessions").SetCond(cond1).
-		OrderBy("-id").Offset(page * count).Limit(count).All(&sessions)
+	sessions, err := sessionService.GetUserSessions(userId, page, count)
 	if err != nil {
 		return 2, nil
 	}
@@ -55,7 +46,8 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 		order, _ := models.ReadOrder(session.OrderId)
 		var title string
 		var isCourse bool
-		if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+		if order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+			order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 			isCourse = true
 		}
 		var chapterId int64

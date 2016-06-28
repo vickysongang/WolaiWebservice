@@ -21,12 +21,25 @@ func SessionWhiteboardCallPush(userId, targetId int64) (int64, error) {
 
 func SessionWhiteboardCheckQACard(targetId int64) (int64, error) {
 	req := user.VersionRequire{
-		MinIOSVersion:     522,
-		MinAndroidVersion: 109,
+		MinIOSVersion:     settings.VersionIOSWhiteboardQaCard(),
+		MinAndroidVersion: settings.VersionAndroidWhiteboardQaCard(),
 	}
 
 	if !user.CheckUserVersion(targetId, &req) {
 		return 2, errors.New("对方版本过低，暂不支持答疑卡片")
+	}
+
+	return 0, nil
+}
+
+func SessionWhiteboardCheckRecovery(targetId int64) (int64, error) {
+	req := user.VersionRequire{
+		MinIOSVersion:     settings.VersionIOSWhiteboardRecovery(),
+		MinAndroidVersion: settings.VersionAndroidWhiteboardRecovery(),
+	}
+
+	if !user.CheckUserVersion(targetId, &req) {
+		return 2, errors.New("对方版本过低，暂不支持数据恢复")
 	}
 
 	return 0, nil

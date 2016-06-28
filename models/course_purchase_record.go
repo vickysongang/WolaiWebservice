@@ -74,7 +74,7 @@ func UpdateCoursePurchaseRecord(recordId int64, recordInfo map[string]interface{
 	for k, v := range recordInfo {
 		params[k] = v
 	}
-
+	params["LastUpdateTime"] = time.Now()
 	_, err := o.QueryTable("course_purchase_record").Filter("id", recordId).Update(params)
 	if err != nil {
 		return nil, err

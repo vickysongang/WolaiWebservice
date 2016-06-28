@@ -3,8 +3,6 @@ package course
 import (
 	"errors"
 
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/utils/leancloud/lcmessage"
@@ -12,42 +10,39 @@ import (
 
 func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64) (int64, error) {
 	var err error
-	o := orm.NewOrm()
 
 	_, err = models.ReadUser(userId)
 	if err != nil {
-		return 2, errors.New("用户信息异常")
+		return 2, ErrUserAbnormal
 	}
 
 	_, err = models.ReadUser(studentId)
 	if err != nil {
-		return 2, errors.New("用户信息异常")
+		return 2, ErrUserAbnormal
 	}
 
 	_, err = models.ReadCourse(courseId)
 	if err != nil {
-		return 2, errors.New("课程信息异常")
+		return 2, ErrCourseAbnormal
 	}
 
 	chapter, err := models.ReadCourseCustomChapter(chapterId)
 	if err != nil {
-		return 2, errors.New("课程信息异常")
+		return 2, ErrCourseAbnormal
 	}
 
-	var purchase models.CoursePurchaseRecord
-	err = o.QueryTable("course_purchase_record").
-		Filter("course_id", courseId).Filter("user_id", studentId).One(&purchase)
+	purchase, err := courseService.GetCoursePurchaseRecordByUserId(courseId, studentId)
 	if err != nil {
-		return 2, errors.New("课程信息异常")
+		return 2, ErrCourseAbnormal
 	}
 	if purchase.TeacherId != userId {
-		return 2, errors.New("课程信息异常")
+		return 2, ErrCourseAbnormal
 	}
 
 	latestPeriod, err := courseService.GetLatestCompleteChapterPeriod(courseId, studentId, purchase.Id)
 	if err == nil {
 		if chapter.Period != latestPeriod+1 {
-			return 2, errors.New("课程信息异常")
+			return 2, ErrCourseAbnormal
 		}
 
 		if purchase.PurchaseStatus != models.PURCHASE_RECORD_STATUS_PAID {
@@ -56,7 +51,7 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 
 	} else {
 		if latestPeriod != 0 {
-			return 2, errors.New("课程信息异常")
+			return 2, ErrCourseAbnormal
 		}
 
 		if purchase.AuditionStatus != models.PURCHASE_RECORD_STATUS_PAID {
@@ -75,12 +70,11 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 
 	_, err = models.CreateCourseChapterToUser(&record)
 	if err != nil {
-		return 2, errors.New("服务器操作异常")
+		return 2, ErrServerAbnormal
 	}
 
 	go lcmessage.SendCourseChapterCompleteMsg(purchase.Id, chapter.Id)
 
-	//chapterCount := courseService.GetCourseChapterCount(courseId)
 	chapterCount := purchase.ChapterCount
 
 	recordInfo := map[string]interface{}{
@@ -93,17 +87,12 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 			"audition_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
 		}
 		models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
-	} else if chapter.Period == chapterCount-1 {
+	} else if chapter.Period == chapterCount {
 		recordInfo := map[string]interface{}{
 			"purchase_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
 		}
 		models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
 	}
-
-	//	err = trade.HandleCourseEarning(purchase.Id, chapter.Period)
-	//	if err != nil {
-	//		return 2, errors.New("支付信息异常")
-	//	}
 
 	return 0, nil
 }

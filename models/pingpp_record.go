@@ -66,10 +66,3 @@ func UpdatePingppRecord(chargeId string, recordInfo map[string]interface{}) {
 		seelog.Error("charge_id:", chargeId, " recordInfo:", recordInfo, " ", err.Error())
 	}
 }
-
-func QueryPingppRecordByChargeId(chargeId string) (*PingppRecord, error) {
-	o := orm.NewOrm()
-	record := PingppRecord{}
-	err := o.QueryTable("pingpp_record").Filter("charge_id", chargeId).One(&record)
-	return &record, err
-}

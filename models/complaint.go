@@ -4,9 +4,6 @@ import (
 	"time"
 
 	"github.com/astaxie/beego/orm"
-	"github.com/cihub/seelog"
-
-	"WolaiWebservice/config"
 )
 
 type Complaint struct {
@@ -28,14 +25,13 @@ func init() {
 	orm.RegisterModel(new(Complaint))
 }
 
-func InsertPOIComplaint(complaint *Complaint) (*Complaint, error) {
+func InsertComplaint(complaint *Complaint) (*Complaint, error) {
 	var err error
 
 	o := orm.NewOrm()
 
 	id, err := o.Insert(complaint)
 	if err != nil {
-		seelog.Error("complaint:", complaint, " ", err.Error())
 		return nil, err
 	}
 	complaint.Id = id
@@ -43,7 +39,7 @@ func InsertPOIComplaint(complaint *Complaint) (*Complaint, error) {
 	return complaint, nil
 }
 
-func UpdateComplaintInfo(complaintId int64, complaintInfo map[string]interface{}) error {
+func UpdateComplaint(complaintId int64, complaintInfo map[string]interface{}) error {
 	var err error
 
 	o := orm.NewOrm()
@@ -54,21 +50,6 @@ func UpdateComplaintInfo(complaintId int64, complaintInfo map[string]interface{}
 	}
 
 	_, err = o.QueryTable("complaint").Filter("id", complaintId).Update(params)
-	if err != nil {
-		seelog.Error("complaintId:", complaintId, " complaintInfo:", complaintInfo, " ", err.Error())
-		return err
-	}
 
-	return nil
-}
-
-func GetComplaintStatus(userId, sessionId int64) string {
-	o := orm.NewOrm()
-
-	qb, _ := orm.NewQueryBuilder(config.Env.Database.Type)
-	status := ""
-	qb.Select("status").From("complaint").Where("user_id = ? and session_id = ?")
-	sql := qb.String()
-	o.Raw(sql, userId, sessionId).QueryRow(&status)
-	return status
+	return err
 }

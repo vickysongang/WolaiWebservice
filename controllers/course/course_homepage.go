@@ -1,10 +1,10 @@
 package course
 
 import (
-	"github.com/astaxie/beego/orm"
 	"github.com/cihub/seelog"
 
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 )
 
 type coursePreview struct {
@@ -29,11 +29,7 @@ type courseHomePage struct {
 }
 
 func GetCourseHomePage() (int64, *courseHomePage) {
-	o := orm.NewOrm()
-
-	var masterCourses []*models.CourseToModule
-	_, err := o.QueryTable("course_to_module").Filter("module_id", 1).Filter("recommend", 1).
-		OrderBy("rank").All(&masterCourses)
+	masterCourses, err := courseService.QueryModuleCourses(1)
 	if err != nil {
 		seelog.Error(err.Error())
 		return 2, nil
@@ -70,9 +66,7 @@ func GetCourseHomePage() (int64, *courseHomePage) {
 		CourseList: masterPreviews,
 	}
 
-	var synchCourses []*models.CourseToModule
-	_, err = o.QueryTable("course_to_module").Filter("module_id", 2).Filter("recommend", 1).
-		OrderBy("rank").All(&synchCourses)
+	synchCourses, err := courseService.QueryModuleCourses(2)
 	if err != nil {
 		seelog.Error(err.Error())
 		return 2, nil
@@ -109,9 +103,7 @@ func GetCourseHomePage() (int64, *courseHomePage) {
 		CourseList: synchPreviews,
 	}
 
-	var hotCourses []*models.CourseToModule
-	_, err = o.QueryTable("course_to_module").Filter("module_id", 3).Filter("recommend", 1).
-		OrderBy("rank").All(&hotCourses)
+	hotCourses, err := courseService.QueryModuleCourses(3)
 	if err != nil {
 		seelog.Error(err.Error())
 		return 2, nil

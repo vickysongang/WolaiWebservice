@@ -23,11 +23,11 @@ const (
 	USER_FEED_FAV  = "user:feed_fav:"
 )
 
-func GetFeed(feedId string) *models.POIFeed {
+func GetFeed(feedId string) *models.Feed {
 	if !redisClient.HExists(CACHE_FEED+feedId, "id").Val() {
 		return nil
 	}
-	feed := models.NewPOIFeed()
+	feed := models.NewFeed()
 
 	hashMap := redisClient.HGetAllMap(CACHE_FEED + feedId).Val()
 
@@ -61,7 +61,7 @@ func GetFeed(feedId string) *models.POIFeed {
 	return &feed
 }
 
-func SetFeed(feed *models.POIFeed) {
+func SetFeed(feed *models.Feed) {
 	_ = redisClient.HSet(CACHE_FEED+feed.Id, "id", feed.Id)
 	_ = redisClient.HSet(CACHE_FEED+feed.Id, "creator_id", strconv.FormatInt(feed.Creator.Id, 10))
 	_ = redisClient.HSet(CACHE_FEED+feed.Id, "create_timestamp", strconv.FormatFloat(feed.CreateTimestamp, 'f', 6, 64))
@@ -86,7 +86,7 @@ func SetFeed(feed *models.POIFeed) {
 	_ = redisClient.HSet(CACHE_FEED+feed.Id, "repost_count", strconv.FormatInt(feed.RepostCount, 10))
 }
 
-func PostFeed(feed *models.POIFeed) {
+func PostFeed(feed *models.Feed) {
 	if feed == nil {
 		return
 	}
@@ -110,7 +110,7 @@ func DeleteFeed(feedId string, plateType string) {
 	_ = redisClient.ZRem(feedFlowType, feedId)
 }
 
-func LikeFeed(feed *models.POIFeed, user *models.User, timestamp float64) {
+func LikeFeed(feed *models.Feed, user *models.User, timestamp float64) {
 	if feed == nil || user == nil {
 		return
 	}
@@ -123,7 +123,7 @@ func LikeFeed(feed *models.POIFeed, user *models.User, timestamp float64) {
 	_ = redisClient.ZAdd(USER_FEED_LIKE+userIdStr, feedZ)
 }
 
-func UnlikeFeed(feed *models.POIFeed, user *models.User) {
+func UnlikeFeed(feed *models.Feed, user *models.User) {
 	if feed == nil || user == nil {
 		return
 	}
@@ -152,7 +152,7 @@ func SetFeedLikeCount(feedId string, userId int64) {
 	redisClient.HSet(FEED_LIKE_COUNT+feedId, userIdStr, newCountStr)
 }
 
-func HasLikedFeed(feed *models.POIFeed, user *models.User) bool {
+func HasLikedFeed(feed *models.Feed, user *models.User) bool {
 	if feed == nil || user == nil {
 		return false
 	}
@@ -171,7 +171,7 @@ func HasLikedFeed(feed *models.POIFeed, user *models.User) bool {
 	return result
 }
 
-func HasFavedFeed(feed *models.POIFeed, user *models.User) bool {
+func HasFavedFeed(feed *models.Feed, user *models.User) bool {
 	return false
 }
 

@@ -8,17 +8,22 @@ import (
 )
 
 type TeacherProfile struct {
-	UserId       int64  `json:"userId" orm:"column(user_id);pk"`
-	SchoolId     int64  `json:"schoolId" orm:"column(school_id)"`
-	StudyGrade   string `json:"studyGrade" orm:"column(study_grade)"`
-	Major        string `json:"major" orm:"column(major)"`
-	ServiceTime  int64  `json:"serviceTime" orm:"column(service_time)"`
-	Intro        string `json:"intro" orm:"column(intro)"`
-	Extra        string `json:"extra" orm:"column(extra)"`
-	TierId       int64  `json:"tierId" orm:"column(tier_id)"`
-	PriceHourly  int64  `json:"-" orm:"column(price_hourly)"`
-	SalaryHourly int64  `json:"-" orm:"column(salary_hourly)"`
-	CertifyFlag  string `json:"certifyFlag"`
+	UserId          int64   `json:"userId" orm:"column(user_id);pk"`
+	SchoolId        int64   `json:"schoolId" orm:"column(school_id)"`
+	StudyGrade      string  `json:"studyGrade" orm:"column(study_grade)"`
+	Major           string  `json:"major" orm:"column(major)"`
+	ServiceTime     int64   `json:"serviceTime" orm:"column(service_time)"`
+	Intro           string  `json:"intro" orm:"column(intro)"`
+	Extra           string  `json:"extra" orm:"column(extra)"`
+	TierId          int64   `json:"tierId" orm:"column(tier_id)"`
+	PriceHourly     int64   `json:"-" orm:"column(price_hourly)"`
+	SalaryHourly    int64   `json:"-" orm:"column(salary_hourly)"`
+	CertifyFlag     string  `json:"certifyFlag"`
+	Attitude        float64 `json:"attitude"`
+	Professionalism float64 `json:"professionalism"`
+	MediaType       string  `json:"mediaType"`
+	MediaUrl        string  `json:"mediaUrl"`
+	MediaCover      string  `json:"mediaCover"`
 }
 
 func init() {

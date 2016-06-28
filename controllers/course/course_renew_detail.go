@@ -2,11 +2,8 @@
 package course
 
 import (
-	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 	"errors"
-
-	"github.com/astaxie/beego/orm"
 )
 
 const (
@@ -37,10 +34,7 @@ func GetCourseRenewDetail(courseId, userId int64) (int64, *CourseRenewDetail, er
 		detail.RenewCount = record.RenewCount
 		detail.Type = COURSE_RENEW_TYPE_AUTO
 	} else {
-		o := orm.NewOrm()
-		var purchaseRecord models.CoursePurchaseRecord
-		o.QueryTable("course_purchase_record").Filter("course_id", courseId).Filter("user_id", userId).
-			One(&purchaseRecord)
+		purchaseRecord, _ := courseService.GetCoursePurchaseRecordByUserId(courseId, userId)
 		if purchaseRecord.Id != 0 {
 			detail.TeacherId = purchaseRecord.TeacherId
 			detail.PriceHourly = purchaseRecord.PriceHourly

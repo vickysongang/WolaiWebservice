@@ -17,12 +17,12 @@ const (
 	USER_FEED_COMMENT = "user:feed_comment:"
 )
 
-func GetFeedComment(feedCommentId string) *models.POIFeedComment {
+func GetFeedComment(feedCommentId string) *models.FeedComment {
 	if !redisClient.HExists(CACHE_FEEDCOMMENT+feedCommentId, "id").Val() {
 		return nil
 	}
 
-	feedComment := models.NewPOIFeedComment()
+	feedComment := models.NewFeedComment()
 
 	hashMap := redisClient.HGetAllMap(CACHE_FEEDCOMMENT + feedCommentId).Val()
 
@@ -57,7 +57,7 @@ func GetFeedComment(feedCommentId string) *models.POIFeedComment {
 	return &feedComment
 }
 
-func SetFeedComment(feedComment *models.POIFeedComment) {
+func SetFeedComment(feedComment *models.FeedComment) {
 	_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "id", feedComment.Id)
 	_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "feed_id", feedComment.FeedId)
 	_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "creator_id", strconv.FormatInt(feedComment.Creator.Id, 10))
@@ -76,7 +76,7 @@ func SetFeedComment(feedComment *models.POIFeedComment) {
 	_ = redisClient.HSet(CACHE_FEEDCOMMENT+feedComment.Id, "like_count", strconv.FormatInt(feedComment.LikeCount, 10))
 }
 
-func PostFeedComment(feedComment *models.POIFeedComment) {
+func PostFeedComment(feedComment *models.FeedComment) {
 	if feedComment == nil {
 		return
 	}
@@ -88,10 +88,10 @@ func PostFeedComment(feedComment *models.POIFeedComment) {
 	_ = redisClient.ZAdd(USER_FEED_COMMENT+userIdStr, feedCommentZ)
 }
 
-func GetFeedComments(feedId string) models.POIFeedComments {
+func GetFeedComments(feedId string) models.FeedComments {
 	feedCommentZs := redisClient.ZRangeWithScores(FEED_COMMENT+feedId, 0, -1).Val()
 
-	feedComments := make([]models.POIFeedComment, 0)
+	feedComments := make([]models.FeedComment, 0)
 
 	for i := range feedCommentZs {
 		str, _ := feedCommentZs[i].Member.(string)
@@ -105,6 +105,6 @@ func GetFeedComments(feedId string) models.POIFeedComments {
 	return feedComments
 }
 
-func HasLikedFeedComment(feedComment *models.POIFeedComment, user *models.User) bool {
+func HasLikedFeedComment(feedComment *models.FeedComment, user *models.User) bool {
 	return false
 }

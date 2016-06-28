@@ -20,7 +20,7 @@ func QueryUserByPhone(phone string) (*models.User, error) {
 		One(&user)
 	if err != nil {
 		seelog.Errorf("%s | Phone: %s", err.Error(), phone)
-		return nil, errors.New("该手机号用户不存在")
+		return nil, errors.New("该手机号未注册")
 	}
 
 	return &user, nil

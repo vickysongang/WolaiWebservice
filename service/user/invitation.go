@@ -41,8 +41,9 @@ func CheckUserInvitation(userId int64) (bool, error) {
 		seelog.Errorf("%s | Phone: %s", err.Error(), user.Phone)
 		return false, errors.New("没有邀请记录")
 	}
-
-	trade.HandleTradeRewardInvitation(record.Inviter, record.Amount)
+	if record.Unit == models.REGISTER_INVITATION_UNIT_MINUTE {
+		trade.HandleTradeRewardInvitationGivenQaPkg(record.Inviter, record.Amount)
+	}
 
 	return true, nil
 }

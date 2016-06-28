@@ -9,6 +9,7 @@ import (
 
 	courseController "WolaiWebservice/controllers/course"
 	"WolaiWebservice/handlers/response"
+	courseService "WolaiWebservice/service/course"
 )
 
 // 9.1.1
@@ -674,7 +675,7 @@ func CourseCountOfConversation(w http.ResponseWriter, r *http.Request) {
 	teacherIdStr := vars["teacherId"][0]
 	teacherId, _ := strconv.ParseInt(teacherIdStr, 10, 64)
 
-	content := courseController.QueryCourseCountOfConversation(userId, teacherId)
+	content := courseService.GetConversationCourseCount(userId, teacherId)
 
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 

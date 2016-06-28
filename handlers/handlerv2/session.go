@@ -12,6 +12,7 @@ import (
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 	"WolaiWebservice/redis"
+	sessionService "WolaiWebservice/service/session"
 )
 
 // 6.1.1
@@ -375,7 +376,7 @@ func SessionComplainPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	complaint := models.Complaint{UserId: userId, SessionId: sessionId, Reasons: reasons, Comment: comment, Status: "pending"}
-	content, err := models.InsertPOIComplaint(&complaint)
+	content, err := models.InsertComplaint(&complaint)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
@@ -402,7 +403,7 @@ func SessionComplainCheck(w http.ResponseWriter, r *http.Request) {
 	sessionIdStr := vars["sessionId"][0]
 	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 60)
 
-	status := models.GetComplaintStatus(userId, sessionId)
+	status := sessionService.GetComplaintStatus(userId, sessionId)
 	json.NewEncoder(w).Encode(response.NewResponse(0, "", status))
 }
 
@@ -449,6 +450,29 @@ func SessionWhiteboardCheckQACard(w http.ResponseWriter, r *http.Request) {
 	targetId, _ := strconv.ParseInt(targetIdStr, 10, 60)
 
 	status, err := sessionController.SessionWhiteboardCheckQACard(targetId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(status, "", response.NullObject)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 6.5.2
+func SessionWhiteboardCheckRecovery(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	vars := r.Form
+
+	targetIdStr := vars["targetId"][0]
+	targetId, _ := strconv.ParseInt(targetIdStr, 10, 60)
+
+	status, err := sessionController.SessionWhiteboardCheckRecovery(targetId)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullObject)

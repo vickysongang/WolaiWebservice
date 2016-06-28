@@ -5,12 +5,11 @@ import (
 	"math"
 	"time"
 
-	"github.com/astaxie/beego/orm"
-
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 	evaluationService "WolaiWebservice/service/evaluation"
 	qapkgService "WolaiWebservice/service/qapkg"
+	tradeService "WolaiWebservice/service/trade"
 )
 
 type sessionInfo struct {
@@ -64,8 +63,6 @@ type teacherInfo struct {
 
 func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
 	var err error
-	o := orm.NewOrm()
-
 	session, _ := models.ReadSession(sessionId)
 	order, _ := models.ReadOrder(session.OrderId)
 	creator, _ := models.ReadUser(session.Creator)
@@ -81,21 +78,19 @@ func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
 	}
 
 	var tradeAmount, qaPkgUseTime, qaPkgLeftTime int64
-	var record models.TradeRecord
-	err = o.QueryTable("trade_record").Filter("session_id", sessionId).Filter("user_id", userId).One(&record)
+	record, err := tradeService.GetSessionTradeRecord(sessionId, userId)
 	if err == nil {
 		tradeAmount = int64(math.Abs(float64(record.TradeAmount)))
-		if userId == session.Creator {
-			qaPkgUseTime = int64(math.Abs(float64(record.QapkgTimeLength)))
-			if qaPkgUseTime > 0 {
-				leftQaTimeLength := qapkgService.GetLeftQaTimeLength(session.Creator)
-				qaPkgLeftTime = leftQaTimeLength
-			}
+		qaPkgUseTime = int64(math.Abs(float64(record.QapkgTimeLength)))
+		if userId == session.Creator && qaPkgUseTime > 0 {
+			leftQaTimeLength := qapkgService.GetLeftQaTimeLength(session.Creator)
+			qaPkgLeftTime = leftQaTimeLength
 		}
 	}
 
 	var isCourse bool
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+		order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		isCourse = true
 	}
 
@@ -137,7 +132,8 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 	var chapterInfo courseChapterInfo
 	var evaluationStatus, evaluationComment, evaluationDetailUrl string
 	recordId := order.RecordId
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+		order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		isCourse = true
 		chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
 		if err == nil {
@@ -147,7 +143,7 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 			chapterInfo.Brief = chapter.Abstract
 			chapterInfo.Title = chapter.Title
 		}
-		chapterToUser, _ := courseService.GetCourseChapterToUser(chapter.Id, chapter.UserId, chapter.TeacherId, order.RecordId)
+		chapterToUser, _ := courseService.GetCourseChapterToUser(chapter.Id, chapter.UserId, order.RecordId)
 		if chapterToUser.Id != 0 {
 			isCompleted = true
 		} else {

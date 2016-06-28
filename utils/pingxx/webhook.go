@@ -67,7 +67,7 @@ func (pwm *PingxxWebhookManager) ChargeSuccessEvent(chargeId string) {
 	}
 	models.UpdatePingppRecord(chargeId, recordInfo)
 
-	pingppRecord, _ := models.QueryPingppRecordByChargeId(chargeId)
+	pingppRecord, _ := trade.QueryPingppRecordByChargeId(chargeId)
 	if pingppRecord.Id == 0 {
 		return
 	}

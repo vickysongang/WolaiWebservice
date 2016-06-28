@@ -202,6 +202,7 @@ func AuthPhoneSMSCode(w http.ResponseWriter, r *http.Request) {
 		operType := vars["operType"][0]
 		randCodeType = authService.GetRandCodeType(operType)
 	}
+
 	err = authService.SendSMSCode(phone, randCodeType)
 	var resp *response.Response
 	if err != nil {
