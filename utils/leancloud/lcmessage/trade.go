@@ -155,44 +155,49 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("账户充值：%s %.2f 元", signStr, amount))
 
 	case models.TRADE_CHARGE_PREMIUM:
-		comment := "充值奖励"
-		if record.Comment != "" {
-			comment = record.Comment
-		}
-
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，恭喜你获得充值奖励。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("%s：%s %.2f 元", comment, signStr, amount))
+			fmt.Sprintf("%s：%s %.2f 元", "充值奖励", signStr, amount))
+		if record.Comment != "" {
+			msg.body = append(msg.body,
+				fmt.Sprintf("%s：%s", "备注", record.Comment))
+		}
 
 	case models.TRADE_WITHDRAW:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已提现成功。", user.Nickname, suffix)
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户提现：%s %.2f 元", signStr, amount))
-
-	case models.TRADE_PROMOTION:
-		comment := "活动奖励"
 		if record.Comment != "" {
-			comment = record.Comment
+			msg.body = append(msg.body,
+				fmt.Sprintf("%s：%s", "备注", record.Comment))
 		}
 
+	case models.TRADE_PROMOTION:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，恭喜你获得活动奖励。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("%s：%s %.2f 元", comment, signStr, amount))
+			fmt.Sprintf("%s：%s %.2f 元", "活动奖励", signStr, amount))
+		if record.Comment != "" {
+			msg.body = append(msg.body,
+				fmt.Sprintf("%s：%s", "备注", record.Comment))
+		}
 
 	case models.TRADE_VOUCHER:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已成功使用代金券。", user.Nickname, suffix)
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户充值：%s %.2f 元", signStr, amount))
-
-	case models.TRADE_DEDUCTION:
-		comment := "服务扣费"
 		if record.Comment != "" {
-			comment = record.Comment
+			msg.body = append(msg.body,
+				fmt.Sprintf("%s：%s", "备注", record.Comment))
 		}
 
+	case models.TRADE_DEDUCTION:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，系统扣费提醒，请悉知。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("%s：%s %.2f 元", comment, signStr, amount))
+			fmt.Sprintf("%s：%s %.2f 元", "服务扣费", signStr, amount))
+		if record.Comment != "" {
+			msg.body = append(msg.body,
+				fmt.Sprintf("%s：%s", "备注", record.Comment))
+		}
 
 	case models.TRADE_REWARD_REGISTRATION:
 		msg.subtitle = fmt.Sprintf("亲爱的%s，欢迎注册我来。", suffix)
