@@ -91,7 +91,7 @@ func PushOrderAccept(objectId string, orderId, teacherId int64) error {
 	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		alert = "导师接受了上课请求，准备上课吧"
 	} else {
-		alert = "导师接受了你的提问，准备上课吧"
+		alert = "导师接受了你的家教订单，准备上课吧"
 	}
 
 	lcReq := map[string]interface{}{

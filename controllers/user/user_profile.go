@@ -221,7 +221,7 @@ func GetTeacherProfileChecked(userId int64, teacherId int64) (int64, error, *tea
 	}
 
 	if user.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
-		return 2, errors.New("对方不是导师，不能发起提问哦"), nil
+		return 2, errors.New("对方不是导师，不能发起家教订单哦"), nil
 	}
 
 	status, err, content := GetTeacherProfile(userId, teacherId)

@@ -83,13 +83,13 @@ func GetQaPkgList() ([]QaPkgModuleInfo, error) {
 				showInfo.Name = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
 				showInfo.Content = fmt.Sprintf("%d分钟", qaPkg.TimeLength)
 				showInfo.Price = fmt.Sprintf("%.2f元（原价%.2f元）", float64(qaPkg.DiscountPrice)/100, float64(qaPkg.OriginalPrice)/100)
-				showInfo.Comment = "购买该优惠包后可以任意使用快速提问功能"
+				showInfo.Comment = "购买该优惠包后可以任意使用在线家教功能"
 
 			} else if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
 				showInfo.Name = fmt.Sprintf("%s-%d%s", module.Name, qaPkg.Month, "个月")
 				showInfo.Content = fmt.Sprintf("%d分钟/月", qaPkg.TimeLength)
 				showInfo.Price = fmt.Sprintf("%.2f元（原价%.2f元）", float64(qaPkg.DiscountPrice)/100, float64(qaPkg.OriginalPrice)/100)
-				showInfo.Comment = "购买该优惠包后可以任意使用快速提问功能"
+				showInfo.Comment = "购买该优惠包后可以任意使用在线家教功能"
 			}
 			moduleInfo.QaPkgs = append(moduleInfo.QaPkgs, &showInfo)
 
