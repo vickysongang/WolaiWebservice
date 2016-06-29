@@ -60,7 +60,7 @@ func GetQaPkgList() ([]QaPkgModuleInfo, error) {
 	var modules []models.QaPkgModule
 	_, err := o.QueryTable(new(models.QaPkgModule).TableName()).OrderBy("rank").All(&modules)
 	if err != nil {
-		return nil, errors.New("答疑包资料异常")
+		return nil, errors.New("家教时间包资料异常")
 	}
 	for _, module := range modules {
 		if module.Active != "Y" {
@@ -146,7 +146,7 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 			if !(now.After(record.TimeFrom) && record.TimeTo.After(now)) {
 				continue
 			}
-			qapkg.Title = fmt.Sprintf("赠送答疑时间%d分钟", qaPkg.TimeLength)
+			qapkg.Title = fmt.Sprintf("赠送家教时间%d分钟", qaPkg.TimeLength)
 		} else {
 			qapkg.Title = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
 		}

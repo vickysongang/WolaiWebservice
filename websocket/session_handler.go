@@ -43,7 +43,7 @@ func sessionHandler(sessionId int64) {
 		student, _ := models.ReadUser(session.Creator)
 		teacherProfile, _ := models.ReadTeacherProfile(session.Tutor)
 		teacherTier, _ := models.ReadTeacherTierHourly(teacherProfile.TierId)
-		leftQaTimeLength = qapkgService.GetLeftQaTimeLength(session.Creator)                //获取答疑的剩余时间
+		leftQaTimeLength = qapkgService.GetLeftQaTimeLength(session.Creator)                //获取家教的剩余时间
 		totalTimeLength = leftQaTimeLength + (student.Balance*60)/teacherTier.QAPriceHourly //获取可用的总上课时长
 		seelog.Debug("leftQaTimeLength:", leftQaTimeLength, " totalTimeLength:", totalTimeLength, "  autoFinishLimit:", autoFinishLimit, " sessionId:", sessionId)
 	}
@@ -177,7 +177,7 @@ func sessionHandler(sessionId int64) {
 			SendSyncMsg(session.Creator, sessionId, length)
 
 			if !isCourse {
-				//答疑时间用完了，给学生发送提示消息
+				//家教时间用完了，给学生发送提示消息
 				student, _ := models.ReadUser(session.Creator)
 				if leftQaTimeLength > 0 && length >= leftQaTimeLength*60 &&
 					!qaPkgTimeEndFlag && student.Balance > 0 {

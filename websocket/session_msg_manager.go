@@ -398,7 +398,7 @@ func SendQaPkgTimeEndMsgToStudent(studentId, sessionId int64) error {
 	sessionIdStr := strconv.FormatInt(sessionId, 10)
 	qaPkgTimeEndMsg := NewWSMessage("", studentId, WS_SESSION_QAPKG_TIME_END)
 	qaPkgTimeEndMsg.Attribute["sessionId"] = sessionIdStr
-	qaPkgTimeEndMsg.Attribute["comment"] = "答疑时间用完啦，本次上课已经换到账户余额支付"
+	qaPkgTimeEndMsg.Attribute["comment"] = "家教时间用完啦，本次上课已经换到账户余额支付"
 	qaPkgTimeEndMsg.Attribute["sessionStatus"] = SESSION_STATUS_SERVING
 	if UserManager.HasUserChan(studentId) {
 		userChan := UserManager.GetUserChan(studentId)
