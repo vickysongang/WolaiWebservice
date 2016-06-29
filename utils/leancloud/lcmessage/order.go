@@ -108,7 +108,7 @@ func SendOrderPersonalTutorBusyMsg(orderId int64) {
 
 	lcTMsg := leancloud.LCTypedMessage{
 		Type:      LC_MSG_SYSTEM,
-		Text:      "导师正在上课，可能无法及时应答。你可以换个时间约TA，或者向其他在线导师提问。",
+		Text:      "导师正在上课，可能无法及时应答。你可以换个时间约TA，或者选择其它在线导师。",
 		Attribute: attr,
 	}
 
@@ -126,7 +126,7 @@ func SendOrderPersonalTutorExpireMsg(orderId int64) {
 
 	lcTMsg := leancloud.LCTypedMessage{
 		Type:      LC_MSG_SYSTEM,
-		Text:      "提问请求超时无应答，已自动取消。",
+		Text:      "家教订单超时无应答，已自动取消。",
 		Attribute: attr,
 	}
 

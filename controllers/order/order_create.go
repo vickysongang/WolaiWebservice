@@ -35,7 +35,7 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignor
 	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(userId)
 	if leftQaTimeLength == 0 {
 		if user.Balance <= settings.OrderBalanceMin() {
-			return 5112, errors.New("你的账户空空如也，没有办法发起提问啦，记得先去充值喔"), nil
+			return 5112, errors.New("你的账户空空如也，没有办法发起订单啦，记得先去充值喔"), nil
 		} else if user.Balance <= settings.OrderBalanceAlert() && ignoreFlagStr != IGNORE_FLAG_TRUE {
 			return 5111, errors.New("你的账户余额已经不够20分钟家教时间，不充值可能欠费哦"), nil
 		}
