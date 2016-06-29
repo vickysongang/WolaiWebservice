@@ -76,7 +76,7 @@ func SendTradeNotification(recordId int64) {
 
 		grade, err1 := models.ReadGrade(order.GradeId)
 		subject, err2 := models.ReadSubject(order.SubjectId)
-		subjectStr := "实时答疑"
+		subjectStr := "实时家教"
 		if err1 == nil && err2 == nil {
 			subjectStr = fmt.Sprintf("%s%s", grade.Name, subject.Name)
 		}
@@ -99,7 +99,7 @@ func SendTradeNotification(recordId int64) {
 				month, day, session.TimeFrom.Hour(), session.TimeFrom.Minute(), lengthMin))
 		if math.Abs(float64(record.QapkgTimeLength)) > 0 {
 			msg.body = append(msg.body,
-				fmt.Sprintf("账户消费：%s %.2f 元(答疑时间：%d分钟)", signStr, amount, record.QapkgTimeLength))
+				fmt.Sprintf("账户消费：%s %.2f 元(家教时间：%d分钟)", signStr, amount, record.QapkgTimeLength))
 		} else {
 			msg.body = append(msg.body,
 				fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
@@ -325,15 +325,15 @@ func SendTradeNotification(recordId int64) {
 		if err != nil {
 			return
 		}
-		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已经完成答疑时间包的购买。", user.Nickname, suffix)
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已经完成家教时间包的购买。", user.Nickname, suffix)
 		msg.body = append(msg.body,
 			fmt.Sprintf("产品名称：%s", qaPkgModule.Name))
 		if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
 			msg.body = append(msg.body,
-				fmt.Sprintf("答疑时间：%d分钟", qaPkg.TimeLength))
+				fmt.Sprintf("家教时间：%d分钟", qaPkg.TimeLength))
 		} else if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
 			msg.body = append(msg.body,
-				fmt.Sprintf("答疑时间：%d分钟/%d个月", qaPkg.TimeLength, qaPkg.Month))
+				fmt.Sprintf("家教时间：%d分钟/%d个月", qaPkg.TimeLength, qaPkg.Month))
 		}
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
@@ -346,11 +346,11 @@ func SendTradeNotification(recordId int64) {
 		if err != nil {
 			return
 		}
-		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已经获得赠送的答疑时间包。", user.Nickname, suffix)
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已经获得赠送的家教时间包。", user.Nickname, suffix)
 		msg.body = append(msg.body,
 			fmt.Sprintf("产品名称：%s", qaPkgModule.Name))
 		msg.body = append(msg.body,
-			fmt.Sprintf("答疑时间：%d分钟", qaPkg.TimeLength))
+			fmt.Sprintf("家教时间：%d分钟", qaPkg.TimeLength))
 	default:
 		return
 	}

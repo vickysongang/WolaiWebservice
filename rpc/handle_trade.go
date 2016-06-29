@@ -190,7 +190,7 @@ func (watcher *RpcWatcher) HandleTradeQapkgGiven(request *RpcRequest, resp *RpcR
 
 	qapkgId, err := strconv.ParseInt(request.Args["qapkgId"], 10, 64)
 	if err != nil {
-		*resp = NewRpcResponse(2, "无效的答疑包id", response.NullObject)
+		*resp = NewRpcResponse(2, "无效的家教时间包id", response.NullObject)
 		return err
 	}
 

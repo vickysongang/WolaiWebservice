@@ -79,7 +79,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			subject, err2 := models.ReadSubject(order.SubjectId)
 			var title string
 			if err1 != nil || err2 != nil {
-				title = "实时答疑"
+				title = "实时家教"
 			} else {
 				title = grade.Name + subject.Name
 			}
@@ -92,7 +92,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Avartar = user.Avatar
 			info.Title = fmt.Sprintf("%s %d分钟", title, lengthMin)
 			if math.Abs(float64(record.QapkgTimeLength)) > 0 {
-				info.Comment = fmt.Sprintf("答疑时间%d分钟", record.QapkgTimeLength)
+				info.Comment = fmt.Sprintf("家教时间%d分钟", record.QapkgTimeLength)
 			}
 
 		case models.TRADE_RECEIVEMENT:
@@ -284,7 +284,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if err != nil {
 				continue
 			}
-			info.Comment = fmt.Sprintf("%s %d分钟", "赠送答疑时间", qaPkg.TimeLength)
+			info.Comment = fmt.Sprintf("%s %d分钟", "赠送家教时间", qaPkg.TimeLength)
 
 		default:
 			continue

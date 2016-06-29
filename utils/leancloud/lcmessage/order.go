@@ -26,7 +26,7 @@ func SendOrderPersonalNotification(orderId int64, teacherId int64) {
 	if err1 == nil && err2 == nil {
 		title = grade.Name + "  " + subject.Name
 	} else {
-		title = "私人答疑"
+		title = "私人家教"
 	}
 
 	attr := make(map[string]string)
