@@ -35,21 +35,21 @@ func CreateOrder(userId, teacherId, teacherTier, gradeId, subjectId int64, ignor
 	leftQaTimeLength := qapkgService.GetLeftQaTimeLength(userId)
 	if leftQaTimeLength == 0 {
 		if user.Balance <= settings.OrderBalanceMin() {
-			return 5112, errors.New("你的账户空空如也，没有办法发起提问啦，记得先去充值喔"), nil
+			return 5112, errors.New("你的账户空空如也，没有办法发起订单啦，记得先去充值喔"), nil
 		} else if user.Balance <= settings.OrderBalanceAlert() && ignoreFlagStr != IGNORE_FLAG_TRUE {
-			return 5111, errors.New("你的账户余额已经不够20分钟答疑时间，不充值可能欠费哦"), nil
+			return 5111, errors.New("你的账户余额已经不够20分钟家教时间，不充值可能欠费哦"), nil
 		}
 	} else {
 		if leftQaTimeLength <= settings.OrderQaPkgMin() && user.Balance > settings.OrderBalanceAlert() && ignoreFlagStr != IGNORE_FLAG_TRUE {
-			return 5113, errors.New("剩余答疑时间较少，上课过程中答疑时间用完后，将使用账户余额支付"), nil
+			return 5113, errors.New("剩余家教时间较少，上课过程中家教时间用完后，将使用账户余额支付"), nil
 		} else if leftQaTimeLength <= settings.OrderQaPkgMin() && user.Balance <= settings.OrderBalanceAlert() && ignoreFlagStr != IGNORE_FLAG_TRUE {
-			return 5114, errors.New("剩余答疑时间和账户余额均较少，若继续上课有可能会自动下课，建议先去充值噢"), nil
+			return 5114, errors.New("剩余家教时间和账户余额均较少，若继续上课有可能会自动下课，建议先去充值噢"), nil
 		}
 	}
 
 	var orderType string
 	if teacherId != 0 {
-		// 如果指定了导师，则判断为点对点答疑
+		// 如果指定了导师，则判断为点对点家教
 		orderType = models.ORDER_TYPE_PERSONAL_INSTANT
 
 		if websocket.OrderManager.HasOrderOnline(userId, teacherId) {

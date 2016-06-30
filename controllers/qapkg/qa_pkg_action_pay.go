@@ -13,7 +13,7 @@ var ErrInsufficientFund = errors.New("用户余额不足")
 func HandleQaPkgActionPayByBalance(userId, qaPkgId int64) (int64, error) {
 	qaPkg, err := models.ReadQaPkg(qaPkgId)
 	if err != nil {
-		return 2, errors.New("答疑包资料异常")
+		return 2, errors.New("家教时间包资料异常")
 	}
 	user, err := models.ReadUser(userId)
 	if err != nil {
@@ -40,7 +40,7 @@ func HandleQaPkgActionPayByBalance(userId, qaPkgId int64) (int64, error) {
 func HandleQaPkgActionPayByThird(userId, qaPkgId int64, pingppAmount int64, pingppId int64) (int64, error) {
 	qaPkg, err := models.ReadQaPkg(qaPkgId)
 	if err != nil {
-		return 2, errors.New("答疑包资料异常")
+		return 2, errors.New("家教时间包资料异常")
 	}
 
 	user, err := models.ReadUser(userId)

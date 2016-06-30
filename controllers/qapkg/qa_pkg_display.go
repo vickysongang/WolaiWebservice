@@ -60,7 +60,7 @@ func GetQaPkgList() ([]QaPkgModuleInfo, error) {
 	var modules []models.QaPkgModule
 	_, err := o.QueryTable(new(models.QaPkgModule).TableName()).OrderBy("rank").All(&modules)
 	if err != nil {
-		return nil, errors.New("答疑包资料异常")
+		return nil, errors.New("家教时间包资料异常")
 	}
 	for _, module := range modules {
 		if module.Active != "Y" {
@@ -83,13 +83,13 @@ func GetQaPkgList() ([]QaPkgModuleInfo, error) {
 				showInfo.Name = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
 				showInfo.Content = fmt.Sprintf("%d分钟", qaPkg.TimeLength)
 				showInfo.Price = fmt.Sprintf("%.2f元（原价%.2f元）", float64(qaPkg.DiscountPrice)/100, float64(qaPkg.OriginalPrice)/100)
-				showInfo.Comment = "购买该优惠包后可以任意使用快速提问功能"
+				showInfo.Comment = "购买该优惠包后可以任意使用在线家教功能"
 
 			} else if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
 				showInfo.Name = fmt.Sprintf("%s-%d%s", module.Name, qaPkg.Month, "个月")
 				showInfo.Content = fmt.Sprintf("%d分钟/月", qaPkg.TimeLength)
 				showInfo.Price = fmt.Sprintf("%.2f元（原价%.2f元）", float64(qaPkg.DiscountPrice)/100, float64(qaPkg.OriginalPrice)/100)
-				showInfo.Comment = "购买该优惠包后可以任意使用快速提问功能"
+				showInfo.Comment = "购买该优惠包后可以任意使用在线家教功能"
 			}
 			moduleInfo.QaPkgs = append(moduleInfo.QaPkgs, &showInfo)
 
@@ -146,7 +146,7 @@ func GetQaPkgDetail(userId int64) (*UserQaPkgDetail, error) {
 			if !(now.After(record.TimeFrom) && record.TimeTo.After(now)) {
 				continue
 			}
-			qapkg.Title = fmt.Sprintf("赠送答疑时间%d分钟", qaPkg.TimeLength)
+			qapkg.Title = fmt.Sprintf("赠送家教时间%d分钟", qaPkg.TimeLength)
 		} else {
 			qapkg.Title = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
 		}

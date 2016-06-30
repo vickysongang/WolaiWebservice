@@ -65,7 +65,7 @@ func PushOrderAccept(deviceToken, deviceProfile string, orderId, teacherId int64
 	teacherByte, _ := json.Marshal(teacher)
 
 	payload := apns.NewPayload()
-	payload.Alert = "有导师接受了你的提问，快来上课吧"
+	payload.Alert = "有导师接受了你的家教订单，快来上课吧"
 	payload.Badge = 1
 
 	pn := apns.NewPushNotification()
@@ -98,7 +98,7 @@ func PushOrderPersonalAccept(deviceToken, deviceProfile string, orderId, teacher
 	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		payload.Alert = "导师接受了上课请求，准备上课吧"
 	} else {
-		payload.Alert = "导师接受了你的提问，快来上课吧"
+		payload.Alert = "导师接受了你的家教订单，快来上课吧"
 	}
 	payload.Badge = 1
 

@@ -26,7 +26,7 @@ func SendOrderPersonalNotification(orderId int64, teacherId int64) {
 	if err1 == nil && err2 == nil {
 		title = grade.Name + "  " + subject.Name
 	} else {
-		title = "私人答疑"
+		title = "私人家教"
 	}
 
 	attr := make(map[string]string)
@@ -108,7 +108,7 @@ func SendOrderPersonalTutorBusyMsg(orderId int64) {
 
 	lcTMsg := leancloud.LCTypedMessage{
 		Type:      LC_MSG_SYSTEM,
-		Text:      "导师正在上课，可能无法及时应答。你可以换个时间约TA，或者向其他在线导师提问。",
+		Text:      "导师正在上课，可能无法及时应答。你可以换个时间约TA，或者选择其它在线导师。",
 		Attribute: attr,
 	}
 
@@ -126,7 +126,7 @@ func SendOrderPersonalTutorExpireMsg(orderId int64) {
 
 	lcTMsg := leancloud.LCTypedMessage{
 		Type:      LC_MSG_SYSTEM,
-		Text:      "提问请求超时无应答，已自动取消。",
+		Text:      "家教订单超时无应答，已自动取消。",
 		Attribute: attr,
 	}
 

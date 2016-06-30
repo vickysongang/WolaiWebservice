@@ -25,10 +25,10 @@ const (
 	COMMENT_AUDITION_COURSE_PURCHASE      = "试听课购买"
 	COMMENT_COURSE_EARNING                = "课程结算"
 	COMMENT_COURSE_RENEW                  = "课程续课"
-	COMMENT_QA_PKG_PURCHASE               = "答疑包购买"
-	COMMENT_QA_PKG_GIVEN                  = "答疑包赠送"
-	COMMENT_QA_PKG_GIVEN_COMPLETE_PROFILE = "答疑包赠送-完善资料"
-	COMMENT_QA_PKG_GIVEN_INVITATION       = "答疑包赠送-邀请注册"
+	COMMENT_QA_PKG_PURCHASE               = "家教时间包购买"
+	COMMENT_QA_PKG_GIVEN                  = "家教时间包赠送"
+	COMMENT_QA_PKG_GIVEN_COMPLETE_PROFILE = "家教时间包赠送-完善资料"
+	COMMENT_QA_PKG_GIVEN_INVITATION       = "家教时间包赠送-邀请注册"
 )
 
 func HandleTradeRewardRegistration(userId int64) error {
@@ -52,7 +52,7 @@ func HandleTradeRewardGivenQaPkg(userId int64, comment string) (string, error) {
 	var err error
 	qaPkg, err := qaPkgService.QueryGivenQaPkgByLength(MINUTES_REWARD_PROFILE_COMPLETION)
 	if err != nil {
-		return "", errors.New("赠送答疑包资料异常")
+		return "", errors.New("赠送家教时间包资料异常")
 	}
 
 	_, err = qaPkgService.HandleGivenQaPkgPurchaseRecord(userId, qaPkg.Id)
@@ -65,14 +65,14 @@ func HandleTradeRewardGivenQaPkg(userId int64, comment string) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("成功获得%d分钟答疑时间\n快去我的账户里看看吧", MINUTES_REWARD_PROFILE_COMPLETION), nil
+	return fmt.Sprintf("成功获得%d分钟家教时间\n快去我的账户里看看吧", MINUTES_REWARD_PROFILE_COMPLETION), nil
 }
 
 func HandleTradeRewardInvitationGivenQaPkg(userId, amount int64) (string, error) {
 	var err error
 	qaPkg, err := qaPkgService.QueryGivenQaPkgByLength(amount)
 	if err != nil {
-		return "", errors.New("赠送答疑包资料异常")
+		return "", errors.New("赠送家教时间包资料异常")
 	}
 
 	_, err = qaPkgService.HandleGivenQaPkgPurchaseRecord(userId, qaPkg.Id)
@@ -85,7 +85,7 @@ func HandleTradeRewardInvitationGivenQaPkg(userId, amount int64) (string, error)
 		return "", err
 	}
 
-	return fmt.Sprintf("成功获得%d分钟答疑时间\n快去我的账户里看看吧", amount), nil
+	return fmt.Sprintf("成功获得%d分钟家教时间\n快去我的账户里看看吧", amount), nil
 }
 
 func HandleTradeRewardInvitation(userId, amount int64) error {
@@ -210,7 +210,7 @@ func HandleTradeQapkgGiven(userId, qapkgId int64, comment string) error {
 	var err error
 	qaPkg, err := models.ReadQaPkg(qapkgId)
 	if err != nil {
-		return errors.New("答疑包资料异常")
+		return errors.New("家教时间包资料异常")
 	}
 	_, err = createTradeRecord(userId, 0,
 		models.TRADE_QA_PKG_GIVEN, models.TRADE_RESULT_SUCCESS, comment,
