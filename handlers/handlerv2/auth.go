@@ -197,7 +197,7 @@ func AuthPhoneSMSCode(w http.ResponseWriter, r *http.Request) {
 
 	phone := vars["phone"][0]
 
-	randCodeType := redis.SC_LOGIN_RAND_CODE
+	randCodeType := redis.SC_REGISTER_RAND_CODE
 	if len(vars["operType"]) > 0 {
 		operType := vars["operType"][0]
 		randCodeType = authService.GetRandCodeType(operType)
