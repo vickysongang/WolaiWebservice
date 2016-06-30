@@ -670,7 +670,7 @@ func UserContactRecommendation(w http.ResponseWriter, r *http.Request) {
 
 // 2.5.1
 func UserDataUsage(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullSlice)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -686,7 +686,7 @@ func UserDataUsage(w http.ResponseWriter, r *http.Request) {
 	status, err, content := userController.GetUserDataUsage(userId)
 	var resp *response.Response
 	if err != nil {
-		resp = response.NewResponse(status, err.Error(), response.NullSlice)
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
 	} else {
 		resp = response.NewResponse(status, "", content)
 	}
@@ -695,7 +695,7 @@ func UserDataUsage(w http.ResponseWriter, r *http.Request) {
 
 // 2.5.2
 func UserDataUsageUpdate(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullSlice)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -740,7 +740,7 @@ func UserDataUsageUpdate(w http.ResponseWriter, r *http.Request) {
 	status, err, content := userController.UpdateUserDataUsage(userId, data, dataClass, dataLog)
 	var resp *response.Response
 	if err != nil {
-		resp = response.NewResponse(status, err.Error(), response.NullSlice)
+		resp = response.NewResponse(status, err.Error(), response.NullObject)
 	} else {
 		resp = response.NewResponse(status, "", content)
 	}
@@ -788,7 +788,7 @@ func GetReimbstRecords(w http.ResponseWriter, r *http.Request) {
 
 // 2.5.4
 func MyAccountBanner(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -804,7 +804,7 @@ func MyAccountBanner(w http.ResponseWriter, r *http.Request) {
 	status, err, content := userController.GetMyAccountBanner(userId)
 	var resp *response.Response
 	if err != nil {
-		resp = response.NewResponse(status, err.Error(), response.NullObject)
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
 	} else {
 		resp = response.NewResponse(status, "", content)
 	}
