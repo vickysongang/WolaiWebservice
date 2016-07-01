@@ -61,7 +61,10 @@ func OauthRegister(phone, code, openId, nickname, avatar string, gender int64) (
 	var err error
 	err = authService.VerifySMSCode(phone, code, redis.SC_REGISTER_RAND_CODE)
 	if err != nil {
-		return 2, err, nil
+		err = authService.VerifySMSCode(phone, code, redis.SC_LOGIN_RAND_CODE)
+		if err != nil {
+			return 2, err, nil
+		}
 	}
 
 	user, err := userService.QueryUserByPhone(phone)
