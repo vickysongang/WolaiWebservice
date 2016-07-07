@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"WolaiWebservice/config"
 	"WolaiWebservice/redis"
 )
 
@@ -149,4 +150,14 @@ func ShareClaimDataReward() int64 {
 func LogDataTarget() string {
 	return redis.GetConfigStr(redis.CONFIG_DATA_USAGE,
 		redis.CONFIG_KEY_LOG_DATA_TARGET)
+}
+
+func DeviceUpgradeInfo(deviceType string) *config.UpgradeInfo {
+	info := config.UpgradeInfo{}
+	configStr := redis.GetConfigStr(redis.CONFIG_UPGRADE, deviceType)
+	err := info.UnmarshalConfig([]byte(configStr))
+	if err != nil {
+		return nil
+	}
+	return &info
 }

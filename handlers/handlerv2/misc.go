@@ -158,3 +158,25 @@ func AdvBanner(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
+
+// 10.2.5
+func VersionUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	deviceType := vars["deviceType"][0]
+	var version int64
+	if len(vars["version"]) > 0 {
+		versionStr := vars["version"][0]
+		version, err = strconv.ParseInt(versionStr, 10, 64)
+	}
+	status, content, err := miscController.VersionUpgrade(deviceType, version)
+	if status != 0 {
+		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
+	}
+}
