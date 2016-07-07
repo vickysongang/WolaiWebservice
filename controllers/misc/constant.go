@@ -8,8 +8,9 @@ import (
 )
 
 type UpgradeConfig struct {
-	UpgradeType string `json:"upgradeType"`
-	DownloadUrl string `json:"downloadUrl"`
+	UpgradeType    string `json:"upgradeType"`
+	DownloadUrl    string `json:"downloadUrl"`
+	UpgradeContent string `json:"upgradeContent"`
 }
 
 func GetGradeList(pid int64) (int64, []*models.Grade) {
@@ -88,16 +89,20 @@ func VersionUpgrade(deviceType string, version int64) (int64, *UpgradeConfig, er
 	if upgradeInfo == nil {
 		config.UpgradeType = "none"
 		config.DownloadUrl = ""
+		config.UpgradeContent = ""
 	} else {
 		if version <= upgradeInfo.ForceMinVersion {
 			config.UpgradeType = "force"
 			config.DownloadUrl = upgradeInfo.DownloadUrl
+			config.UpgradeContent = upgradeInfo.UpgradeContent
 		} else if version < upgradeInfo.MaxVersion && version > upgradeInfo.ForceMinVersion {
 			config.UpgradeType = "common"
 			config.DownloadUrl = upgradeInfo.DownloadUrl
+			config.UpgradeContent = upgradeInfo.UpgradeContent
 		} else {
 			config.UpgradeType = "none"
 			config.DownloadUrl = ""
+			config.UpgradeContent = ""
 		}
 	}
 	return 0, &config, nil

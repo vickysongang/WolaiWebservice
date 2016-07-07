@@ -16,6 +16,7 @@ type UpgradeInfo struct {
 	MaxVersion      int64  `json:"max_version"`
 	ForceMinVersion int64  `json:"force_min_version"`
 	DownloadUrl     string `json:"download_url"`
+	UpgradeContent  string `json:"upgrade_content"`
 }
 
 func (d *duration) UnmarshalText(text []byte) error {
