@@ -495,8 +495,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 	}
 
 	orderInfo := GetOrderInfo(orderId)
-	orderByte, _ := json.Marshal(orderInfo)
-	orderStr := string(orderByte)
+
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
 
 	quitMsg := NewWSMessage(msg.MessageId, msg.UserId, SIGNAL_ORDER_QUIT)
@@ -513,6 +512,11 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			OrderManager.SetOrderCancelled(orderId)
 			orderChan <- quitMsg
 			OrderManager.SetOffline(orderId)
+
+			orderInfo := GetOrderInfo(orderId)
+			orderByte, _ := json.Marshal(orderInfo)
+			orderStr := string(orderByte)
+
 			lcmessage.SendOrderPersonalCancelNotification(orderId, order.TeacherId, orderStr)
 		} else {
 			//instant order
