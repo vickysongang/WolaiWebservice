@@ -25,7 +25,8 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 	orderIdStr := strconv.FormatInt(orderId, 10)
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
 	orderInfo := GetOrderInfo(orderId)
-
+	orderByte, _ := json.Marshal(orderInfo)
+	orderStr := string(orderByte)
 	var orderLifespan int64
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
 		order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
@@ -47,7 +48,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 			OrderManager.SetOffline(orderId)
 
 			go lcmessage.SendOrderPersonalTutorExpireMsg(orderId)
-
+			go lcmessage.SendOrderPersonalCancelNotification(orderId, order.TeacherId, orderStr)
 			return
 
 		case msg, ok := <-orderChan:
