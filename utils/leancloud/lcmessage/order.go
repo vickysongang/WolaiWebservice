@@ -44,6 +44,31 @@ func SendOrderPersonalNotification(orderId int64, teacherId int64, orderInfo str
 	leancloud.LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, teacherId, &lcTMsg)
 }
 
+func SendOrderPersonalCancelNotification(orderId int64, teacherId int64) {
+	order, err := models.ReadOrder(orderId)
+	if err != nil {
+		return
+	}
+
+	_, err = models.ReadUser(teacherId)
+	if err != nil {
+		return
+	}
+
+	attr := make(map[string]string)
+	attr["type"] = "personal"
+	attr["orderId"] = strconv.FormatInt(orderId, 10)
+	attr["status"] = "cancelled"
+
+	lcTMsg := leancloud.LCTypedMessage{
+		Type:      LC_MSG_ORDER,
+		Text:      "",
+		Attribute: attr,
+	}
+
+	leancloud.LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, teacherId, &lcTMsg)
+}
+
 func SendOrderCourseNotification(orderId int64, teacherId int64, orderInfo string) {
 	order, err := models.ReadOrder(orderId)
 	if err != nil {
