@@ -8,7 +8,7 @@ import (
 	"WolaiWebservice/utils/leancloud"
 )
 
-func SendOrderPersonalNotification(orderId int64, teacherId int64) {
+func SendOrderPersonalNotification(orderId int64, teacherId int64, orderInfo string) {
 	order, err := models.ReadOrder(orderId)
 	if err != nil {
 		return
@@ -33,6 +33,7 @@ func SendOrderPersonalNotification(orderId int64, teacherId int64) {
 	attr["type"] = "personal"
 	attr["title"] = title
 	attr["orderId"] = strconv.FormatInt(orderId, 10)
+	attr["orderInfo"] = orderInfo
 
 	lcTMsg := leancloud.LCTypedMessage{
 		Type:      LC_MSG_ORDER,
@@ -43,7 +44,7 @@ func SendOrderPersonalNotification(orderId int64, teacherId int64) {
 	leancloud.LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, teacherId, &lcTMsg)
 }
 
-func SendOrderCourseNotification(orderId int64, teacherId int64) {
+func SendOrderCourseNotification(orderId int64, teacherId int64, orderInfo string) {
 	order, err := models.ReadOrder(orderId)
 	if err != nil {
 		return
@@ -69,6 +70,7 @@ func SendOrderCourseNotification(orderId int64, teacherId int64) {
 	attr["title"] = course.Name
 	attr["chapter"] = fmt.Sprintf("第%d课时 %s", chapter.Period, chapter.Title)
 	attr["orderId"] = strconv.FormatInt(orderId, 10)
+	attr["orderInfo"] = orderInfo
 
 	lcTMsg := leancloud.LCTypedMessage{
 		Type:      LC_MSG_ORDER,

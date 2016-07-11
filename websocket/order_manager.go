@@ -10,17 +10,18 @@ import (
 )
 
 type OrderStatus struct {
-	orderId         int64
-	orderInfo       *models.Order
-	orderChan       chan WSMessage
-	orderSignalChan chan int64
-	onlineTimestamp int64
-	isDispatching   bool
-	currentAssign   int64
-	dispatchMap     map[int64]int64 //teacherId to timestamp
-	assignMap       map[int64]int64 //teacherId to timestamp
-	isLocked        bool            //用来控制是否被抢
-	lock            sync.Mutex
+	orderId            int64
+	orderInfo          *models.Order
+	orderChan          chan WSMessage
+	orderSignalChan    chan int64
+	onlineTimestamp    int64
+	isDispatching      bool
+	currentAssign      int64
+	dispatchMap        map[int64]int64 //teacherId to timestamp
+	assignMap          map[int64]int64 //teacherId to timestamp
+	isLocked           bool            //用来控制是否被抢
+	lock               sync.Mutex
+	recoverDisabledMap map[int64]bool //teacherId to bool 用来控制订单是否需要回溯
 }
 
 type OrderStatusManager struct {
@@ -48,16 +49,17 @@ func NewOrderStatus(orderId int64) *OrderStatus {
 	timestamp := time.Now().Unix()
 	order, _ := models.ReadOrder(orderId)
 	orderStatus := OrderStatus{
-		orderId:         orderId,
-		orderInfo:       order,
-		orderChan:       make(chan WSMessage, 1024),
-		orderSignalChan: make(chan int64),
-		onlineTimestamp: timestamp,
-		isDispatching:   false,
-		currentAssign:   -1,
-		dispatchMap:     make(map[int64]int64),
-		assignMap:       make(map[int64]int64),
-		isLocked:        false,
+		orderId:            orderId,
+		orderInfo:          order,
+		orderChan:          make(chan WSMessage, 1024),
+		orderSignalChan:    make(chan int64),
+		onlineTimestamp:    timestamp,
+		isDispatching:      false,
+		currentAssign:      -1,
+		dispatchMap:        make(map[int64]int64),
+		assignMap:          make(map[int64]int64),
+		isLocked:           false,
+		recoverDisabledMap: make(map[int64]bool),
 	}
 
 	return &orderStatus
@@ -358,4 +360,21 @@ func (osm *OrderStatusManager) LockOrder(orderId int64) (bool, error) {
 	} else {
 		return false, errors.New("该订单已被接")
 	}
+}
+
+func (osm *OrderStatusManager) IsRecoverDisabled(orderId, userId int64) bool {
+	status, ok := osm.orderMap[orderId]
+	if !ok {
+		return false
+	}
+	return status.recoverDisabledMap[userId]
+}
+
+func (osm *OrderStatusManager) SetRecoverDisabled(orderId, userId int64, isRecoverUnneeded bool) error {
+	status, ok := osm.orderMap[orderId]
+	if !ok {
+		return ErrOrderNotFound
+	}
+	status.recoverDisabledMap[userId] = isRecoverUnneeded
+	return nil
 }
