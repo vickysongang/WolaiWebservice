@@ -11,6 +11,7 @@ type orderInfo struct {
 	CreatorInfo *models.User `json:"creatorInfo"`
 	Title       string       `json:"title"`
 	Status      string       `json:"status"`
+	Type        string       `json:"orderType"`
 }
 
 func GetOrderInfo(orderId int64) *orderInfo {
@@ -39,6 +40,7 @@ func GetOrderInfo(orderId int64) *orderInfo {
 		CreatorInfo: user,
 		Title:       title,
 		Status:      order.Status,
+		Type:        order.Type,
 	}
 
 	return &info
