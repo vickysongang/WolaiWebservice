@@ -11,8 +11,8 @@ type orderInfo struct {
 	Id          int64        `json:"id"`
 	CreatorInfo *models.User `json:"creatorInfo"`
 	Title       string       `json:"title"`
-	Status      string       `json:"status"`
-	Type        string       `json:"orderType"`
+	Status      string       `json:"originalStatus"`
+	Type        string       `json:"originalType"`
 	CreateTime  time.Time    `json:"createTime"`
 }
 
