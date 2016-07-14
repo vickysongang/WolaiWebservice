@@ -1,4 +1,4 @@
-// course_quota_trade_record
+// course_quota_payment_detail
 package models
 
 import (
@@ -7,7 +7,7 @@ import (
 	"github.com/astaxie/beego/orm"
 )
 
-type CourseQuotaTradeRecord struct {
+type CourseQuotaPaymentDetail struct {
 	Id             int64     `json:"id" orm:"pk"`
 	UserId         int64     `json:"userId"`
 	GradeId        int64     `json:"gradeId"`
@@ -22,37 +22,37 @@ type CourseQuotaTradeRecord struct {
 }
 
 func init() {
-	orm.RegisterModel(new(CourseQuotaTradeRecord))
+	orm.RegisterModel(new(CourseQuotaPaymentDetail))
 }
 
-func (cqp *CourseQuotaTradeRecord) TableName() string {
-	return "course_quota_trade_record"
+func (cqp *CourseQuotaPaymentDetail) TableName() string {
+	return "course_quota_payment_detail"
 }
 
-func ReadCourseQuotaTradeRecord(recordId int64) (*CourseQuotaTradeRecord, error) {
+func ReadCourseQuotaPaymentDetail(detailId int64) (*CourseQuotaPaymentDetail, error) {
 	o := orm.NewOrm()
 
-	record := CourseQuotaTradeRecord{Id: recordId}
-	err := o.Read(&record)
+	detail := CourseQuotaPaymentDetail{Id: detailId}
+	err := o.Read(&detail)
 	if err != nil {
 		return nil, err
 	}
 
-	return &record, nil
+	return &detail, nil
 }
 
-func InsertCourseQuotaTradeRecord(record *CourseQuotaTradeRecord) (int64, error) {
+func InsertCourseQuotaPaymentDetail(detail *CourseQuotaPaymentDetail) (int64, error) {
 	o := orm.NewOrm()
-	id, err := o.Insert(record)
+	id, err := o.Insert(detail)
 	return id, err
 }
 
-func UpdateCourseQuotaTradeRecord(recordId int64, recordInfo map[string]interface{}) error {
+func UpdateCourseQuotaPaymentDetail(detailId int64, detailInfo map[string]interface{}) error {
 	o := orm.NewOrm()
 	var params orm.Params = make(orm.Params)
-	for k, v := range recordInfo {
+	for k, v := range detailInfo {
 		params[k] = v
 	}
-	_, err := o.QueryTable("course_quota_trade_record").Filter("id", recordId).Update(params)
+	_, err := o.QueryTable("course_quota_payment_detail").Filter("id", detailId).Update(params)
 	return err
 }
