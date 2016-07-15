@@ -60,7 +60,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 
 		// 学生在还没有被指派导师的时候申请试听
 		recordInfo := map[string]interface{}{
-			"audition_status": models.PURCHASE_RECORD_STATUS_APPLY,
+			"AuditionStatus": models.PURCHASE_RECORD_STATUS_APPLY,
 		}
 
 		record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
@@ -138,7 +138,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 		// 学生已经完成试听课程，学生须支付课程费用
 
 		recordInfo := map[string]interface{}{
-			"purchase_status": models.PURCHASE_RECORD_STATUS_WAITING,
+			"PurchaseStatus": models.PURCHASE_RECORD_STATUS_WAITING,
 		}
 
 		record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
@@ -164,7 +164,7 @@ func HandleCourseActionProceed(userId int64, courseId int64) (int64, *actionProc
 
 		// 学生在还没有被指派导师的时候申请试听
 		recordInfo := map[string]interface{}{
-			"audition_status": models.PURCHASE_RECORD_STATUS_WAITING,
+			"AuditionStatus": models.PURCHASE_RECORD_STATUS_WAITING,
 		}
 
 		record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)

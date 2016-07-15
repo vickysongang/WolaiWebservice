@@ -11,7 +11,7 @@ type CourseQuotaPrice struct {
 	Id             int64     `json:"id" orm:"pk"`
 	GradeId        int64     `json:"gradeId"`
 	Price          int64     `json:"price"`
-	CreateTime     time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
+	CreateTime     time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
 	LastUpdateTime time.Time `json:"-" orm:"datetime"`
 }
 

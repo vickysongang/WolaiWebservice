@@ -54,9 +54,8 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 	switch {
 	case record.PurchaseStatus == models.PURCHASE_RECORD_STATUS_IDLE:
 
-		// 学生在还没有被指派导师的时候申请试听
 		recordInfo := map[string]interface{}{
-			"purchase_status": models.PURCHASE_RECORD_STATUS_APPLY,
+			"PurchaseStatus": models.PURCHASE_RECORD_STATUS_APPLY,
 			//"last_update_time": "NOW()",
 		}
 
@@ -84,10 +83,11 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 
 		// 客服已经给学生匹配导师，直接支付购买费用
 		payment := paymentInfo{
-			Title:   PAYMENT_TITLE_PREFIX_PURCHASE + course.Name,
-			Price:   record.PriceTotal,
-			Comment: PAYMENT_COMMENT_PURCHASE,
-			Type:    PAYMENT_TYPE_PURCHASE,
+			Title:        PAYMENT_TITLE_PREFIX_PURCHASE + course.Name,
+			Price:        record.PriceTotal,
+			Comment:      PAYMENT_COMMENT_PURCHASE,
+			Type:         PAYMENT_TYPE_PURCHASE,
+			ChapterCount: record.ChapterCount,
 		}
 
 		response = actionProceedResponse{

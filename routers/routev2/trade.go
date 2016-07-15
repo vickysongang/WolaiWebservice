@@ -98,4 +98,14 @@ var tradeRoutes = route.Routes{
 		true,
 		true,
 	},
+
+	// 7.4.1
+	route.Route{
+		"TradeQuotaChargeRule",
+		"POST",
+		"/quota/charge/rule",
+		handlerv2.TradeQuotaChargeRule,
+		true,
+		true,
+	},
 }

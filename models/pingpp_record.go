@@ -26,6 +26,7 @@ type PingppRecord struct {
 	Type        string    `json:"type"`
 	RefId       int64     `json:"refId"`
 	TotalAmount uint64    `json:"totalAmount"`
+	Quantity    int64     `json:"quantity"`
 }
 
 func (r *PingppRecord) TableName() string {

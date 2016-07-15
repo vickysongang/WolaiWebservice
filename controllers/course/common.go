@@ -55,10 +55,11 @@ type courseChapterStatus struct {
 type nullObject struct{}
 
 type paymentInfo struct {
-	Title   string `json:"title"`
-	Price   int64  `json:"price"`
-	Comment string `json:"comment"`
-	Type    string `json:"type"`
+	Title        string `json:"title"`
+	Price        int64  `json:"price"`
+	Comment      string `json:"comment"`
+	Type         string `json:"type"`
+	ChapterCount int64  `json:"chapterCount"`
 }
 
 type sessionInfo struct {

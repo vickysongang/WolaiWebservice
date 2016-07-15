@@ -2,9 +2,18 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"github.com/astaxie/beego/orm"
+	"github.com/cihub/seelog"
+)
+
+const (
+	COURSE_QUOTA_TYPE_ONLINE_PURCHASE  = "online_purchase"
+	COURSE_QUOTA_TYPE_OFFLINE_PURCHASE = "offline_purchase"
+	COURSE_QUOTA_TYPE_QUOTA_PAYMENT    = "quota_payment"
+	COURSE_QUOTA_TYPE_REFUND           = "refund"
 )
 
 type CourseQuotaTradeRecord struct {
@@ -14,8 +23,8 @@ type CourseQuotaTradeRecord struct {
 	Price          int64     `json:"price"`
 	TotalPrice     int64     `json:"totalPrice"`
 	Discount       float64   `json:"discount"`
-	Amount         int64     `json:"amount"`
-	LeftAmount     int64     `json:"leftAmount"`
+	Quantity       int64     `json:"quantity"`
+	LeftQuantity   int64     `json:"leftQuantity"`
 	Type           string    `json:"type"`
 	CreateTime     time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
 	LastUpdateTime time.Time `json:"-" orm:"datetime"`
@@ -47,12 +56,16 @@ func InsertCourseQuotaTradeRecord(record *CourseQuotaTradeRecord) (int64, error)
 	return id, err
 }
 
-func UpdateCourseQuotaTradeRecord(recordId int64, recordInfo map[string]interface{}) error {
+func UpdateCourseQuotaTradeRecord(record *CourseQuotaTradeRecord) (*CourseQuotaTradeRecord, error) {
+	var err error
+
 	o := orm.NewOrm()
-	var params orm.Params = make(orm.Params)
-	for k, v := range recordInfo {
-		params[k] = v
+	record.LastUpdateTime = time.Now()
+	_, err = o.Update(record)
+	if err != nil {
+		seelog.Errorf("%s | UserId: %d", err.Error(), record.UserId)
+		return nil, errors.New("更新通用课时交易记录失败")
 	}
-	_, err := o.QueryTable("course_quota_trade_record").Filter("id", recordId).Update(params)
-	return err
+
+	return record, nil
 }

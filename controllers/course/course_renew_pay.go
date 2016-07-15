@@ -21,7 +21,7 @@ func HandleCourseRenewPayByBalance(userId, courseId, amount int64) (int64, error
 	if err != nil {
 		return 2, err
 	}
-	status, err := HandleCourseRenewPay(userId, courseId, amount, 0)
+	status, err := handleCourseRenewPay(userId, courseId, amount, 0)
 	return status, err
 }
 
@@ -36,11 +36,11 @@ func HandleCourseRenewPayByThird(userId, courseId, pingppAmount, totalAmount, pi
 			return 2, err
 		}
 	}
-	status, err := HandleCourseRenewPay(userId, courseId, totalAmount, pingppId)
+	status, err := handleCourseRenewPay(userId, courseId, totalAmount, pingppId)
 	return status, err
 }
 
-func HandleCourseRenewPay(userId, courseId, amount int64, pingppId int64) (int64, error) {
+func handleCourseRenewPay(userId, courseId, amount int64, pingppId int64) (int64, error) {
 	_, err := models.ReadCourse(courseId)
 	if err != nil {
 		return 2, errors.New("课程包资料异常")

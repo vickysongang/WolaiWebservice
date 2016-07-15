@@ -9,14 +9,10 @@ import (
 
 type CourseQuotaPaymentDetail struct {
 	Id             int64     `json:"id" orm:"pk"`
-	UserId         int64     `json:"userId"`
-	GradeId        int64     `json:"gradeId"`
-	Price          int64     `json:"price"`
+	RecordId       int64     `json:"recordId"`
+	CourseId       int64     `json:"courseId"`
+	Quantity       int64     `json:"quantity"`
 	TotalPrice     int64     `json:"totalPrice"`
-	Discount       float64   `json:"discount"`
-	Amount         int64     `json:"amount"`
-	LeftAmount     int64     `json:"leftAmount"`
-	Type           string    `json:"type"`
 	CreateTime     time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
 	LastUpdateTime time.Time `json:"-" orm:"datetime"`
 }

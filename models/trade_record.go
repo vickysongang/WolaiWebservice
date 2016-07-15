@@ -43,13 +43,15 @@ const (
 	TRADE_QA_PKG_PURCHASE          = "qa_pkg_purchase"          //家教时间包购买
 	TRADE_QA_PKG_GIVEN             = "qa_pkg_given"             //家教时间包赠送
 	TRADE_COURSE_RENEW             = "course_renew"             //课程续课
+	TRADE_COURSE_QUOTA_PURCHASE    = "course_quota_purchase"    //通用课时购买
 
 	TRADE_RESULT_SUCCESS = "S"
 	TRADE_RESULT_FAIL    = "F"
 
-	TRADE_PAY_TYPE_BALANCE = "balance"
-	TRADE_PAY_TYPE_THIRD   = "third"
-	TRADE_PAY_TYPE_BOTH    = "both"
+	TRADE_PAY_TYPE_BALANCE = "balance" //余额支付
+	TRADE_PAY_TYPE_THIRD   = "third"   //第三方支付工具支付
+	TRADE_PAY_TYPE_BOTH    = "both"    //余额和第三方支付工具结合支付
+	TRADE_PAY_TYPE_QUOTA   = "quota"   //通用课时支付，只针对课程的购买
 )
 
 func init() {
