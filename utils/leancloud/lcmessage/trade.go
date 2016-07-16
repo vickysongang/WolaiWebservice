@@ -342,6 +342,7 @@ func SendTradeNotification(recordId int64) {
 		}
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+
 	case models.TRADE_QA_PKG_GIVEN:
 		qaPkg, err := models.ReadQaPkg(record.RecordId)
 		if err != nil {
@@ -356,6 +357,9 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("产品名称：%s", qaPkgModule.Name))
 		msg.body = append(msg.body,
 			fmt.Sprintf("家教时间：%d分钟", qaPkg.TimeLength))
+
+	case models.TRADE_COURSE_QUOTA_PURCHASE:
+
 	default:
 		return
 	}

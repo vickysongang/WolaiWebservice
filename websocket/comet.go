@@ -517,7 +517,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			orderByte, _ := json.Marshal(orderInfo)
 			orderStr := string(orderByte)
 
-			lcmessage.SendOrderPersonalCancelNotification(orderId, order.TeacherId, orderStr)
+			lcmessage.SendOrderCancelNotification(orderId, order.TeacherId, orderStr)
 		} else {
 			//instant order
 			// 发送反馈消息
