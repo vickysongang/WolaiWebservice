@@ -286,6 +286,22 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 			info.Comment = fmt.Sprintf("%s %d分钟", "赠送家教时间", qaPkg.TimeLength)
 
+		case models.TRADE_COURSE_QUOTA_PURCHASE:
+			user, err := models.ReadUser(userId)
+			if err != nil {
+				continue
+			}
+			info.Avartar = user.Avatar
+			info.Title = trade.COMMENT_COURSE_QUOTA_PURCHASE
+
+		case models.TRADE_COURSE_QUOTA_REFUND:
+			user, err := models.ReadUser(userId)
+			if err != nil {
+				continue
+			}
+			info.Avartar = user.Avatar
+			info.Title = trade.COMMENT_COURSE_QUOTA_REFUND
+
 		default:
 			continue
 		}

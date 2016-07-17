@@ -44,6 +44,7 @@ const (
 	TRADE_QA_PKG_GIVEN             = "qa_pkg_given"             //家教时间包赠送
 	TRADE_COURSE_RENEW             = "course_renew"             //课程续课
 	TRADE_COURSE_QUOTA_PURCHASE    = "course_quota_purchase"    //通用课时购买
+	TRADE_COURSE_QUOTA_REFUND      = "course_quota_refund"      //通用课时购买
 
 	TRADE_RESULT_SUCCESS = "S"
 	TRADE_RESULT_FAIL    = "F"

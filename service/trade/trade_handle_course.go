@@ -179,3 +179,21 @@ func HandleCourseQuotaPurchaseTradeRecord(recordId int64, amount int64, pingppId
 
 	return nil
 }
+
+func HandleCourseQuotaRefundTradeRecord(recordId int64, amount int64, pingppId int64) error {
+	var err error
+
+	record, err := models.ReadCourseQuotaTradeRecord(recordId)
+	if err != nil {
+		return nil
+	}
+
+	_, err = createTradeRecord(record.UserId, amount,
+		models.TRADE_COURSE_QUOTA_REFUND, models.TRADE_RESULT_SUCCESS, "",
+		0, record.Id, pingppId, "", 0, 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

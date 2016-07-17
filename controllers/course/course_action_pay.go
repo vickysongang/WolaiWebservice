@@ -270,7 +270,7 @@ func HandleDeluxeCoursePayByQuota(userId, courseId int64) (int64, error) {
 	}
 	recordInfo := map[string]interface{}{
 		"PurchaseStatus": models.PURCHASE_RECORD_STATUS_PAID,
-		"PaymentMethod":  models.PATMENT_METHOD_ONLINE_QUOTA,
+		"PaymentMethod":  models.PAYMENT_METHOD_ONLINE_QUOTA,
 	}
 	_, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
 	if err != nil {

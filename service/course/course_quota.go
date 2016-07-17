@@ -37,7 +37,7 @@ func QueryQuotaDiscountByQuantity(quantity int64) (*models.CourseQuotaDiscount, 
 func QueryCourseQuotaPurchaseRecords(userId, gradeId int64) ([]*models.CourseQuotaTradeRecord, error) {
 	var records []*models.CourseQuotaTradeRecord
 	o := orm.NewOrm()
-	o.QueryTable(new(models.CourseQuotaTradeRecord).TableName()).
+	_, err := o.QueryTable(new(models.CourseQuotaTradeRecord).TableName()).
 		Filter("user_id", userId).
 		Filter("grade_id", gradeId).
 		Filter("type__in",
@@ -45,5 +45,14 @@ func QueryCourseQuotaPurchaseRecords(userId, gradeId int64) ([]*models.CourseQuo
 		models.COURSE_QUOTA_TYPE_ONLINE_PURCHASE).
 		OrderBy("create_time").
 		All(&records)
-	return records, nil
+	return records, err
+}
+
+func QueryCourseQuotaPaymentDetailByCourseId(courseId int64) ([]*models.CourseQuotaPaymentDetail, error) {
+	var details []*models.CourseQuotaPaymentDetail
+	o := orm.NewOrm()
+	_, err := o.QueryTable(new(models.CourseQuotaPaymentDetail).TableName()).
+		Filter("course_id", courseId).
+		All(&details)
+	return details, err
 }
