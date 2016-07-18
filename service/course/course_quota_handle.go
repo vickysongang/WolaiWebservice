@@ -24,11 +24,12 @@ func HandleCourseQuotaPay(userId, recordId, gradeId, chapterCount int64, recordT
 	var totalPrice int64
 	for _, record := range records {
 		var quantity int64
+		breakFlag := false
 		if record.LeftQuantity >= leftChapterCount {
 			quantity = leftChapterCount
 			record.LeftQuantity -= leftChapterCount
 			models.UpdateCourseQuotaTradeRecord(record)
-			break
+			breakFlag = true
 		} else {
 			quantity = record.LeftQuantity
 			record.LeftQuantity = 0
@@ -45,6 +46,10 @@ func HandleCourseQuotaPay(userId, recordId, gradeId, chapterCount int64, recordT
 			TotalPrice:       totalPriceItem,
 		}
 		models.InsertCourseQuotaPaymentDetail(&paymentDetail)
+
+		if breakFlag {
+			break
+		}
 	}
 	quotaPrice, _ := GetCourseQuotaPrice(gradeId)
 	var quotaPayType string

@@ -249,7 +249,7 @@ func SendTradeNotification(recordId int64) {
 		case models.PAYMENT_METHOD_ONLINE_QUOTA, models.PAYMENT_METHOD_OFFLINE_QUOTA:
 			paymentRecord, _ := courseService.QueryCourseQuotaPaymentRecord(user.Id, purchase.Id, "purchase")
 			msg.body = append(msg.body,
-				fmt.Sprintf("可用课时消费：%s %d课时", signStr, paymentRecord.Quantity))
+				fmt.Sprintf("可用课时消费：%s %d课时", "-", paymentRecord.Quantity))
 			profile, err := models.ReadStudentProfile(user.Id)
 			if err != nil {
 				return
@@ -278,7 +278,7 @@ func SendTradeNotification(recordId int64) {
 		case models.PAYMENT_METHOD_ONLINE_QUOTA, models.PAYMENT_METHOD_OFFLINE_QUOTA:
 			paymentRecord, _ := courseService.QueryCourseQuotaPaymentRecord(user.Id, renewRecord.Id, "renew")
 			msg.body = append(msg.body,
-				fmt.Sprintf("可用课时消费：%s %d课时", signStr, paymentRecord.Quantity))
+				fmt.Sprintf("可用课时消费：%s %d课时", "-", paymentRecord.Quantity))
 			profile, err := models.ReadStudentProfile(user.Id)
 			if err != nil {
 				return
@@ -400,7 +400,7 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("充值课时：%d课时", quotaPurchaseRecord.Quantity))
 		msg.body = append(msg.body,
-			fmt.Sprintf("支付金额：%.2f 元", quotaPurchaseRecord.TotalPrice))
+			fmt.Sprintf("支付金额：%.2f 元", amount))
 		msg.body = append(msg.body,
 			fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
 
