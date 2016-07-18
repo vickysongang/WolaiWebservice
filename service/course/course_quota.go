@@ -58,7 +58,7 @@ func QueryCourseQuotaPaymentDetails(recordId int64, recordType string) ([]*model
 }
 
 func QueryCourseQuotaPaymentRecord(userId, recordId int64, recordType string) (*models.CourseQuotaTradeRecord, error) {
-	var details *models.CourseQuotaTradeRecord
+	var details models.CourseQuotaTradeRecord
 	var quotaPayType string
 	switch recordType {
 	case "purchase":
@@ -72,5 +72,5 @@ func QueryCourseQuotaPaymentRecord(userId, recordId int64, recordType string) (*
 		Filter("course_record_id", recordId).
 		Filter("type", quotaPayType).
 		One(&details)
-	return details, err
+	return &details, err
 }
