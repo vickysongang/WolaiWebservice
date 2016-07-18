@@ -61,7 +61,7 @@ func HandleCourseQuotaPay(userId, recordId, gradeId, chapterCount int64, recordT
 		TotalPrice:     totalPrice,
 		Discount:       0,
 		Quantity:       chapterCount,
-		LeftQuantity:   chapterCount,
+		LeftQuantity:   0,
 		CourseRecordId: recordId,
 		Type:           quotaPayType,
 	}

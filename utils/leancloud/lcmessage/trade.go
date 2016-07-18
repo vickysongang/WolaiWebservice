@@ -247,13 +247,15 @@ func SendTradeNotification(recordId int64) {
 			msg.body = append(msg.body,
 				fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
 		case models.PAYMENT_METHOD_ONLINE_QUOTA, models.PAYMENT_METHOD_OFFLINE_QUOTA:
-			details, _ := courseService.QueryCourseQuotaPaymentDetails(purchase.Id, "purchase")
-			var quantity int64
-			for _, detail := range details {
-				quantity += detail.Quantity
+			paymentRecord, _ := courseService.QueryCourseQuotaPaymentRecord(user.Id, purchase.Id, "purchase")
+			msg.body = append(msg.body,
+				fmt.Sprintf("可用课时消费：%s %d课时", signStr, paymentRecord.Quantity))
+			profile, err := models.ReadStudentProfile(user.Id)
+			if err != nil {
+				return
 			}
 			msg.body = append(msg.body,
-				fmt.Sprintf("可用课时消费：%s %d课时", signStr, quantity))
+				fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
 		}
 
 	case models.TRADE_COURSE_RENEW:
@@ -274,13 +276,15 @@ func SendTradeNotification(recordId int64) {
 			msg.body = append(msg.body,
 				fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
 		case models.PAYMENT_METHOD_ONLINE_QUOTA, models.PAYMENT_METHOD_OFFLINE_QUOTA:
-			details, _ := courseService.QueryCourseQuotaPaymentDetails(renewRecord.Id, "renew")
-			var quantity int64
-			for _, detail := range details {
-				quantity += detail.Quantity
+			paymentRecord, _ := courseService.QueryCourseQuotaPaymentRecord(user.Id, renewRecord.Id, "renew")
+			msg.body = append(msg.body,
+				fmt.Sprintf("可用课时消费：%s %d课时", signStr, paymentRecord.Quantity))
+			profile, err := models.ReadStudentProfile(user.Id)
+			if err != nil {
+				return
 			}
 			msg.body = append(msg.body,
-				fmt.Sprintf("可用课时消费：%s %d课时", signStr, quantity))
+				fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
 		}
 
 	case models.TRADE_COURSE_AUDITION:
@@ -396,7 +400,7 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("充值课时：%d课时", quotaPurchaseRecord.Quantity))
 		msg.body = append(msg.body,
-			fmt.Sprintf("支付金额：%.2f 元", amount))
+			fmt.Sprintf("支付金额：%.2f 元", quotaPurchaseRecord.TotalPrice))
 		msg.body = append(msg.body,
 			fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
 

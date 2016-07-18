@@ -198,7 +198,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 					continue
 				}
 
-				info.Comment = fmt.Sprintf("可用课时 -d%课时", paymentRecord.Quantity)
+				info.Comment = fmt.Sprintf("可用课时 -%d课时", paymentRecord.Quantity)
 			}
 
 		case models.TRADE_COURSE_AUDITION:
@@ -248,7 +248,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 					continue
 				}
 
-				info.Comment = fmt.Sprintf("可用课时 -d%课时", paymentRecord.Quantity)
+				info.Comment = fmt.Sprintf("可用课时 -%d课时", paymentRecord.Quantity)
 			}
 
 		case models.TRADE_COURSE_EARNING:
