@@ -13,15 +13,16 @@ const (
 )
 
 type CourseRenewRecord struct {
-	Id          int64     `json:"id" orm:"pk"`
-	CourseId    int64     `json:"courseId"`
-	UserId      int64     `json:"userId"`
-	PriceHourly int64     `json:"priceHourly"`
-	PriceTotal  int64     `json:"priceTotal"`
-	TeacherId   int64     `json:"teacherId"`
-	RenewCount  int64     `json:"renewCount"`
-	CreateTime  time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
-	Status      string    `json:"status"`
+	Id            int64     `json:"id" orm:"pk"`
+	CourseId      int64     `json:"courseId"`
+	UserId        int64     `json:"userId"`
+	PriceHourly   int64     `json:"priceHourly"`
+	PriceTotal    int64     `json:"priceTotal"`
+	TeacherId     int64     `json:"teacherId"`
+	RenewCount    int64     `json:"renewCount"`
+	CreateTime    time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
+	Status        string    `json:"status"`
+	PaymentMethod string    `json:"paymentMethod"`
 }
 
 func (record *CourseRenewRecord) TableName() string {

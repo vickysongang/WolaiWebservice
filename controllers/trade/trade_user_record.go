@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/service/trade"
 	tradeService "WolaiWebservice/service/trade"
 )
@@ -192,7 +193,12 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if purchase.PaymentMethod == models.PAYMENT_METHOD_OFFLINE_QUOTA ||
 				purchase.PaymentMethod == models.PAYMENT_METHOD_ONLINE_QUOTA {
 				info.Amount = 0
-				//quotaPurchaseRecord, err := models.ReadCourseQuotaTradeRecord()
+				paymentRecord, err := courseService.QueryCourseQuotaPaymentRecord(userId, purchase.Id, "purchase")
+				if err != nil {
+					continue
+				}
+
+				info.Comment = fmt.Sprintf("可用课时 -d%课时", paymentRecord.Quantity)
 			}
 
 		case models.TRADE_COURSE_AUDITION:
@@ -233,6 +239,17 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 			info.Avartar = user.Avatar
 			info.Title = trade.COMMENT_COURSE_RENEW
+
+			if renewRecord.PaymentMethod == models.PAYMENT_METHOD_OFFLINE_QUOTA ||
+				renewRecord.PaymentMethod == models.PAYMENT_METHOD_ONLINE_QUOTA {
+				info.Amount = 0
+				paymentRecord, err := courseService.QueryCourseQuotaPaymentRecord(userId, renewRecord.Id, "renew")
+				if err != nil {
+					continue
+				}
+
+				info.Comment = fmt.Sprintf("可用课时 -d%课时", paymentRecord.Quantity)
+			}
 
 		case models.TRADE_COURSE_EARNING:
 			//老师课程收入

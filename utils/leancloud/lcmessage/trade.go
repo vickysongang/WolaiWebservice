@@ -247,7 +247,7 @@ func SendTradeNotification(recordId int64) {
 			msg.body = append(msg.body,
 				fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
 		case models.PAYMENT_METHOD_ONLINE_QUOTA, models.PAYMENT_METHOD_OFFLINE_QUOTA:
-			details, _ := courseService.QueryCourseQuotaPaymentDetailByCourseId(purchase.CourseId)
+			details, _ := courseService.QueryCourseQuotaPaymentDetails(purchase.Id, "purchase")
 			var quantity int64
 			for _, detail := range details {
 				quantity += detail.Quantity
@@ -268,8 +268,20 @@ func SendTradeNotification(recordId int64) {
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已成功续约课程。", user.Nickname, suffix)
 		msg.body = append(msg.body,
 			fmt.Sprintf("课程名称：%s", course.Name))
-		msg.body = append(msg.body,
-			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+
+		switch renewRecord.PaymentMethod {
+		case models.PAYMENT_METHOD_ONLINE_WALLET, models.PAYMENT_METHOD_OFFLINE_WALLET:
+			msg.body = append(msg.body,
+				fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+		case models.PAYMENT_METHOD_ONLINE_QUOTA, models.PAYMENT_METHOD_OFFLINE_QUOTA:
+			details, _ := courseService.QueryCourseQuotaPaymentDetails(renewRecord.Id, "renew")
+			var quantity int64
+			for _, detail := range details {
+				quantity += detail.Quantity
+			}
+			msg.body = append(msg.body,
+				fmt.Sprintf("可用课时消费：%s %d课时", signStr, quantity))
+		}
 
 	case models.TRADE_COURSE_AUDITION:
 		purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)

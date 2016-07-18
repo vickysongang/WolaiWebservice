@@ -6,7 +6,7 @@ import (
 	"errors"
 )
 
-func HandleCourseQuotaPay(userId, courseId, gradeId, chapterCount int64) (int64, error) {
+func HandleCourseQuotaPay(userId, recordId, gradeId, chapterCount int64, recordType string) (int64, error) {
 	profile, err := models.ReadStudentProfile(userId)
 	if err != nil {
 		return 0, err
@@ -38,24 +38,32 @@ func HandleCourseQuotaPay(userId, courseId, gradeId, chapterCount int64) (int64,
 		totalPriceItem := quantity * record.Price * record.Discount / 100
 		totalPrice += totalPriceItem
 		paymentDetail := models.CourseQuotaPaymentDetail{
-			RecordId:   record.Id,
-			CourseId:   courseId,
-			Quantity:   quantity,
-			TotalPrice: totalPriceItem,
+			RecordId:         record.Id,
+			CourseRecordId:   recordId,
+			CourseRecordType: recordType,
+			Quantity:         quantity,
+			TotalPrice:       totalPriceItem,
 		}
 		models.InsertCourseQuotaPaymentDetail(&paymentDetail)
 	}
 	quotaPrice, _ := GetCourseQuotaPrice(gradeId)
+	var quotaPayType string
+	switch recordType {
+	case "purchase":
+		quotaPayType = models.COURSE_QUOTA_TYPE_QUOTA_PAY_PURCHASE
+	case "renew":
+		quotaPayType = models.COURSE_QUOTA_TYPE_QUOTA_PAY_RENEW
+	}
 	tradeRecord := models.CourseQuotaTradeRecord{
-		UserId:       userId,
-		GradeId:      gradeId,
-		Price:        quotaPrice.Price,
-		TotalPrice:   totalPrice,
-		Discount:     0,
-		Quantity:     chapterCount,
-		LeftQuantity: chapterCount,
-		CourseId:     courseId,
-		Type:         models.COURSE_QUOTA_TYPE_QUOTA_PAYMENT,
+		UserId:         userId,
+		GradeId:        gradeId,
+		Price:          quotaPrice.Price,
+		TotalPrice:     totalPrice,
+		Discount:       0,
+		Quantity:       chapterCount,
+		LeftQuantity:   chapterCount,
+		CourseRecordId: recordId,
+		Type:           quotaPayType,
 	}
 	_, err = models.InsertCourseQuotaTradeRecord(&tradeRecord)
 	if err != nil {

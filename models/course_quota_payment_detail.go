@@ -8,13 +8,14 @@ import (
 )
 
 type CourseQuotaPaymentDetail struct {
-	Id             int64     `json:"id" orm:"pk"`
-	RecordId       int64     `json:"recordId"`
-	CourseId       int64     `json:"courseId"`
-	Quantity       int64     `json:"quantity"`
-	TotalPrice     int64     `json:"totalPrice"`
-	CreateTime     time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
-	LastUpdateTime time.Time `json:"-" orm:"datetime"`
+	Id               int64     `json:"id" orm:"pk"`
+	RecordId         int64     `json:"recordId"`
+	CourseRecordId   int64     `json:"courseRecordId"`
+	CourseRecordType string    `json:"courseRecordType"`
+	Quantity         int64     `json:"quantity"`
+	TotalPrice       int64     `json:"totalPrice"`
+	CreateTime       time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
+	LastUpdateTime   time.Time `json:"-" orm:"datetime"`
 }
 
 func init() {

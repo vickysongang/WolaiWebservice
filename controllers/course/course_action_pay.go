@@ -276,7 +276,7 @@ func HandleDeluxeCoursePayByQuota(userId, courseId int64) (int64, error) {
 	if err != nil {
 		return 2, ErrPurchaseAbnormal
 	}
-	totalPrice, err := courseService.HandleCourseQuotaPay(userId, courseId, course.GradeId, record.ChapterCount)
+	totalPrice, err := courseService.HandleCourseQuotaPay(userId, record.Id, course.GradeId, record.ChapterCount, "purchase")
 	if err != nil {
 		return 2, err
 	}

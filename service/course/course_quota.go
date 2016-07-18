@@ -47,22 +47,30 @@ func QueryCourseQuotaPurchaseRecords(userId int64) ([]*models.CourseQuotaTradeRe
 	return records, err
 }
 
-func QueryCourseQuotaPaymentDetailByCourseId(courseId int64) ([]*models.CourseQuotaPaymentDetail, error) {
+func QueryCourseQuotaPaymentDetails(recordId int64, recordType string) ([]*models.CourseQuotaPaymentDetail, error) {
 	var details []*models.CourseQuotaPaymentDetail
 	o := orm.NewOrm()
 	_, err := o.QueryTable(new(models.CourseQuotaPaymentDetail).TableName()).
-		Filter("course_id", courseId).
+		Filter("course_record_id", recordId).
+		Filter("course_record_type", recordType).
 		All(&details)
 	return details, err
 }
 
-func QueryCourseQuotaPaymentRecord(userId, courseId int64) (*models.CourseQuotaTradeRecord, error) {
+func QueryCourseQuotaPaymentRecord(userId, recordId int64, recordType string) (*models.CourseQuotaTradeRecord, error) {
 	var details *models.CourseQuotaTradeRecord
+	var quotaPayType string
+	switch recordType {
+	case "purchase":
+		quotaPayType = models.COURSE_QUOTA_TYPE_QUOTA_PAY_PURCHASE
+	case "renew":
+		quotaPayType = models.COURSE_QUOTA_TYPE_QUOTA_PAY_RENEW
+	}
 	o := orm.NewOrm()
 	err := o.QueryTable(new(models.CourseQuotaTradeRecord).TableName()).
 		Filter("user_id", userId).
-		Filter("course_id", courseId).
-		Filter("type", models.COURSE_QUOTA_TYPE_QUOTA_PAYMENT).
+		Filter("course_record_id", recordId).
+		Filter("type", quotaPayType).
 		One(&details)
 	return details, err
 }

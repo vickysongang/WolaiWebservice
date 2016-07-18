@@ -10,10 +10,11 @@ import (
 )
 
 const (
-	COURSE_QUOTA_TYPE_ONLINE_PURCHASE  = "online_purchase"
-	COURSE_QUOTA_TYPE_OFFLINE_PURCHASE = "offline_purchase"
-	COURSE_QUOTA_TYPE_QUOTA_PAYMENT    = "quota_payment"
-	COURSE_QUOTA_TYPE_REFUND           = "refund"
+	COURSE_QUOTA_TYPE_ONLINE_PURCHASE    = "online_purchase"
+	COURSE_QUOTA_TYPE_OFFLINE_PURCHASE   = "offline_purchase"
+	COURSE_QUOTA_TYPE_QUOTA_PAY_PURCHASE = "quota_pay_purchase"
+	COURSE_QUOTA_TYPE_QUOTA_PAY_RENEW    = "quota_pay_renew"
+	COURSE_QUOTA_TYPE_REFUND             = "refund"
 )
 
 type CourseQuotaTradeRecord struct {
@@ -26,7 +27,7 @@ type CourseQuotaTradeRecord struct {
 	Quantity       int64     `json:"quantity"`
 	LeftQuantity   int64     `json:"leftQuantity"`
 	Type           string    `json:"type"`
-	CourseId       int64     `json:"courseId"`
+	CourseRecordId int64     `json:"courseRecordId"`
 	CreateTime     time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
 	LastUpdateTime time.Time `json:"-" orm:"datetime"`
 }

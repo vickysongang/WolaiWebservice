@@ -79,7 +79,7 @@ func HandleTradePay(info TradePayInfo) (int64, *pingpp.Charge, error) {
 
 	case models.TRADE_PAY_TYPE_QUOTA:
 		//只有购买课程才会用该支付方式
-		status, err := courseController.HandleDeluxeCoursePayByQuota(info.UserId, info.RefId)
+		status, err := handleTradePayByQuota(info.UserId, info.RefId, info.TradeType)
 		if err != nil {
 			return status, nil, err
 		}
@@ -109,6 +109,17 @@ func handleTradePayByBalance(userId, refId int64, amount uint64, tradeType strin
 	case models.TRADE_COURSE_QUOTA_PURCHASE:
 		gradeId := refId
 		status, err = courseController.HandleCourseQuotaActionPayByBalance(userId, gradeId, quantity, int64(amount))
+	}
+	return
+}
+
+func handleTradePayByQuota(userId, refId int64, tradeType string) (status int64, err error) {
+	switch tradeType {
+	case models.TRADE_COURSE_PURCHASE:
+		courseId := refId
+		status, err = courseController.HandleDeluxeCoursePayByQuota(userId, courseId)
+
+	case models.TRADE_COURSE_RENEW:
 	}
 	return
 }
