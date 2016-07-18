@@ -79,7 +79,10 @@ func HandleTradePay(info TradePayInfo) (int64, *pingpp.Charge, error) {
 
 	case models.TRADE_PAY_TYPE_QUOTA:
 		//只有购买课程才会用该支付方式
-
+		status, err := courseController.HandleDeluxeCoursePayByQuota(info.UserId, info.RefId)
+		if err != nil {
+			return status, nil, err
+		}
 	}
 	return 0, nil, nil
 }

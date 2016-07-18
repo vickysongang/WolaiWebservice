@@ -22,10 +22,11 @@ type CourseQuotaTradeRecord struct {
 	GradeId        int64     `json:"gradeId"`
 	Price          int64     `json:"price"`
 	TotalPrice     int64     `json:"totalPrice"`
-	Discount       float64   `json:"discount"`
+	Discount       int64     `json:"discount"`
 	Quantity       int64     `json:"quantity"`
 	LeftQuantity   int64     `json:"leftQuantity"`
 	Type           string    `json:"type"`
+	CourseId       int64     `json:"courseId"`
 	CreateTime     time.Time `json:"createTime" orm:"auto_now_add;type(datetime)"`
 	LastUpdateTime time.Time `json:"-" orm:"datetime"`
 }

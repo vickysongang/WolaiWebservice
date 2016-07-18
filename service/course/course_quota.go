@@ -34,12 +34,11 @@ func QueryQuotaDiscountByQuantity(quantity int64) (*models.CourseQuotaDiscount, 
 	return &discount, err
 }
 
-func QueryCourseQuotaPurchaseRecords(userId, gradeId int64) ([]*models.CourseQuotaTradeRecord, error) {
+func QueryCourseQuotaPurchaseRecords(userId int64) ([]*models.CourseQuotaTradeRecord, error) {
 	var records []*models.CourseQuotaTradeRecord
 	o := orm.NewOrm()
 	_, err := o.QueryTable(new(models.CourseQuotaTradeRecord).TableName()).
 		Filter("user_id", userId).
-		Filter("grade_id", gradeId).
 		Filter("type__in",
 		models.COURSE_QUOTA_TYPE_OFFLINE_PURCHASE,
 		models.COURSE_QUOTA_TYPE_ONLINE_PURCHASE).

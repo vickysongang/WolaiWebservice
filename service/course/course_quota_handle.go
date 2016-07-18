@@ -19,7 +19,7 @@ func HandleCourseQuotaPay(userId, courseId, gradeId, chapterCount int64) (int64,
 	if err != nil {
 		return 0, err
 	}
-	records, _ := QueryCourseQuotaPurchaseRecords(userId, gradeId)
+	records, _ := QueryCourseQuotaPurchaseRecords(userId)
 	leftChapterCount := chapterCount
 	var totalPrice int64
 	for _, record := range records {
@@ -35,8 +35,7 @@ func HandleCourseQuotaPay(userId, courseId, gradeId, chapterCount int64) (int64,
 			models.UpdateCourseQuotaTradeRecord(record)
 			leftChapterCount = leftChapterCount - record.LeftQuantity
 		}
-		discount := int64(record.Discount * 100)
-		totalPriceItem := quantity * record.Price * discount / 100
+		totalPriceItem := quantity * record.Price * record.Discount / 100
 		totalPrice += totalPriceItem
 		paymentDetail := models.CourseQuotaPaymentDetail{
 			RecordId:   record.Id,
@@ -55,6 +54,7 @@ func HandleCourseQuotaPay(userId, courseId, gradeId, chapterCount int64) (int64,
 		Discount:     0,
 		Quantity:     chapterCount,
 		LeftQuantity: chapterCount,
+		CourseId:     courseId,
 		Type:         models.COURSE_QUOTA_TYPE_QUOTA_PAYMENT,
 	}
 	_, err = models.InsertCourseQuotaTradeRecord(&tradeRecord)

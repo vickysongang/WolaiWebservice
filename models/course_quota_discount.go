@@ -11,7 +11,7 @@ type CourseQuotaDiscount struct {
 	Id             int64     `json:"id" orm:"pk"`
 	RangeFrom      int64     `json:"rangeFrom"`
 	RangeTo        int64     `json:"rangeTo"`
-	Discount       float64   `json:"discount"`
+	Discount       int64     `json:"discount"`
 	CreateTime     time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
 	LastUpdateTime time.Time `json:"-" orm:"datetime"`
 }
