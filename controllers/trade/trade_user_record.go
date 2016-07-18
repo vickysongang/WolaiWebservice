@@ -189,6 +189,12 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Avartar = user.Avatar
 			info.Title = trade.COMMENT_COURSE_PURCHASE
 
+			if purchase.PaymentMethod == models.PAYMENT_METHOD_OFFLINE_QUOTA ||
+				purchase.PaymentMethod == models.PAYMENT_METHOD_ONLINE_QUOTA {
+				info.Amount = 0
+				//quotaPurchaseRecord, err := models.ReadCourseQuotaTradeRecord()
+			}
+
 		case models.TRADE_COURSE_AUDITION:
 			//学生购买试听
 			purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)

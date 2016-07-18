@@ -55,3 +55,14 @@ func QueryCourseQuotaPaymentDetailByCourseId(courseId int64) ([]*models.CourseQu
 		All(&details)
 	return details, err
 }
+
+func QueryCourseQuotaPaymentRecord(userId, courseId int64) (*models.CourseQuotaTradeRecord, error) {
+	var details *models.CourseQuotaTradeRecord
+	o := orm.NewOrm()
+	err := o.QueryTable(new(models.CourseQuotaTradeRecord).TableName()).
+		Filter("user_id", userId).
+		Filter("course_id", courseId).
+		Filter("type", models.COURSE_QUOTA_TYPE_QUOTA_PAYMENT).
+		One(&details)
+	return details, err
+}

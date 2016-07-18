@@ -5,11 +5,19 @@ import (
 	"WolaiWebservice/models"
 	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/service/trade"
+	"strconv"
 )
 
+type QuotaDiscount struct {
+	Id        int64   `json:"id" orm:"pk"`
+	RangeFrom int64   `json:"rangeFrom"`
+	RangeTo   int64   `json:"rangeTo"`
+	Discount  float64 `json:"discount"`
+}
+
 type QuotaChargeRule struct {
-	Price     int64                        `json:"price"`
-	Discounts []models.CourseQuotaDiscount `json:"discounts"`
+	Price     int64           `json:"price"`
+	Discounts []QuotaDiscount `json:"discounts"`
 }
 
 func GetQuotaChargeRule(gradeId int64) (*QuotaChargeRule, error) {
@@ -21,7 +29,18 @@ func GetQuotaChargeRule(gradeId int64) (*QuotaChargeRule, error) {
 	chargeRule.Price = quotaPrice.Price
 	discounts, err := courseService.QueryCourseQuotaDiscounts()
 	if err == nil {
-		chargeRule.Discounts = discounts
+		for _, d := range discounts {
+			discountFloat := float64(d.Discount) / float64(100)
+			discountStr := strconv.FormatFloat(discountFloat, 'f', 2, 64)
+			discount, _ := strconv.ParseFloat(discountStr, 64)
+			quotaDiscount := QuotaDiscount{
+				Id:        d.Id,
+				RangeFrom: d.RangeFrom,
+				RangeTo:   d.RangeTo,
+				Discount:  discount,
+			}
+			chargeRule.Discounts = append(chargeRule.Discounts, quotaDiscount)
+		}
 	}
 	return &chargeRule, nil
 }
