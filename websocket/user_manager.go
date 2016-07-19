@@ -187,7 +187,7 @@ func (usm *UserStatusManager) GetOnlineTeachers(upgrade bool) []int64 {
 			continue
 		}
 		if upgrade {
-			if !usm.IsUserBusyInSession(userId) {
+			if !usm.IsUserBusyInSession(userId) && !TeacherManager.IsTeacherOnline(userId) {
 				teacherIds = append(teacherIds, userId)
 			}
 		} else {
