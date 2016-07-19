@@ -91,7 +91,11 @@ func handleCourseQuotaActionPay(userId, gradeId, quantity, amount, pingppId int6
 	}
 	profile.QuotaQuantity += quantity
 	quotaPrice, _ := courseService.GetCourseQuotaPrice(gradeId)
+	discount := int64(100)
 	quotaDiscount, _ := courseService.QueryQuotaDiscountByQuantity(quantity)
+	if quotaDiscount.Id != 0 {
+		discount = quotaDiscount.Discount
+	}
 	_, err = models.UpdateStudentProfile(profile)
 	if err != nil {
 		return 2, err
@@ -101,7 +105,7 @@ func handleCourseQuotaActionPay(userId, gradeId, quantity, amount, pingppId int6
 		GradeId:      gradeId,
 		Price:        quotaPrice.Price,
 		TotalPrice:   amount,
-		Discount:     quotaDiscount.Discount,
+		Discount:     discount,
 		Quantity:     quantity,
 		LeftQuantity: quantity,
 		Type:         models.COURSE_QUOTA_TYPE_ONLINE_PURCHASE,
