@@ -165,15 +165,15 @@ func (usm *UserStatusManager) GetUserStatus(userId int64) string {
 	return "offline"
 }
 
-func (usm *UserStatusManager) GetUserStatusInfo(userId int64) (string, string) {
+func (usm *UserStatusManager) GetUserStatusInfo(userId int64) (string, string, bool) {
 	if TeacherManager.IsTeacherOnline(userId) && !usm.IsUserBusyInSession(userId) {
-		return "free", "有空"
+		return "free", "有空", true
 	} else if usm.HasUserChan(userId) && usm.IsUserBusyInSession(userId) {
-		return "busy", "上课中"
+		return "busy", "上课中", true
 	} else if usm.HasUserChan(userId) && !usm.IsUserBusyInSession(userId) {
-		return "online", "在线"
+		return "online", "在线", false
 	}
-	return "offline", "离线"
+	return "offline", "离线", false
 }
 
 func (usm *UserStatusManager) GetOnlineTeachers(upgrade bool) []int64 {
