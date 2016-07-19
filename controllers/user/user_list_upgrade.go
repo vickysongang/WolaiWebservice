@@ -4,6 +4,7 @@ package user
 import (
 	userService "WolaiWebservice/service/user"
 	"WolaiWebservice/websocket"
+	"fmt"
 )
 
 func GetTeacherRecommendationUpgrade(userId, page, count int64) (int64, error, []*UserListItem) {
@@ -13,14 +14,16 @@ func GetTeacherRecommendationUpgrade(userId, page, count int64) (int64, error, [
 	busyTeacherIds := websocket.UserManager.GetBusyTeachers()
 	onlineTeacherIds := websocket.UserManager.GetOnlineTeachers(true)
 
-	var tempTeacheherIds []int64
-	tempTeacheherIds = append(tempTeacheherIds, freeTeacherIds...)
-	tempTeacheherIds = append(tempTeacheherIds, busyTeacherIds...)
-	tempTeacheherIds = append(tempTeacheherIds, onlineTeacherIds...)
+	var tempTeacherIds []int64
+	tempTeacherIds = append(tempTeacherIds, freeTeacherIds...)
+	tempTeacherIds = append(tempTeacherIds, busyTeacherIds...)
+	tempTeacherIds = append(tempTeacherIds, onlineTeacherIds...)
 
-	tempTeacherIdsLen := int64(len(tempTeacheherIds))
+	fmt.Println("tempTeacherIds:", tempTeacherIds)
+
+	tempTeacherIdsLen := int64(len(tempTeacherIds))
 	if tempTeacherIdsLen/((page+1)*count) > 0 {
-		resultTeacherIds = append(resultTeacherIds, tempTeacheherIds[(page*count):(page+1)*count]...)
+		resultTeacherIds = append(resultTeacherIds, tempTeacherIds[(page*count):(page+1)*count]...)
 	} else {
 		leftTempLen := tempTeacherIdsLen % count
 		tempPageSize := tempTeacherIdsLen / count
@@ -29,26 +32,26 @@ func GetTeacherRecommendationUpgrade(userId, page, count int64) (int64, error, [
 			if page == tempPageSize {
 				offset = 0
 				limitCount = count - leftTempLen
-				resultTeacherIds = append(resultTeacherIds, tempTeacheherIds[(page*count):]...)
+				resultTeacherIds = append(resultTeacherIds, tempTeacherIds[(page*count):]...)
 			} else {
 				offset = count - leftTempLen + (page-tempPageSize-1)*count
 				limitCount = count
 			}
-			teacherIds, err := userService.QueryTeacherRecommendationExcludeOnline(userId, limitCount, offset, tempTeacheherIds)
+			teacherIds, err := userService.QueryTeacherRecommendationExcludeOnline(userId, limitCount, offset, tempTeacherIds)
 			if err != nil {
 				return 0, nil, result
 			}
 			resultTeacherIds = append(resultTeacherIds, teacherIds...)
 		} else {
 			offset := (page - tempPageSize) * count
-			teacherIds, err := userService.QueryTeacherRecommendationExcludeOnline(userId, count, offset, tempTeacheherIds)
+			teacherIds, err := userService.QueryTeacherRecommendationExcludeOnline(userId, count, offset, tempTeacherIds)
 			if err != nil {
 				return 0, nil, result
 			}
 			resultTeacherIds = append(resultTeacherIds, teacherIds...)
 		}
 	}
-
+	fmt.Println("resultTeacherIds:", resultTeacherIds)
 	for _, teacherId := range resultTeacherIds {
 		item, err := AssembleUserListItemUpgrade(teacherId)
 		if err != nil {
