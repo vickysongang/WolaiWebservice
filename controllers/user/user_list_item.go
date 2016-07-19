@@ -18,6 +18,7 @@ type UserListItem struct {
 	SubjectList      []string `json:"subjectList,omitempty"`
 	OnlineStatus     string   `json:"onlineStatus,omitempty"`
 	OnlineStatusName string   `json:"onlineStatusName,omitempty"`
+	OnlineStatusFlag bool     `json:"onlineStatusFlag,omitempty"`
 }
 
 func AssembleUserListItem(userId int64) (*UserListItem, error) {
@@ -68,7 +69,7 @@ func AssembleUserListItemUpgrade(userId int64) (*UserListItem, error) {
 		return nil, err
 	}
 
-	status, name := websocket.UserManager.GetUserStatusInfo(userId)
+	status, name, flag := websocket.UserManager.GetUserStatusInfo(userId)
 	item := UserListItem{
 		Id:               user.Id,
 		Nickname:         user.Nickname,
@@ -77,6 +78,7 @@ func AssembleUserListItemUpgrade(userId int64) (*UserListItem, error) {
 		AccessRight:      user.AccessRight,
 		OnlineStatus:     status,
 		OnlineStatusName: name,
+		OnlineStatusFlag: flag,
 	}
 
 	if user.AccessRight != models.USER_ACCESSRIGHT_STUDENT {

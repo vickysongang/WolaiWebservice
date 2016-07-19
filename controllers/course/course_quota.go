@@ -28,6 +28,7 @@ func GetQuotaChargeRule(gradeId int64) (*QuotaChargeRule, error) {
 	}
 	chargeRule.Price = quotaPrice.Price
 	discounts, err := courseService.QueryCourseQuotaDiscounts()
+	resultDiscounts := make([]QuotaDiscount, 0)
 	if err == nil {
 		for _, d := range discounts {
 			discountFloat := float64(d.Discount) / float64(100)
@@ -39,9 +40,10 @@ func GetQuotaChargeRule(gradeId int64) (*QuotaChargeRule, error) {
 				RangeTo:   d.RangeTo,
 				Discount:  discount,
 			}
-			chargeRule.Discounts = append(chargeRule.Discounts, quotaDiscount)
+			resultDiscounts = append(resultDiscounts, quotaDiscount)
 		}
 	}
+	chargeRule.Discounts = resultDiscounts
 	return &chargeRule, nil
 }
 

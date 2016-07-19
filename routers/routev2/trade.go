@@ -106,6 +106,6 @@ var tradeRoutes = route.Routes{
 		"/quota/charge/rule",
 		handlerv2.TradeQuotaChargeRule,
 		true,
-		true,
+		false,
 	},
 }
