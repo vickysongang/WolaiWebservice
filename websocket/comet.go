@@ -516,7 +516,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			orderInfo := GetOrderInfo(orderId)
 			orderByte, _ := json.Marshal(orderInfo)
 			orderStr := string(orderByte)
-			if !OrderManager.IsRecoverDisabled(orderId, order.Creator) {
+			if !OrderManager.IsRecoverDisabled(orderId, order.TeacherId) {
 				lcmessage.SendOrderCancelNotification(orderId, order.TeacherId, orderStr)
 			}
 		} else {
