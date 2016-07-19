@@ -238,7 +238,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 				continue
 			}
 			info.Avartar = user.Avatar
-			info.Title = trade.COMMENT_COURSE_RENEW
+			info.Title = fmt.Sprintf("%s(%d课时)", trade.COMMENT_COURSE_RENEW, renewRecord.RenewCount)
 
 			if renewRecord.PaymentMethod == models.PAYMENT_METHOD_OFFLINE_QUOTA ||
 				renewRecord.PaymentMethod == models.PAYMENT_METHOD_ONLINE_QUOTA {
@@ -294,9 +294,9 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 			qaPkgModule, _ := models.ReadQaPkgModule(qaPkg.ModuleId)
 			if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
-				info.Comment = fmt.Sprintf("%s-%d个月", qaPkgModule.Name, qaPkg.Month)
+				info.Comment = fmt.Sprintf("%s %d个月", qaPkgModule.Name, qaPkg.Month)
 			} else if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
-				info.Comment = fmt.Sprintf("%s-%d分钟", qaPkgModule.Name, qaPkg.TimeLength)
+				info.Comment = fmt.Sprintf("%s %d分钟", qaPkgModule.Name, qaPkg.TimeLength)
 			}
 
 		case models.TRADE_QA_PKG_GIVEN:
@@ -316,6 +316,11 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 			info.Avartar = user.Avatar
 			info.Title = trade.COMMENT_COURSE_QUOTA_PURCHASE
+			quotaTradeRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
+			if err != nil {
+				continue
+			}
+			info.Comment = fmt.Sprintf("购买可用课时 %d课时", quotaTradeRecord.Quantity)
 
 		case models.TRADE_COURSE_QUOTA_REFUND:
 			user, err := models.ReadUser(userId)
@@ -324,6 +329,11 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 			info.Avartar = user.Avatar
 			info.Title = trade.COMMENT_COURSE_QUOTA_REFUND
+			quotaTradeRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
+			if err != nil {
+				continue
+			}
+			info.Comment = fmt.Sprintf("退款可用课时 %d课时", quotaTradeRecord.Quantity)
 
 		default:
 			continue
