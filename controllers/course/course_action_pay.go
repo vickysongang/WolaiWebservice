@@ -268,6 +268,10 @@ func HandleDeluxeCoursePayByQuota(userId, courseId int64) (int64, error) {
 	if err != nil {
 		return 2, ErrPurchaseAbnormal
 	}
+	totalPrice, err := courseService.HandleCourseQuotaPay(userId, record.Id, course.GradeId, record.ChapterCount, "purchase")
+	if err != nil {
+		return 2, err
+	}
 	recordInfo := map[string]interface{}{
 		"PurchaseStatus": models.PURCHASE_RECORD_STATUS_PAID,
 		"PaymentMethod":  models.PAYMENT_METHOD_ONLINE_QUOTA,
@@ -275,10 +279,6 @@ func HandleDeluxeCoursePayByQuota(userId, courseId int64) (int64, error) {
 	_, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
 	if err != nil {
 		return 2, ErrPurchaseAbnormal
-	}
-	totalPrice, err := courseService.HandleCourseQuotaPay(userId, record.Id, course.GradeId, record.ChapterCount, "purchase")
-	if err != nil {
-		return 2, err
 	}
 	err = trade.HandleCoursePurchaseByQuotaTradeRecord(record.Id, totalPrice)
 	if err != nil {
