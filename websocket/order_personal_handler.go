@@ -51,7 +51,7 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 			orderInfo := GetOrderInfo(orderId)
 			orderByte, _ := json.Marshal(orderInfo)
 			orderStr := string(orderByte)
-			if !OrderManager.IsRecoverDisabled(orderId, order.Creator) {
+			if !OrderManager.IsRecoverDisabled(orderId, order.TeacherId) {
 				go lcmessage.SendOrderCancelNotification(orderId, order.TeacherId, orderStr)
 			}
 
