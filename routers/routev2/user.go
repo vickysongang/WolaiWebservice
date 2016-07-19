@@ -230,6 +230,16 @@ var userRoutes = route.Routes{
 		true,
 	},
 
+	// 2.3.8  新版最近辅导导师列表
+	route.Route{
+		"TeacherRecentUpgrade",
+		"POST",
+		"/upgrade/teacher/recent",
+		handlerv2.UserTeacherRecentUpgrade,
+		true,
+		true,
+	},
+
 	// 2.4.1
 	route.Route{
 		"GetInvitationCode",

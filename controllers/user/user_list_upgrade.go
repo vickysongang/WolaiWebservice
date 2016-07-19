@@ -4,7 +4,6 @@ package user
 import (
 	userService "WolaiWebservice/service/user"
 	"WolaiWebservice/websocket"
-	"fmt"
 )
 
 func GetTeacherRecommendationUpgrade(userId, page, count int64) (int64, error, []*UserListItem) {
@@ -18,8 +17,6 @@ func GetTeacherRecommendationUpgrade(userId, page, count int64) (int64, error, [
 	tempTeacherIds = append(tempTeacherIds, freeTeacherIds...)
 	tempTeacherIds = append(tempTeacherIds, busyTeacherIds...)
 	tempTeacherIds = append(tempTeacherIds, onlineTeacherIds...)
-
-	fmt.Println("tempTeacherIds:", tempTeacherIds)
 
 	tempTeacherIdsLen := int64(len(tempTeacherIds))
 	if tempTeacherIdsLen/((page+1)*count) > 0 {
@@ -51,8 +48,29 @@ func GetTeacherRecommendationUpgrade(userId, page, count int64) (int64, error, [
 			resultTeacherIds = append(resultTeacherIds, teacherIds...)
 		}
 	}
-	fmt.Println("resultTeacherIds:", resultTeacherIds)
 	for _, teacherId := range resultTeacherIds {
+		item, err := AssembleUserListItemUpgrade(teacherId)
+		if err != nil {
+			continue
+		}
+
+		result = append(result, item)
+	}
+
+	return 0, nil, result
+}
+
+func GetTeacherRecentUpgrade(userId, page, count int64) (int64, error, []*UserListItem) {
+	var err error
+
+	result := make([]*UserListItem, 0)
+
+	teacherIds, err := userService.QueryTeacherBySessionFreq(userId, page, count)
+	if err != nil {
+		return 0, nil, result
+	}
+
+	for _, teacherId := range teacherIds {
 		item, err := AssembleUserListItemUpgrade(teacherId)
 		if err != nil {
 			continue

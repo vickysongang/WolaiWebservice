@@ -551,7 +551,7 @@ func UserTeacherSearch(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-// 2.3.5
+// 2.3.4
 func UserTeacherRecent(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
@@ -698,6 +698,45 @@ func UserTeacherRecommendationUpgrade(w http.ResponseWriter, r *http.Request) {
 	}
 
 	status, err, content := userController.GetTeacherRecommendationUpgrade(userId, page, count)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(status, err.Error(), response.NullSlice)
+	} else {
+		resp = response.NewResponse(status, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 2.3.8
+func UserTeacherRecentUpgrade(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	var page int64
+	if len(vars["page"]) > 0 {
+		pageStr := vars["page"][0]
+		page, _ = strconv.ParseInt(pageStr, 10, 64)
+	}
+	var count int64
+	if len(vars["count"]) > 0 {
+		countStr := vars["count"][0]
+		count, _ = strconv.ParseInt(countStr, 10, 64)
+	} else {
+		count = 10
+	}
+
+	status, err, content := userController.GetTeacherRecentUpgrade(userId, page, count)
 	var resp *response.Response
 	if err != nil {
 		resp = response.NewResponse(status, err.Error(), response.NullSlice)
