@@ -29,6 +29,7 @@ func GetTeacherRecommendationUpgrade(userId, page, count int64) (int64, error, [
 			if page == tempPageSize {
 				offset = 0
 				limitCount = count - leftTempLen
+				resultTeacherIds = append(resultTeacherIds, tempTeacheherIds[(page*count):]...)
 			} else {
 				offset = count - leftTempLen + (page-tempPageSize-1)*count
 				limitCount = count
@@ -37,7 +38,6 @@ func GetTeacherRecommendationUpgrade(userId, page, count int64) (int64, error, [
 			if err != nil {
 				return 0, nil, result
 			}
-			resultTeacherIds = append(resultTeacherIds, tempTeacheherIds[(page*count):]...)
 			resultTeacherIds = append(resultTeacherIds, teacherIds...)
 		} else {
 			offset := (page - tempPageSize) * count
