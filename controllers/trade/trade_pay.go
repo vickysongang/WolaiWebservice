@@ -104,7 +104,7 @@ func handleTradePayByBalance(userId, refId int64, amount uint64, tradeType strin
 
 	case models.TRADE_COURSE_RENEW:
 		courseId := refId
-		status, err = courseController.HandleCourseRenewPayByBalance(userId, courseId, int64(amount))
+		status, err = courseController.HandleCourseRenewPayByBalance(userId, courseId, int64(amount), quantity)
 
 	case models.TRADE_COURSE_QUOTA_PURCHASE:
 		gradeId := refId

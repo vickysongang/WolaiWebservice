@@ -417,7 +417,7 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("退款课时：%d课时", quotaRefundRecord.Quantity))
 		msg.body = append(msg.body,
-			fmt.Sprintf("支付金额：%.2f 元", amount))
+			fmt.Sprintf("退款金额：%.2f 元", amount))
 		msg.body = append(msg.body,
 			fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
 

@@ -95,7 +95,7 @@ func (pwm *PingxxWebhookManager) ChargeSuccessEvent(chargeId string) {
 
 	case models.TRADE_COURSE_RENEW:
 		courseController.HandleCourseRenewPayByThird(pingppRecord.UserId,
-			pingppRecord.RefId, int64(pingppRecord.Amount), int64(pingppRecord.TotalAmount), pingppRecord.Id)
+			pingppRecord.RefId, int64(pingppRecord.Amount), int64(pingppRecord.TotalAmount), pingppRecord.Quantity, pingppRecord.Id)
 
 	case models.TRADE_COURSE_QUOTA_PURCHASE:
 		courseController.HandleCourseQuotaActionPayByThird(pingppRecord.UserId,
