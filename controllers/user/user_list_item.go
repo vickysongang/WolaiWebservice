@@ -18,7 +18,7 @@ type UserListItem struct {
 	SubjectList      []string `json:"subjectList,omitempty"`
 	OnlineStatus     string   `json:"onlineStatus,omitempty"`
 	OnlineStatusName string   `json:"onlineStatusName,omitempty"`
-	OnlineStatusFlag bool     `json:"onlineStatusFlag,omitempty"`
+	OnlineStatusFlag bool     `json:"onlineStatusFlag"`
 }
 
 func AssembleUserListItem(userId int64) (*UserListItem, error) {
