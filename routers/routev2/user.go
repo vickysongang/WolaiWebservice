@@ -220,6 +220,16 @@ var userRoutes = route.Routes{
 		true,
 	},
 
+	// 2.3.7  新版老师推荐
+	route.Route{
+		"TeacherRecommendationUpgrade",
+		"POST",
+		"/upgrade/teacher/recommendation",
+		handlerv2.UserTeacherRecommendationUpgrade,
+		true,
+		true,
+	},
+
 	// 2.4.1
 	route.Route{
 		"GetInvitationCode",

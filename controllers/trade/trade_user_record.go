@@ -238,7 +238,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 				continue
 			}
 			info.Avartar = user.Avatar
-			info.Title = fmt.Sprintf("%s(%d课时)", trade.COMMENT_COURSE_RENEW, renewRecord.RenewCount)
+			info.Title = fmt.Sprintf("%s %d课时", trade.COMMENT_COURSE_RENEW, renewRecord.RenewCount)
 
 			if renewRecord.PaymentMethod == models.PAYMENT_METHOD_OFFLINE_QUOTA ||
 				renewRecord.PaymentMethod == models.PAYMENT_METHOD_ONLINE_QUOTA {

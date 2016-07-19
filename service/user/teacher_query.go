@@ -71,7 +71,7 @@ func QueryTeacherRecommendation(userId int64, assistants []int64, page, count in
 	return result, nil
 }
 
-func QueryTeacherRecommendationExcludeOnline(userId, page, count int64, excludeUserIds []int64) ([]int64, error) {
+func QueryTeacherRecommendationExcludeOnline(userId, count, offset int64, excludeUserIds []int64) ([]int64, error) {
 	var err error
 
 	o := orm.NewOrm()
@@ -80,7 +80,7 @@ func QueryTeacherRecommendationExcludeOnline(userId, page, count int64, excludeU
 	var teachers []*models.TeacherProfile
 	num, err := o.QueryTable(new(models.TeacherProfile).TableName()).SetCond(cond).
 		OrderBy("-service_time").
-		Limit(count).Offset(page * count).
+		Limit(count).Offset(offset).
 		All(&teachers)
 	if err != nil {
 		return nil, errors.New("导师资料异常")
