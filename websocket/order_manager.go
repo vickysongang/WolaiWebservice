@@ -365,16 +365,16 @@ func (osm *OrderStatusManager) LockOrder(orderId int64) (bool, error) {
 func (osm *OrderStatusManager) IsRecoverDisabled(orderId, userId int64) bool {
 	status, ok := osm.orderMap[orderId]
 	if !ok {
-		return false
+		return true
 	}
 	return status.recoverDisabledMap[userId]
 }
 
-func (osm *OrderStatusManager) SetRecoverDisabled(orderId, userId int64, isRecoverUnneeded bool) error {
+func (osm *OrderStatusManager) SetRecoverDisabled(orderId, userId int64, isRecoverDisabled bool) error {
 	status, ok := osm.orderMap[orderId]
 	if !ok {
 		return ErrOrderNotFound
 	}
-	status.recoverDisabledMap[userId] = isRecoverUnneeded
+	status.recoverDisabledMap[userId] = isRecoverDisabled
 	return nil
 }
