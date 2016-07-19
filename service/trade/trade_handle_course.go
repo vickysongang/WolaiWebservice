@@ -33,6 +33,24 @@ func HandleCoursePurchaseTradeRecord(recordId int64, pingppId int64) error {
 	return nil
 }
 
+func HandleCoursePurchaseByQuotaTradeRecord(recordId int64, totalPrice int64) error {
+	var err error
+
+	record, err := models.ReadCoursePurchaseRecord(recordId)
+	if err != nil {
+		return nil
+	}
+
+	_, err = createTradeRecord(record.UserId, 0-totalPrice,
+		models.TRADE_COURSE_PURCHASE, models.TRADE_RESULT_SUCCESS, "",
+		0, record.Id, 0, "", 0, 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func HandleCourseAuditionTradeRecord(recordId int64, amount int64, pingppId int64) error {
 	var err error
 
@@ -137,6 +155,42 @@ func HandleAuditionCourseEarning(recordId int64, period int64, chapterId int64) 
 	_, err = createTradeRecord(record.TeacherId, amount,
 		models.TRADE_AUDITION_COURSE_EARNING, models.TRADE_RESULT_SUCCESS, comment,
 		0, record.Id, 0, "", 0, chapterId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func HandleCourseQuotaPurchaseTradeRecord(recordId int64, amount int64, pingppId int64) error {
+	var err error
+
+	record, err := models.ReadCourseQuotaTradeRecord(recordId)
+	if err != nil {
+		return nil
+	}
+
+	_, err = createTradeRecord(record.UserId, 0-amount,
+		models.TRADE_COURSE_QUOTA_PURCHASE, models.TRADE_RESULT_SUCCESS, "",
+		0, record.Id, pingppId, "", 0, 0)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func HandleCourseQuotaRefundTradeRecord(recordId int64, amount int64, pingppId int64) error {
+	var err error
+
+	record, err := models.ReadCourseQuotaTradeRecord(recordId)
+	if err != nil {
+		return nil
+	}
+
+	_, err = createTradeRecord(record.UserId, amount,
+		models.TRADE_COURSE_QUOTA_REFUND, models.TRADE_RESULT_SUCCESS, "",
+		0, record.Id, pingppId, "", 0, 0)
 	if err != nil {
 		return err
 	}

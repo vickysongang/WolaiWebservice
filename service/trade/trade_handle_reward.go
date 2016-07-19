@@ -29,6 +29,8 @@ const (
 	COMMENT_QA_PKG_GIVEN                  = "家教时间包赠送"
 	COMMENT_QA_PKG_GIVEN_COMPLETE_PROFILE = "家教时间包赠送-完善资料"
 	COMMENT_QA_PKG_GIVEN_INVITATION       = "家教时间包赠送-邀请注册"
+	COMMENT_COURSE_QUOTA_PURCHASE         = "可用课时购买"
+	COMMENT_COURSE_QUOTA_REFUND           = "可用课时退款"
 )
 
 func HandleTradeRewardRegistration(userId int64) error {

@@ -13,30 +13,28 @@ func init() {
 	pingpp.Key = config.Env.Pingpp.Key
 }
 
-/*
- * 从客户端接收参数，向Ping++服务器发起付款请求
- * @param orderNo:订单编号，示例：123456789
- * @param amout:付款金额，示例：100
- * @param channel:支付渠道，示例：alipay
- * @param currency:币种，示例：cny
- * @param clientIp:客户端IP，示例：127.0.0.1
- * @param subject:主题，示例：Your Subject
- * @param body:内容，示例：Your Body
- * @param extra:附加字段
- */
-func PayByPingpp(orderNo string, amount uint64,
-	channel, currency, clientIp, subject, body string,
-	extra map[string]interface{}) (*pingpp.Charge, error) {
+type PingppInfo struct {
+	OrderNo  string                 //orderNo:订单编号，示例：123456789
+	Amount   uint64                 //付款金额，示例：100
+	Channel  string                 //支付渠道，示例：alipay
+	Currency string                 //币种，示例：cny
+	ClientIp string                 //客户端IP，示例：127.0.0.1
+	Subject  string                 //主题，示例：Your Subject
+	Body     string                 //内容，示例：Your Body
+	Extra    map[string]interface{} //附加字段
+}
+
+func PayByPingpp(info *PingppInfo) (*pingpp.Charge, error) {
 	params := &pingpp.ChargeParams{
-		Order_no:  orderNo,
+		Order_no:  info.OrderNo,
 		App:       pingpp.App{Id: config.Env.Pingpp.AppId},
-		Amount:    amount,
-		Channel:   channel,
-		Currency:  currency,
-		Client_ip: clientIp,
-		Subject:   subject,
-		Body:      body,
-		Extra:     extra}
+		Amount:    info.Amount,
+		Channel:   info.Channel,
+		Currency:  info.Currency,
+		Client_ip: info.ClientIp,
+		Subject:   info.Subject,
+		Body:      info.Body,
+		Extra:     info.Extra}
 	ch, err := charge.New(params)
 	return ch, err
 }

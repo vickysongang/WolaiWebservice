@@ -48,7 +48,7 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 			}
 
 			recordInfo := map[string]interface{}{
-				"audition_status": models.PURCHASE_RECORD_STATUS_PAID,
+				"AuditionStatus": models.PURCHASE_RECORD_STATUS_PAID,
 			}
 
 			record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
@@ -75,13 +75,13 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 			}
 
 			recordInfo := map[string]interface{}{
-				"purchase_status": models.PURCHASE_RECORD_STATUS_PAID,
+				"PurchaseStatus": models.PURCHASE_RECORD_STATUS_PAID,
 			}
 
 			if record.AuditionStatus == models.PURCHASE_RECORD_STATUS_IDLE ||
 				record.AuditionStatus == models.PURCHASE_RECORD_STATUS_APPLY ||
 				record.AuditionStatus == models.PURCHASE_RECORD_STATUS_WAITING {
-				recordInfo["audition_status"] = models.PURCHASE_RECORD_STATUS_PAID
+				recordInfo["AuditionStatus"] = models.PURCHASE_RECORD_STATUS_PAID
 			}
 
 			record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
@@ -192,7 +192,7 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 			}
 
 			recordInfo := map[string]interface{}{
-				"audition_status": models.PURCHASE_RECORD_STATUS_PAID,
+				"AuditionStatus": models.PURCHASE_RECORD_STATUS_PAID,
 			}
 
 			record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
@@ -213,13 +213,13 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 			}
 
 			recordInfo := map[string]interface{}{
-				"purchase_status": models.PURCHASE_RECORD_STATUS_PAID,
+				"PurchaseStatus": models.PURCHASE_RECORD_STATUS_PAID,
 			}
 
 			if record.AuditionStatus == models.PURCHASE_RECORD_STATUS_IDLE ||
 				record.AuditionStatus == models.PURCHASE_RECORD_STATUS_APPLY ||
 				record.AuditionStatus == models.PURCHASE_RECORD_STATUS_WAITING {
-				recordInfo["audition_status"] = models.PURCHASE_RECORD_STATUS_PAID
+				recordInfo["AuditionStatus"] = models.PURCHASE_RECORD_STATUS_PAID
 			}
 
 			record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
@@ -249,6 +249,40 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 		if err != nil {
 			return 2, ErrPurchaseAbnormal
 		}
+	}
+
+	return 0, nil
+}
+
+func HandleDeluxeCoursePayByQuota(userId, courseId int64) (int64, error) {
+	var err error
+	course, err := models.ReadCourse(courseId)
+	if err != nil {
+		return 2, ErrCourseAbnormal
+	}
+	_, err = models.ReadUser(userId)
+	if err != nil {
+		return 2, ErrUserAbnormal
+	}
+	record, err := courseService.GetCoursePurchaseRecordByUserId(courseId, userId)
+	if err != nil {
+		return 2, ErrPurchaseAbnormal
+	}
+	totalPrice, err := courseService.HandleCourseQuotaPay(userId, record.Id, course.GradeId, record.ChapterCount, "purchase")
+	if err != nil {
+		return 2, err
+	}
+	recordInfo := map[string]interface{}{
+		"PurchaseStatus": models.PURCHASE_RECORD_STATUS_PAID,
+		"PaymentMethod":  models.PAYMENT_METHOD_ONLINE_QUOTA,
+	}
+	_, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
+	if err != nil {
+		return 2, ErrPurchaseAbnormal
+	}
+	err = trade.HandleCoursePurchaseByQuotaTradeRecord(record.Id, totalPrice)
+	if err != nil {
+		return 2, err
 	}
 
 	return 0, nil

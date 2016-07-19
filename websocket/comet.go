@@ -495,13 +495,16 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 	}
 
 	orderInfo := GetOrderInfo(orderId)
+
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
 
 	quitMsg := NewWSMessage(msg.MessageId, msg.UserId, SIGNAL_ORDER_QUIT)
 
 	switch msg.OperationCode {
 	case WS_ORDER2_CANCEL:
-		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT || order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
+			order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+			order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 			resp.OperationCode = WS_ORDER2_CANCEL_RESP
 			resp.Attribute["errCode"] = "0"
 
@@ -509,6 +512,12 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			OrderManager.SetOrderCancelled(orderId)
 			orderChan <- quitMsg
 			OrderManager.SetOffline(orderId)
+
+			orderInfo := GetOrderInfo(orderId)
+			orderByte, _ := json.Marshal(orderInfo)
+			orderStr := string(orderByte)
+
+			lcmessage.SendOrderCancelNotification(orderId, order.TeacherId, orderStr)
 		} else {
 			//instant order
 			// 发送反馈消息
@@ -756,6 +765,9 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		go handleSessionCreation(orderId, msg.UserId)
 
 		seelog.Debug("orderHandler|orderReply: ", orderId)
+
+	case WS_ORDER2_RECOVER_DISABLE:
+		OrderManager.SetRecoverDisabled(orderId, user.Id, true)
 	}
 	return resp, nil
 }

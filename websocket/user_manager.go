@@ -165,15 +165,60 @@ func (usm *UserStatusManager) GetUserStatus(userId int64) string {
 	return "offline"
 }
 
-func (usm *UserStatusManager) GetOnlineTeachers() []int64 {
+func (usm *UserStatusManager) GetUserStatusInfo(userId int64) (string, string) {
+	if TeacherManager.IsTeacherOnline(userId) && !usm.IsUserBusyInSession(userId) {
+		return "free", "有空"
+	} else if usm.HasUserChan(userId) && usm.IsUserBusyInSession(userId) {
+		return "busy", "上课中"
+	} else if usm.HasUserChan(userId) && !usm.IsUserBusyInSession(userId) {
+		return "online", "在线"
+	}
+	return "offline", "离线"
+}
+
+func (usm *UserStatusManager) GetOnlineTeachers(upgrade bool) []int64 {
 	teacherIds := make([]int64, 0)
 	for userId, _ := range usm.OnlineUserMap {
 		user, err := models.ReadUser(userId)
 		if err != nil {
 			continue
 		}
+		if user.AccessRight != models.USER_ACCESSRIGHT_TEACHER {
+			continue
+		}
+		if upgrade {
+			if !usm.IsUserBusyInSession(userId) && !TeacherManager.IsTeacherOnline(userId) {
+				teacherIds = append(teacherIds, userId)
+			}
+		} else {
+			teacherIds = append(teacherIds, userId)
+		}
+	}
+	return teacherIds
+}
 
-		if user.AccessRight == models.USER_ACCESSRIGHT_TEACHER {
+func (usm *UserStatusManager) GetFreeTeachers() []int64 {
+	teacherIds := make([]int64, 0)
+	for userId, _ := range TeacherManager.teacherMap {
+		_, err := models.ReadUser(userId)
+		if err != nil {
+			continue
+		}
+		if TeacherManager.IsTeacherOnline(userId) && !usm.IsUserBusyInSession(userId) {
+			teacherIds = append(teacherIds, userId)
+		}
+	}
+	return teacherIds
+}
+
+func (usm *UserStatusManager) GetBusyTeachers() []int64 {
+	teacherIds := make([]int64, 0)
+	for userId, _ := range TeacherManager.teacherMap {
+		_, err := models.ReadUser(userId)
+		if err != nil {
+			continue
+		}
+		if TeacherManager.IsTeacherOnline(userId) && usm.IsUserBusyInSession(userId) {
 			teacherIds = append(teacherIds, userId)
 		}
 	}

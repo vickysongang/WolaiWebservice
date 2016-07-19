@@ -8,7 +8,7 @@ import (
 	"WolaiWebservice/utils/leancloud"
 )
 
-func SendOrderPersonalNotification(orderId int64, teacherId int64) {
+func SendOrderPersonalNotification(orderId int64, teacherId int64, orderInfo string) {
 	order, err := models.ReadOrder(orderId)
 	if err != nil {
 		return
@@ -33,6 +33,7 @@ func SendOrderPersonalNotification(orderId int64, teacherId int64) {
 	attr["type"] = "personal"
 	attr["title"] = title
 	attr["orderId"] = strconv.FormatInt(orderId, 10)
+	attr["orderInfo"] = orderInfo
 
 	lcTMsg := leancloud.LCTypedMessage{
 		Type:      LC_MSG_ORDER,
@@ -43,7 +44,47 @@ func SendOrderPersonalNotification(orderId int64, teacherId int64) {
 	leancloud.LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, teacherId, &lcTMsg)
 }
 
-func SendOrderCourseNotification(orderId int64, teacherId int64) {
+func SendOrderCancelNotification(orderId int64, teacherId int64, orderInfo string) {
+	order, err := models.ReadOrder(orderId)
+	if err != nil {
+		return
+	}
+
+	_, err = models.ReadUser(teacherId)
+	if err != nil {
+		return
+	}
+
+	attr := make(map[string]string)
+	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
+		attr["type"] = "personal"
+	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+		attr["type"] = "course"
+		_, err := models.ReadCourse(order.CourseId)
+		if err != nil {
+			return
+		}
+
+		chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
+		if err != nil {
+			return
+		}
+		attr["chapter"] = fmt.Sprintf("第%d课时 %s", chapter.Period, chapter.Title)
+	}
+
+	attr["orderId"] = strconv.FormatInt(orderId, 10)
+	attr["orderInfo"] = orderInfo
+
+	lcTMsg := leancloud.LCTypedMessage{
+		Type:      LC_MSG_ORDER,
+		Text:      "",
+		Attribute: attr,
+	}
+
+	leancloud.LCSendTypedMessage(USER_SYSTEM_MESSAGE, teacherId, &lcTMsg)
+}
+
+func SendOrderCourseNotification(orderId int64, teacherId int64, orderInfo string) {
 	order, err := models.ReadOrder(orderId)
 	if err != nil {
 		return
@@ -69,6 +110,44 @@ func SendOrderCourseNotification(orderId int64, teacherId int64) {
 	attr["title"] = course.Name
 	attr["chapter"] = fmt.Sprintf("第%d课时 %s", chapter.Period, chapter.Title)
 	attr["orderId"] = strconv.FormatInt(orderId, 10)
+	attr["orderInfo"] = orderInfo
+
+	lcTMsg := leancloud.LCTypedMessage{
+		Type:      LC_MSG_ORDER,
+		Text:      "[订单消息]",
+		Attribute: attr,
+	}
+
+	leancloud.LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, teacherId, &lcTMsg)
+}
+
+func SendOrderCourseCancelNotification(orderId int64, teacherId int64, orderInfo string) {
+	order, err := models.ReadOrder(orderId)
+	if err != nil {
+		return
+	}
+
+	_, err = models.ReadUser(teacherId)
+	if err != nil {
+		return
+	}
+
+	course, err := models.ReadCourse(order.CourseId)
+	if err != nil {
+		return
+	}
+
+	chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
+	if err != nil {
+		return
+	}
+
+	attr := make(map[string]string)
+	attr["type"] = "course"
+	attr["title"] = course.Name
+	attr["chapter"] = fmt.Sprintf("第%d课时 %s", chapter.Period, chapter.Title)
+	attr["orderId"] = strconv.FormatInt(orderId, 10)
+	attr["orderInfo"] = orderInfo
 
 	lcTMsg := leancloud.LCTypedMessage{
 		Type:      LC_MSG_ORDER,

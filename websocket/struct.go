@@ -4,12 +4,16 @@ import (
 	"github.com/astaxie/beego/orm"
 
 	"WolaiWebservice/models"
+	"time"
 )
 
 type orderInfo struct {
 	Id          int64        `json:"id"`
 	CreatorInfo *models.User `json:"creatorInfo"`
 	Title       string       `json:"title"`
+	Status      string       `json:"originalStatus"`
+	Type        string       `json:"originalType"`
+	CreateTime  time.Time    `json:"createTime"`
 }
 
 func GetOrderInfo(orderId int64) *orderInfo {
@@ -37,6 +41,9 @@ func GetOrderInfo(orderId int64) *orderInfo {
 		Id:          order.Id,
 		CreatorInfo: user,
 		Title:       title,
+		Status:      order.Status,
+		Type:        order.Type,
+		CreateTime:  order.CreateTime,
 	}
 
 	return &info

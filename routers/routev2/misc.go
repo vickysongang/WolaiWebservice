@@ -87,6 +87,16 @@ var miscRoutes = route.Routes{
 		false,
 	},
 
+	// 10.2.5
+	route.Route{
+		"VersionUpgrade",
+		"POST",
+		"/version/upgrade",
+		handlerv2.VersionUpgrade,
+		false,
+		false,
+	},
+
 	route.Route{
 		"Dummy",
 		"GET",

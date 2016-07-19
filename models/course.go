@@ -10,8 +10,8 @@ type Course struct {
 	Id             int64     `json:"id" orm:"pk"`
 	Name           string    `json:"name"`
 	Type           string    `json:"type"`
-	GradeId        int64     `json:"-"`
-	SubjectId      int64     `json:"-"`
+	GradeId        int64     `json:"gradeId"`
+	SubjectId      int64     `json:"subjectId"`
 	TimeFrom       time.Time `json:"-"`
 	TimeTo         time.Time `json:"-"`
 	ImgCover       string    `json:"imgCover"`

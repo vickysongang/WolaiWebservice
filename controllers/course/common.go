@@ -55,10 +55,11 @@ type courseChapterStatus struct {
 type nullObject struct{}
 
 type paymentInfo struct {
-	Title   string `json:"title"`
-	Price   int64  `json:"price"`
-	Comment string `json:"comment"`
-	Type    string `json:"type"`
+	Title        string `json:"title"`
+	Price        int64  `json:"price"`
+	Comment      string `json:"comment"`
+	Type         string `json:"type"`
+	ChapterCount int64  `json:"chapterCount"`
 }
 
 type sessionInfo struct {
@@ -167,11 +168,12 @@ func queryCourseChapterStatus(courseId int64, current int64, upgradeFlag bool) (
 	return statusList, nil
 }
 
-func queryCourseCustomChapterStatus(courseId, current, userId, teacherId, recordId int64, courseType string, upgradeFlag bool) ([]*courseChapterStatus, error) {
+func queryCourseCustomChapterStatus(courseId, current, userId, teacherId, recordId int64,
+	courseType string, upgradeFlag bool) ([]*courseChapterStatus, error) {
+
 	o := orm.NewOrm()
 
-	var courseRelation models.CourseRelation
-	err := o.QueryTable("course_relation").Filter("record_id", recordId).Filter("type", courseType).Limit(1).One(&courseRelation)
+	courseRelation, err := courseService.GetCourseRelation(recordId, courseType)
 	if err != nil {
 		return make([]*courseChapterStatus, 0), err
 	}
@@ -187,15 +189,16 @@ func queryCourseCustomChapterStatus(courseId, current, userId, teacherId, record
 		return make([]*courseChapterStatus, 0), err
 	}
 	var courseChapters []*models.CourseChapter
-	for _, courseCustomChapter := range courseCustomChapters {
-		courseChapter := models.CourseChapter{}
-		courseChapter.Id = courseCustomChapter.Id
-		courseChapter.Abstract = courseCustomChapter.Abstract
-		courseChapter.AttachId = courseCustomChapter.AttachId
-		courseChapter.CourseId = courseCustomChapter.CourseId
-		courseChapter.CreateTime = courseCustomChapter.CreateTime
-		courseChapter.Period = courseCustomChapter.Period
-		courseChapter.Title = courseCustomChapter.Title
+	for _, chapter := range courseCustomChapters {
+		courseChapter := models.CourseChapter{
+			Id:         chapter.Id,
+			Abstract:   chapter.Abstract,
+			AttachId:   chapter.AttachId,
+			CourseId:   chapter.CourseId,
+			CreateTime: chapter.CreateTime,
+			Period:     chapter.Period,
+			Title:      chapter.Title,
+		}
 		courseChapters = append(courseChapters, &courseChapter)
 	}
 

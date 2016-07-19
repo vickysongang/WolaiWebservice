@@ -216,6 +216,7 @@ func GeneralOrderChanHandler(orderId int64) {
 					userChan <- recoverMsg
 
 				case WS_ORDER2_RECOVER_DISPATCH:
+
 					seelog.Debug("In Order Dispatch Recover:", orderId)
 					recoverMsg := NewWSMessage("", msg.UserId, WS_ORDER2_RECOVER_DISPATCH)
 					recoverMsg.Attribute["orderInfo"] = string(orderByte)
@@ -605,6 +606,10 @@ func recoverTeacherOrder(userId int64) {
 	}
 
 	for orderId, _ := range TeacherManager.teacherMap[userId].dispatchMap {
+		if OrderManager.IsRecoverDisabled(orderId, userId) {
+			continue
+		}
+
 		if orderChan, err := OrderManager.GetOrderChan(orderId); err == nil {
 			seelog.Debug("orderHandler|orderDispatchRecover: ", orderId, " to Teacher: ", userId)
 			recoverMsg := NewWSMessage("", userId, WS_ORDER2_RECOVER_DISPATCH)

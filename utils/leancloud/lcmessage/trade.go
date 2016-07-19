@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"WolaiWebservice/models"
+	courseService "WolaiWebservice/service/course"
 	"WolaiWebservice/utils/leancloud"
 
 	seelog "github.com/cihub/seelog"
@@ -240,8 +241,22 @@ func SendTradeNotification(recordId int64) {
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已成功购买课程。", user.Nickname, suffix)
 		msg.body = append(msg.body,
 			fmt.Sprintf("课程名称：%s", course.Name))
-		msg.body = append(msg.body,
-			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+
+		switch purchase.PaymentMethod {
+		case models.PAYMENT_METHOD_ONLINE_WALLET, models.PAYMENT_METHOD_OFFLINE_WALLET:
+			msg.body = append(msg.body,
+				fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+		case models.PAYMENT_METHOD_ONLINE_QUOTA, models.PAYMENT_METHOD_OFFLINE_QUOTA:
+			paymentRecord, _ := courseService.QueryCourseQuotaPaymentRecord(user.Id, purchase.Id, "purchase")
+			msg.body = append(msg.body,
+				fmt.Sprintf("可用课时消费：%s %d课时", "-", paymentRecord.Quantity))
+			profile, err := models.ReadStudentProfile(user.Id)
+			if err != nil {
+				return
+			}
+			msg.body = append(msg.body,
+				fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
+		}
 
 	case models.TRADE_COURSE_RENEW:
 		renewRecord, err := models.ReadCourseRenewRecord(record.RecordId)
@@ -255,8 +270,22 @@ func SendTradeNotification(recordId int64) {
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已成功续约课程。", user.Nickname, suffix)
 		msg.body = append(msg.body,
 			fmt.Sprintf("课程名称：%s", course.Name))
-		msg.body = append(msg.body,
-			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+
+		switch renewRecord.PaymentMethod {
+		case models.PAYMENT_METHOD_ONLINE_WALLET, models.PAYMENT_METHOD_OFFLINE_WALLET:
+			msg.body = append(msg.body,
+				fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+		case models.PAYMENT_METHOD_ONLINE_QUOTA, models.PAYMENT_METHOD_OFFLINE_QUOTA:
+			paymentRecord, _ := courseService.QueryCourseQuotaPaymentRecord(user.Id, renewRecord.Id, "renew")
+			msg.body = append(msg.body,
+				fmt.Sprintf("可用课时消费：%s %d课时", "-", paymentRecord.Quantity))
+			profile, err := models.ReadStudentProfile(user.Id)
+			if err != nil {
+				return
+			}
+			msg.body = append(msg.body,
+				fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
+		}
 
 	case models.TRADE_COURSE_AUDITION:
 		purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)
@@ -342,6 +371,7 @@ func SendTradeNotification(recordId int64) {
 		}
 		msg.body = append(msg.body,
 			fmt.Sprintf("账户消费：%s %.2f 元", signStr, amount))
+
 	case models.TRADE_QA_PKG_GIVEN:
 		qaPkg, err := models.ReadQaPkg(record.RecordId)
 		if err != nil {
@@ -356,6 +386,41 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("产品名称：%s", qaPkgModule.Name))
 		msg.body = append(msg.body,
 			fmt.Sprintf("家教时间：%d分钟", qaPkg.TimeLength))
+
+	case models.TRADE_COURSE_QUOTA_PURCHASE:
+		quotaPurchaseRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
+		if err != nil {
+			return
+		}
+		profile, err := models.ReadStudentProfile(user.Id)
+		if err != nil {
+			return
+		}
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，可用课时充值成功。", user.Nickname, suffix)
+		msg.body = append(msg.body,
+			fmt.Sprintf("充值课时：%d课时", quotaPurchaseRecord.Quantity))
+		msg.body = append(msg.body,
+			fmt.Sprintf("支付金额：%.2f 元", amount))
+		msg.body = append(msg.body,
+			fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
+
+	case models.TRADE_COURSE_QUOTA_REFUND:
+		quotaRefundRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
+		if err != nil {
+			return
+		}
+		profile, err := models.ReadStudentProfile(user.Id)
+		if err != nil {
+			return
+		}
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，可用课时退款成功。", user.Nickname, suffix)
+		msg.body = append(msg.body,
+			fmt.Sprintf("退款课时：%d课时", quotaRefundRecord.Quantity))
+		msg.body = append(msg.body,
+			fmt.Sprintf("退款金额：%.2f 元", amount))
+		msg.body = append(msg.body,
+			fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
+
 	default:
 		return
 	}

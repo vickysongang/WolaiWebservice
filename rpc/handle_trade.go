@@ -205,3 +205,56 @@ func (watcher *RpcWatcher) HandleTradeQapkgGiven(request *RpcRequest, resp *RpcR
 	*resp = NewRpcResponse(0, "", response.NullObject)
 	return nil
 }
+
+func (watcher *RpcWatcher) HandleTradeCoursePurchase(request *RpcRequest, resp *RpcResponse) error {
+	var err error
+
+	recordId, err := strconv.ParseInt(request.Args["recordId"], 10, 64)
+	if err != nil {
+		*resp = NewRpcResponse(2, "无效的课程购买记录Id", response.NullObject)
+		return err
+	}
+	err = tradeService.HandleCoursePurchaseTradeRecord(recordId, 0)
+	if err != nil {
+		*resp = NewRpcResponse(2, "交易失败", response.NullObject)
+		return err
+	}
+	*resp = NewRpcResponse(0, "", response.NullObject)
+	return nil
+}
+
+func (watcher *RpcWatcher) HandleTradeCourseQuotaPurchase(request *RpcRequest, resp *RpcResponse) error {
+	var err error
+
+	recordId, err := strconv.ParseInt(request.Args["recordId"], 10, 64)
+	amount, err := strconv.ParseInt(request.Args["amount"], 10, 64)
+	if err != nil {
+		*resp = NewRpcResponse(2, "无效的通用课时购买记录Id", response.NullObject)
+		return err
+	}
+	err = tradeService.HandleCourseQuotaPurchaseTradeRecord(recordId, amount, 0)
+	if err != nil {
+		*resp = NewRpcResponse(2, "交易失败", response.NullObject)
+		return err
+	}
+	*resp = NewRpcResponse(0, "", response.NullObject)
+	return nil
+}
+
+func (watcher *RpcWatcher) HandleTradeCourseQuotaRefund(request *RpcRequest, resp *RpcResponse) error {
+	var err error
+
+	recordId, err := strconv.ParseInt(request.Args["recordId"], 10, 64)
+	amount, err := strconv.ParseInt(request.Args["amount"], 10, 64)
+	if err != nil {
+		*resp = NewRpcResponse(2, "无效的通用课时退款记录Id", response.NullObject)
+		return err
+	}
+	err = tradeService.HandleCourseQuotaRefundTradeRecord(recordId, amount, 0)
+	if err != nil {
+		*resp = NewRpcResponse(2, "交易失败", response.NullObject)
+		return err
+	}
+	*resp = NewRpcResponse(0, "", response.NullObject)
+	return nil
+}

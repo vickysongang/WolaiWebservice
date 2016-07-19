@@ -51,6 +51,8 @@ const (
 	CONFIG_KEY_DATA_USAGE_CLAIM_TYPE         = "claim_type"
 	CONFIG_KEY_DATA_USAGE_CLAIM_SHARE_REWARD = "share_reward"
 	CONFIG_KEY_LOG_DATA_TARGET               = "log_data_target"
+
+	CONFIG_UPGRADE = "config:upgrade"
 )
 
 var defaultMap = map[string]map[string]string{
