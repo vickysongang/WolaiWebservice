@@ -514,10 +514,10 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			orderChan <- quitMsg
 			OrderManager.SetOffline(orderId)
 
-			orderInfo := GetOrderInfo(orderId)
-			orderByte, _ := json.Marshal(orderInfo)
-			orderStr := string(orderByte)
 			if !OrderManager.IsRecoverDisabled(orderId, order.TeacherId) {
+				orderInfo := GetOrderInfo(orderId)
+				orderByte, _ := json.Marshal(orderInfo)
+				orderStr := string(orderByte)
 				lcmessage.SendOrderCancelNotification(orderId, order.TeacherId, orderStr)
 			}
 		} else {
@@ -769,6 +769,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		seelog.Debug("orderHandler|orderReply: ", orderId)
 
 	case WS_ORDER2_RECOVER_DISABLE:
+		OrderManager.SetOrderLocked(orderId, false)
 		err := OrderManager.SetRecoverDisabled(orderId, msg.UserId)
 		if err != nil {
 			resp.Attribute["errCode"] = "2"
