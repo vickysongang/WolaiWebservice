@@ -77,7 +77,7 @@ func SendOrderCancelNotification(orderId int64, teacherId int64, orderInfo strin
 
 	lcTMsg := leancloud.LCTypedMessage{
 		Type:      LC_MSG_ORDER,
-		Text:      "",
+		Text:      "[订单取消]",
 		Attribute: attr,
 	}
 
