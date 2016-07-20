@@ -49,6 +49,7 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 
 			recordInfo := map[string]interface{}{
 				"AuditionStatus": models.PURCHASE_RECORD_STATUS_PAID,
+				"PaymentMethod":  models.PAYMENT_METHOD_ONLINE_WALLET,
 			}
 
 			record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
@@ -76,6 +77,7 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 
 			recordInfo := map[string]interface{}{
 				"PurchaseStatus": models.PURCHASE_RECORD_STATUS_PAID,
+				"PaymentMethod":  models.PAYMENT_METHOD_ONLINE_WALLET,
 			}
 
 			if record.AuditionStatus == models.PURCHASE_RECORD_STATUS_IDLE ||
@@ -193,6 +195,7 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 
 			recordInfo := map[string]interface{}{
 				"AuditionStatus": models.PURCHASE_RECORD_STATUS_PAID,
+				"PaymentMethod":  models.PAYMENT_METHOD_ONLINE_WALLET,
 			}
 
 			record, err = models.UpdateCoursePurchaseRecord(record.Id, recordInfo)
@@ -214,6 +217,7 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 
 			recordInfo := map[string]interface{}{
 				"PurchaseStatus": models.PURCHASE_RECORD_STATUS_PAID,
+				"PaymentMethod":  models.PAYMENT_METHOD_ONLINE_WALLET,
 			}
 
 			if record.AuditionStatus == models.PURCHASE_RECORD_STATUS_IDLE ||
