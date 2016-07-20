@@ -98,6 +98,7 @@ func HandleCometMessage(param string) (*WSMessage, error) {
 	case WS_ORDER2_CANCEL,
 		WS_ORDER2_ACCEPT,
 		WS_ORDER2_ASSIGN_ACCEPT,
+		WS_ORDER2_RECOVER_DISABLE,
 		WS_ORDER2_PERSONAL_REPLY:
 
 		resp, _ = orderMessageHandler(msg, user, timestamp)
