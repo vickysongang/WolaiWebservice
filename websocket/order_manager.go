@@ -10,24 +10,24 @@ import (
 )
 
 type OrderStatus struct {
-	orderId            int64
-	orderInfo          *models.Order
-	orderChan          chan WSMessage
-	orderSignalChan    chan int64
-	onlineTimestamp    int64
-	isDispatching      bool
-	currentAssign      int64
-	dispatchMap        map[int64]int64 //teacherId to timestamp
-	assignMap          map[int64]int64 //teacherId to timestamp
-	isLocked           bool            //用来控制是否被抢
-	lock               sync.Mutex
-	recoverDisabledMap map[int64]bool //teacherId to bool 用来控制订单是否需要回溯
+	orderId         int64
+	orderInfo       *models.Order
+	orderChan       chan WSMessage
+	orderSignalChan chan int64
+	onlineTimestamp int64
+	isDispatching   bool
+	currentAssign   int64
+	dispatchMap     map[int64]int64 //teacherId to timestamp
+	assignMap       map[int64]int64 //teacherId to timestamp
+	isLocked        bool            //用来控制是否被抢
+	lock            sync.Mutex
 }
 
 type OrderStatusManager struct {
 	orderMap map[int64]*OrderStatus
 
-	personalOrderMap map[int64]map[int64]int64 // studentId to teacherId to orderId
+	personalOrderMap   map[int64]map[int64]int64 // studentId to teacherId to orderId
+	recoverDisabledMap map[int64]map[int64]int64 //orderId to teacherId to timestamp  用来控制订单是否需要回溯
 
 	creatingInstOdrUserSet     map[int64]bool // contain all userIds who are creating orders (including orders that are dispatching)
 	creatingInstOdrUserSetLock sync.Mutex
@@ -49,17 +49,16 @@ func NewOrderStatus(orderId int64) *OrderStatus {
 	timestamp := time.Now().Unix()
 	order, _ := models.ReadOrder(orderId)
 	orderStatus := OrderStatus{
-		orderId:            orderId,
-		orderInfo:          order,
-		orderChan:          make(chan WSMessage, 1024),
-		orderSignalChan:    make(chan int64),
-		onlineTimestamp:    timestamp,
-		isDispatching:      false,
-		currentAssign:      -1,
-		dispatchMap:        make(map[int64]int64),
-		assignMap:          make(map[int64]int64),
-		isLocked:           false,
-		recoverDisabledMap: make(map[int64]bool),
+		orderId:         orderId,
+		orderInfo:       order,
+		orderChan:       make(chan WSMessage, 1024),
+		orderSignalChan: make(chan int64),
+		onlineTimestamp: timestamp,
+		isDispatching:   false,
+		currentAssign:   -1,
+		dispatchMap:     make(map[int64]int64),
+		assignMap:       make(map[int64]int64),
+		isLocked:        false,
 	}
 
 	return &orderStatus
@@ -69,8 +68,8 @@ func NewOrderStatusManager() *OrderStatusManager {
 	manager := OrderStatusManager{
 		orderMap: make(map[int64]*OrderStatus),
 
-		personalOrderMap: make(map[int64]map[int64]int64),
-
+		personalOrderMap:       make(map[int64]map[int64]int64),
+		recoverDisabledMap:     make(map[int64]map[int64]int64),
 		creatingInstOdrUserSet: make(map[int64]bool),
 	}
 
@@ -363,18 +362,21 @@ func (osm *OrderStatusManager) LockOrder(orderId int64) (bool, error) {
 }
 
 func (osm *OrderStatusManager) IsRecoverDisabled(orderId, userId int64) bool {
-	status, ok := osm.orderMap[orderId]
+	m, ok := osm.recoverDisabledMap[orderId]
 	if !ok {
-		return true
+		return false
 	}
-	return status.recoverDisabledMap[userId]
+	_, ok = m[userId]
+	return ok
 }
 
-func (osm *OrderStatusManager) SetRecoverDisabled(orderId, userId int64, isRecoverDisabled bool) error {
-	status, ok := osm.orderMap[orderId]
-	if !ok {
+func (osm *OrderStatusManager) SetRecoverDisabled(orderId, userId int64) error {
+	if !osm.IsOrderOnline(orderId) {
 		return ErrOrderNotFound
 	}
-	status.recoverDisabledMap[userId] = isRecoverDisabled
+	if _, ok := osm.recoverDisabledMap[orderId]; !ok {
+		osm.recoverDisabledMap[orderId] = make(map[int64]int64)
+	}
+	osm.recoverDisabledMap[orderId][userId] = time.Now().Unix()
 	return nil
 }

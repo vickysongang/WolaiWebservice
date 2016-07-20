@@ -11,13 +11,12 @@ const (
 	AMOUNT_REWARD_REGISTRATION        = 1500
 	MINUTES_REWARD_PROFILE_COMPLETION = 20
 
-	COMMENT_CHARGE                        = "账户充值"
-	COMMENT_CHARGE_CODE                   = "充值卡充值"
+	COMMENT_CHARGE                        = "充值钱包余额"
 	COMMENT_CHARGE_PREMIUM                = "充值奖励"
-	COMMENT_WITHDRAW                      = "账户提现"
-	COMMENT_PROMOTION                     = "活动奖励"
-	COMMENT_VOUCHER                       = "代金券"
-	COMMENT_DEDUCTION                     = "服务扣费"
+	COMMENT_WITHDRAW                      = "导师工资提现"
+	COMMENT_PROMOTION                     = "活动奖励充值"
+	COMMENT_VOUCHER                       = "赠送代金券"
+	COMMENT_DEDUCTION                     = "平台服务扣费"
 	COMMENT_REWARD_REGISTRATION           = "新用户注册"
 	COMMENT_REWARD_INVITATION             = "邀请注册"
 	COMMENT_COURSE_PURCHASE               = "课程购买"
