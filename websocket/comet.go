@@ -98,6 +98,7 @@ func HandleCometMessage(param string) (*WSMessage, error) {
 	case WS_ORDER2_CANCEL,
 		WS_ORDER2_ACCEPT,
 		WS_ORDER2_ASSIGN_ACCEPT,
+		WS_ORDER2_RECOVER_DISABLE,
 		WS_ORDER2_PERSONAL_REPLY:
 
 		resp, _ = orderMessageHandler(msg, user, timestamp)
@@ -513,10 +514,10 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			orderChan <- quitMsg
 			OrderManager.SetOffline(orderId)
 
-			orderInfo := GetOrderInfo(orderId)
-			orderByte, _ := json.Marshal(orderInfo)
-			orderStr := string(orderByte)
 			if !OrderManager.IsRecoverDisabled(orderId, order.TeacherId) {
+				orderInfo := GetOrderInfo(orderId)
+				orderByte, _ := json.Marshal(orderInfo)
+				orderStr := string(orderByte)
 				lcmessage.SendOrderCancelNotification(orderId, order.TeacherId, orderStr)
 			}
 		} else {
@@ -768,7 +769,13 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		seelog.Debug("orderHandler|orderReply: ", orderId)
 
 	case WS_ORDER2_RECOVER_DISABLE:
-		OrderManager.SetRecoverDisabled(orderId, msg.UserId)
+		OrderManager.SetOrderLocked(orderId, false)
+		err := OrderManager.SetRecoverDisabled(orderId, msg.UserId)
+		if err != nil {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = err.Error()
+			return resp, nil
+		}
 	}
 	return resp, nil
 }

@@ -48,10 +48,10 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 
 			go lcmessage.SendOrderPersonalTutorExpireMsg(orderId)
 
-			orderInfo := GetOrderInfo(orderId)
-			orderByte, _ := json.Marshal(orderInfo)
-			orderStr := string(orderByte)
 			if !OrderManager.IsRecoverDisabled(orderId, order.TeacherId) {
+				orderInfo := GetOrderInfo(orderId)
+				orderByte, _ := json.Marshal(orderInfo)
+				orderStr := string(orderByte)
 				go lcmessage.SendOrderCancelNotification(orderId, order.TeacherId, orderStr)
 			}
 
