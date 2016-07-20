@@ -58,7 +58,8 @@ func handleCourseRenewPay(userId, courseId, amount, quantity int64, pingppId int
 	oldRenewRecord := courseService.GetCourseRenewWaitingRecord(userId, courseId)
 	if oldRenewRecord != nil && oldRenewRecord.PriceTotal == amount {
 		renewRecordInfo := map[string]interface{}{
-			"Status": models.COURSE_RENEW_STATUS_COMPLETE,
+			"Status":        models.COURSE_RENEW_STATUS_COMPLETE,
+			"PaymentMethod": models.PAYMENT_METHOD_ONLINE_WALLET,
 		}
 		err = models.UpdateCourseRenewRecord(oldRenewRecord.Id, renewRecordInfo)
 		if err != nil {
