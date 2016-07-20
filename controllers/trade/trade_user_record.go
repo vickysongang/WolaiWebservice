@@ -33,16 +33,9 @@ const (
 	TRADE_TYPE_NAME_COURSE_QUOTA = "可用课时"
 	TRADE_TYPE_NAME_QUOTA_REFUND = "课时退款"
 
-	AVATAR_CHARGE              = "trade_charge"
-	AVATAR_CHARGE_PREMIUM      = "trade_charge_premium"
-	AVATAR_CHARGE_CODE         = "trade_charge_code"
-	AVATAR_DEDUCTION           = "trade_deduction"
-	AVATAR_PROMOTION           = "trade_promotion"
-	AVATAR_REWARD_INVITATION   = "trade_reward_invitation"
-	AVATAR_REWARD_REGISTRATION = "trade_reward_registration"
-	AVATAR_VOUCHER             = "trade_voucher"
-	AVATAR_WITHDRAW            = "trade_withdraw"
-	AVATAR_QAPKG_PURCHASE      = "trade_qapkg_purchase"
+	AVATAR_WALLET       = "trade_wallet"
+	AVATAR_QAPKG        = "trade_qapkg"
+	AVATAR_COURSE_QUOTA = "trade_course_quota"
 )
 
 func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) {
@@ -142,55 +135,55 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 
 		case models.TRADE_CHARGE:
 			//学生账户充值
-			info.Avartar = AVATAR_CHARGE
+			info.Avartar = AVATAR_WALLET
 			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_CHARGE
 
 		case models.TRADE_CHARGE_CODE:
 			//学生充值卡充值
-			info.Avartar = AVATAR_CHARGE_CODE
+			info.Avartar = AVATAR_WALLET
 			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_CHARGE
 
 		case models.TRADE_CHARGE_PREMIUM:
 			//学生充值奖励
-			info.Avartar = AVATAR_CHARGE_PREMIUM
+			info.Avartar = AVATAR_WALLET
 			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_CHARGE_PREMIUM
 
 		case models.TRADE_WITHDRAW:
 			//老师账户提现
-			info.Avartar = AVATAR_WITHDRAW
+			info.Avartar = AVATAR_WALLET
 			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_WITHDRAW
 
 		case models.TRADE_PROMOTION:
 			//活动奖励
-			info.Avartar = AVATAR_PROMOTION
+			info.Avartar = AVATAR_WALLET
 			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_PROMOTION
 
 		case models.TRADE_VOUCHER:
 			//代金券
-			info.Avartar = AVATAR_VOUCHER
+			info.Avartar = AVATAR_WALLET
 			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_VOUCHER
 
 		case models.TRADE_DEDUCTION:
 			//老师服务扣费
-			info.Avartar = AVATAR_DEDUCTION
+			info.Avartar = AVATAR_WALLET
 			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_DEDUCTION
 
 		case models.TRADE_REWARD_REGISTRATION:
 			//用户注册奖励
-			info.Avartar = AVATAR_REWARD_REGISTRATION
+			info.Avartar = AVATAR_WALLET
 			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_REWARD_REGISTRATION
 
 		case models.TRADE_REWARD_INVITATION:
 			//用户邀请奖励
-			info.Avartar = AVATAR_REWARD_INVITATION
+			info.Avartar = AVATAR_WALLET
 			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_REWARD_INVITATION
 
@@ -333,7 +326,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Title = course.Name
 
 		case models.TRADE_QA_PKG_PURCHASE:
-			info.Avartar = AVATAR_QAPKG_PURCHASE
+			info.Avartar = AVATAR_QAPKG
 			info.TypeName = TRADE_TYPE_NAME_QA_PKG
 			info.Title = trade.COMMENT_QA_PKG_PURCHASE
 			qaPkgId := record.RecordId
@@ -352,7 +345,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 
 		case models.TRADE_QA_PKG_GIVEN:
-			info.Avartar = AVATAR_QAPKG_PURCHASE
+			info.Avartar = AVATAR_QAPKG
 			info.TypeName = TRADE_TYPE_NAME_QA_PKG
 			qaPkgId := record.RecordId
 			qaPkg, err := models.ReadQaPkg(qaPkgId)
@@ -362,11 +355,11 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Title = fmt.Sprintf("赠送%d分钟家教体验包", qaPkg.TimeLength)
 
 		case models.TRADE_COURSE_QUOTA_PURCHASE:
-			user, err := models.ReadUser(userId)
+			_, err := models.ReadUser(userId)
 			if err != nil {
 				continue
 			}
-			info.Avartar = user.Avatar
+			info.Avartar = AVATAR_COURSE_QUOTA
 			info.TypeName = TRADE_TYPE_NAME_COURSE_QUOTA
 			info.Title = trade.COMMENT_COURSE_QUOTA_PURCHASE
 			quotaTradeRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
@@ -376,11 +369,11 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Title = fmt.Sprintf("充值%d课时", quotaTradeRecord.Quantity)
 
 		case models.TRADE_COURSE_QUOTA_REFUND:
-			user, err := models.ReadUser(userId)
+			_, err := models.ReadUser(userId)
 			if err != nil {
 				continue
 			}
-			info.Avartar = user.Avatar
+			info.Avartar = AVATAR_COURSE_QUOTA
 			info.TypeName = TRADE_TYPE_NAME_QUOTA_REFUND
 			quotaTradeRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
 			if err != nil {
