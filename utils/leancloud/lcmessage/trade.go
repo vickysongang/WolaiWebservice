@@ -245,7 +245,7 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("课程名称：%s", course.Name))
 		msg.body = append(msg.body,
-			fmt.Sprintf("购买课时：%s", purchase.ChapterCount))
+			fmt.Sprintf("购买课时：%d", purchase.ChapterCount))
 		switch purchase.PaymentMethod {
 		case models.PAYMENT_METHOD_ONLINE_WALLET, models.PAYMENT_METHOD_OFFLINE_WALLET:
 			msg.body = append(msg.body,
@@ -279,7 +279,7 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("课程名称：%s", course.Name))
 		msg.body = append(msg.body,
-			fmt.Sprintf("续约课时：%s", renewRecord.RenewCount))
+			fmt.Sprintf("续约课时：%d", renewRecord.RenewCount))
 		switch renewRecord.PaymentMethod {
 		case models.PAYMENT_METHOD_ONLINE_WALLET, models.PAYMENT_METHOD_OFFLINE_WALLET:
 			msg.body = append(msg.body,

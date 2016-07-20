@@ -3,6 +3,7 @@ package websocket
 import (
 	"WolaiWebservice/models"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -367,6 +368,7 @@ func (osm *OrderStatusManager) IsRecoverDisabled(orderId, userId int64) bool {
 		return false
 	}
 	_, ok = m[userId]
+	fmt.Println("IsRecoverDisabled:", orderId, "  userId:", userId)
 	return ok
 }
 
@@ -377,6 +379,7 @@ func (osm *OrderStatusManager) SetRecoverDisabled(orderId, userId int64) error {
 	if _, ok := osm.recoverDisabledMap[orderId]; !ok {
 		osm.recoverDisabledMap[orderId] = make(map[int64]int64)
 	}
+	fmt.Println("SetRecoverDisabled:", orderId, "  userId:", userId)
 	osm.recoverDisabledMap[orderId][userId] = time.Now().Unix()
 	return nil
 }
