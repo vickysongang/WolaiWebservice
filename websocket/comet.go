@@ -768,7 +768,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		seelog.Debug("orderHandler|orderReply: ", orderId)
 
 	case WS_ORDER2_RECOVER_DISABLE:
-		OrderManager.SetRecoverDisabled(orderId, msg.UserId, true)
+		OrderManager.SetRecoverDisabled(orderId, msg.UserId)
 	}
 	return resp, nil
 }

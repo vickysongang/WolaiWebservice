@@ -12,18 +12,26 @@ import (
 )
 
 type tradeInfo struct {
-	Id      int64  `json:"id"`
-	Avartar string `json:"avatar"`
-	Title   string `json:"title"`
-	Time    string `json:"time"`
-	Type    string `json:"type"`
-	Amount  int64  `json:"amount"`
-	Comment string `json:"comment"`
+	Id       int64  `json:"id"`
+	Avartar  string `json:"avatar"`
+	TypeName string `json:"typeName"`
+	Title    string `json:"title"`
+	Time     string `json:"time"`
+	Type     string `json:"type"`
+	Amount   int64  `json:"amount"`
+	Comment  string `json:"comment"`
 }
 
 const (
 	TRADE_TYPE_INCOME  = "income"
 	TRADE_TYPE_EXPENSE = "expense"
+
+	TRADE_TYPE_NAME_SESSION      = "在线家教"
+	TRADE_TYPE_NAME_WALLET       = "钱包余额"
+	TRADE_TYPE_NAME_COURSE       = "定制课程"
+	TRADE_TYPE_NAME_QA_PKG       = "家教时间包"
+	TRADE_TYPE_NAME_COURSE_QUOTA = "可用课时"
+	TRADE_TYPE_NAME_QUOTA_REFUND = "课时退款"
 
 	AVATAR_CHARGE              = "trade_charge"
 	AVATAR_CHARGE_PREMIUM      = "trade_charge_premium"
@@ -80,7 +88,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			subject, err2 := models.ReadSubject(order.SubjectId)
 			var title string
 			if err1 != nil || err2 != nil {
-				title = "实时家教"
+				title = "在线家教"
 			} else {
 				title = grade.Name + subject.Name
 			}
@@ -90,6 +98,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 				lengthMin = 1
 			}
 			info.Type = TRADE_TYPE_EXPENSE
+			info.TypeName = TRADE_TYPE_NAME_SESSION
 			info.Avartar = user.Avatar
 			info.Title = fmt.Sprintf("%s %d分钟", title, lengthMin)
 			if math.Abs(float64(record.QapkgTimeLength)) > 0 {
@@ -117,7 +126,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			subject, err2 := models.ReadSubject(order.SubjectId)
 			var title string
 			if err1 != nil || err2 != nil {
-				title = "实时答疑"
+				title = "在线家教"
 			} else {
 				title = grade.Name + subject.Name
 			}
@@ -127,52 +136,62 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 				lengthMin = 1
 			}
 			info.Type = TRADE_TYPE_INCOME
+			info.TypeName = TRADE_TYPE_NAME_SESSION
 			info.Avartar = user.Avatar
 			info.Title = fmt.Sprintf("%s %d分钟", title, lengthMin)
 
 		case models.TRADE_CHARGE:
 			//学生账户充值
 			info.Avartar = AVATAR_CHARGE
+			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_CHARGE
 
 		case models.TRADE_CHARGE_CODE:
 			//学生充值卡充值
 			info.Avartar = AVATAR_CHARGE_CODE
-			info.Title = trade.COMMENT_CHARGE_CODE
+			info.TypeName = TRADE_TYPE_NAME_WALLET
+			info.Title = trade.COMMENT_CHARGE
 
 		case models.TRADE_CHARGE_PREMIUM:
 			//学生充值奖励
 			info.Avartar = AVATAR_CHARGE_PREMIUM
+			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_CHARGE_PREMIUM
 
 		case models.TRADE_WITHDRAW:
 			//老师账户提现
 			info.Avartar = AVATAR_WITHDRAW
+			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_WITHDRAW
 
 		case models.TRADE_PROMOTION:
 			//活动奖励
 			info.Avartar = AVATAR_PROMOTION
+			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_PROMOTION
 
 		case models.TRADE_VOUCHER:
 			//代金券
 			info.Avartar = AVATAR_VOUCHER
+			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_VOUCHER
 
 		case models.TRADE_DEDUCTION:
 			//老师服务扣费
 			info.Avartar = AVATAR_DEDUCTION
+			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_DEDUCTION
 
 		case models.TRADE_REWARD_REGISTRATION:
 			//用户注册奖励
 			info.Avartar = AVATAR_REWARD_REGISTRATION
+			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_REWARD_REGISTRATION
 
 		case models.TRADE_REWARD_INVITATION:
 			//用户邀请奖励
 			info.Avartar = AVATAR_REWARD_INVITATION
+			info.TypeName = TRADE_TYPE_NAME_WALLET
 			info.Title = trade.COMMENT_REWARD_INVITATION
 
 		case models.TRADE_COURSE_PURCHASE:
@@ -186,9 +205,14 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if err != nil {
 				continue
 			}
+			course, err := models.ReadCourse(purchase.CourseId)
+			if err != nil {
+				continue
+			}
 
 			info.Avartar = user.Avatar
-			info.Title = trade.COMMENT_COURSE_PURCHASE
+			info.TypeName = TRADE_TYPE_NAME_COURSE
+			info.Title = course.Name
 
 			if purchase.PaymentMethod == models.PAYMENT_METHOD_OFFLINE_QUOTA ||
 				purchase.PaymentMethod == models.PAYMENT_METHOD_ONLINE_QUOTA {
@@ -202,7 +226,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 
 		case models.TRADE_COURSE_AUDITION:
-			//学生购买试听
+			//学生试听
 			purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)
 			if err != nil {
 				continue
@@ -212,9 +236,14 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if err != nil {
 				continue
 			}
+			course, err := models.ReadCourse(purchase.CourseId)
+			if err != nil {
+				continue
+			}
 
 			info.Avartar = user.Avatar
-			info.Title = trade.COMMENT_COURSE_AUDITION
+			info.TypeName = TRADE_TYPE_NAME_COURSE
+			info.Title = "试听-" + course.Name
 
 		case models.TRADE_AUDITION_COURSE_PURCHASE:
 			auditionRecord, err := models.ReadCourseAuditionRecord(record.RecordId)
@@ -225,8 +254,13 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if err != nil {
 				continue
 			}
+			course, err := models.ReadCourse(auditionRecord.CourseId)
+			if err != nil {
+				continue
+			}
 			info.Avartar = user.Avatar
-			info.Title = trade.COMMENT_AUDITION_COURSE_PURCHASE
+			info.TypeName = TRADE_TYPE_NAME_COURSE
+			info.Title = course.Name
 
 		case models.TRADE_COURSE_RENEW:
 			renewRecord, err := models.ReadCourseRenewRecord(record.RecordId)
@@ -237,8 +271,14 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if err != nil {
 				continue
 			}
+			course, err := models.ReadCourse(renewRecord.CourseId)
+			if err != nil {
+				continue
+			}
 			info.Avartar = user.Avatar
-			info.Title = fmt.Sprintf("%s %d课时", trade.COMMENT_COURSE_RENEW, renewRecord.RenewCount)
+			info.TypeName = TRADE_TYPE_NAME_COURSE
+			//info.Title = fmt.Sprintf("%s %d课时", trade.COMMENT_COURSE_RENEW, renewRecord.RenewCount)
+			info.Title = course.Name
 
 			if renewRecord.PaymentMethod == models.PAYMENT_METHOD_OFFLINE_QUOTA ||
 				renewRecord.PaymentMethod == models.PAYMENT_METHOD_ONLINE_QUOTA {
@@ -247,7 +287,6 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 				if err != nil {
 					continue
 				}
-
 				info.Comment = fmt.Sprintf("可用课时 -%d课时", paymentRecord.Quantity)
 			}
 
@@ -262,9 +301,15 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if err != nil {
 				continue
 			}
+			course, err := models.ReadCourse(purchase.CourseId)
+			if err != nil {
+				continue
+			}
+
 			info.Type = TRADE_TYPE_INCOME
 			info.Avartar = user.Avatar
-			info.Title = trade.COMMENT_COURSE_EARNING
+			info.TypeName = TRADE_TYPE_NAME_COURSE
+			info.Title = course.Name
 
 		case models.TRADE_AUDITION_COURSE_EARNING:
 			//老师课程收入
@@ -277,12 +322,19 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if err != nil {
 				continue
 			}
+			course, err := models.ReadCourse(audition.CourseId)
+			if err != nil {
+				continue
+			}
+
 			info.Type = TRADE_TYPE_INCOME
 			info.Avartar = user.Avatar
-			info.Title = trade.COMMENT_COURSE_EARNING
+			info.TypeName = TRADE_TYPE_NAME_COURSE
+			info.Title = course.Name
 
 		case models.TRADE_QA_PKG_PURCHASE:
 			info.Avartar = AVATAR_QAPKG_PURCHASE
+			info.TypeName = TRADE_TYPE_NAME_QA_PKG
 			info.Title = trade.COMMENT_QA_PKG_PURCHASE
 			qaPkgId := record.RecordId
 			if qaPkgId == 0 {
@@ -294,20 +346,20 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			}
 			qaPkgModule, _ := models.ReadQaPkgModule(qaPkg.ModuleId)
 			if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
-				info.Comment = fmt.Sprintf("%s %d个月", qaPkgModule.Name, qaPkg.Month)
+				info.Title = fmt.Sprintf("购买%d个月%s", qaPkg.Month, qaPkgModule.Name)
 			} else if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
-				info.Comment = fmt.Sprintf("%s %d分钟", qaPkgModule.Name, qaPkg.TimeLength)
+				info.Title = fmt.Sprintf("购买%d分钟%s", qaPkg.TimeLength, qaPkgModule.Name)
 			}
 
 		case models.TRADE_QA_PKG_GIVEN:
 			info.Avartar = AVATAR_QAPKG_PURCHASE
-			info.Title = trade.COMMENT_QA_PKG_GIVEN
+			info.TypeName = TRADE_TYPE_NAME_QA_PKG
 			qaPkgId := record.RecordId
 			qaPkg, err := models.ReadQaPkg(qaPkgId)
 			if err != nil {
 				continue
 			}
-			info.Comment = fmt.Sprintf("%s %d分钟", "赠送家教时间", qaPkg.TimeLength)
+			info.Title = fmt.Sprintf("赠送%d分钟家教体验包", qaPkg.TimeLength)
 
 		case models.TRADE_COURSE_QUOTA_PURCHASE:
 			user, err := models.ReadUser(userId)
@@ -315,12 +367,13 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 				continue
 			}
 			info.Avartar = user.Avatar
+			info.TypeName = TRADE_TYPE_NAME_COURSE_QUOTA
 			info.Title = trade.COMMENT_COURSE_QUOTA_PURCHASE
 			quotaTradeRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
 			if err != nil {
 				continue
 			}
-			info.Comment = fmt.Sprintf("购买可用课时 %d课时", quotaTradeRecord.Quantity)
+			info.Title = fmt.Sprintf("充值%d课时", quotaTradeRecord.Quantity)
 
 		case models.TRADE_COURSE_QUOTA_REFUND:
 			user, err := models.ReadUser(userId)
@@ -328,12 +381,12 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 				continue
 			}
 			info.Avartar = user.Avatar
-			info.Title = trade.COMMENT_COURSE_QUOTA_REFUND
+			info.TypeName = TRADE_TYPE_NAME_QUOTA_REFUND
 			quotaTradeRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
 			if err != nil {
 				continue
 			}
-			info.Comment = fmt.Sprintf("退款可用课时 %d课时", quotaTradeRecord.Quantity)
+			info.Title = fmt.Sprintf("%d课时退款", quotaTradeRecord.Quantity)
 
 		default:
 			continue
