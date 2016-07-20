@@ -22,7 +22,7 @@ func PushNewOrderDispatch(deviceToken, deviceProfile string, orderId int64) erro
 	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 		payload.Alert = "你收到了一条上课请求"
 	} else {
-		payload.Alert = "你收到了一条新的提问"
+		payload.Alert = "有学生指定要上你的课，快来订单中心看看吧"
 	}
 	payload.Badge = 1
 
