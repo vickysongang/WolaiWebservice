@@ -117,7 +117,7 @@ func handleTradePayByQuota(userId, refId, quantity int64, tradeType string) (sta
 	switch tradeType {
 	case models.TRADE_COURSE_PURCHASE:
 		courseId := refId
-		status, err = courseController.HandleDeluxeCoursePayByQuota(userId, courseId)
+		status, err = courseController.HandleDeluxeCoursePayByQuota(userId, courseId, "")
 
 	case models.TRADE_COURSE_RENEW:
 		courseId := refId

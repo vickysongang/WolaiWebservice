@@ -46,10 +46,10 @@ func SendTradeNotification(recordId int64) {
 	}
 
 	amount := math.Abs(float64(record.TradeAmount) / 100.0)
-	signStr := "+"
-	if record.TradeAmount < 0 {
-		signStr = "-"
-	}
+	//	signStr := "+"
+	//	if record.TradeAmount < 0 {
+	//		signStr = "-"
+	//	}
 	balance := float64(record.Balance) / 100.0
 
 	msg := tradeMessage{
@@ -90,7 +90,6 @@ func SendTradeNotification(recordId int64) {
 		}
 		lengthMin := int64(math.Ceil(float64(length) / 60))
 
-		signStr = "-"
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已经完成%s导师的课堂。",
 			user.Nickname, suffix, tutor.Nickname)
 		msg.body = append(msg.body,
@@ -100,10 +99,10 @@ func SendTradeNotification(recordId int64) {
 				month, day, session.TimeFrom.Hour(), session.TimeFrom.Minute(), lengthMin))
 		if math.Abs(float64(record.QapkgTimeLength)) > 0 {
 			msg.body = append(msg.body,
-				fmt.Sprintf("钱包支付：%s %.2f 元(家教时间 %d分钟)", signStr, amount, record.QapkgTimeLength))
+				fmt.Sprintf("钱包支付：%.2f 元(家教时间 %d 分钟)", amount, record.QapkgTimeLength))
 		} else {
 			msg.body = append(msg.body,
-				fmt.Sprintf("钱包支付：%s %.2f 元", signStr, amount))
+				fmt.Sprintf("钱包支付：%.2f 元", amount))
 		}
 
 	case models.TRADE_RECEIVEMENT:
@@ -134,7 +133,6 @@ func SendTradeNotification(recordId int64) {
 		if lengthMin < 1 && session.Length > 0 {
 			lengthMin = 1
 		}
-		signStr = "+"
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已经完成%s同学的课堂。",
 			user.Nickname, suffix, student.Nickname)
 		msg.body = append(msg.body,
@@ -143,72 +141,72 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("上课时间：%2d月%2d日 %02d:%02d %d分钟",
 				month, day, session.TimeFrom.Hour(), session.TimeFrom.Minute(), lengthMin))
 		msg.body = append(msg.body,
-			fmt.Sprintf("辅导收入：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("辅导收入：%.2f 元", amount))
 
 	case models.TRADE_CHARGE:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，钱包余额充值成功。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("充值金额：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("充值金额：%.2f 元", amount))
 
 	case models.TRADE_CHARGE_CODE:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，充值卡充值钱包余额成功。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("充值金额：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("充值金额：%.2f 元", amount))
 
 	case models.TRADE_CHARGE_PREMIUM:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，恭喜你获得充值奖励。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("%s：%s %.2f 元", "充值奖励", signStr, amount))
+			fmt.Sprintf("充值奖励：%.2f 元", amount))
 		if record.Comment != "" {
 			msg.body = append(msg.body,
-				fmt.Sprintf("%s：%s", "备注", record.Comment))
+				fmt.Sprintf("备注：%s", record.Comment))
 		}
 
 	case models.TRADE_WITHDRAW:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，账户余额提现完成。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("提现金额：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("提现金额：%.2f 元", amount))
 		if record.Comment != "" {
 			msg.body = append(msg.body,
-				fmt.Sprintf("%s：%s", "备注", record.Comment))
+				fmt.Sprintf("备注：%s", record.Comment))
 		}
 
 	case models.TRADE_PROMOTION:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已获得活动奖励。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("%s：%s %.2f 元", "充值金额", signStr, amount))
+			fmt.Sprintf("充值金额：%.2f 元", amount))
 		if record.Comment != "" {
 			msg.body = append(msg.body,
-				fmt.Sprintf("%s：%s", "备注", record.Comment))
+				fmt.Sprintf("备注：%s", record.Comment))
 		}
 
 	case models.TRADE_VOUCHER:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已获得代金券。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("充值金额：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("充值金额：%.2f 元", amount))
 		if record.Comment != "" {
 			msg.body = append(msg.body,
-				fmt.Sprintf("%s：%s", "备注", record.Comment))
+				fmt.Sprintf("备注：%s", record.Comment))
 		}
 
 	case models.TRADE_DEDUCTION:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，服务扣费已完成。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("%s：%s %.2f 元", "扣除金额", signStr, amount))
+			fmt.Sprintf("扣除金额：%.2f 元", amount))
 		if record.Comment != "" {
 			msg.body = append(msg.body,
-				fmt.Sprintf("%s：%s", "备注", record.Comment))
+				fmt.Sprintf("备注：%s", record.Comment))
 		}
 
 	case models.TRADE_REWARD_REGISTRATION:
 		msg.subtitle = fmt.Sprintf("亲爱的%s，欢迎注册我来。", suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("新人红包：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("新人红包：%.2f 元", amount))
 
 	case models.TRADE_REWARD_INVITATION:
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，恭喜你获得邀请奖励。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("邀请红包：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("邀请红包：%.2f 元", amount))
 
 	case models.TRADE_AUDITION_COURSE_PURCHASE:
 		audition, err := models.ReadCourseAuditionRecord(record.RecordId)
@@ -225,7 +223,7 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("课程名称：%s", course.Name))
 		msg.body = append(msg.body,
-			fmt.Sprintf("钱包支付：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("钱包支付：%.2f 元", amount))
 
 	case models.TRADE_COURSE_PURCHASE:
 		purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)
@@ -249,17 +247,18 @@ func SendTradeNotification(recordId int64) {
 		switch purchase.PaymentMethod {
 		case models.PAYMENT_METHOD_ONLINE_WALLET, models.PAYMENT_METHOD_OFFLINE_WALLET:
 			msg.body = append(msg.body,
-				fmt.Sprintf("钱包支付：%s %.2f 元", signStr, amount))
+				fmt.Sprintf("钱包支付：%.2f 元", amount))
+
 		case models.PAYMENT_METHOD_ONLINE_QUOTA, models.PAYMENT_METHOD_OFFLINE_QUOTA:
 			paymentRecord, _ := courseService.QueryCourseQuotaPaymentRecord(user.Id, purchase.Id, "purchase")
 			msg.body = append(msg.body,
-				fmt.Sprintf("课时支付：%d课时", paymentRecord.Quantity))
+				fmt.Sprintf("课时支付：%d 课时", paymentRecord.Quantity))
 			profile, err := models.ReadStudentProfile(user.Id)
 			if err != nil {
 				return
 			}
 			msg.body = append(msg.body,
-				fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
+				fmt.Sprintf("当前账户可用课时：%d 课时", profile.QuotaQuantity))
 		}
 
 	case models.TRADE_COURSE_RENEW:
@@ -283,17 +282,17 @@ func SendTradeNotification(recordId int64) {
 		switch renewRecord.PaymentMethod {
 		case models.PAYMENT_METHOD_ONLINE_WALLET, models.PAYMENT_METHOD_OFFLINE_WALLET:
 			msg.body = append(msg.body,
-				fmt.Sprintf("钱包支付：%s %.2f 元", signStr, amount))
+				fmt.Sprintf("钱包支付：%.2f 元", amount))
 		case models.PAYMENT_METHOD_ONLINE_QUOTA, models.PAYMENT_METHOD_OFFLINE_QUOTA:
 			paymentRecord, _ := courseService.QueryCourseQuotaPaymentRecord(user.Id, renewRecord.Id, "renew")
 			msg.body = append(msg.body,
-				fmt.Sprintf("课时支付：%d课时", paymentRecord.Quantity))
+				fmt.Sprintf("课时支付：%d 课时", paymentRecord.Quantity))
 			profile, err := models.ReadStudentProfile(user.Id)
 			if err != nil {
 				return
 			}
 			msg.body = append(msg.body,
-				fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
+				fmt.Sprintf("当前账户可用课时：%d 课时", profile.QuotaQuantity))
 		}
 
 	case models.TRADE_COURSE_AUDITION:
@@ -311,7 +310,7 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("课程名称：%s", course.Name))
 		msg.body = append(msg.body,
-			fmt.Sprintf("钱包支付：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("钱包支付：%.2f 元", amount))
 
 	case models.TRADE_COURSE_EARNING:
 		purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)
@@ -339,7 +338,7 @@ func SendTradeNotification(recordId int64) {
 				fmt.Sprintf("课时内容：第%d课时 %s", chapter.Period, chapter.Title))
 		}
 		msg.body = append(msg.body,
-			fmt.Sprintf("辅导收入：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("辅导收入：%.2f 元", amount))
 
 	case models.TRADE_AUDITION_COURSE_EARNING:
 		audition, err := models.ReadCourseAuditionRecord(record.RecordId)
@@ -362,7 +361,7 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("课程名称：%s", course.Name))
 		msg.body = append(msg.body,
-			fmt.Sprintf("辅导收入：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("辅导收入：%.2f 元", amount))
 
 	case models.TRADE_QA_PKG_PURCHASE:
 		qaPkg, err := models.ReadQaPkg(record.RecordId)
@@ -378,13 +377,13 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("产品名称：%s", qaPkgModule.Name))
 		if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
 			msg.body = append(msg.body,
-				fmt.Sprintf("家教时间：%d分钟", qaPkg.TimeLength))
+				fmt.Sprintf("家教时间：%d 分钟", qaPkg.TimeLength))
 		} else if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
 			msg.body = append(msg.body,
 				fmt.Sprintf("家教时间：%d分钟/%d个月", qaPkg.TimeLength, qaPkg.Month))
 		}
 		msg.body = append(msg.body,
-			fmt.Sprintf("钱包支付：%s %.2f 元", signStr, amount))
+			fmt.Sprintf("钱包支付：%.2f 元", amount))
 
 	case models.TRADE_QA_PKG_GIVEN:
 		qaPkg, err := models.ReadQaPkg(record.RecordId)
@@ -399,7 +398,7 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("产品名称：%s", qaPkgModule.Name))
 		msg.body = append(msg.body,
-			fmt.Sprintf("家教时间：%d分钟", qaPkg.TimeLength))
+			fmt.Sprintf("家教时间：%d 分钟", qaPkg.TimeLength))
 
 	case models.TRADE_COURSE_QUOTA_PURCHASE:
 		quotaPurchaseRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
@@ -412,11 +411,11 @@ func SendTradeNotification(recordId int64) {
 		}
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，可用课时充值成功。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("充值课时：%d课时", quotaPurchaseRecord.Quantity))
+			fmt.Sprintf("充值课时：%d 课时", quotaPurchaseRecord.Quantity))
 		msg.body = append(msg.body,
 			fmt.Sprintf("钱包支付：%.2f 元", amount))
 
-		msg.balance = fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity)
+		msg.balance = fmt.Sprintf("当前账户可用课时：%d 课时", profile.QuotaQuantity)
 
 	case models.TRADE_COURSE_QUOTA_REFUND:
 		quotaRefundRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
@@ -429,11 +428,11 @@ func SendTradeNotification(recordId int64) {
 		}
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，可用课时退款成功。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("退款课时：%d课时", quotaRefundRecord.Quantity))
+			fmt.Sprintf("退款课时：%d 课时", quotaRefundRecord.Quantity))
 		msg.body = append(msg.body,
 			fmt.Sprintf("退款金额：%.2f 元", amount))
 
-		msg.balance = fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity)
+		msg.balance = fmt.Sprintf("当前账户可用课时：%d 课时", profile.QuotaQuantity)
 
 	case models.TRADE_COURSE_REFUND_TO_WALLET:
 		purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)
@@ -472,8 +471,8 @@ func SendTradeNotification(recordId int64) {
 		msg.body = append(msg.body,
 			fmt.Sprintf("课程名称：%s", course.Name))
 		msg.body = append(msg.body,
-			fmt.Sprintf("退课课时：%d课时", quotaRefundRecord.Quantity))
-		msg.balance = fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity)
+			fmt.Sprintf("退课课时：%d 课时", quotaRefundRecord.Quantity))
+		msg.balance = fmt.Sprintf("当前账户可用课时：%d 课时", profile.QuotaQuantity)
 
 	default:
 		return

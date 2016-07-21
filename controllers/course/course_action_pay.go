@@ -258,7 +258,7 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 	return 0, nil
 }
 
-func HandleDeluxeCoursePayByQuota(userId, courseId int64) (int64, error) {
+func HandleDeluxeCoursePayByQuota(userId, courseId int64, comment string) (int64, error) {
 	var err error
 	course, err := models.ReadCourse(courseId)
 	if err != nil {
@@ -284,7 +284,7 @@ func HandleDeluxeCoursePayByQuota(userId, courseId int64) (int64, error) {
 	if err != nil {
 		return 2, ErrPurchaseAbnormal
 	}
-	err = trade.HandleCoursePurchaseByQuotaTradeRecord(record.Id, totalPrice)
+	err = trade.HandleCoursePurchaseByQuotaTradeRecord(record.Id, totalPrice, comment)
 	if err != nil {
 		return 2, err
 	}

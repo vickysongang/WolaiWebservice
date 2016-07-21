@@ -3,6 +3,7 @@ package rpc
 import (
 	"strconv"
 
+	courseController "WolaiWebservice/controllers/course"
 	"WolaiWebservice/handlers/response"
 	"WolaiWebservice/models"
 	"WolaiWebservice/service/trade"
@@ -292,6 +293,25 @@ func (watcher *RpcWatcher) HandleTradeCourseRefundToQuota(request *RpcRequest, r
 	}
 	comment := request.Args["comment"]
 	err = tradeService.HandleCourseRefundToQuotaTradeRecord(recordId, amount, 0, comment)
+	if err != nil {
+		*resp = NewRpcResponse(2, "交易失败", response.NullObject)
+		return err
+	}
+	*resp = NewRpcResponse(0, "", response.NullObject)
+	return nil
+}
+
+func (watcher *RpcWatcher) HandleDeluxeCoursePayByQuota(request *RpcRequest, resp *RpcResponse) error {
+	var err error
+
+	userId, err := strconv.ParseInt(request.Args["userId"], 10, 64)
+	courseId, err := strconv.ParseInt(request.Args["courseId"], 10, 64)
+	if err != nil {
+		*resp = NewRpcResponse(2, "无效的课程Id", response.NullObject)
+		return err
+	}
+	comment := request.Args["comment"]
+	_, err = courseController.HandleDeluxeCoursePayByQuota(userId, courseId, comment)
 	if err != nil {
 		*resp = NewRpcResponse(2, "交易失败", response.NullObject)
 		return err
