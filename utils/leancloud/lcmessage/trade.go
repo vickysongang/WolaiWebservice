@@ -415,9 +415,8 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("充值课时：%d课时", quotaPurchaseRecord.Quantity))
 		msg.body = append(msg.body,
 			fmt.Sprintf("钱包支付：%.2f 元", amount))
-		msg.body = append(msg.body,
-			fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
-		msg.balance = ""
+
+		msg.balance = fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity)
 
 	case models.TRADE_COURSE_QUOTA_REFUND:
 		quotaRefundRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
@@ -433,9 +432,8 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("退款课时：%d课时", quotaRefundRecord.Quantity))
 		msg.body = append(msg.body,
 			fmt.Sprintf("退款金额：%.2f 元", amount))
-		msg.body = append(msg.body,
-			fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
-		msg.balance = ""
+
+		msg.balance = fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity)
 
 	default:
 		return
