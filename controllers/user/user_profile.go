@@ -30,6 +30,7 @@ type teacherProfile struct {
 	Attitude        float64                 `json:"attitude"`
 	Professionalism float64                 `json:"professionalism"`
 	Resume          []*models.TeacherResume `json:"resume,omitempty"`
+	ResumeShowFlag  bool                    `json:"resumeFlag"`
 	CourseList      []*CourseListItem       `json:"courseList"`
 	EvaluationList  []*EvaluationListItem   `json:"evaluationList"`
 }
@@ -60,6 +61,7 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherPro
 		return 2, err, nil
 	}
 
+	// resumeFlag默认设为false，新版本之后都不显示
 	profile := teacherProfile{
 		Id:              user.Id,
 		Nickname:        user.Nickname,
@@ -75,7 +77,9 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherPro
 		MediaCover:      teacher.MediaCover,
 		Attitude:        teacher.Attitude,
 		Professionalism: teacher.Professionalism,
+		ResumeShowFlag:  false,
 	}
+
 	if teacher.Attitude == 0 {
 		profile.Attitude = 5.0
 	}
@@ -91,7 +95,6 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherPro
 	if err == nil {
 		profile.SubjectList = subjectNames
 	}
-
 	resumes, err := userService.GetTeacherResume(teacherId)
 	if err == nil {
 		profile.Resume = resumes
