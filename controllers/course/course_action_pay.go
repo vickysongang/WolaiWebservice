@@ -70,7 +70,7 @@ func HandleCourseActionPayByBalance(userId int64, courseId int64, payType string
 				return 2, err
 			}
 
-			err = trade.HandleCoursePurchaseTradeRecord(record.Id, 0)
+			err = trade.HandleCoursePurchaseTradeRecord(record.Id, 0, "")
 			if err != nil {
 				return 2, err
 			}
@@ -210,7 +210,7 @@ func HandleCourseActionPayByThird(userId int64, courseId int64, tradeType string
 					return 2, err
 				}
 			}
-			err = trade.HandleCoursePurchaseTradeRecord(record.Id, pingppId)
+			err = trade.HandleCoursePurchaseTradeRecord(record.Id, pingppId, "")
 			if err != nil {
 				return 2, err
 			}

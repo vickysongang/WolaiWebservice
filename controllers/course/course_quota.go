@@ -116,7 +116,7 @@ func handleCourseQuotaActionPay(userId, gradeId, quantity, amount, pingppId int6
 	if err != nil {
 		return 2, err
 	}
-	err = trade.HandleCourseQuotaPurchaseTradeRecord(recordId, amount, pingppId)
+	err = trade.HandleCourseQuotaPurchaseTradeRecord(recordId, amount, pingppId, "")
 	if err != nil {
 		return 2, err
 	}

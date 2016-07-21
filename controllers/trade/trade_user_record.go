@@ -95,7 +95,7 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			info.Avartar = user.Avatar
 			info.Title = fmt.Sprintf("%s %d分钟", title, lengthMin)
 			if math.Abs(float64(record.QapkgTimeLength)) > 0 {
-				info.Comment = fmt.Sprintf("家教时间%d分钟", record.QapkgTimeLength)
+				info.Comment = fmt.Sprintf("家教时间 %d分钟", record.QapkgTimeLength)
 			}
 
 		case models.TRADE_RECEIVEMENT:
@@ -380,6 +380,22 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 				continue
 			}
 			info.Title = fmt.Sprintf("%d课时退款", quotaTradeRecord.Quantity)
+
+		case models.TRADE_COURSE_REFUND_TO_WALLET:
+			info.Avartar = AVATAR_WALLET
+			info.TypeName = TRADE_TYPE_NAME_WALLET
+			amount := math.Abs(float64(record.TradeAmount) / 100.0)
+			info.Title = fmt.Sprintf("课程退款%.2f元", amount)
+
+		case models.TRADE_COURSE_REFUND_TO_QUOTA:
+			quotaTradeRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
+			if err != nil {
+				continue
+			}
+			info.Avartar = AVATAR_COURSE_QUOTA
+			info.TypeName = TRADE_TYPE_NAME_COURSE_QUOTA
+			info.Amount = 0
+			info.Title = fmt.Sprintf("课程退款%d课时", quotaTradeRecord.Quantity)
 
 		default:
 			continue

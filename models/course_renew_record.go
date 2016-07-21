@@ -10,6 +10,7 @@ import (
 const (
 	COURSE_RENEW_STATUS_WAITING  = "waiting"  //等待支付
 	COURSE_RENEW_STATUS_COMPLETE = "complete" //已完成
+	COURSE_RENEW_STATUS_REFUND   = "refund"   //已退款
 )
 
 type CourseRenewRecord struct {
