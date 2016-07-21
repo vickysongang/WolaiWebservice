@@ -33,7 +33,7 @@ func HandleCoursePurchaseTradeRecord(recordId int64, pingppId int64, comment str
 	return nil
 }
 
-func HandleCoursePurchaseByQuotaTradeRecord(recordId int64, totalPrice int64) error {
+func HandleCoursePurchaseByQuotaTradeRecord(recordId int64, totalPrice int64, comment string) error {
 	var err error
 
 	record, err := models.ReadCoursePurchaseRecord(recordId)
@@ -42,7 +42,7 @@ func HandleCoursePurchaseByQuotaTradeRecord(recordId int64, totalPrice int64) er
 	}
 
 	_, err = createTradeRecord(record.UserId, 0-totalPrice,
-		models.TRADE_COURSE_PURCHASE, models.TRADE_RESULT_SUCCESS, "",
+		models.TRADE_COURSE_PURCHASE, models.TRADE_RESULT_SUCCESS, comment,
 		0, record.Id, 0, "", 0, 0)
 	if err != nil {
 		return err
