@@ -45,6 +45,8 @@ const (
 	TRADE_COURSE_RENEW             = "course_renew"             //课程续课
 	TRADE_COURSE_QUOTA_PURCHASE    = "course_quota_purchase"    //通用课时购买
 	TRADE_COURSE_QUOTA_REFUND      = "course_quota_refund"      //通用课时退款
+	TRADE_COURSE_REFUND_TO_WALLET  = "course_refund_to_wallet"  //课程退款到钱包
+	TRADE_COURSE_REFUND_TO_QUOTA   = "course_refund_to_quota"   //课程退款到通用课时
 
 	TRADE_RESULT_SUCCESS = "S"
 	TRADE_RESULT_FAIL    = "F"

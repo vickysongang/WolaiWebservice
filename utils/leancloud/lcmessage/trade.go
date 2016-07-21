@@ -415,8 +415,8 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("充值课时：%d课时", quotaPurchaseRecord.Quantity))
 		msg.body = append(msg.body,
 			fmt.Sprintf("钱包支付：%.2f 元", amount))
-		msg.body = append(msg.body,
-			fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
+
+		msg.balance = fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity)
 
 	case models.TRADE_COURSE_QUOTA_REFUND:
 		quotaRefundRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
@@ -432,8 +432,48 @@ func SendTradeNotification(recordId int64) {
 			fmt.Sprintf("退款课时：%d课时", quotaRefundRecord.Quantity))
 		msg.body = append(msg.body,
 			fmt.Sprintf("退款金额：%.2f 元", amount))
+
+		msg.balance = fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity)
+
+	case models.TRADE_COURSE_REFUND_TO_WALLET:
+		purchase, err := models.ReadCoursePurchaseRecord(record.RecordId)
+		if err != nil {
+			return
+		}
+		course, err := models.ReadCourse(purchase.CourseId)
+		if err != nil {
+			return
+		}
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，课程退课成功。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity))
+			fmt.Sprintf("课程名称：%s", course.Name))
+		msg.body = append(msg.body,
+			fmt.Sprintf("退课金额：%.2f 元", amount))
+
+	case models.TRADE_COURSE_REFUND_TO_QUOTA:
+		quotaRefundRecord, err := models.ReadCourseQuotaTradeRecord(record.RecordId)
+		if err != nil {
+			return
+		}
+
+		purchase, err := models.ReadCoursePurchaseRecord(quotaRefundRecord.CourseRecordId)
+		if err != nil {
+			return
+		}
+		course, err := models.ReadCourse(purchase.CourseId)
+		if err != nil {
+			return
+		}
+		profile, err := models.ReadStudentProfile(user.Id)
+		if err != nil {
+			return
+		}
+		msg.subtitle = fmt.Sprintf("亲爱的%s%s，课程退课成功。", user.Nickname, suffix)
+		msg.body = append(msg.body,
+			fmt.Sprintf("课程名称：%s", course.Name))
+		msg.body = append(msg.body,
+			fmt.Sprintf("退课课时：%d课时", quotaRefundRecord.Quantity))
+		msg.balance = fmt.Sprintf("当前账户可用课时：%d课时", profile.QuotaQuantity)
 
 	default:
 		return
