@@ -337,11 +337,14 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if err != nil {
 				continue
 			}
-			qaPkgModule, _ := models.ReadQaPkgModule(qaPkg.ModuleId)
+			qaPkgModule, err := models.ReadQaPkgModule(qaPkg.ModuleId)
+			if err != nil {
+				continue
+			}
 			if qaPkg.Type == models.QA_PKG_TYPE_MONTHLY {
-				info.Title = fmt.Sprintf("购买%d个月%s", qaPkg.Month, qaPkgModule.Name)
+				info.Title = fmt.Sprintf("%d个月%s", qaPkg.Month, qaPkgModule.Name)
 			} else if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
-				info.Title = fmt.Sprintf("购买%d分钟%s", qaPkg.TimeLength, qaPkgModule.Name)
+				info.Title = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkg.Title)
 			}
 
 		case models.TRADE_QA_PKG_GIVEN:
@@ -352,7 +355,11 @@ func GetUserTradeRecord(userId, page, count int64) (int64, error, []*tradeInfo) 
 			if err != nil {
 				continue
 			}
-			info.Title = fmt.Sprintf("赠送%d分钟家教体验包", qaPkg.TimeLength)
+			qaPkgModule, err := models.ReadQaPkgModule(qaPkg.ModuleId)
+			if err != nil {
+				continue
+			}
+			info.Title = fmt.Sprintf("%d分钟%s", qaPkg.TimeLength, qaPkgModule.Name)
 
 		case models.TRADE_COURSE_QUOTA_PURCHASE:
 			_, err := models.ReadUser(userId)
