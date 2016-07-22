@@ -99,6 +99,9 @@ func GetTeacherProfile(userId int64, teacherId int64) (int64, error, *teacherPro
 	if err == nil {
 		profile.Resume = resumes
 	}
+	if err != nil || len(resumes) == 0 {
+		profile.ResumeShowFlag = false
+	}
 
 	courses, err := AssembleTeacherCourseList(teacherId, 0, 10)
 	raw, _ := json.Marshal(courses)
