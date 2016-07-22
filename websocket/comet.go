@@ -773,6 +773,9 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		OrderManager.SetOrderConfirm(orderId, msg.UserId)
 		orderChan <- quitMsg
 		OrderManager.SetOffline(orderId)
+
+		OrderManager.CancelGeneralInstantOrder(order.Creator) //取消用户已经发出去的实时单
+
 		go handleSessionCreation(orderId, msg.UserId)
 
 		seelog.Debug("orderHandler|orderReply: ", orderId)
