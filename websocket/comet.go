@@ -774,31 +774,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		orderChan <- quitMsg
 		OrderManager.SetOffline(orderId)
 
-		for dispatchOrderId, _ := range UserManager.UserOrderDispatchMap[order.Creator] {
-			dispatchOrder, err := models.ReadOrder(dispatchOrderId)
-			if err != nil {
-				continue
-			}
-			if dispatchOrder.Type != models.ORDER_TYPE_GENERAL_INSTANT {
-				continue
-			}
-			if OrderManager.IsOrderOnline(dispatchOrderId) {
-				OrderManager.SetOrderCancelled(dispatchOrderId)
-				orderQuitMsg := NewWSMessage("", dispatchOrder.Creator, SIGNAL_ORDER_QUIT)
-				dispatchOrderChan, err := OrderManager.GetOrderChan(dispatchOrderId)
-				if err == nil {
-					dispatchOrderChan <- orderQuitMsg
-				}
-				OrderManager.SetOffline(dispatchOrderId)
-				OrderManager.UnlockUserCreateOrder(dispatchOrder.Creator)
-				if !OrderManager.IsRecoverDisabled(dispatchOrderId, dispatchOrder.TeacherId) {
-					orderInfo := GetOrderInfo(dispatchOrderId)
-					orderByte, _ := json.Marshal(orderInfo)
-					orderStr := string(orderByte)
-					lcmessage.SendOrderCancelNotification(dispatchOrderId, dispatchOrder.TeacherId, orderStr)
-				}
-			}
-		}
+		OrderManager.CancelGeneralInstantOrder(order.Creator) //取消用户已经发出去的实时单
 
 		go handleSessionCreation(orderId, msg.UserId)
 

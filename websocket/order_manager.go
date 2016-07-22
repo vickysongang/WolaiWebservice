@@ -3,6 +3,7 @@ package websocket
 import (
 	"WolaiWebservice/models"
 	"errors"
+	"strconv"
 	"sync"
 	"time"
 
@@ -379,4 +380,50 @@ func (osm *OrderStatusManager) SetRecoverDisabled(orderId, userId int64) error {
 	}
 	osm.recoverDisabledMap[orderId][userId] = time.Now().Unix()
 	return nil
+}
+
+func (osm *OrderStatusManager) CancelGeneralInstantOrder(userId int64) {
+	for orderId, _ := range UserManager.UserOrderDispatchMap[userId] {
+		order, err := models.ReadOrder(orderId)
+		if err != nil {
+			continue
+		}
+		if order.Type != models.ORDER_TYPE_GENERAL_INSTANT {
+			continue
+		}
+		if !osm.IsOrderOnline(orderId) {
+			continue
+		}
+		if ok, _ := OrderManager.LockOrder(orderId); !ok {
+			continue
+		}
+
+		go func() {
+			orderIdStr := strconv.FormatInt(orderId, 10)
+			cancelMsg := NewWSMessage("", order.Creator, WS_ORDER2_CANCEL)
+			cancelMsg.Attribute["orderId"] = orderIdStr
+			for teacherId, _ := range osm.orderMap[orderId].dispatchMap {
+				if UserManager.HasUserChan(teacherId) {
+					cancelMsg.UserId = teacherId
+					userChan := UserManager.GetUserChan(teacherId)
+					userChan <- cancelMsg
+				}
+			}
+			if assignId, err := osm.GetCurrentAssign(orderId); err == nil {
+				if UserManager.HasUserChan(assignId) {
+					cancelMsg.UserId = assignId
+					userChan := UserManager.GetUserChan(assignId)
+					userChan <- cancelMsg
+				}
+			}
+			quitMsg := NewWSMessage("", order.Creator, SIGNAL_ORDER_QUIT)
+			orderChan, err := osm.GetOrderChan(orderId)
+			if err == nil {
+				orderChan <- quitMsg
+			}
+			osm.SetOffline(orderId)
+		}()
+		osm.SetOrderCancelled(orderId)
+		osm.UnlockUserCreateOrder(order.Creator)
+	}
 }
