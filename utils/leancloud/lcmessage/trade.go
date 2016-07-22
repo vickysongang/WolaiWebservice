@@ -368,13 +368,9 @@ func SendTradeNotification(recordId int64) {
 		if err != nil {
 			return
 		}
-		qaPkgModule, err := models.ReadQaPkgModule(qaPkg.ModuleId)
-		if err != nil {
-			return
-		}
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，家教时间购买成功。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("产品名称：%s", qaPkgModule.Name))
+			fmt.Sprintf("产品名称：%d分钟%s", qaPkg.TimeLength, qaPkg.Title))
 		if qaPkg.Type == models.QA_PKG_TYPE_PERMANENT {
 			msg.body = append(msg.body,
 				fmt.Sprintf("家教时间：%d 分钟", qaPkg.TimeLength))
@@ -396,7 +392,7 @@ func SendTradeNotification(recordId int64) {
 		}
 		msg.subtitle = fmt.Sprintf("亲爱的%s%s，你已获赠家教时间。", user.Nickname, suffix)
 		msg.body = append(msg.body,
-			fmt.Sprintf("产品名称：%s", qaPkgModule.Name))
+			fmt.Sprintf("产品名称：%d分钟%s", qaPkg.TimeLength, qaPkgModule.Name))
 		msg.body = append(msg.body,
 			fmt.Sprintf("家教时间：%d 分钟", qaPkg.TimeLength))
 
