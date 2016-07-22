@@ -790,6 +790,13 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 					dispatchOrderChan <- orderQuitMsg
 				}
 				OrderManager.SetOffline(dispatchOrderId)
+				OrderManager.UnlockUserCreateOrder(dispatchOrder.Creator)
+				if !OrderManager.IsRecoverDisabled(dispatchOrderId, dispatchOrder.TeacherId) {
+					orderInfo := GetOrderInfo(dispatchOrderId)
+					orderByte, _ := json.Marshal(orderInfo)
+					orderStr := string(orderByte)
+					lcmessage.SendOrderCancelNotification(dispatchOrderId, dispatchOrder.TeacherId, orderStr)
+				}
 			}
 		}
 
