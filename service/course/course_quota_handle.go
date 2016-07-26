@@ -22,9 +22,9 @@ func HandleCourseQuotaPay(userId, recordId, gradeId, chapterCount int64, recordT
 	records, _ := QueryCourseQuotaPurchaseRecords(userId)
 	leftChapterCount := chapterCount
 	var totalPrice int64
+	breakFlag := false
 	for _, record := range records {
 		var quantity int64
-		breakFlag := false
 		if record.LeftQuantity >= leftChapterCount {
 			quantity = leftChapterCount
 			record.LeftQuantity -= leftChapterCount
@@ -36,17 +36,18 @@ func HandleCourseQuotaPay(userId, recordId, gradeId, chapterCount int64, recordT
 			models.UpdateCourseQuotaTradeRecord(record)
 			leftChapterCount = leftChapterCount - record.LeftQuantity
 		}
-		totalPriceItem := quantity * record.Price * record.Discount / 100
-		totalPrice += totalPriceItem
-		paymentDetail := models.CourseQuotaPaymentDetail{
-			RecordId:         record.Id,
-			CourseRecordId:   recordId,
-			CourseRecordType: recordType,
-			Quantity:         quantity,
-			TotalPrice:       totalPriceItem,
+		if quantity > 0 {
+			totalPriceItem := quantity * record.Price * record.Discount / 100
+			totalPrice += totalPriceItem
+			paymentDetail := models.CourseQuotaPaymentDetail{
+				RecordId:         record.Id,
+				CourseRecordId:   recordId,
+				CourseRecordType: recordType,
+				Quantity:         quantity,
+				TotalPrice:       totalPriceItem,
+			}
+			models.InsertCourseQuotaPaymentDetail(&paymentDetail)
 		}
-		models.InsertCourseQuotaPaymentDetail(&paymentDetail)
-
 		if breakFlag {
 			break
 		}
