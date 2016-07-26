@@ -257,8 +257,7 @@ func SendTradeNotification(recordId int64) {
 			if err != nil {
 				return
 			}
-			msg.body = append(msg.body,
-				fmt.Sprintf("当前账户可用课时：%d 课时", profile.QuotaQuantity))
+			msg.balance = fmt.Sprintf("当前账户可用课时：%d 课时", profile.QuotaQuantity)
 		}
 
 	case models.TRADE_COURSE_RENEW:
@@ -291,8 +290,7 @@ func SendTradeNotification(recordId int64) {
 			if err != nil {
 				return
 			}
-			msg.body = append(msg.body,
-				fmt.Sprintf("当前账户可用课时：%d 课时", profile.QuotaQuantity))
+			msg.balance = fmt.Sprintf("当前账户可用课时：%d 课时", profile.QuotaQuantity)
 		}
 
 	case models.TRADE_COURSE_AUDITION:
