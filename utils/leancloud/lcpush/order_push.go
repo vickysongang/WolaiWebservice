@@ -18,10 +18,10 @@ func PushNewOrderDispatch(objectId string, orderId int64) error {
 	}
 
 	var alert string
-	if order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+	if order.Type == models.ORDER_TYPE_GENERAL_INSTANT {
 		alert = "你收到了一条上课请求"
 	} else {
-		alert = "你收到了一条新的提问"
+		alert = "有学生指定要上你的课，快来订单中心看看吧"
 	}
 
 	var action string

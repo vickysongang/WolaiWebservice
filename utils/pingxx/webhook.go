@@ -77,25 +77,30 @@ func (pwm *PingxxWebhookManager) ChargeSuccessEvent(chargeId string) {
 	}
 
 	switch pingppRecord.Type {
-	case models.TRADE_CHARGE:
-		//		premium, _ := trade.GetChargePremuim(pingppRecord.UserId, int64(pingppRecord.Amount))
 
+	case models.TRADE_CHARGE:
 		trade.HandleTradeChargePingpp(pingppRecord.Id)
-		//		if premium > 0 {
-		//			trade.HandleTradeChargePremium(pingppRecord.UserId, premium, "", pingppRecord.Id, "")
-		//		}
 
 	case models.TRADE_COURSE_AUDITION:
-		courseController.HandleCourseActionPayByThird(pingppRecord.UserId, pingppRecord.RefId, pingppRecord.Type, int64(pingppRecord.Amount), pingppRecord.Id)
+		courseController.HandleCourseActionPayByThird(pingppRecord.UserId,
+			pingppRecord.RefId, pingppRecord.Type, int64(pingppRecord.Amount), pingppRecord.Id)
 
 	case models.TRADE_COURSE_PURCHASE:
-		courseController.HandleCourseActionPayByThird(pingppRecord.UserId, pingppRecord.RefId, pingppRecord.Type, int64(pingppRecord.Amount), pingppRecord.Id)
+		courseController.HandleCourseActionPayByThird(pingppRecord.UserId,
+			pingppRecord.RefId, pingppRecord.Type, int64(pingppRecord.Amount), pingppRecord.Id)
 
 	case models.TRADE_QA_PKG_PURCHASE:
-		qaPkgController.HandleQaPkgActionPayByThird(pingppRecord.UserId, pingppRecord.RefId, int64(pingppRecord.Amount), pingppRecord.Id)
+		qaPkgController.HandleQaPkgActionPayByThird(pingppRecord.UserId,
+			pingppRecord.RefId, int64(pingppRecord.Amount), pingppRecord.Id)
 
 	case models.TRADE_COURSE_RENEW:
-		courseController.HandleCourseRenewPayByThird(pingppRecord.UserId, pingppRecord.RefId, int64(pingppRecord.Amount), int64(pingppRecord.TotalAmount), pingppRecord.Id)
+		courseController.HandleCourseRenewPayByThird(pingppRecord.UserId,
+			pingppRecord.RefId, int64(pingppRecord.Amount), int64(pingppRecord.TotalAmount), pingppRecord.Quantity, pingppRecord.Id)
+
+	case models.TRADE_COURSE_QUOTA_PURCHASE:
+		courseController.HandleCourseQuotaActionPayByThird(pingppRecord.UserId,
+			pingppRecord.RefId, pingppRecord.Quantity, int64(pingppRecord.Amount), int64(pingppRecord.TotalAmount), pingppRecord.Id)
+
 	}
 }
 

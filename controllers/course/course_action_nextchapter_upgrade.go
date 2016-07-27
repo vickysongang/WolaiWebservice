@@ -80,8 +80,8 @@ func HandleDeluxeCourseNextChapterUpgrade(userId, chapterId, recordId int64) (in
 
 	if chapter.Period == purchase.ChapterCount {
 		recordInfo := map[string]interface{}{
-			"audition_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
-			"purchase_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
+			"AuditionStatus": models.PURCHASE_RECORD_STATUS_COMPLETE,
+			"PurchaseStatus": models.PURCHASE_RECORD_STATUS_COMPLETE,
 		}
 		models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
 	}

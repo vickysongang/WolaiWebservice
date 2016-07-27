@@ -14,12 +14,12 @@ func GetCourseListTeacherUpgrade(teacherId, page, count int64) (int64, []*course
 
 	if page == 0 {
 		auditionUncompleteRecords, _ := courseService.QueryTeacherUncompletedAuditionRecords(teacherId)
-		for _, auditionRecord := range auditionUncompleteRecords {
-			item := assignTeacherAuditionCourseInfo(auditionRecord.CourseId,
-				auditionRecord.UserId,
-				auditionRecord.Status,
-				auditionRecord.LastUpdateTime,
-				auditionRecord.Id)
+		for _, record := range auditionUncompleteRecords {
+			item := assignTeacherAuditionCourseInfo(record.CourseId,
+				record.UserId,
+				record.Status,
+				record.LastUpdateTime,
+				record.Id)
 			items = append(items, item)
 		}
 	}
@@ -59,12 +59,12 @@ func GetCourseListTeacherUpgrade(teacherId, page, count int64) (int64, []*course
 	}
 	if page == totalCount/count {
 		auditionCompleteRecords, _ := courseService.QueryTeacherCompletedAuditionRecords(teacherId)
-		for _, auditionRecord := range auditionCompleteRecords {
-			item := assignTeacherAuditionCourseInfo(auditionRecord.CourseId,
-				auditionRecord.UserId,
-				auditionRecord.Status,
-				auditionRecord.LastUpdateTime,
-				auditionRecord.Id)
+		for _, record := range auditionCompleteRecords {
+			item := assignTeacherAuditionCourseInfo(record.CourseId,
+				record.UserId,
+				record.Status,
+				record.LastUpdateTime,
+				record.Id)
 			items = append(items, item)
 		}
 	}

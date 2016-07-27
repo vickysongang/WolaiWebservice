@@ -14,6 +14,8 @@ type StudentProfile struct {
 	GradeId       int64  `json:"gradeId" orm:"column(grade_id)"`
 	Processed     string `json:"processed" orm:"column(process_flag)"`
 	FirstPrompted string `json:"firstPrompted" orm:"column(first_prompted)"`
+	QuotaQuantity int64  `json:"quotaQuantity"`
+	QuotaGradeId  int64  `json:"quotaGradeId"`
 }
 
 const (

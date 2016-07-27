@@ -7,10 +7,10 @@ import (
 
 	"github.com/cihub/seelog"
 
+	courseController "WolaiWebservice/controllers/course"
 	qapkgController "WolaiWebservice/controllers/qapkg"
 	tradeController "WolaiWebservice/controllers/trade"
 	"WolaiWebservice/handlers/response"
-	"WolaiWebservice/models"
 )
 
 // 7.1.1
@@ -28,13 +28,10 @@ func TradeUserBalance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, _ := models.ReadUser(userId)
-	if user == nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, "user "+userIdStr+" doesn't exist!", response.NullObject))
+	content, err := tradeController.GetUserBalance(userId)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
 	} else {
-		content := map[string]int64{
-			"balance": user.Balance,
-		}
 		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
 	}
 }
@@ -237,7 +234,34 @@ func TradeUserQaPkgDetail(w http.ResponseWriter, r *http.Request) {
 	content, err := qapkgController.GetQaPkgDetail(userId)
 	var resp *response.Response
 	if err != nil {
-		resp = response.NewResponse(2, err.Error(), response.NullSlice)
+		resp = response.NewResponse(2, err.Error(), response.NullObject)
+	} else {
+		resp = response.NewResponse(0, "", content)
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+// 7.4.1
+func TradeQuotaChargeRule(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+	gradeIdStr := vars["gradeId"][0]
+	gradeId, _ := strconv.ParseInt(gradeIdStr, 10, 64)
+	content, err := courseController.GetQuotaChargeRule(gradeId)
+	var resp *response.Response
+	if err != nil {
+		resp = response.NewResponse(2, err.Error(), response.NullObject)
 	} else {
 		resp = response.NewResponse(0, "", content)
 	}

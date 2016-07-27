@@ -11,24 +11,25 @@ const (
 	AMOUNT_REWARD_REGISTRATION        = 1500
 	MINUTES_REWARD_PROFILE_COMPLETION = 20
 
-	COMMENT_CHARGE                        = "账户充值"
-	COMMENT_CHARGE_CODE                   = "充值卡充值"
+	COMMENT_CHARGE                        = "充值钱包余额"
 	COMMENT_CHARGE_PREMIUM                = "充值奖励"
-	COMMENT_WITHDRAW                      = "账户提现"
-	COMMENT_PROMOTION                     = "活动奖励"
-	COMMENT_VOUCHER                       = "代金券"
-	COMMENT_DEDUCTION                     = "服务扣费"
+	COMMENT_WITHDRAW                      = "导师工资提现"
+	COMMENT_PROMOTION                     = "活动奖励充值"
+	COMMENT_VOUCHER                       = "赠送代金券"
+	COMMENT_DEDUCTION                     = "平台服务扣费"
 	COMMENT_REWARD_REGISTRATION           = "新用户注册"
 	COMMENT_REWARD_INVITATION             = "邀请注册"
+	COMMENT_QA_PKG_GIVEN                  = "家教时间包赠送"
 	COMMENT_COURSE_PURCHASE               = "课程购买"
 	COMMENT_COURSE_AUDITION               = "课程试听"
 	COMMENT_AUDITION_COURSE_PURCHASE      = "试听课购买"
 	COMMENT_COURSE_EARNING                = "课程结算"
 	COMMENT_COURSE_RENEW                  = "课程续课"
 	COMMENT_QA_PKG_PURCHASE               = "家教时间包购买"
-	COMMENT_QA_PKG_GIVEN                  = "家教时间包赠送"
 	COMMENT_QA_PKG_GIVEN_COMPLETE_PROFILE = "家教时间包赠送-完善资料"
 	COMMENT_QA_PKG_GIVEN_INVITATION       = "家教时间包赠送-邀请注册"
+	COMMENT_COURSE_QUOTA_PURCHASE         = "可用课时购买"
+	COMMENT_COURSE_QUOTA_REFUND           = "可用课时退款"
 )
 
 func HandleTradeRewardRegistration(userId int64) error {

@@ -3,6 +3,7 @@ package websocket
 import (
 	"WolaiWebservice/models"
 	"errors"
+	"strconv"
 	"sync"
 	"time"
 
@@ -26,7 +27,8 @@ type OrderStatus struct {
 type OrderStatusManager struct {
 	orderMap map[int64]*OrderStatus
 
-	personalOrderMap map[int64]map[int64]int64 // studentId to teacherId to orderId
+	personalOrderMap   map[int64]map[int64]int64 // studentId to teacherId to orderId
+	recoverDisabledMap map[int64]map[int64]int64 //orderId to teacherId to timestamp  用来控制订单是否需要回溯
 
 	creatingInstOdrUserSet     map[int64]bool // contain all userIds who are creating orders (including orders that are dispatching)
 	creatingInstOdrUserSetLock sync.Mutex
@@ -67,8 +69,8 @@ func NewOrderStatusManager() *OrderStatusManager {
 	manager := OrderStatusManager{
 		orderMap: make(map[int64]*OrderStatus),
 
-		personalOrderMap: make(map[int64]map[int64]int64),
-
+		personalOrderMap:       make(map[int64]map[int64]int64),
+		recoverDisabledMap:     make(map[int64]map[int64]int64),
 		creatingInstOdrUserSet: make(map[int64]bool),
 	}
 
@@ -357,5 +359,71 @@ func (osm *OrderStatusManager) LockOrder(orderId int64) (bool, error) {
 		return true, nil
 	} else {
 		return false, errors.New("该订单已被接")
+	}
+}
+
+func (osm *OrderStatusManager) IsRecoverDisabled(orderId, userId int64) bool {
+	m, ok := osm.recoverDisabledMap[orderId]
+	if !ok {
+		return false
+	}
+	_, ok = m[userId]
+	return ok
+}
+
+func (osm *OrderStatusManager) SetRecoverDisabled(orderId, userId int64) error {
+	if !osm.IsOrderOnline(orderId) {
+		return ErrOrderNotFound
+	}
+	if _, ok := osm.recoverDisabledMap[orderId]; !ok {
+		osm.recoverDisabledMap[orderId] = make(map[int64]int64)
+	}
+	osm.recoverDisabledMap[orderId][userId] = time.Now().Unix()
+	return nil
+}
+
+func (osm *OrderStatusManager) CancelGeneralInstantOrder(userId int64) {
+	for orderId, _ := range UserManager.UserOrderDispatchMap[userId] {
+		order, err := models.ReadOrder(orderId)
+		if err != nil {
+			continue
+		}
+		if order.Type != models.ORDER_TYPE_GENERAL_INSTANT {
+			continue
+		}
+		if !osm.IsOrderOnline(orderId) {
+			continue
+		}
+		if ok, _ := OrderManager.LockOrder(orderId); !ok {
+			continue
+		}
+
+		go func() {
+			orderIdStr := strconv.FormatInt(orderId, 10)
+			cancelMsg := NewWSMessage("", order.Creator, WS_ORDER2_CANCEL)
+			cancelMsg.Attribute["orderId"] = orderIdStr
+			for teacherId, _ := range osm.orderMap[orderId].dispatchMap {
+				if UserManager.HasUserChan(teacherId) {
+					cancelMsg.UserId = teacherId
+					userChan := UserManager.GetUserChan(teacherId)
+					userChan <- cancelMsg
+				}
+			}
+			if assignId, err := osm.GetCurrentAssign(orderId); err == nil {
+				if UserManager.HasUserChan(assignId) {
+					cancelMsg.UserId = assignId
+					userChan := UserManager.GetUserChan(assignId)
+					userChan <- cancelMsg
+				}
+			}
+			quitMsg := NewWSMessage("", order.Creator, SIGNAL_ORDER_QUIT)
+			orderChan, err := osm.GetOrderChan(orderId)
+			if err == nil {
+				orderChan <- quitMsg
+			}
+			osm.SetOffline(orderId)
+		}()
+		osm.SetOrderCancelled(orderId)
+		osm.UnlockUserCreateOrder(order.Creator)
 	}
 }

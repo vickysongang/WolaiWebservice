@@ -98,6 +98,7 @@ func HandleCometMessage(param string) (*WSMessage, error) {
 	case WS_ORDER2_CANCEL,
 		WS_ORDER2_ACCEPT,
 		WS_ORDER2_ASSIGN_ACCEPT,
+		WS_ORDER2_RECOVER_DISABLE,
 		WS_ORDER2_PERSONAL_REPLY:
 
 		resp, _ = orderMessageHandler(msg, user, timestamp)
@@ -495,13 +496,16 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 	}
 
 	orderInfo := GetOrderInfo(orderId)
+
 	orderChan, _ := OrderManager.GetOrderChan(orderId)
 
 	quitMsg := NewWSMessage(msg.MessageId, msg.UserId, SIGNAL_ORDER_QUIT)
 
 	switch msg.OperationCode {
 	case WS_ORDER2_CANCEL:
-		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT || order.Type == models.ORDER_TYPE_COURSE_INSTANT || order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
+		if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT ||
+			order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
+			order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
 			resp.OperationCode = WS_ORDER2_CANCEL_RESP
 			resp.Attribute["errCode"] = "0"
 
@@ -509,6 +513,13 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			OrderManager.SetOrderCancelled(orderId)
 			orderChan <- quitMsg
 			OrderManager.SetOffline(orderId)
+
+			if !OrderManager.IsRecoverDisabled(orderId, order.TeacherId) {
+				orderInfo := GetOrderInfo(orderId)
+				orderByte, _ := json.Marshal(orderInfo)
+				orderStr := string(orderByte)
+				lcmessage.SendOrderCancelNotification(orderId, order.TeacherId, orderStr)
+			}
 		} else {
 			//instant order
 			// 发送反馈消息
@@ -725,6 +736,15 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 			}
 			return resp, nil
 		}
+
+		if err := TeacherManager.SetAcceptOrderLock(msg.UserId); err != nil {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = "老师已接受其它订单"
+			// Unlock order so others could operate on this order
+			OrderManager.SetOrderLocked(orderId, false)
+			return resp, nil
+		}
+
 		resp.Attribute["errCode"] = "0"
 		resp.Attribute["status"] = "0"
 		resp.Attribute["orderType"] = order.Type
@@ -753,9 +773,21 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		OrderManager.SetOrderConfirm(orderId, msg.UserId)
 		orderChan <- quitMsg
 		OrderManager.SetOffline(orderId)
+
+		OrderManager.CancelGeneralInstantOrder(order.Creator) //取消用户已经发出去的实时单
+
 		go handleSessionCreation(orderId, msg.UserId)
 
 		seelog.Debug("orderHandler|orderReply: ", orderId)
+
+	case WS_ORDER2_RECOVER_DISABLE:
+		OrderManager.SetOrderLocked(orderId, false)
+		err := OrderManager.SetRecoverDisabled(orderId, msg.UserId)
+		if err != nil {
+			resp.Attribute["errCode"] = "2"
+			resp.Attribute["errMsg"] = err.Error()
+			return resp, nil
+		}
 	}
 	return resp, nil
 }

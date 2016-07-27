@@ -22,6 +22,7 @@ type CoursePurchaseRecord struct {
 	ChapterCount   int64     `json:"chapterCount"`
 	TraceStatus    string    `json:"traceStatus"`
 	Comment        string    `json:"comment"`
+	PaymentMethod  string    `json:"paymentMethod"`
 }
 
 func init() {
@@ -42,6 +43,11 @@ const (
 	PURCHASE_RECORD_TRACE_STATUS_IDLE     = "idle"
 	PURCHASE_RECORD_TRACE_STATUS_SERVING  = "serving"
 	PURCHASE_RECORD_TRACE_STATUS_COMPLETE = "complete"
+
+	PAYMENT_METHOD_ONLINE_WALLET  = "online_wallet"
+	PAYMENT_METHOD_OFFLINE_WALLET = "offline_wallet"
+	PAYMENT_METHOD_ONLINE_QUOTA   = "online_quota"
+	PAYMENT_METHOD_OFFLINE_QUOTA  = "offline_quota"
 )
 
 func CreateCoursePurchaseRecord(record *CoursePurchaseRecord) (*CoursePurchaseRecord, error) {

@@ -48,6 +48,13 @@ func personalOrderHandler(orderId int64, teacherId int64) {
 
 			go lcmessage.SendOrderPersonalTutorExpireMsg(orderId)
 
+			if !OrderManager.IsRecoverDisabled(orderId, order.TeacherId) {
+				orderInfo := GetOrderInfo(orderId)
+				orderByte, _ := json.Marshal(orderInfo)
+				orderStr := string(orderByte)
+				go lcmessage.SendOrderCancelNotification(orderId, order.TeacherId, orderStr)
+			}
+
 			return
 
 		case msg, ok := <-orderChan:
@@ -165,24 +172,24 @@ func InitOrderMonitor(orderId int64, teacherId int64) error {
 	order, _ := models.ReadOrder(orderId)
 	orderInfo := GetOrderInfo(orderId)
 	orderByte, _ := json.Marshal(orderInfo)
-
+	orderStr := string(orderByte)
 	OrderManager.SetOnline(orderId)
 
 	if order.Type == models.ORDER_TYPE_PERSONAL_INSTANT {
-		go lcmessage.SendOrderPersonalNotification(orderId, teacherId)
+		go lcmessage.SendOrderPersonalNotification(orderId, teacherId, orderStr)
 
 		if UserManager.HasUserChan(teacherId) &&
 			!UserManager.IsUserBusyInSession(teacherId) {
 			teacherChan := UserManager.GetUserChan(teacherId)
 			orderMsg := NewWSMessage("", teacherId, WS_ORDER2_PERSONAL_NOTIFY)
-			orderMsg.Attribute["orderInfo"] = string(orderByte)
+			orderMsg.Attribute["orderInfo"] = orderStr
 			teacherChan <- orderMsg
 		} else if !UserManager.HasUserChan(teacherId) {
 			push.PushNewOrderDispatch(teacherId, orderId)
 		}
 	} else if order.Type == models.ORDER_TYPE_COURSE_INSTANT ||
 		order.Type == models.ORDER_TYPE_AUDITION_COURSE_INSTANT {
-		go lcmessage.SendOrderCourseNotification(orderId, teacherId)
+		go lcmessage.SendOrderCourseNotification(orderId, teacherId, orderStr)
 		if !UserManager.HasUserChan(teacherId) {
 			push.PushNewOrderDispatch(teacherId, orderId)
 		}

@@ -32,28 +32,23 @@ func PingppPay(w http.ResponseWriter, r *http.Request) {
 	}
 	vars := r.Form
 
-	var orderNo string
+	orderNo := strconv.Itoa(int(time.Now().UnixNano()))
 	if len(vars["orderNo"]) > 0 {
 		orderNo = vars["orderNo"][0]
-	} else {
-		orderNo = strconv.Itoa(int(time.Now().UnixNano()))
 	}
 
 	amountStr := vars["amount"][0]
 	amount, _ := strconv.ParseUint(amountStr, 10, 64)
 	channel := vars["channel"][0]
 	currency := vars["currency"][0]
-	var clientIp string
+
+	clientIp := strings.Split(r.RemoteAddr, ":")[0]
 	if len(vars["clientIp"]) > 0 {
 		clientIp = vars["clientIp"][0]
-	} else {
-		clientIp = strings.Split(r.RemoteAddr, ":")[0]
 	}
+
 	subject := vars["subject"][0]
 	body := vars["body"][0]
-
-	//// TODO userId
-	//phone := vars["phone"][0]
 
 	var extraMap map[string]interface{}
 	if channel == "alipay_wap" {
@@ -86,24 +81,48 @@ func PingppPay(w http.ResponseWriter, r *http.Request) {
 			"product_id": "wolai_charge",
 		}
 	}
-	var tradeType string
+	tradeType := models.TRADE_CHARGE
 	if len(vars["tradeType"]) > 0 {
 		tradeType = vars["tradeType"][0]
-	} else {
-		tradeType = models.TRADE_CHARGE
 	}
+
 	var refId int64
 	if len(vars["refId"]) > 0 {
 		refIdStr := vars["refId"][0]
 		refId, _ = strconv.ParseInt(refIdStr, 10, 64)
 	}
-	var payType string
+
+	payType := models.TRADE_PAY_TYPE_THIRD
 	if len(vars["payType"]) > 0 {
 		payType = vars["payType"][0]
-	} else {
-		payType = models.TRADE_PAY_TYPE_THIRD
 	}
-	status, content, err := trade.HandleTradePay(orderNo, userId, amount, channel, currency, clientIp, subject, body, "", extraMap, tradeType, refId, payType)
+
+	var quantity int64
+	if len(vars["quantity"]) > 0 {
+		quantityStr := vars["quantity"][0]
+		quantity, _ = strconv.ParseInt(quantityStr, 10, 64)
+	}
+
+	tradePayInfo := trade.TradePayInfo{
+		UserId:    userId,
+		Phone:     "",
+		TradeType: tradeType,
+		RefId:     refId,
+		PayType:   payType,
+		Quantity:  quantity,
+	}
+	pingppInfo := pingxx.PingppInfo{
+		OrderNo:  orderNo,
+		Amount:   amount,
+		Channel:  channel,
+		Currency: currency,
+		ClientIp: clientIp,
+		Subject:  subject,
+		Body:     body,
+		Extra:    extraMap,
+	}
+	tradePayInfo.PingppInfo = &pingppInfo
+	status, content, err := trade.HandleTradePay(tradePayInfo)
 	if err != nil {
 		json.NewEncoder(w).Encode(response.NewResponse(status, err.Error(), response.NullObject))
 	} else {

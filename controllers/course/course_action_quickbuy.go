@@ -57,7 +57,7 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 
 		// 学生在还没有被指派导师的时候申请试听
 		recordInfo := map[string]interface{}{
-			"purchase_status": models.PURCHASE_RECORD_STATUS_APPLY,
+			"PurchaseStatus": models.PURCHASE_RECORD_STATUS_APPLY,
 			//"last_update_time": "NOW()",
 		}
 
@@ -80,7 +80,7 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 			record.AuditionStatus == models.PURCHASE_RECORD_STATUS_COMPLETE:
 
 		recordInfo := map[string]interface{}{
-			"purchase_status": models.PURCHASE_RECORD_STATUS_WAITING,
+			"PurchaseStatus": models.PURCHASE_RECORD_STATUS_WAITING,
 			//"last_update_time": "NOW()",
 		}
 

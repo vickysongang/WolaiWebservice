@@ -28,12 +28,12 @@ func GetCourseListStudentOfConversation(userId, teacherId, page, count int64) (i
 
 	if page == 0 {
 		auditionUncompleteRecords, _ := courseService.QueryUncompletedAuditionRecords(userId, teacherId)
-		for _, auditionRecord := range auditionUncompleteRecords {
-			item := assignStudentAuditionCourseInfo(auditionRecord.CourseId,
-				auditionRecord.UserId,
-				auditionRecord.Status,
-				auditionRecord.Id,
-				auditionRecord.TeacherId)
+		for _, record := range auditionUncompleteRecords {
+			item := assignStudentAuditionCourseInfo(record.CourseId,
+				record.UserId,
+				record.Status,
+				record.Id,
+				record.TeacherId)
 			items = append(items, item)
 		}
 	}

@@ -78,18 +78,18 @@ func HandleCourseActionNextChapter(userId, studentId, courseId, chapterId int64)
 	chapterCount := purchase.ChapterCount
 
 	recordInfo := map[string]interface{}{
-		"audition_status": purchase.AuditionStatus,
+		"AuditionStatus": purchase.AuditionStatus,
 	}
 	models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
 
 	if chapter.Period == 0 {
 		recordInfo := map[string]interface{}{
-			"audition_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
+			"AuditionStatus": models.PURCHASE_RECORD_STATUS_COMPLETE,
 		}
 		models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
 	} else if chapter.Period == chapterCount {
 		recordInfo := map[string]interface{}{
-			"purchase_status": models.PURCHASE_RECORD_STATUS_COMPLETE,
+			"PurchaseStatus": models.PURCHASE_RECORD_STATUS_COMPLETE,
 		}
 		models.UpdateCoursePurchaseRecord(purchase.Id, recordInfo)
 	}
