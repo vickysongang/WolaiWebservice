@@ -121,43 +121,6 @@ func SendOrderCourseNotification(orderId int64, teacherId int64, orderInfo strin
 	leancloud.LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, teacherId, &lcTMsg)
 }
 
-func SendOrderCourseCancelNotification(orderId int64, teacherId int64, orderInfo string) {
-	order, err := models.ReadOrder(orderId)
-	if err != nil {
-		return
-	}
-
-	_, err = models.ReadUser(teacherId)
-	if err != nil {
-		return
-	}
-
-	course, err := models.ReadCourse(order.CourseId)
-	if err != nil {
-		return
-	}
-
-	chapter, err := models.ReadCourseCustomChapter(order.ChapterId)
-	if err != nil {
-		return
-	}
-
-	attr := make(map[string]string)
-	attr["type"] = "course"
-	attr["title"] = course.Name
-	attr["chapter"] = fmt.Sprintf("第%d课时 %s", chapter.Period, chapter.Title)
-	attr["orderId"] = strconv.FormatInt(orderId, 10)
-	attr["orderInfo"] = orderInfo
-
-	lcTMsg := leancloud.LCTypedMessage{
-		Type:      LC_MSG_ORDER,
-		Text:      "[订单消息]",
-		Attribute: attr,
-	}
-
-	leancloud.LCSendSystemMessage(USER_SYSTEM_MESSAGE, order.Creator, teacherId, &lcTMsg)
-}
-
 func SendOrderPersonalTutorOfflineMsg(orderId int64) {
 	order, err := models.ReadOrder(orderId)
 	if err != nil {

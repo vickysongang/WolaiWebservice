@@ -19,6 +19,7 @@ type Session struct {
 	Status     string    `json:"status" orm:"column(status)"`
 	Rating     int64     `json:"-" orm:"column(rating)"`
 	Comment    string    `json:"-" orm:"column(comment)"`
+	MediaInfo  string    `json:"mediaInfo" orm:"column(media_info);type(longtext)"`
 }
 
 func init() {
@@ -59,7 +60,7 @@ func ReadSession(sessionId int64) (*Session, error) {
 	return &session, nil
 }
 
-func UpdateSession(sessionId int64, sessionInfo map[string]interface{}) {
+func UpdateSession(sessionId int64, sessionInfo map[string]interface{}) error {
 	o := orm.NewOrm()
 
 	var params orm.Params = make(orm.Params)
@@ -67,7 +68,7 @@ func UpdateSession(sessionId int64, sessionInfo map[string]interface{}) {
 		params[k] = v
 	}
 
-	o.QueryTable("sessions").Filter("id", sessionId).Update(params)
+	_, err := o.QueryTable("sessions").Filter("id", sessionId).Update(params)
 
-	return
+	return err
 }
