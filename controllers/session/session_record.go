@@ -1,6 +1,7 @@
 package session
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -20,6 +21,7 @@ type sessionRecord struct {
 	IsCourse     bool         `json:"isCourse"`
 	RecordId     int64        `json:"recordId"`
 	ChapterId    int64        `json:"chapterId"`
+	MediaComment string       `json:"mediaComment"`
 }
 
 func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRecord) {
@@ -66,6 +68,14 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 				title = "实时课堂"
 			}
 		}
+		var mediaComment string
+		if session.MediaInfo != "" {
+			var medias []string
+			err = json.Unmarshal([]byte(session.MediaInfo), &medias)
+			if err == nil && len(medias) > 0 {
+				mediaComment = "白板可回放"
+			}
+		}
 
 		record := sessionRecord{
 			SessionId:    session.Id,
@@ -79,6 +89,7 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 			IsCourse:     isCourse,
 			RecordId:     order.RecordId,
 			ChapterId:    chapterId,
+			MediaComment: mediaComment,
 		}
 
 		result = append(result, &record)
