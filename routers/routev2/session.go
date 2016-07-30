@@ -46,7 +46,17 @@ var sessionRoutes = route.Routes{
 		"/course/info",
 		handlerv2.CourseSessionInfo,
 		true,
-		false,
+		true,
+	},
+
+	// 6.1.4
+	route.Route{
+		"UpdateSessionMediaInfo",
+		"POST",
+		"/media/info/update",
+		handlerv2.SessionMediaInfoUpdate,
+		true,
+		true,
 	},
 
 	// 6.2.1

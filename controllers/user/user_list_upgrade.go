@@ -4,14 +4,37 @@ package user
 import (
 	userService "WolaiWebservice/service/user"
 	"WolaiWebservice/websocket"
+	"sort"
 )
+
+type IntArray []int64
+
+func (array IntArray) Len() int {
+	return len(array)
+}
+
+func (array IntArray) Less(i, j int) bool {
+	if array[i] < array[j] {
+		return true
+	}
+	return false
+}
+
+func (array IntArray) Swap(i, j int) {
+	var temp int64 = array[i]
+	array[i] = array[j]
+	array[j] = temp
+}
 
 func GetTeacherRecommendationUpgrade(userId, page, count int64) (int64, error, []*UserListItem) {
 	resultTeacherIds := make([]int64, 0)
 	result := make([]*UserListItem, 0)
 	freeTeacherIds := websocket.UserManager.GetFreeTeachers()
+	sort.Sort(IntArray(freeTeacherIds))
 	busyTeacherIds := websocket.UserManager.GetBusyTeachers()
+	sort.Sort(IntArray(busyTeacherIds))
 	onlineTeacherIds := websocket.UserManager.GetOnlineTeachers(true)
+	sort.Sort(IntArray(onlineTeacherIds))
 
 	var tempTeacherIds []int64
 	tempTeacherIds = append(tempTeacherIds, freeTeacherIds...)

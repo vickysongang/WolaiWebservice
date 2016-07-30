@@ -26,6 +26,7 @@ type sessionInfo struct {
 	QaPkgUseTime  int64        `json:"qaPkgUseTime"`
 	QaPkgLeftTime int64        `json:"qaPkgLeftTime"`
 	RecordId      int64        `json:"recordId"`
+	MediaInfo     string       `json:"mediaInfo"`
 }
 
 type courseSessionInfo struct {
@@ -44,6 +45,7 @@ type courseSessionInfo struct {
 	EvaluationComment   string             `json:"evaluationComment"`
 	EvaluationDetailUrl string             `json:"evaluationDetailUrl"`
 	RecordId            int64              `json:"recordId"`
+	MediaInfo           string             `json:"mediaInfo"`
 }
 
 type courseChapterInfo struct {
@@ -108,6 +110,7 @@ func GetSessionInfo(sessionId int64, userId int64) (int64, *sessionInfo) {
 		QaPkgUseTime:  qaPkgUseTime,
 		QaPkgLeftTime: qaPkgLeftTime,
 		RecordId:      order.RecordId,
+		MediaInfo:     session.MediaInfo,
 	}
 
 	return 0, &info
@@ -178,7 +181,16 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 		EvaluationComment:   evaluationComment,
 		EvaluationDetailUrl: evaluationDetailUrl,
 		RecordId:            recordId,
+		MediaInfo:           session.MediaInfo,
 	}
 
 	return 0, &info
+}
+
+func UpdateSessionMediaInfo(sessionId int64, mediaInfo string) error {
+	sessionInfo := map[string]interface{}{
+		"MediaInfo": mediaInfo,
+	}
+	err := models.UpdateSession(sessionId, sessionInfo)
+	return err
 }
