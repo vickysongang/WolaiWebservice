@@ -28,6 +28,7 @@ func HandleDeluxeCourseActionQuickbuy(userId int64, courseId int64) (int64, *act
 			PurchaseStatus: models.PURCHASE_RECORD_STATUS_APPLY,
 			TraceStatus:    models.PURCHASE_RECORD_TRACE_STATUS_IDLE,
 			ChapterCount:   chapterCount,
+			PurchaseCount:  chapterCount,
 		}
 
 		_, err = models.CreateCoursePurchaseRecord(&newRecord)

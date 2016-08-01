@@ -20,6 +20,7 @@ type CoursePurchaseRecord struct {
 	PurchaseStatus string    `json:"purchaseStatus"`
 	DefaultFlag    string    `json:"defaultFlag"`
 	ChapterCount   int64     `json:"chapterCount"`
+	PurchaseCount  int64     `json:"purchaseCount"`
 	TraceStatus    string    `json:"traceStatus"`
 	Comment        string    `json:"comment"`
 	PaymentMethod  string    `json:"paymentMethod"`

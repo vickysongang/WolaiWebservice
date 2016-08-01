@@ -26,6 +26,7 @@ func HandleCourseActionQuickbuy(userId int64, courseId int64) (int64, *actionPro
 			PurchaseStatus: models.PURCHASE_RECORD_STATUS_APPLY,
 			TraceStatus:    models.PURCHASE_RECORD_TRACE_STATUS_IDLE,
 			ChapterCount:   chaperCount,
+			PurchaseCount:  chaperCount,
 		}
 
 		_, err = models.CreateCoursePurchaseRecord(&newRecord)

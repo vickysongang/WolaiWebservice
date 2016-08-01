@@ -106,6 +106,34 @@ func CourseSessionInfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// 6.1.4
+func SessionMediaInfoUpdate(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullSlice)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	userIdStr := r.Header.Get("X-Wolai-ID")
+	_, err = strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+		return
+	}
+	vars := r.Form
+
+	sessionIdStr := vars["sessionId"][0]
+	sessionId, _ := strconv.ParseInt(sessionIdStr, 10, 64)
+	mediaInfo := vars["mediaInfo"][0]
+
+	err = sessionController.UpdateSessionMediaInfo(sessionId, mediaInfo)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewResponse(2, "", response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", response.NullObject))
+	}
+}
+
 // 6.2.1
 func SessionSeekHelp(w http.ResponseWriter, r *http.Request) {
 	defer response.ThrowsPanicException(w, response.NullObject)
