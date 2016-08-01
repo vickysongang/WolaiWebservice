@@ -684,6 +684,11 @@ func InitOrderDispatch(msg WSMessage, timestamp int64) error {
 }
 
 func handleSessionCreation(orderId int64, teacherId int64) {
+	defer func() {
+		if r := recover(); r != nil {
+			seelog.Error(r)
+		}
+	}()
 
 	order, _ := models.ReadOrder(orderId)
 	planTime := order.Date
