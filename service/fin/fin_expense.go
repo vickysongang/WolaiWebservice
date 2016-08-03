@@ -134,19 +134,19 @@ func handleUsedQaPkgs(qaPkgUsed []*qapkgService.QaPkgUsed) (int64, string) {
 			continue
 		}
 		totalPrice += qaPkgRecord.Price * r.TimeLength / qaPkgRecord.TimeLength
-
+		timeFormat := "2006-01-02 15:04"
 		switch qaPkg.Type {
 		case models.QA_PKG_TYPE_MONTHLY:
-			comment += fmt.Sprintf("使用%d分钟-%个月%s(购买时间：%s)支付%d分钟,", qaPkg.TimeLength, qaPkg.Month,
-				qaPkgModule.Name, qaPkgRecord.CreateTime, r.TimeLength)
+			comment += fmt.Sprintf("使用%d分钟-%个月%s(购买记录Id:%d,购买时间：%s)支付%d分钟,", qaPkg.TimeLength, qaPkg.Month,
+				qaPkgModule.Name, qaPkgRecord.Id, qaPkgRecord.CreateTime.Format(timeFormat), r.TimeLength)
 
 		case models.QA_PKG_TYPE_PERMANENT:
-			comment += fmt.Sprintf("使用%d分钟%s(购买时间：%s)支付%d分钟,", qaPkg.TimeLength, qaPkg.Title,
-				qaPkgRecord.CreateTime, r.TimeLength)
+			comment += fmt.Sprintf("使用%d分钟%s(购买记录Id:%d,购买时间：%s)支付%d分钟,", qaPkg.TimeLength, qaPkg.Title, qaPkgRecord.Id,
+				qaPkgRecord.CreateTime.Format(timeFormat), r.TimeLength)
 
 		case models.QA_PKG_TYPE_GIVEN:
-			comment += fmt.Sprintf("使用%d分钟%s(赠送时间：%s)支付%d分钟,", qaPkg.TimeLength, qaPkgModule.Name,
-				qaPkgRecord.CreateTime, r.TimeLength)
+			comment += fmt.Sprintf("使用%d分钟%s(赠送记录Id:%d,赠送时间：%s)支付%d分钟,", qaPkg.TimeLength, qaPkgModule.Name, qaPkgRecord.Id,
+				qaPkgRecord.CreateTime.Format(timeFormat), r.TimeLength)
 		}
 	}
 	return totalPrice, comment
