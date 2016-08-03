@@ -485,7 +485,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 	if !OrderManager.IsOrderOnline(orderId) {
 		resp.Attribute["errCode"] = "2"
-		resp.Attribute["errMsg"] = "订单状态已变"
+		resp.Attribute["errMsg"] = "订单已失效"
 		return resp, nil
 	}
 

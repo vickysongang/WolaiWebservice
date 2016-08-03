@@ -5,11 +5,14 @@ import (
 	"math"
 
 	"WolaiWebservice/models"
+	finService "WolaiWebservice/service/fin"
 	qapkgService "WolaiWebservice/service/qapkg"
 )
 
 func HandleTradeSession(sessionId int64) error {
 	var err error
+	var studentTradeRecord, teacherTradeRecord *models.TradeRecord
+	var qaPkgUsed []*qapkgService.QaPkgUsed
 
 	session, err := models.ReadSession(sessionId)
 	if err != nil {
@@ -49,7 +52,7 @@ func HandleTradeSession(sessionId int64) error {
 		if err != nil {
 			return err
 		}
-		_, err = createTradeRecord(session.Creator, 0-studentAmount,
+		studentTradeRecord, err = createTradeRecord(session.Creator, 0-studentAmount,
 			models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
 			session.Id, 0, 0, "", 0, 0)
 		if err != nil {
@@ -59,19 +62,19 @@ func HandleTradeSession(sessionId int64) error {
 
 		if lengthMinute <= leftQaTimeLength {
 
-			err := qapkgService.HandleUserQaPkgTime(session.Creator, lengthMinute)
+			qaPkgUsed, err = qapkgService.HandleUserQaPkgTime(session.Creator, lengthMinute)
 			if err != nil {
 				return err
 			}
 
-			_, err = createTradeRecord(session.Creator, 0,
+			studentTradeRecord, err = createTradeRecord(session.Creator, 0,
 				models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
 				session.Id, 0, 0, "", -lengthMinute, 0)
 			if err != nil {
 				return err
 			}
 		} else {
-			err := qapkgService.HandleUserQaPkgTime(session.Creator, leftQaTimeLength)
+			qaPkgUsed, err = qapkgService.HandleUserQaPkgTime(session.Creator, leftQaTimeLength)
 			if err != nil {
 				return err
 			}
@@ -86,7 +89,7 @@ func HandleTradeSession(sessionId int64) error {
 			if err != nil {
 				return err
 			}
-			_, err = createTradeRecord(session.Creator, 0-studentAmount,
+			studentTradeRecord, err = createTradeRecord(session.Creator, 0-studentAmount,
 				models.TRADE_PAYMENT, models.TRADE_RESULT_SUCCESS, "",
 				session.Id, 0, 0, "", -leftQaTimeLength, 0)
 			if err != nil {
@@ -101,12 +104,14 @@ func HandleTradeSession(sessionId int64) error {
 	if err != nil {
 		return err
 	}
-	_, err = createTradeRecord(session.Tutor, teacherAmount,
+	teacherTradeRecord, err = createTradeRecord(session.Tutor, teacherAmount,
 		models.TRADE_RECEIVEMENT, models.TRADE_RESULT_SUCCESS, "",
 		sessionId, 0, 0, "", 0, 0)
 	if err != nil {
 		return err
 	}
+
+	go finService.HandleSessionExpense(sessionId, studentTradeRecord.Id, teacherTradeRecord.Id, qaPkgUsed)
 
 	return nil
 }

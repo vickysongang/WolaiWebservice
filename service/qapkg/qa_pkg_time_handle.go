@@ -5,7 +5,13 @@ import (
 	"time"
 )
 
-func HandleUserQaPkgTime(userId int64, timeLength int64) error {
+type QaPkgUsed struct {
+	RecordId   int64
+	TimeLength int64
+}
+
+func HandleUserQaPkgTime(userId int64, timeLength int64) ([]*QaPkgUsed, error) {
+	var qaPkgUsedArr []*QaPkgUsed
 	now := time.Now()
 	balanceTime := timeLength
 	monthlyQaPkgRecords, _ := GetMonthlyQaPkgRecords(userId)
@@ -16,7 +22,10 @@ func HandleUserQaPkgTime(userId int64, timeLength int64) error {
 					"LeftTime": record.LeftTime - timeLength,
 				}
 				models.UpdateQaPkgPurchaseRecord(record.Id, recordInfo)
-				return nil
+
+				qaPkgUsedArr = append(qaPkgUsedArr, &QaPkgUsed{RecordId: record.Id, TimeLength: timeLength})
+
+				return qaPkgUsedArr, nil
 			} else {
 				recordInfo := map[string]interface{}{
 					"LeftTime": 0,
@@ -24,6 +33,9 @@ func HandleUserQaPkgTime(userId int64, timeLength int64) error {
 				}
 				models.UpdateQaPkgPurchaseRecord(record.Id, recordInfo)
 				balanceTime = timeLength - record.LeftTime
+
+				qaPkgUsedArr = append(qaPkgUsedArr, &QaPkgUsed{RecordId: record.Id, TimeLength: record.LeftTime})
+
 				break
 			}
 		}
@@ -38,7 +50,10 @@ func HandleUserQaPkgTime(userId int64, timeLength int64) error {
 				"LeftTime": record.LeftTime - balanceTime,
 			}
 			models.UpdateQaPkgPurchaseRecord(record.Id, recordInfo)
-			return nil
+
+			qaPkgUsedArr = append(qaPkgUsedArr, &QaPkgUsed{RecordId: record.Id, TimeLength: balanceTime})
+
+			return qaPkgUsedArr, nil
 		} else {
 			recordInfo := map[string]interface{}{
 				"LeftTime": 0,
@@ -46,8 +61,11 @@ func HandleUserQaPkgTime(userId int64, timeLength int64) error {
 			}
 			models.UpdateQaPkgPurchaseRecord(record.Id, recordInfo)
 			balanceTime = balanceTime - record.LeftTime
+
+			qaPkgUsedArr = append(qaPkgUsedArr, &QaPkgUsed{RecordId: record.Id, TimeLength: record.LeftTime})
+
 			continue
 		}
 	}
-	return nil
+	return qaPkgUsedArr, nil
 }
