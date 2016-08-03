@@ -73,7 +73,7 @@ func HandleSessionExpense(sessionId, studentTradeId, teacherTradeId int64, qaPkg
 		balance := float64(studentTradeRecord.Balance) / 100.0
 		balanceInfo = fmt.Sprintf("答疑时间剩余%d分钟,钱包余额剩余%.2f元",
 			qapkgService.GetLeftQaTimeLength(session.Creator), balance)
-		payMoney := float64((-studentTradeRecord.TradeAmount) / 100.0)
+		payMoney := float64(-studentTradeRecord.TradeAmount) / 100.0
 		comment += fmt.Sprintf("使用钱包支付%.2f元,", payMoney)
 
 	case studentTradeRecord.TradeAmount < 0 && studentTradeRecord.QapkgTimeLength == 0:
