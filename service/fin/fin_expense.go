@@ -69,7 +69,7 @@ func HandleSessionExpense(sessionId, studentTradeId, teacherTradeId int64, qaPkg
 		expenseType = "both"
 		totalPrice, comment = handleUsedQaPkgs(qaPkgUsed)
 		totalPrice += (-studentTradeRecord.TradeAmount)
-		effectivePriceHourly = totalPrice / lengthMinute
+		effectivePriceHourly = totalPrice * 60 / lengthMinute
 		balance := float64(studentTradeRecord.Balance) / 100.0
 		balanceInfo = fmt.Sprintf("答疑时间剩余%d分钟,钱包余额剩余%.2f元",
 			qapkgService.GetLeftQaTimeLength(session.Creator), balance)
@@ -86,7 +86,7 @@ func HandleSessionExpense(sessionId, studentTradeId, teacherTradeId int64, qaPkg
 	case studentTradeRecord.TradeAmount == 0 && studentTradeRecord.QapkgTimeLength < 0:
 		expenseType = "qapkg"
 		totalPrice, comment = handleUsedQaPkgs(qaPkgUsed)
-		effectivePriceHourly = totalPrice / lengthMinute
+		effectivePriceHourly = totalPrice * 60 / lengthMinute
 		balanceInfo = fmt.Sprintf("答疑时间剩余%d分钟", qapkgService.GetLeftQaTimeLength(session.Creator))
 	}
 
