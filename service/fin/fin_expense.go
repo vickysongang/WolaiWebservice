@@ -41,7 +41,7 @@ func HandleSessionExpense(sessionId, studentTradeId, teacherTradeId int64, qaPkg
 
 	length := session.Length
 	if length <= 0 {
-		length = 0
+		return errors.New("上课未计时")
 	}
 
 	if length > 0 && length < 60 {

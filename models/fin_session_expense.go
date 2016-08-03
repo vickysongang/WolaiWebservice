@@ -23,8 +23,8 @@ type FinSessionExpense struct {
 	TotalSalary          int64     `json:"totalSalary"`
 	BalanceInfo          string    `json:"balanceInfo"`
 	Comment              string    `json:"comment" orm:"type(longtext)"`
-	CreateTime           time.Time `json:"-"`
-	LastUpdateTime       time.Time `json:"-"`
+	CreateTime           time.Time `json:"-" orm:"auto_now_add;type(datetime)"`
+	LastUpdateTime       time.Time `json:"-" orm:"type(datetime)"`
 }
 
 func init() {
