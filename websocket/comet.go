@@ -717,23 +717,12 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 		if UserManager.IsUserBusyInSession(order.Creator) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
-			if OrderManager.IsOrderOnline(orderId) {
-				OrderManager.SetOrderCancelled(orderId)
-				orderChan <- quitMsg
-				OrderManager.SetOffline(orderId)
-			}
 			return resp, nil
 		}
 
 		if UserManager.IsUserBusyInSession(msg.UserId) {
 			resp.Attribute["errCode"] = "2"
 			resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
-
-			if OrderManager.IsOrderOnline(orderId) {
-				OrderManager.SetOrderCancelled(orderId)
-				orderChan <- quitMsg
-				OrderManager.SetOffline(orderId)
-			}
 			return resp, nil
 		}
 
