@@ -137,7 +137,7 @@ func handleUsedQaPkgs(qaPkgUsed []*qapkgService.QaPkgUsed) (int64, string) {
 		timeFormat := "2006-01-02 15:04"
 		switch qaPkg.Type {
 		case models.QA_PKG_TYPE_MONTHLY:
-			comment += fmt.Sprintf("使用%d分钟-%个月%s(购买记录Id:%d,购买时间：%s)支付%d分钟,", qaPkg.TimeLength, qaPkg.Month,
+			comment += fmt.Sprintf("使用%d分钟-%d个月%s(购买记录Id:%d,购买时间：%s)支付%d分钟,", qaPkg.TimeLength, qaPkg.Month,
 				qaPkgModule.Name, qaPkgRecord.Id, qaPkgRecord.CreateTime.Format(timeFormat), r.TimeLength)
 
 		case models.QA_PKG_TYPE_PERMANENT:
