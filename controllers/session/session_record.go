@@ -1,7 +1,6 @@
 package session
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -69,12 +68,8 @@ func GetUserSessionRecord(userId int64, page, count int64) (int64, []*sessionRec
 			}
 		}
 		var mediaComment string
-		if session.MediaInfo != "" {
-			var medias []string
-			err = json.Unmarshal([]byte(session.MediaInfo), &medias)
-			if err == nil && len(medias) > 0 {
-				mediaComment = "白板可回放"
-			}
+		if session.MediaInfo != "" && len(session.MediaInfo) > 0 {
+			mediaComment = "白板可回放"
 		}
 
 		record := sessionRecord{
