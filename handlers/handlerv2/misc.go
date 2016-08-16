@@ -180,3 +180,45 @@ func VersionUpgrade(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response.NewResponse(status, "", content))
 	}
 }
+
+// 10.2.6
+func GetQiniuDownloadUrl(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+	vars := r.Form
+	mediaId := vars["uid"][0]
+	var width, height int64
+	if len(vars["w"]) > 0 {
+		widthStr := vars["w"][0]
+		width, err = strconv.ParseInt(widthStr, 10, 64)
+	}
+	if len(vars["h"]) > 0 {
+		heightStr := vars["h"][0]
+		height, err = strconv.ParseInt(heightStr, 10, 64)
+	}
+	content, err := miscController.GetQiniuDownloadUrl(mediaId, width, height)
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	}
+}
+
+// 10.2.7
+func GetQiniuUploadToken(w http.ResponseWriter, r *http.Request) {
+	defer response.ThrowsPanicException(w, response.NullObject)
+	err := r.ParseForm()
+	if err != nil {
+		seelog.Error(err.Error())
+	}
+
+	content, err := miscController.GetQiniuUploadToken()
+	if err != nil {
+		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
+	} else {
+		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	}
+}

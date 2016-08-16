@@ -17,7 +17,7 @@ import (
 
 // 6.1.1
 func SessionInfo(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullSlice)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -81,7 +81,7 @@ func SessionUserRecord(w http.ResponseWriter, r *http.Request) {
 
 // 6.1.3
 func CourseSessionInfo(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullSlice)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -108,7 +108,7 @@ func CourseSessionInfo(w http.ResponseWriter, r *http.Request) {
 
 // 6.1.4
 func SessionMediaInfoUpdate(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullSlice)
+	defer response.ThrowsPanicException(w, response.NullObject)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -152,7 +152,7 @@ func SessionSeekHelp(w http.ResponseWriter, r *http.Request) {
 
 // 6.2.2
 func SessionQACardCatalog(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -177,7 +177,7 @@ func SessionQACardCatalog(w http.ResponseWriter, r *http.Request) {
 
 // 6.2.2
 func SessionQACardFetch(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())

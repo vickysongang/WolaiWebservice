@@ -1,10 +1,15 @@
 package misc
 
 import (
+	"WolaiWebservice/config"
 	"WolaiWebservice/config/settings"
 	"WolaiWebservice/models"
 	miscService "WolaiWebservice/service/misc"
 	"errors"
+	"fmt"
+
+	"qiniupkg.com/api.v7/conf"
+	"qiniupkg.com/api.v7/kodo"
 )
 
 type UpgradeConfig struct {
@@ -106,4 +111,26 @@ func VersionUpgrade(deviceType string, version int64) (int64, *UpgradeConfig, er
 		}
 	}
 	return 0, &config, nil
+}
+
+func GetQiniuDownloadUrl(mediaId string, width, height int64) (string, error) {
+	domain := config.Env.Qiniu.Domain
+	downloadUrl := domain + "/" + mediaId
+	if width != 0 && height != 0 {
+		downloadUrl += fmt.Sprintf("?imageView2/0/w/%d/h/%d", width, height)
+	}
+	return downloadUrl, nil
+}
+
+func GetQiniuUploadToken() (string, error) {
+	bucket := config.Env.Qiniu.Bucket
+	c := kodo.New(0, nil)
+	conf.ACCESS_KEY = config.Env.Qiniu.AccessKey
+	conf.SECRET_KEY = config.Env.Qiniu.SecretKey
+	policy := &kodo.PutPolicy{
+		Scope:   bucket,
+		Expires: 3600,
+	}
+	token := c.MakeUptoken(policy)
+	return token, nil
 }
