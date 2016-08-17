@@ -212,10 +212,9 @@ func GetQiniuUploadToken(w http.ResponseWriter, r *http.Request) {
 		seelog.Error(err.Error())
 	}
 
-	content, err := miscController.GetQiniuUploadToken()
-	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
-	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
+	content, _ := miscController.GetQiniuUploadToken()
+	result := map[string]string{
+		"token": content,
 	}
+	json.NewEncoder(w).Encode(result)
 }
