@@ -60,7 +60,7 @@ func CourseHomePage(w http.ResponseWriter, r *http.Request) {
 
 // 9.1.3
 func CourseModuleAll(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -99,7 +99,7 @@ func CourseModuleAll(w http.ResponseWriter, r *http.Request) {
 
 // 9.2.1
 func CourseListStudent(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -136,7 +136,7 @@ func CourseListStudent(w http.ResponseWriter, r *http.Request) {
 
 // 9.2.2
 func CourseListTeacher(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -173,7 +173,7 @@ func CourseListTeacher(w http.ResponseWriter, r *http.Request) {
 
 // 9.2.3  新版学生课程列表
 func CourseListStudentUpgrade(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -210,7 +210,7 @@ func CourseListStudentUpgrade(w http.ResponseWriter, r *http.Request) {
 
 // 9.2.4 新版导师课程列表
 func CourseListTeacherUpgrade(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -604,7 +604,7 @@ func CourseActionNextChapterUpgrade(w http.ResponseWriter, r *http.Request) {
 
 // 9.5.1
 func CourseAttachs(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -631,7 +631,7 @@ func CourseAttachs(w http.ResponseWriter, r *http.Request) {
 
 // 9.5.2
 func CourseChapterAttachs(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
@@ -683,7 +683,7 @@ func CourseCountOfConversation(w http.ResponseWriter, r *http.Request) {
 
 // 9.6.2
 func CourseListStudentOfConversation(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())
