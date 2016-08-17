@@ -118,6 +118,10 @@ func GetQiniuDownloadUrl(mediaId string, width, height int64) (string, error) {
 	downloadUrl := domain + "/" + mediaId
 	if width != 0 && height != 0 {
 		downloadUrl += fmt.Sprintf("?imageView2/0/w/%d/h/%d", width, height)
+	}else width != 0 && height == 0{
+		downloadUrl += fmt.Sprintf("?imageView2/0/w/%d", width)
+	}else width == 0 && height != 0{
+		downloadUrl += fmt.Sprintf("?imageView2/0/h/%d", height)
 	}
 	return downloadUrl, nil
 }
