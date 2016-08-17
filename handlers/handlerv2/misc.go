@@ -199,12 +199,9 @@ func GetQiniuDownloadUrl(w http.ResponseWriter, r *http.Request) {
 		heightStr := vars["h"][0]
 		height, err = strconv.ParseInt(heightStr, 10, 64)
 	}
-	content, err := miscController.GetQiniuDownloadUrl(mediaId, width, height)
-	if err != nil {
-		json.NewEncoder(w).Encode(response.NewResponse(2, err.Error(), response.NullObject))
-	} else {
-		json.NewEncoder(w).Encode(response.NewResponse(0, "", content))
-	}
+	content, _ := miscController.GetQiniuDownloadUrl(mediaId, width, height)
+
+	http.Redirect(w, r, content, http.StatusFound)
 }
 
 // 10.2.7
