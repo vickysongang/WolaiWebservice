@@ -124,9 +124,9 @@ func GetQiniuDownloadUrl(mediaId string, width, height int64) (string, error) {
 
 func GetQiniuUploadToken() (string, error) {
 	bucket := config.Env.Qiniu.Bucket
-	c := kodo.New(0, nil)
 	conf.ACCESS_KEY = config.Env.Qiniu.AccessKey
 	conf.SECRET_KEY = config.Env.Qiniu.SecretKey
+	c := kodo.New(0, nil)
 	policy := &kodo.PutPolicy{
 		Scope:   bucket,
 		Expires: 3600,
