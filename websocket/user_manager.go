@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"WolaiWebservice/models"
-	"sync"
 	"time"
 
 	seelog "github.com/cihub/seelog"
@@ -20,8 +19,6 @@ type UserStatusManager struct {
 	UserSessionLiveMap map[int64]map[int64]bool // userId to sessionId
 
 	KickoutMap map[int64]bool //userId to kickoutFlag
-
-	lock sync.Mutex
 }
 
 var UserManager UserStatusManager
@@ -151,8 +148,6 @@ func (usm *UserStatusManager) RemoveUserSession(sessionId int64, teacherId int64
  * 判断用户是否正在与他人上课
  */
 func (usm *UserStatusManager) IsUserBusyInSession(userId int64) bool {
-	usm.lock.Lock()
-	defer usm.lock.Unlock()
 	if sessionLiveMap, ok := usm.UserSessionLiveMap[userId]; ok {
 		if len(sessionLiveMap) > 0 {
 			return true
