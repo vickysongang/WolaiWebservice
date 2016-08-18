@@ -156,7 +156,7 @@ func UserGreeting(w http.ResponseWriter, r *http.Request) {
 
 // 2.1.5
 func UserNotification(w http.ResponseWriter, r *http.Request) {
-	defer response.ThrowsPanicException(w, response.NullObject)
+	defer response.ThrowsPanicException(w, response.NullSlice)
 	err := r.ParseForm()
 	if err != nil {
 		seelog.Error(err.Error())

@@ -153,7 +153,7 @@ func GetCourseSessionInfo(sessionId int64, userId int64) (int64, *courseSessionI
 			isCompleted = false
 		}
 
-		evaluationApply, _ := evaluationService.GetEvaluationApply(chapter.TeacherId, chapter.Id, recordId)
+		evaluationApply, _ := evaluationService.GetEvaluationApply(0, chapter.Id, recordId)
 		if evaluationApply.Id != 0 {
 			evaluationStatus = evaluationApply.Status
 			if evaluationApply.Status == models.EVALUATION_APPLY_STATUS_CREATED {

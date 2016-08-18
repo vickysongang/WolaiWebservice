@@ -215,7 +215,7 @@ func queryCourseCustomChapterStatus(courseId, current, userId, teacherId, record
 		} else {
 			status.Status = COURSE_CHAPTER_STATUS_IDLE
 		}
-		evaluationApply, _ := evaluationService.GetEvaluationApply(teacherId, chapter.Id, 0)
+		evaluationApply, _ := evaluationService.GetEvaluationApply(0, chapter.Id, recordId)
 		if evaluationApply.Id != 0 {
 			status.EvaluationStatus = evaluationApply.Status
 			if evaluationApply.Status == models.EVALUATION_APPLY_STATUS_CREATED {

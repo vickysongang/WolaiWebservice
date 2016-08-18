@@ -97,6 +97,26 @@ var miscRoutes = route.Routes{
 		false,
 	},
 
+	// 10.2.6
+	route.Route{
+		"GetQiniuDownloadUrl",
+		"GET",
+		"/qiniu/url/download",
+		handlerv2.GetQiniuDownloadUrl,
+		false,
+		false,
+	},
+
+	// 10.2.7
+	route.Route{
+		"GetQiniuUploadToken",
+		"POST",
+		"/qiniu/token/upload",
+		handlerv2.GetQiniuUploadToken,
+		false,
+		true,
+	},
+
 	route.Route{
 		"Dummy",
 		"GET",

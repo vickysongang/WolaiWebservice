@@ -22,6 +22,7 @@ type EnvironmentConf struct {
 	LeanCloud leancloudConf
 	Pingpp    pingppConf
 	SendCloud sendcloudConf
+	Qiniu     qiniuConfig
 }
 
 //加载系统使用到的配置信息
@@ -96,4 +97,11 @@ type sendcloudConf struct {
 	SmsKey     string
 	AppKey     string
 	IosPush    string
+}
+
+type qiniuConfig struct {
+	Domain    string
+	Bucket    string
+	AccessKey string
+	SecretKey string
 }

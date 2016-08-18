@@ -14,4 +14,5 @@ go get github.com/go-sql-driver/mysql
 go get github.com/pingplusplus/pingpp-go/pingpp
 go get github.com/satori/go.uuid
 go get gopkg.in/redis.v3
+go get qiniupkg.com/api.v7
 ```

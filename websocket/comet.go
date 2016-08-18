@@ -485,7 +485,7 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 	if !OrderManager.IsOrderOnline(orderId) {
 		resp.Attribute["errCode"] = "2"
-		resp.Attribute["errMsg"] = "订单状态已变"
+		resp.Attribute["errMsg"] = "订单已失效"
 		return resp, nil
 	}
 
@@ -716,24 +716,17 @@ func orderMessageHandler(msg WSMessage, user *models.User, timestamp int64) (WSM
 
 		if UserManager.IsUserBusyInSession(order.Creator) {
 			resp.Attribute["errCode"] = "2"
+			resp.Attribute["status"] = "active" //用来控制如果学生正在上课中，老师点击接单后该但仍活跃不会变成已失效
 			resp.Attribute["errMsg"] = "学生有另外一堂课程正在进行中"
-			if OrderManager.IsOrderOnline(orderId) {
-				OrderManager.SetOrderCancelled(orderId)
-				orderChan <- quitMsg
-				OrderManager.SetOffline(orderId)
-			}
+			OrderManager.SetOrderLocked(orderId, false)
 			return resp, nil
 		}
 
 		if UserManager.IsUserBusyInSession(msg.UserId) {
 			resp.Attribute["errCode"] = "2"
+			resp.Attribute["status"] = "active"
 			resp.Attribute["errMsg"] = "老师有另外一堂课程正在进行中"
-
-			if OrderManager.IsOrderOnline(orderId) {
-				OrderManager.SetOrderCancelled(orderId)
-				orderChan <- quitMsg
-				OrderManager.SetOffline(orderId)
-			}
+			OrderManager.SetOrderLocked(orderId, false)
 			return resp, nil
 		}
 
